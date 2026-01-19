@@ -27,9 +27,9 @@ export function SidebarOpenTabs() {
         return (
           <div
             key={tab.id}
-            className={`flex items-center gap-2 w-full px-3 py-1.5 text-sm rounded-md transition-colors group ${
+            className={`flex items-center gap-2 w-full h-control-h px-3 text-sm rounded-md transition-colors group ${
               isActive
-                ? 'bg-blue-50 text-blue-700'
+                ? 'bg-[#DEE7F1] text-[#003876]'
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
           >

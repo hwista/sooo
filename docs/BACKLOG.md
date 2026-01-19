@@ -340,6 +340,71 @@ const form = useForm({
 
 ---
 
+### Phase 5: 디자인 시스템 표준화 ✅
+
+| # | 태스크 | 상태 | 설명 |
+|---|--------|------|------|
+| 17 | 디자인 토큰 정의 | ✅ | 색상, 폰트, 아이콘, 버튼 크기 표준 (완료: 2026-01-19) |
+| 18 | 타이포그래피 스타일 정의 | ✅ | H1, H2, H3, body-text 클래스 (완료: 2026-01-19) |
+| 19 | 버튼 컴포넌트 표준화 | ✅ | primary/secondary 색상, 40px 높이 (완료: 2026-01-19) |
+| 20 | 디자인 시스템 문서 | ✅ | design-system.md 생성 (완료: 2026-01-19) |
+| 21 | 기존 컴포넌트 적용 | ✅ | 전체 컴포넌트 스타일 업데이트 (완료: 2026-01-19) |
+
+**디자인 시스템 개요 (2026-01-19):**
+
+**문제점:**
+- 컴포넌트별로 폰트 크기, 색상, 아이콘 크기가 상이함
+- 버튼 높이가 통일되지 않음 (h-9, h-10 혼용)
+- 긴 텍스트 처리가 일관성 없음
+- 행위별 버튼 색상 규칙이 명확하지 않음
+
+**해결 방안:**
+```
+디자인 토큰 정의 + 유틸리티 클래스 + 문서화
+```
+
+**1. 디자인 토큰 (tailwind.config.ts):**
+```typescript
+fontSize: {
+  'h1': ['1.75rem', { lineHeight: '2.25rem', fontWeight: '700' }],  // 28px
+  'h2': ['1.5rem', { lineHeight: '2rem', fontWeight: '600' }],       // 24px
+  'h3': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],   // 20px
+  'body': ['0.875rem', { lineHeight: '1.5rem', fontWeight: '400' }], // 14px
+},
+spacing: {
+  'icon-h1': '1.75rem',  // 28px
+  'icon-h2': '1.5rem',   // 24px
+  'icon-h3': '1.25rem',  // 20px
+  'icon-body': '1rem',   // 16px
+  'button-h': '2.5rem',  // 40px
+}
+```
+
+**2. 유틸리티 클래스 (globals.css):**
+- `.heading-1`, `.heading-2`, `.heading-3` - 제목 스타일
+- `.body-text`, `.body-text-muted` - 본문 스타일
+- `.icon-h1`, `.icon-h2`, `.icon-h3`, `.icon-body` - 아이콘 크기
+- `.text-ellipsis-line`, `.text-ellipsis-multi` - 텍스트 오버플로우
+
+**3. 버튼 색상 체계:**
+| 변형 | 색상 | 용도 |
+|------|------|------|
+| **default** | 파란색 (Primary) | 생성, 저장, 확인 등 주요 액션 |
+| **secondary** | 회색 | 일반 작업, 취소, 닫기 |
+| **outline** | 테두리 | 필터, 정렬, 보조 액션 |
+| **destructive** | 빨간색 | 삭제, 위험한 작업 |
+
+**적용 현황:**
+- ✅ PageHeader, FormComponents, ListPageTemplate
+- ✅ DataTable, Pagination, StateDisplay
+- ✅ MainSidebar, ContentArea, AppLayout
+- ✅ 로그인 페이지, 고객요청 페이지
+
+**관련 문서:**
+- [design-system.md](./ui-design/design-system.md) - 상세 가이드 및 코드 예시
+
+---
+
 ### 요청(Request) 메뉴 상세 구조 (2026-01-19)
 
 > 실제 프로젝트 기반 메뉴 설계 (요청 → 제안 → 계약 → 실행 흐름의 시작점)
@@ -701,6 +766,9 @@ npx playwright install
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-19 | **Phase 5**: 디자인 시스템 표준화 완료 (타이포그래피, 아이콘, 버튼) |
+| 2026-01-19 | Git 저장소 최초 커밋 및 푸시 (https://github.com/hwista/sooo.git) |
+| 2026-01-19 | **Phase 4**: 페이지 보안 및 라우팅 강화 완료 |
 | 2026-01-19 | 라우팅 구조 설계 완료 (Route Groups: auth/main) |
 | 2026-01-19 | 프론트엔드 레이아웃 컴포넌트 구현 완료 (타입, 스토어, 컴포넌트) |
 | 2026-01-19 | UserFavorite 모델 추가 (cm_user_favorite_r 테이블) |

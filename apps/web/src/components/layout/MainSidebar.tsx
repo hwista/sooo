@@ -89,7 +89,7 @@ export function MainSidebar() {
         {/* 사이드바 접기/펼치기 버튼 */}
         <div className="flex items-center justify-between h-12 px-2 border-b border-gray-100">
           {!isCollapsed && (
-            <span className="font-bold text-lg text-gray-800 pl-2">SSOO</span>
+            <span className="font-bold text-h3 text-gray-800 pl-2">SSOO</span>
           )}
           <button
             onClick={toggleCollapse}

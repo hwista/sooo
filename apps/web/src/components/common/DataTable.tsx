@@ -238,7 +238,7 @@ export function DataTable<TData, TValue>({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
-                  컬럼 <ChevronDown className="ml-2 h-4 w-4" />
+                  컨럼 <ChevronDown className="ml-2 icon-body" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -395,7 +395,7 @@ export function createSortableHeader<TData>(label: string) {
       onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
     >
       {label}
-      <ArrowUpDown className="ml-2 h-4 w-4" />
+      <ArrowUpDown className="ml-2 icon-body" />
     </Button>
   );
 }
@@ -423,7 +423,7 @@ export function createActionsColumn<TData>(
               onClick={(e) => e.stopPropagation()}
             >
               <span className="sr-only">메뉴 열기</span>
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="icon-body" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

@@ -71,7 +71,7 @@ export function PageHeader({
     <div className={cn('space-y-1', className)}>
       {/* 브레드크럼 */}
       {breadcrumb && breadcrumb.length > 0 && (
-        <nav className="flex items-center text-sm text-muted-foreground">
+        <nav className="flex items-center body-text-muted">
           <Home className="h-3.5 w-3.5" />
           {breadcrumb.map((item, index) => {
             const label = typeof item === 'string' ? item : item.label;
@@ -92,9 +92,9 @@ export function PageHeader({
       {/* 제목 및 액션 영역 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="heading-1">{title}</h1>
           {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            <p className="body-text-muted mt-1">{description}</p>
           )}
         </div>
 

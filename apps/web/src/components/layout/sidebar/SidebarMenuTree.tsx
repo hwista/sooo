@@ -62,7 +62,7 @@ function MenuTreeNode({ item, level }: MenuTreeNodeProps) {
     <div>
       <div
         onClick={handleClick}
-        className={`flex items-center gap-1 w-full px-2 py-1.5 text-sm rounded-md transition-colors cursor-pointer group hover:bg-gray-100`}
+        className={`flex items-center gap-1 w-full h-control-h px-2 text-sm rounded-md transition-colors cursor-pointer group hover:bg-gray-100`}
         style={{ paddingLeft: `${8 + level * 16}px` }}
       >
         {/* 폴더 확장/축소 아이콘 */}

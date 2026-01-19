@@ -13,6 +13,7 @@
 - [프로젝트 구조](#-프로젝트-구조)
 - [시작하기](#-시작하기)
 - [개발 명령어](#-개발-명령어)
+- [디자인 시스템](#-디자인-시스템)
 - [아키텍처 결정](#-아키텍처-결정)
 - [문서](#-문서)
 
@@ -143,8 +144,8 @@ hwista-ssoo/
 
 ```bash
 # 저장소 클론
-git clone <repository-url>
-cd hwista-ssoo
+git clone https://github.com/hwista/sooo.git
+cd sooo
 
 # pnpm 설치 (없는 경우)
 npm install -g pnpm
@@ -392,11 +393,54 @@ pnpm --filter @ssoo/database build
 
 | 문서 | 경로 | 설명 |
 |------|------|------|
+| **개발 가이드** | [docs/SETUP.md](docs/SETUP.md) | 개발 환경 설정 가이드 |
+| **진행 상황** | [docs/BACKLOG.md](docs/BACKLOG.md) | Phase별 태스크 및 완료 현황 |
+| **UI 설계** | [docs/ui-design/README.md](docs/ui-design/README.md) | 페이지 레이아웃, 보안, 디자인 시스템 |
+| **디자인 시스템** | [docs/ui-design/design-system.md](docs/ui-design/design-system.md) | 타이포그래피, 색상, 버튼 표준 |
 | 서비스 정의 | [docs/README.md](docs/README.md) | 서비스 컨셉, 핵심 개념, MVP 로드맵 |
 | DB 설계 규칙 | [docs/database/rules.md](docs/database/rules.md) | 테이블 네이밍, 컬럼 규칙 |
 | DB 접속 정보 | [docs/database/README.md](docs/database/README.md) | 개발/운영 DB 접속 정보 |
 | 업무 흐름 | [docs/service/workflows/](docs/service/workflows/) | 프로젝트 라이프사이클, 인증 흐름 등 |
 | 액션 명세 | [docs/service/actions/](docs/service/actions/) | 로그인, 프로젝트 관리 등 상세 명세 |
+
+---
+
+## 🎨 디자인 시스템
+
+> 일관된 UI/UX를 위한 디자인 표준
+
+### 타이포그래피
+
+| 레벨 | 크기 | 가중치 | 용도 | 클래스명 |
+|------|------|----------|------|----------|
+| **H1** | 28px | Bold | 페이지 제목 | `heading-1` |
+| **H2** | 24px | Semibold | 섹션 제목 | `heading-2` |
+| **H3** | 20px | Semibold | 하위 제목 | `heading-3` |
+| **Body** | 14px | Regular | 본문 | `body-text` |
+
+### 아이콘 크기
+
+각 텍스트 레벨에 맞는 아이콘 크기를 사용합니다:
+- H1용: `icon-h1` (28px)
+- H2용: `icon-h2` (24px)
+- H3용: `icon-h3` (20px)
+- Body용: `icon-body` (16px)
+
+### 버튼 색상 체계
+
+| 변형 | 색상 | 용도 |
+|------|------|------|
+| **Primary** | 파란색 | 생성, 저장, 확인 등 주요 액션 |
+| **Secondary** | 회색 | 취소, 닫기, 일반 작업 |
+| **Outline** | 테두리 | 필터, 정렬 등 보조 액션 |
+| **Destructive** | 빨간색 | 삭제, 위험한 작업 |
+
+**표준 버튼 높이**: 40px (`h-button-h`)
+
+### 관련 문서
+
+- [디자인 시스템 가이드](docs/ui-design/design-system.md) - 상세 가이드 및 코드 예시
+- [UI Design 문서](docs/ui-design/README.md) - 전체 UI 설계 문서
 
 ---
 

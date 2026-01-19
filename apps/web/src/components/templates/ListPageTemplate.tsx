@@ -144,13 +144,13 @@ export function ListPageTemplate<TData, TValue>({
               <div className="flex gap-2 pb-0.5">
                 {onSearch && (
                   <Button onClick={onSearch}>
-                    <Search className="mr-2 h-4 w-4" />
+                    <Search className="icon-body" />
                     검색
                   </Button>
                 )}
                 {onFilterReset && (
                   <Button variant="outline" onClick={onFilterReset}>
-                    <RotateCcw className="mr-2 h-4 w-4" />
+                    <RotateCcw className="icon-body" />
                     초기화
                   </Button>
                 )}

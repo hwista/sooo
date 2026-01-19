@@ -53,7 +53,7 @@ export default function LoginPage() {
 
       {/* Login Form */}
       <div className="bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">로그인</h2>
+        <h2 className="heading-2 text-gray-900 mb-6">로그인</h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Error Message */}
@@ -73,7 +73,7 @@ export default function LoginPage() {
               type="text"
               id="loginId"
               autoComplete="username"
-              className="w-full px-4 py-2 border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-input outline-none transition-colors bg-background"
+              className="w-full h-control-h px-4 border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-input outline-none transition-colors bg-background text-sm"
               placeholder="아이디를 입력하세요"
             />
             {errors.loginId && (
@@ -91,7 +91,7 @@ export default function LoginPage() {
               type="password"
               id="password"
               autoComplete="current-password"
-              className="w-full px-4 py-2 border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-input outline-none transition-colors bg-background"
+              className="w-full h-control-h px-4 border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-input outline-none transition-colors bg-background text-sm"
               placeholder="비밀번호를 입력하세요"
             />
             {errors.password && (
@@ -103,7 +103,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-medium py-2.5 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="w-full h-control-h bg-primary hover:bg-secondary disabled:bg-primary/50 text-primary-foreground font-medium px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             {isLoading ? '로그인 중...' : '로그인'}
           </button>

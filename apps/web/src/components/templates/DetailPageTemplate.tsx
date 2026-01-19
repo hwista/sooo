@@ -118,7 +118,7 @@ export function DetailPageTemplate({
       {sections.map((section, index) => (
         <Card key={section.key}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{section.title}</CardTitle>
+            <CardTitle className="heading-3">{section.title}</CardTitle>
           </CardHeader>
           <CardContent>{section.children}</CardContent>
         </Card>

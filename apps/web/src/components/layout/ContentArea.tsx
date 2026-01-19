@@ -101,7 +101,7 @@ export function ContentArea({ children }: ContentAreaProps) {
   return (
     <div className="flex-1 overflow-auto bg-white">
       <div className="p-6">
-        <h1 className="text-xl font-semibold text-gray-800 mb-4">
+        <h1 className="heading-1 text-gray-800 mb-4">
           {activeTab.title}
         </h1>
         <p className="text-gray-500">

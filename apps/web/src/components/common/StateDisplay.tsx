@@ -65,7 +65,7 @@ export function ErrorState({
       <p className="mt-4 text-sm text-muted-foreground">{message}</p>
       {onRetry && (
         <Button variant="outline" className="mt-4" onClick={onRetry}>
-          <RefreshCw className="mr-2 h-4 w-4" />
+          <RefreshCw className="icon-body" />
           다시 시도
         </Button>
       )}
@@ -105,7 +105,7 @@ export function EmptyState({
   return (
     <div className={cn('flex flex-col items-center justify-center py-12', className)}>
       {icon || <FileX className="h-10 w-10 text-muted-foreground" />}
-      <h3 className="mt-4 text-lg font-medium">{title}</h3>
+      <h3 className="mt-4 heading-3">{title}</h3>
       {description && (
         <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
           {description}

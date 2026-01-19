@@ -112,7 +112,7 @@ export function Pagination({
           onClick={() => onPageChange(1)}
           disabled={!canGoPrevious}
         >
-          <ChevronsLeft className="h-4 w-4" />
+          <ChevronsLeft className="icon-body" />
           <span className="sr-only">첫 페이지</span>
         </Button>
         <Button
@@ -122,7 +122,7 @@ export function Pagination({
           onClick={() => onPageChange(page - 1)}
           disabled={!canGoPrevious}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="icon-body" />
           <span className="sr-only">이전 페이지</span>
         </Button>
 
@@ -139,7 +139,7 @@ export function Pagination({
           onClick={() => onPageChange(page + 1)}
           disabled={!canGoNext}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="icon-body" />
           <span className="sr-only">다음 페이지</span>
         </Button>
         <Button
@@ -149,7 +149,7 @@ export function Pagination({
           onClick={() => onPageChange(totalPages)}
           disabled={!canGoNext}
         >
-          <ChevronsRight className="h-4 w-4" />
+          <ChevronsRight className="icon-body" />
           <span className="sr-only">마지막 페이지</span>
         </Button>
       </div>

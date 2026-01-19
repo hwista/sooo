@@ -9,6 +9,21 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        'h1': ['1.75rem', { lineHeight: '2.25rem', fontWeight: '700' }],  // 28px
+        'h2': ['1.5rem', { lineHeight: '2rem', fontWeight: '600' }],       // 24px
+        'h3': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],   // 20px
+        'body': ['0.875rem', { lineHeight: '1.5rem', fontWeight: '400' }], // 14px
+      },
+      spacing: {
+        'icon-h1': '1.75rem',  // 28px - H1과 같은 크기
+        'icon-h2': '1.5rem',   // 24px - H2와 같은 크기
+        'icon-h3': '1.25rem',  // 20px - H3와 같은 크기
+        'icon-body': '1rem',   // 16px - 일반 텍스트용
+        'control-h': '2.25rem', // 36px - 표준 컨트롤 높이 (버튼, 입력, 탭 등)
+        'control-h-sm': '2rem', // 32px - 작은 컨트롤 높이
+        'control-h-lg': '2.75rem', // 44px - 큰 컨트롤 높이
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

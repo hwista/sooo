@@ -33,9 +33,9 @@ export function FormSection({
   return (
     <div className={cn('space-y-4', className)}>
       <div className="border-b pb-2">
-        <h3 className="text-lg font-medium">{title}</h3>
+        <h3 className="heading-3">{title}</h3>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="body-text-muted">{description}</p>
         )}
       </div>
       <div className="grid gap-4">{children}</div>
@@ -125,7 +125,7 @@ export function FormActions({
             onClick={onSubmit}
             disabled={loading || submitDisabled}
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Loader2 className="icon-body animate-spin" />}
             {submitLabel}
           </Button>
         )}
@@ -167,14 +167,14 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className={cn('space-y-2', className)}>
-      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+      <label className="body-text font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
         {label}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       {children}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="body-text text-destructive">{error}</p>}
       {!error && hint && (
-        <p className="text-sm text-muted-foreground">{hint}</p>
+        <p className="body-text-muted">{hint}</p>
       )}
     </div>
   );

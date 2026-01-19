@@ -25,7 +25,7 @@ export default function CustomerRequestListPage() {
         actions: [
           {
             label: '등록',
-            icon: <Plus className="h-4 w-4" />,
+            icon: <Plus className="icon-body" />,
             onClick: handleCreate,
           },
         ],

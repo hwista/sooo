@@ -47,7 +47,7 @@ export function TabBar() {
   }
 
   return (
-    <div className="h-10 flex items-center bg-gray-50 border-b border-gray-200">
+    <div className="h-control-h flex items-center bg-gray-50 border-b border-gray-200">
       {/* 왼쪽 스크롤 버튼 */}
       {showLeftArrow && (
         <button
@@ -71,9 +71,9 @@ export function TabBar() {
           return (
             <div
               key={tab.id}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 h-10 border-r border-gray-200 transition-colors cursor-pointer group ${
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 h-control-h border-r border-gray-200 transition-colors cursor-pointer group ${
                 isActive
-                  ? 'bg-white border-b-2 border-b-blue-500'
+                  ? 'bg-white border-b-2 border-b-[#003876]'
                   : 'hover:bg-gray-100'
               }`}
             >
