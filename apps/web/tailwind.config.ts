@@ -23,6 +23,7 @@ const config: Config = {
         'control-h': '2.25rem', // 36px - 표준 컨트롤 높이 (버튼, 입력, 탭 등)
         'control-h-sm': '2rem', // 32px - 작은 컨트롤 높이
         'control-h-lg': '2.75rem', // 44px - 큰 컨트롤 높이
+        'header-h': '3.75rem', // 60px - 헤더 높이 (그룹웨어 기준)
       },
       colors: {
         border: 'hsl(var(--border))',

@@ -21,14 +21,14 @@ export const BREAKPOINTS = {
  */
 export const LAYOUT_SIZES = {
   sidebar: {
-    expandedWidth: 280, // 펼친 사이드바 너비
+    expandedWidth: 340, // 펼친 사이드바 너비 (그룹웨어 기준)
     collapsedWidth: 56, // 접힌 사이드바 너비 (아이콘만)
   },
   header: {
-    height: 48, // 헤더 높이
+    height: 60, // 헤더 높이 (그룹웨어 기준)
   },
   tabBar: {
-    height: 40, // 탭바 높이
+    height: 36, // 탭바 높이 (control-h 기준)
     tabMinWidth: 120, // 탭 최소 너비
     tabMaxWidth: 200, // 탭 최대 너비
   },

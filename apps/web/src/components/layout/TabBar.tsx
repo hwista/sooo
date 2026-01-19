@@ -47,12 +47,12 @@ export function TabBar() {
   }
 
   return (
-    <div className="h-control-h flex items-center bg-gray-50 border-b border-gray-200">
+    <div className="h-[53px] flex items-end bg-gray-50 border-b border-gray-200">
       {/* 왼쪽 스크롤 버튼 */}
       {showLeftArrow && (
         <button
           onClick={() => handleScroll('left')}
-          className="flex-shrink-0 p-2 hover:bg-gray-100 transition-colors"
+          className="flex-shrink-0 h-control-h px-2 hover:bg-gray-100 transition-colors"
         >
           <ChevronLeft className="w-4 h-4 text-gray-500" />
         </button>
@@ -62,7 +62,7 @@ export function TabBar() {
       <div
         ref={scrollRef}
         onScroll={checkScrollState}
-        className="flex-1 flex items-center overflow-x-auto scrollbar-hide"
+        className="flex-1 flex items-end overflow-x-auto scrollbar-hide"
       >
         {tabs.map((tab) => {
           const IconComponent = getIconComponent(tab.icon);
@@ -112,7 +112,7 @@ export function TabBar() {
       {showRightArrow && (
         <button
           onClick={() => handleScroll('right')}
-          className="flex-shrink-0 p-2 hover:bg-gray-100 transition-colors"
+          className="flex-shrink-0 h-control-h px-2 hover:bg-gray-100 transition-colors"
         >
           <ChevronRight className="w-4 h-4 text-gray-500" />
         </button>

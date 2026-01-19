@@ -19,7 +19,9 @@
 
 ### 3. 디자인 시스템
 - [design-system.md](./design-system.md) - 디자인 시스템 가이드
-  - 색상 체계 (Primary, Secondary, Destructive)
+  - 색상 체계 (그룹웨어 기반: Primary #003876, Secondary #235a98)
+  - 레이아웃 (헤더 60px, 사이드바 340px, 탭바 53px)
+  - 컨트롤 높이 표준 (36px)
   - 타이포그래피 (H1, H2, H3, Body)
   - 아이콘 크기 표준
   - 버튼 스타일 및 크기
@@ -33,11 +35,28 @@
   - Level 3: 페이지 템플릿 (templates/)
   - Level 4: 도메인 페이지 (pages/)
 
-### 4. 디자인 시스템
-- 색상 팔레트
-- 타이포그래피
-- 간격 시스템
-- 애니메이션
+---
+
+## 🎨 디자인 토큰 요약
+
+### 레이아웃 크기
+| 요소 | 값 | 설명 |
+|------|-----|------|
+| 헤더 높이 | 60px | `h-[60px]` |
+| 사이드바 너비 (펼침) | 340px | |
+| 사이드바 너비 (접힘) | 56px | |
+| 탭바 높이 | 53px | 사이드바 검색 영역과 정렬 |
+| 컨트롤 높이 | 36px | `h-control-h` |
+
+### 색상 (그룹웨어 기준)
+| 색상 | HEX | 용도 |
+|------|-----|------|
+| Primary | `#003876` | 헤더, 브랜드, 주요 액션 |
+| Secondary | `#235a98` | 보조 액션, hover |
+| Content Border | `#9FC1E7` | 외곽 테두리, 선택 상태 |
+| Content Background | `#DEE7F1` | 사이드바 배경 |
+| Hover Background | `#F6FBFF` | 은은한 hover |
+| Internal Border | `gray-200` | 내부 구분선 |
 
 ---
 

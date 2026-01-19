@@ -83,25 +83,30 @@ export function MainSidebar() {
   return (
     <>
       <aside
-        className="fixed left-0 top-0 h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-40"
+        className="fixed left-0 top-0 h-full bg-[#DEE7F1] border-r border-[#9FC1E7] flex flex-col transition-all duration-300 z-40"
         style={{ width: sidebarWidth }}
       >
-        {/* 사이드바 접기/펼치기 버튼 */}
-        <div className="flex items-center justify-between h-12 px-2 border-b border-gray-100">
+        {/* 사이드바 헤더 - 그룹웨어 스타일 */}
+        <div className="flex items-center justify-between h-[60px] px-3 bg-[#003876]">
           {!isCollapsed && (
-            <span className="font-bold text-h3 text-gray-800 pl-2">SSOO</span>
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 bg-white rounded flex items-center justify-center">
+                <span className="text-[#003876] font-bold text-base">S</span>
+              </div>
+              <span className="font-semibold text-white text-lg">SSOO</span>
+            </div>
           )}
           <button
             onClick={toggleCollapse}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
             title={isCollapsed ? '펼치기' : '접기'}
           >
-            <Menu className="w-5 h-5 text-gray-600" />
+            <Menu className="w-5 h-5 text-white" />
           </button>
         </div>
 
         {/* 사이드바 콘텐츠 */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-[#DEE7F1]">
           {isCollapsed ? (
             // 접힌 상태: 아이콘만
             <CollapsedSidebar
@@ -123,7 +128,7 @@ export function MainSidebar() {
       {/* 플로팅 패널 */}
       {isCollapsed && activeFloatSection && (
         <div
-          className="fixed left-14 top-12 w-64 max-h-[calc(100vh-96px)] bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50"
+          className="fixed left-14 top-[60px] w-72 max-h-[calc(100vh-80px)] bg-white border border-[#9FC1E7] rounded-lg shadow-lg overflow-hidden z-50"
           onMouseEnter={() => {
             if (floatTimeoutRef.current) {
               clearTimeout(floatTimeoutRef.current);
@@ -133,18 +138,18 @@ export function MainSidebar() {
           onMouseLeave={handleMouseLeave}
         >
           {/* 헤더 */}
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-gray-50">
+          <div className="flex items-center gap-2 px-3 h-control-h border-b border-[#9FC1E7] bg-[#DEE7F1]">
             {(() => {
               const Icon = SECTION_ICONS[activeFloatSection];
-              return <Icon className="w-4 h-4 text-gray-600" />;
+              return <Icon className="w-4 h-4 text-[#003876]" />;
             })()}
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-[#003876]">
               {SIDEBAR_SECTION_LABELS[activeFloatSection]}
             </span>
           </div>
 
           {/* 내용 */}
-          <div className="overflow-y-auto max-h-[calc(100vh-144px)] p-2">
+          <div className="overflow-y-auto max-h-[calc(100vh-140px)] p-2">
             {activeFloatSection === 'search' && <SidebarSearch />}
             {activeFloatSection === 'favorites' && <SidebarFavorites />}
             {activeFloatSection === 'openTabs' && <SidebarOpenTabs />}
@@ -174,12 +179,12 @@ function CollapsedSidebar({
         return (
           <button
             key={section}
-            className="p-3 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-3 hover:bg-[#F6FBFF] rounded-lg transition-colors"
             title={SIDEBAR_SECTION_LABELS[section]}
             onMouseEnter={() => onMouseEnter(section)}
             onMouseLeave={onMouseLeave}
           >
-            <Icon className="w-5 h-5 text-gray-600" />
+            <Icon className="w-5 h-5 text-[#003876]" />
           </button>
         );
       })}
@@ -202,17 +207,17 @@ function ExpandedSidebar({
   return (
     <div className="flex flex-col">
       {/* 검색 + 새로고침 */}
-      <div className="p-2 border-b border-gray-100">
+      <div className="p-2 border-b border-gray-200">
         <div className="flex items-center gap-1">
           <SidebarSearch />
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 hover:bg-[#F6FBFF] rounded-lg transition-colors disabled:opacity-50"
             title="메뉴 새로고침"
           >
             <RefreshCw
-              className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
+              className={`w-4 h-4 text-[#003876] ${isRefreshing ? 'animate-spin' : ''}`}
             />
           </button>
         </div>
@@ -274,19 +279,19 @@ function SidebarSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-b border-gray-100">
+    <div className="border-b border-gray-200">
       <button
         onClick={onToggle}
-        className="flex items-center justify-between w-full px-3 py-2 hover:bg-gray-50 transition-colors"
+        className="flex items-center justify-between w-full px-3 py-2 hover:bg-[#F6FBFF] transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">{title}</span>
+          <Icon className="w-4 h-4 text-[#003876]" />
+          <span className="text-sm font-medium text-[#003876]">{title}</span>
         </div>
         {isExpanded ? (
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+          <ChevronDown className="w-4 h-4 text-[#003876]" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <ChevronRight className="w-4 h-4 text-[#003876]" />
         )}
       </button>
       {isExpanded && <div className="pb-2">{children}</div>}

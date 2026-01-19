@@ -4,11 +4,13 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 
 ## 목차
 1. [색상 체계](#색상-체계)
-2. [타이포그래피](#타이포그래피)
-3. [아이콘 크기](#아이콘-크기)
-4. [버튼](#버튼)
-5. [간격 및 레이아웃](#간격-및-레이아웃)
-6. [사용 예시](#사용-예시)
+2. [레이아웃](#레이아웃)
+3. [타이포그래피](#타이포그래피)
+4. [아이콘 크기](#아이콘-크기)
+5. [컨트롤 높이 표준](#컨트롤-높이-표준)
+6. [버튼](#버튼)
+7. [간격 및 레이아웃](#간격-및-레이아웃)
+8. [사용 예시](#사용-예시)
 
 ---
 
@@ -84,6 +86,115 @@ hover:bg-[#DEE7F1]
 ```css
 text-[#016CA2]
 hover:underline
+```
+
+---
+
+## 레이아웃
+
+> 📐 그룹웨어와 일관된 레이아웃 구조를 사용합니다.
+
+### 헤더
+
+| 속성 | 값 | 설명 |
+|------|-----|------|
+| **높이** | 60px | `h-[60px]` 또는 `h-header-h` |
+| **배경색** | `#003876` | Primary 색상 |
+| **텍스트** | White | 아이콘, 버튼 텍스트 |
+
+> 📝 로고와 접기 버튼은 **사이드바 헤더**에만 존재합니다. 메인 헤더에는 통합 검색란이 위치합니다.
+
+```tsx
+<header className="h-[60px] bg-[#003876] flex items-center justify-between px-4">
+  {/* 왼쪽: 통합 검색 (추후 Elasticsearch/AI 챗 연동) */}
+  <div className="flex items-center flex-1 max-w-md">
+    <div className="relative w-full">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+      <input
+        type="text"
+        placeholder="통합 검색... (준비 중)"
+        disabled
+        className="w-full h-control-h pl-9 pr-4 text-sm bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50"
+      />
+    </div>
+  </div>
+  
+  {/* 오른쪽: 액션 버튼들 */}
+  <div className="flex items-center gap-2">
+    <button className="h-control-h px-3 bg-white text-[#003876] rounded-md">새 프로젝트</button>
+    <button className="hover:bg-white/10 text-white">알림</button>
+    <button className="hover:bg-white/10 text-white">프로필</button>
+  </div>
+</header>
+```
+
+### 사이드바
+
+| 속성 | 값 | 설명 |
+|------|-----|------|
+| **펼침 너비** | 340px | 그룹웨어 기준 |
+| **접힘 너비** | 56px | 아이콘만 표시 |
+| **헤더 높이** | 60px | 메인 헤더와 동일 |
+| **헤더 배경** | `#003876` | Primary |
+| **본문 배경** | `#DEE7F1` | Content Background |
+| **우측 보더** | `#9FC1E7` | 사이드바 구분선 |
+
+```tsx
+<aside 
+  className="bg-[#DEE7F1] border-r border-[#9FC1E7]" 
+  style={{ width: 340 }}
+>
+  {/* 사이드바 헤더 - 로고 + 접기 버튼 */}
+  <div className="h-[60px] bg-[#003876] flex items-center justify-between px-3">
+    <div className="flex items-center gap-2">
+      <div className="w-9 h-9 bg-white rounded flex items-center justify-center">
+        <span className="text-[#003876] font-bold">S</span>
+      </div>
+      <span className="text-white font-semibold text-lg">SSOO</span>
+    </div>
+    <button className="p-2 hover:bg-white/10 rounded-lg">
+      <Menu className="w-5 h-5 text-white" />
+    </button>
+  </div>
+  
+  {/* 콘텐츠 영역 */}
+  <div className="bg-[#DEE7F1]">
+    {/* 검색, 메뉴 등 */}
+  </div>
+</aside>
+```
+
+#### 사이드바 요소 스타일
+
+| 요소 | 클래스 | 설명 |
+|------|--------|------|
+| 외곽 보더 | `border-[#9FC1E7]` | 사이드바 우측 구분선 |
+| 섹션 보더 | `border-gray-200` | 내부 섹션 구분선 |
+| 검색란 보더 | `border-[#9FC1E7]` | 외곽 보더와 동일 |
+| 아이콘 색상 | `text-[#003876]` | Primary |
+| 텍스트 색상 | `text-[#003876]` | Primary |
+| Hover 배경 | `bg-[#F6FBFF]` | 은은한 Hover (Sitemap Background) |
+| 선택 배경 | `bg-[#9FC1E7]` | 활성화된 메뉴 항목 |
+
+### 탭바 (MDI 탭 영역)
+
+| 속성 | 값 | 설명 |
+|------|-----|------|
+| **영역 높이** | 53px | 사이드바 검색 영역과 수평 정렬 |
+| **탭 높이** | 36px (`h-control-h`) | 표준 컨트롤 높이 |
+| 탭 최소 너비 | 120px | |
+| 탭 최대 너비 | 200px | |
+| 배경색 | `bg-gray-50` | |
+| 하단 보더 | `border-gray-200` | |
+
+```tsx
+<div className="h-[53px] flex items-end bg-gray-50 border-b border-gray-200 px-2">
+  {/* 탭 버튼들 - 하단 정렬 */}
+  <button className="h-control-h px-4 flex items-center gap-2 border-t border-x rounded-t-md">
+    <span>탭 제목</span>
+    <X className="w-4 h-4" />
+  </button>
+</div>
 ```
 
 ---
@@ -491,9 +602,10 @@ export function RequestListItem({ request }) {
 
 - [ ] H1, H2, H3는 적절한 클래스(`heading-1`, `heading-2`, `heading-3`) 사용
 - [ ] 아이콘 크기가 텍스트 레벨과 일치 (`icon-h1`, `icon-h2`, `icon-h3`, `icon-body`)
-- [ ] 버튼은 표준 높이(40px) 사용
+- [ ] 버튼은 표준 높이(36px, `h-control-h`) 사용
 - [ ] **Primary(#003876)는 주요 액션, Secondary(#235a98)는 보조 액션**
-- [ ] **테두리는 #9FC1E7, Hover 배경은 #DEE7F1 또는 #F6FBFF 사용**
+- [ ] **외곽 테두리는 #9FC1E7, 내부 구분선은 gray-200**
+- [ ] **Hover 배경은 #F6FBFF (은은한), 선택 상태는 #9FC1E7**
 - [ ] 긴 텍스트는 `text-ellipsis-line` + Tooltip 처리
 - [ ] 일관된 간격 사용 (`gap-2`, `gap-4`, `gap-6`)
 - [ ] 본문 텍스트는 `body-text` 또는 `body-text-muted` 사용

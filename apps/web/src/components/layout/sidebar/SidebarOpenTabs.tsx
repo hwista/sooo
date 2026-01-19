@@ -29,8 +29,8 @@ export function SidebarOpenTabs() {
             key={tab.id}
             className={`flex items-center gap-2 w-full h-control-h px-3 text-sm rounded-md transition-colors group ${
               isActive
-                ? 'bg-[#DEE7F1] text-[#003876]'
-                : 'text-gray-700 hover:bg-gray-100'
+                ? 'bg-[#9FC1E7] text-[#003876] font-medium'
+                : 'text-gray-700 hover:bg-[#F6FBFF]'
             }`}
           >
             <button
