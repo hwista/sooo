@@ -156,3 +156,6 @@ export function Pagination({
     </div>
   );
 }
+
+// displayName for DataGrid child detection
+Pagination.displayName = 'Pagination';
