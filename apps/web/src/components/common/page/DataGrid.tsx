@@ -67,11 +67,11 @@ export function DataGrid({
     >
       {/* 테이블/차트 영역 (스크롤 가능) */}
       <div className={cn('flex-1 min-h-0', scrollable && 'overflow-auto')}>
-        {React.Children.map(children, (child, index) => {
+        {React.Children.map(children, (child) => {
           // Pagination은 마지막에 고정
           if (React.isValidElement(child)) {
-            const childType = (child.type as any)?.displayName || (child.type as any)?.name;
-            if (childType === 'Pagination') {
+            const childType = child.type as React.ComponentType & { displayName?: string };
+            if (childType?.displayName === 'Pagination' || childType?.name === 'Pagination') {
               return null; // 아래에서 별도 렌더링
             }
           }
@@ -82,8 +82,8 @@ export function DataGrid({
       {/* Pagination 고정 영역 */}
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          const childType = (child.type as any)?.displayName || (child.type as any)?.name;
-          if (childType === 'Pagination') {
+          const childType = child.type as React.ComponentType & { displayName?: string };
+          if (childType?.displayName === 'Pagination' || childType?.name === 'Pagination') {
             return (
               <div className="flex-shrink-0 border-t border-gray-100 bg-gray-50/50 px-4 py-2">
                 {child}

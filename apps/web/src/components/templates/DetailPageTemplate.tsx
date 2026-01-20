@@ -4,7 +4,6 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { PageHeader, PageHeaderProps } from '../common/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { LoadingState, ErrorState } from '../common/StateDisplay';
 
 /**
@@ -115,7 +114,7 @@ export function DetailPageTemplate({
       <PageHeader {...header} />
 
       {/* 섹션들 */}
-      {sections.map((section, index) => (
+      {sections.map((section) => (
         <Card key={section.key}>
           <CardHeader className="pb-4">
             <CardTitle className="heading-3">{section.title}</CardTitle>

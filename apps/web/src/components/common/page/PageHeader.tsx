@@ -6,7 +6,7 @@ import { ChevronUp, ChevronDown, Search, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { FilterBar } from './FilterBar';
-import type { FilterField } from './FilterBar';
+import type { FilterField, FilterValues } from './FilterBar';
 
 /**
  * 액션 버튼 정의
@@ -35,7 +35,7 @@ export interface PageHeaderProps {
   /** 검색 필터 필드 (옵션) */
   filters?: FilterField[];
   /** 검색 실행 */
-  onSearch?: (values: Record<string, any>) => void;
+  onSearch?: (values: FilterValues) => void;
   /** 검색 초기화 */
   onReset?: () => void;
   /** 접기/펼치기 가능 여부 */
@@ -46,7 +46,7 @@ export interface PageHeaderProps {
   className?: string;
 }
 
-export type { FilterField };
+export type { FilterField, FilterValues };
 
 /**
  * PageHeader 컴포넌트 (새 표준)
@@ -80,9 +80,9 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
-  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
 
-  const handleFilterChange = useCallback((key: string, value: any) => {
+  const handleFilterChange = useCallback((key: string, value: string) => {
     setFilterValues(prev => ({ ...prev, [key]: value }));
   }, []);
 

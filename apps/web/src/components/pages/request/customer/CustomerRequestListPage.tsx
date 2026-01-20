@@ -5,6 +5,7 @@ import { ListPageTemplateV2 } from '@/components/templates';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTabStore } from '@/stores';
 import { ColumnDef } from '@tanstack/react-table';
+import type { FilterValues } from '@/components/common/page/PageHeader';
 
 // 샘플 데이터 타입
 interface CustomerRequest {
@@ -103,7 +104,7 @@ export default function CustomerRequestListPage() {
     alert('선택된 항목을 삭제합니다.');
   };
 
-  const handleSearch = useCallback((values: Record<string, any>) => {
+  const handleSearch = useCallback((values: FilterValues) => {
     console.log('검색:', values);
   }, []);
 

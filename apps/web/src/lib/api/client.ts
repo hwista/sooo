@@ -80,8 +80,9 @@ apiClient.interceptors.response.use(
     }
 
     // 에러 메시지 추출
+    const errorData = error.response?.data as { message?: string } | undefined;
     const message =
-      (error.response?.data as any)?.message ||
+      errorData?.message ||
       error.message ||
       '요청 처리 중 오류가 발생했습니다.';
 

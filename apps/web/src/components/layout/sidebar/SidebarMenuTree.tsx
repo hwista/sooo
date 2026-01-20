@@ -4,7 +4,6 @@ import { useMenuStore, useSidebarStore, useTabStore } from '@/stores';
 import { MenuItem } from '@/types';
 import { ChevronRight, Folder, FolderOpen, FileText, Star } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
-import { useRouter } from 'next/navigation';
 
 interface MenuTreeNodeProps {
   item: MenuItem;
@@ -15,7 +14,6 @@ interface MenuTreeNodeProps {
  * 메뉴 트리 노드
  */
 function MenuTreeNode({ item, level }: MenuTreeNodeProps) {
-  const router = useRouter();
   const { expandedMenuIds, toggleMenuExpand } = useSidebarStore();
   const { isFavorite, addFavorite, removeFavorite } = useMenuStore();
   const { openTab, tabs, activeTabId } = useTabStore();

@@ -4,7 +4,7 @@ import { ReactNode, Suspense, lazy } from 'react';
 import { useTabStore } from '@/stores';
 
 // 페이지 컴포넌트 동적 import (Next.js 라우팅에서 제외됨)
-const pageComponents: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
+const pageComponents: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   '/request/customer': lazy(() => import('@/components/pages/request/customer/CustomerRequestListPage')),
   '/request/customer/create': lazy(() => import('@/components/pages/request/customer/CustomerRequestCreatePage')),
 };

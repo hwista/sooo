@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { menusApi } from '@/lib/api';
-import type { MyMenuResponse, MenuItem, FavoriteMenu } from '@/lib/api/endpoints/menus';
+import type { MyMenuResponse } from '@/lib/api/endpoints/menus';
 import type { ApiResponse } from '@/lib/api/types';
 
 /**

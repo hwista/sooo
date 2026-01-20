@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { requiredString, requiredEmail } from './common';
+import { requiredString } from './common';
 
 /**
  * 인증 관련 유효성 검증 스키마

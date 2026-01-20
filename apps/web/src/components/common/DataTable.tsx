@@ -387,8 +387,8 @@ export function DataTable<TData, TValue>({
 /**
  * 정렬 가능한 헤더를 생성하는 유틸리티 함수
  */
-export function createSortableHeader<TData>(label: string) {
-  return ({ column }: { column: { toggleSorting: (desc?: boolean) => void; getIsSorted: () => 'asc' | 'desc' | false } }) => (
+export function createSortableHeader(label: string) {
+  const SortableHeader = ({ column }: { column: { toggleSorting: (desc?: boolean) => void; getIsSorted: () => 'asc' | 'desc' | false } }) => (
     <Button
       variant="ghost"
       className="-ml-4"
@@ -398,6 +398,8 @@ export function createSortableHeader<TData>(label: string) {
       <ArrowUpDown className="ml-2 icon-body" />
     </Button>
   );
+  SortableHeader.displayName = `SortableHeader(${label})`;
+  return SortableHeader;
 }
 
 /**

@@ -1,9 +1,9 @@
 'use client';
 
-import { useSidebarStore, useMenuStore, useTabStore } from '@/stores';
-import { LAYOUT_SIZES, SIDEBAR_SECTION_ICONS, SIDEBAR_SECTION_LABELS, FLOAT_PANEL_CONFIG } from '@/types';
+import { useSidebarStore, useMenuStore } from '@/stores';
+import { LAYOUT_SIZES, SIDEBAR_SECTION_LABELS, FLOAT_PANEL_CONFIG } from '@/types';
 import type { SidebarSection } from '@/types';
-import { useState, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import {
   Search,
   Star,
@@ -20,7 +20,6 @@ import {
   SidebarFavorites,
   SidebarOpenTabs,
   SidebarMenuTree,
-  SidebarAdmin,
 } from './sidebar';
 
 const SECTION_ICONS: Record<SidebarSection, React.ComponentType<{ className?: string }>> = {
@@ -225,7 +224,6 @@ function ExpandedSidebar({
 
       {/* 즐겨찾기 */}
       <SidebarSection
-        section="favorites"
         title="즐겨찾기"
         icon={Star}
         isExpanded={expandedSections.includes('favorites')}
@@ -236,7 +234,6 @@ function ExpandedSidebar({
 
       {/* 현재 열린 페이지 */}
       <SidebarSection
-        section="openTabs"
         title="현재 열린 페이지"
         icon={Layers}
         isExpanded={expandedSections.includes('openTabs')}
@@ -247,7 +244,6 @@ function ExpandedSidebar({
 
       {/* 전체 메뉴 */}
       <SidebarSection
-        section="menuTree"
         title="전체 메뉴"
         icon={FolderTree}
         isExpanded={expandedSections.includes('menuTree')}
@@ -264,14 +260,12 @@ function ExpandedSidebar({
 
 // 섹션 래퍼 컴포넌트
 function SidebarSection({
-  section,
   title,
   icon: Icon,
   isExpanded,
   onToggle,
   children,
 }: {
-  section: SidebarSection;
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   isExpanded: boolean;
