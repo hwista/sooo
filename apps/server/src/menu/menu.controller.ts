@@ -3,6 +3,7 @@ import { MenuService } from './menu.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { TokenPayload } from '../auth/interfaces/auth.interface';
+import { success } from '../common';
 
 @Controller('menus')
 @UseGuards(JwtAuthGuard)
@@ -22,12 +23,9 @@ export class MenuController {
       this.menuService.getFavoritesByUserId(userId),
     ]);
 
-    return {
-      success: true,
-      data: {
-        menus: menuTree,
-        favorites,
-      },
-    };
+    return success({
+      menus: menuTree,
+      favorites,
+    });
   }
 }

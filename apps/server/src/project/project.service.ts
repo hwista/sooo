@@ -37,7 +37,7 @@ export class ProjectService {
     return this.db.project.create({
       data: {
         projectName: dto.name,
-        projectSourceCode: dto.projectSourceCode || 'request',
+        projectSourceCode: dto.projectSourceCode || 'direct',
         statusCode: dto.statusCode || 'opportunity',
         stageCode: dto.stageCode || 'waiting',
         currentOwnerUserId: dto.ownerId ? BigInt(dto.ownerId) : null,
