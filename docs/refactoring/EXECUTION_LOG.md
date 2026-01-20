@@ -121,6 +121,21 @@
 - **검증 결과**:
   - [x] build 통과
 
+#### Step 8: apps/web - WEB-03 정리 ✅
+- **시간**: 2026-01-20
+- **대상**: 
+  - `apps/web/src/components/index.ts`
+  - `apps/web/src/components/common/PageHeader.tsx`
+  - `apps/web/src/components/templates/ListPageTemplate.tsx`
+- **변경 내용**: 
+  - `components/index.ts` 가이드 주석 개선 (직접 import 경로 안내)
+  - 레거시 `PageHeader`에 `@deprecated` JSDoc 추가
+  - 레거시 `ListPageTemplate`에 `@deprecated` JSDoc 추가
+- **기능 영향**: 없음 (주석만 변경)
+- **검증 결과**:
+  - [x] tsc --noEmit 통과
+  - [x] build 통과
+
 ---
 
 ### Git 커밋 이력
@@ -135,6 +150,8 @@
 | `519a9ea` | refactor(server): add common response helpers | Step 4 |
 | `7ee3c51` | refactor(server): apply response helpers to all controllers | Step 5, 6 |
 | `09cb22d` | docs: update refactoring documentation | 문서 |
+| `4a6df43` | docs: add detailed execution process checklist | 프로세스 체크리스트 |
+| `76414ae` | refactor(web): WEB-03 정리 - index.ts 가이드 개선 및 레거시 @deprecated | Step 8 |
 
 **롤백 명령어**:
 ```bash
