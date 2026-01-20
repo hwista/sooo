@@ -6,6 +6,50 @@
 
 ## 2026-01-20
 
+### ✨ 기능 추가: 자동 품질 게이트 (IMM-01)
+
+**추가된 도구:**
+- Husky: Git hooks 자동 실행
+- lint-staged: 스테이지된 파일만 ESLint 자동 수정
+- Commitlint: 커밋 메시지 규칙 강제 (conventional commits)
+
+**설정 파일:**
+- `.husky/pre-commit`: lint-staged 실행
+- `.husky/commit-msg`: commitlint 검증
+- `commitlint.config.mjs`: 커밋 타입 규칙 정의
+- `package.json`: lint-staged 대상 파일 패턴
+
+**효과:**
+- 커밋 시 자동 ESLint 수정으로 코드 품질 강제
+- 일관된 커밋 메시지로 변경 이력 추적 용이
+
+---
+
+### 🔧 개선: 하드코딩 URL 제거 (IMM-02)
+
+**변경:**
+- `apps/web/src/stores/menu.store.ts`
+- `fetch('http://localhost:4000/api/menus/my')` → `apiClient.get('/menus/my')`
+
+**추가 개선:**
+- 401 에러 처리 중복 제거 (apiClient에서 통합 처리)
+- 환경변수 기반 API URL로 배포 환경 대응
+
+---
+
+### 🔧 개선: 인증 가드 타입 안전성 강화 (IMM-03)
+
+**변경:**
+- `apps/server/src/auth/guards/jwt-auth.guard.ts`
+- `handleRequest(err: any, user: any, info: any): any`
+- → `handleRequest<TUser = TokenPayload>(err: Error | null, user: TUser | false, info: { message?: string }): TUser`
+
+**효과:**
+- 보안 핵심 모듈의 타입 안전성 확보
+- 런타임 에러 사전 방지
+
+---
+
 ### 🔧 버그 수정: 인증 토큰 만료 시 메뉴 로드 실패
 
 **증상:**

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -110,7 +110,7 @@ export class AuthService {
       await this.userService.updateRefreshToken(user.id, newRefreshTokenHash, refreshExpiresAt);
 
       return tokens;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
   }

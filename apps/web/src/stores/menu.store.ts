@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { MenuItem, FavoriteMenuItem, AccessType } from '@/types';
 import { useAuthStore } from './auth.store';
+import { apiClient } from '@/lib/api/client';
 
 interface MenuStoreState {
   // 전체 메뉴 트리 (권한 적용된 상태)
@@ -133,24 +134,11 @@ export const useMenuStore = create<MenuStore>()((set, get) => ({
         return;
       }
       
-      const response = await fetch('http://localhost:4000/api/menus/my', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const response = await apiClient.get('/menus/my');
       
       console.log('[MenuStore] Menu API response status:', response.status);
       
-      // 401 에러 시 인증 초기화
-      if (response.status === 401) {
-        console.warn('[MenuStore] Unauthorized - clearing auth and menu');
-        useAuthStore.getState().clearAuth();
-        get().clearMenu();
-        set({ isLoading: false });
-        return;
-      }
-      
-      const result = await response.json();
+      const result = response.data;
       console.log('[MenuStore] Menu API result:', result);
       
       if (result.success) {
