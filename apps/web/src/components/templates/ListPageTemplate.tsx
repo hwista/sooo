@@ -58,13 +58,18 @@ export interface ListPageTemplateProps<TData, TValue>
 }
 
 /**
- * ListPageTemplate 컴포넌트
- * 
+ * ListPageTemplate 컴포넌트 (레거시)
+ *
  * 목록 페이지의 표준 레이아웃을 제공합니다.
  * PageHeader + 검색 필터 + DataTable 구조
- * 
+ *
+ * @deprecated 새 페이지 개발 시 `ListPageTemplateV2`를 사용하세요.
+ * V2는 새 표준 PageHeader(액션+필터 통합, 접기/펼치기)와
+ * PageContent + DataGrid 구조를 사용합니다.
+ *
  * @example
  * ```tsx
+ * // 레거시 사용 예시 (참고용)
  * <ListPageTemplate
  *   header={{
  *     title: '고객요청 목록',

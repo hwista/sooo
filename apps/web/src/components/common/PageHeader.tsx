@@ -44,12 +44,17 @@ export interface PageHeaderProps {
 }
 
 /**
- * PageHeader 컴포넌트
- * 
+ * PageHeader 컴포넌트 (레거시)
+ *
  * 페이지 상단에 제목, 브레드크럼, 액션 버튼을 표시합니다.
- * 
+ *
+ * @deprecated 새 페이지 개발 시 `@/components/common/page`의 새 표준 컴포넌트를 사용하세요.
+ * - Breadcrumb: 경로 표시 (별도 컴포넌트)
+ * - PageHeader: 액션 버튼 + 검색 필터 (접기/펼치기 지원)
+ *
  * @example
  * ```tsx
+ * // 레거시 사용 (FormPageTemplate, DetailPageTemplate 내부)
  * <PageHeader
  *   title="고객요청 목록"
  *   breadcrumb={['요청', '고객요청 관리', '목록']}
