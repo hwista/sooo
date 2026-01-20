@@ -207,7 +207,7 @@ hwista-ssoo/                          # 모노레포 루트
 |------|------|----------|
 | 계획 대비 실적 비교 | ✅ | [results/FINAL_REPORT.md](results/FINAL_REPORT.md) |
 | 신규 이슈 분석 | ✅ | 19개 이슈 발견 (CRITICAL 2, HIGH 5) |
-| 백로그 정리 | ✅ | [BACKLOG.md](BACKLOG.md) (9개 항목) |
+| 백로그 정리 | ✅ | [../BACKLOG.md](../BACKLOG.md) (P4 섹션) |
 | 최종 보고서 | ✅ | [results/FINAL_REPORT.md](results/FINAL_REPORT.md) |
 
 ---
@@ -220,7 +220,6 @@ docs/refactoring/
 ├── DEVELOPMENT_STANDARDS.md        # 개발 표준
 ├── FEATURE_CHECKLIST.md            # 기능 동작 체크리스트
 ├── EXECUTION_LOG.md                # 실행 이력
-├── BACKLOG.md                      # 백로그 (NEW)
 │
 ├── analysis/                       # Phase 1 분석 결과
 │   ├── workspace-root.md
@@ -236,8 +235,10 @@ docs/refactoring/
 │   ├── server-plan.md
 │   └── web-plan.md
 │
-└── results/                        # Phase 4 결과 (NEW)
+└── results/                        # Phase 4 결과
     └── FINAL_REPORT.md             # 최종 보고서
+
+docs/BACKLOG.md                     # 통합 백로그 (P4 섹션에 리팩토링 항목)
 ```
 │   ├── types-plan.md               # (NEW)
 │   ├── server-plan.md              # (NEW)

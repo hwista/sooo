@@ -93,8 +93,71 @@
 
 ## 🔵 P4 - 품질 고도화 (9.5+ 달성)
 
-> 현재 평균 점수: 8.68/10 → 목표: 9.5+/10  
-> 상세 분석: [refactoring/analysis/code-quality.md](refactoring/analysis/code-quality.md)
+> 현재 평균 점수: 9.48/10 (Phase 3 완료)  
+> 상세 분석: [refactoring/analysis/code-quality.md](refactoring/analysis/code-quality.md)  
+> 최종 보고서: [refactoring/results/FINAL_REPORT.md](refactoring/results/FINAL_REPORT.md)
+
+### 🔴 CRITICAL - 리팩토링 (즉시 수정 권장)
+
+#### WEB-05: DataTable 컴포넌트 분리 (436줄 → 5파일) 🔲
+
+- **위치**: `apps/web/src/components/common/DataTable.tsx`
+- **문제**: 복합 컴포넌트 기준 150줄을 3배 초과, 7가지 책임 혼재
+- **해결 방안**:
+  ```
+  DataTable/
+  ├── DataTable.tsx (~100줄)
+  ├── DataTableToolbar.tsx (~50줄)
+  ├── DataTableBody.tsx (~80줄)
+  ├── DataTableFooter.tsx (~40줄)
+  └── data-table-utils.ts (~80줄)
+  ```
+- **예상 소요**: 2시간
+
+#### SRV-05: jwt-auth.guard.ts any 타입 제거 🔲
+
+- **위치**: `apps/server/src/auth/guards/jwt-auth.guard.ts`
+- **문제**: `handleRequest(err: any, user: any, info: any): any`
+- **해결 방안**: 제네릭 타입 및 명시적 타입 적용
+- **예상 소요**: 30분
+
+#### WEB-07: menu.store.ts 하드코딩 URL 수정 🔲
+
+- **위치**: `apps/web/src/stores/menu.store.ts`
+- **문제**: `fetch('http://localhost:4000/api/menus/my')`
+- **해결 방안**: `apiClient` 또는 `menusApi` 사용
+- **예상 소요**: 15분
+
+### 🟠 HIGH - 리팩토링 (우선 수정 권장)
+
+#### WEB-06: MainSidebar 분리 (275줄 → 4파일) 🔲
+
+- **위치**: `apps/web/src/components/layout/MainSidebar.tsx`
+- **문제**: 레이아웃 기준 200줄 초과, 4개 컴포넌트 혼재
+- **예상 소요**: 1시간
+
+#### SRV-06: response.interceptor.ts any 타입 제거 🔲
+
+- **위치**: `apps/server/src/common/interceptors/response.interceptor.ts`
+- **문제**: `Observable<any>` 반환
+- **예상 소요**: 20분
+
+#### TYPE-05: 메뉴 타입 통합 (@ssoo/types) 🔲
+
+- **문제**: `packages/types`와 `apps/web/src/types`에 메뉴 타입 중복 정의
+- **예상 소요**: 30분
+
+#### WEB-01: 레거시 PageHeader 완전 제거 🔲
+
+- **위치**: `apps/web/src/components/common/PageHeader.tsx`
+- **현재 상태**: @deprecated 추가됨, FormPageTemplate/DetailPageTemplate에서 사용 중
+- **예상 소요**: 30분
+
+#### WEB-02: 레거시 ListPageTemplate 이름 정리 🔲
+
+- **위치**: `apps/web/src/components/templates/ListPageTemplate.tsx`
+- **현재 상태**: @deprecated 추가됨, V2로 마이그레이션 필요
+- **예상 소요**: 20분
 
 ### 테스트 커버리지 확보 🔲
 

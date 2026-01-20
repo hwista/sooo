@@ -278,11 +278,11 @@ override handleRequest<TUser = TokenPayload>(
 
 ## 📎 관련 문서
 
-- [REFACTORING_MASTER_PLAN.md](REFACTORING_MASTER_PLAN.md)
-- [EXECUTION_LOG.md](EXECUTION_LOG.md)
-- [BACKLOG.md](BACKLOG.md)
-- [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md)
-- [analysis/code-quality.md](analysis/code-quality.md)
+- [REFACTORING_MASTER_PLAN.md](../REFACTORING_MASTER_PLAN.md)
+- [EXECUTION_LOG.md](../EXECUTION_LOG.md)
+- [../../BACKLOG.md](../../BACKLOG.md) - 통합 백로그 (P4 섹션)
+- [DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md)
+- [analysis/code-quality.md](../analysis/code-quality.md)
 
 ---
 
