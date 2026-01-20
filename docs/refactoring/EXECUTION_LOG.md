@@ -80,6 +80,30 @@
 
 ---
 
+### Git 커밋 이력
+
+**브랜치**: `refactor/phase-3` (from `main`)
+
+| 커밋 | 메시지 | 대상 |
+|------|--------|------|
+| `0ca75ec` | refactor(types): sync type definitions with Prisma schema | Step 1 |
+| `12b49a4` | refactor(server): apply database extension from @ssoo/database | Step 2, 7 |
+| `79b3e6b` | feat(server): add JwtAuthGuard to ProjectController | Step 3 |
+| `519a9ea` | refactor(server): add common response helpers | Step 4 |
+| `7ee3c51` | refactor(server): apply response helpers to all controllers | Step 5, 6 |
+| `09cb22d` | docs: update refactoring documentation | 문서 |
+
+**롤백 명령어**:
+```bash
+# main으로 복귀
+git checkout main
+
+# 특정 커밋으로 복귀
+git reset --hard <commit-hash>
+```
+
+---
+
 ### Phase 0: 사전 준비
 
 #### 0.1 현재 상태 스냅샷 ✅
@@ -92,9 +116,9 @@
 - **내용**: 71개 기능 항목 목록화
 - **결과**: FEATURE_CHECKLIST.md 생성
 
-#### 0.3 Git 브랜치 전략 🔲
-- **상태**: 대기 중
-- **예정**: `refactor/phase-1-analysis` 브랜치 생성
+#### 0.3 Git 브랜치 전략 ✅
+- **상태**: 완료
+- **브랜치**: `refactor/phase-3` 생성 및 사용 중
 
 ---
 
