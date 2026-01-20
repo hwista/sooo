@@ -6,6 +6,17 @@
 
 ## 2026-01-20
 
+### ✅ 타입 정합성 검증 완료 (P1-TYPE)
+
+**SRV-06: any 타입 제거**
+- `request-context.interceptor.ts`: `Observable<unknown>` 반환 확인 (이미 수정됨)
+
+**TYPE-05: 메뉴 타입 통합 검토**
+- 중복 없음 확인: `packages/types`(공통 엔티티) vs `apps/web/src/types`(프론트엔드 전용 UI)
+- 현 구조 유지 결정
+
+---
+
 ### ✨ 리팩토링: 대형 컴포넌트 분리 (P1-REFACTOR)
 
 **DataTable 분리 (WEB-05):**
