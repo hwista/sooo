@@ -150,6 +150,39 @@
   - [x] build 통과
 - **커밋**: `9d8024a`
 
+#### Step 10: apps/web - ESLint 에러 및 경고 전면 해결 ✅
+- **시간**: 2026-01-20
+- **대상**: apps/web (21개 파일)
+- **변경 내용**: 
+  - **no-explicit-any 에러 수정** (18개 → 0개)
+    - `any` → 구체적 타입으로 변경 (`FilterValues`, error handling)
+    - `catch (err: any)` → `instanceof Error` 패턴 적용
+    - `(type as any)` → 명시적 타입 캐스팅
+  - **no-unused-vars 경고 수정** (22개 → 0개)
+    - 미사용 import 제거: `useTabStore`, `useState`, `Separator` 등
+    - 미사용 변수 제거: `router`, `section`, `index` 등
+  - **타입 안전성 향상**
+    - `FilterValues` 타입 도입 (`Record<string, string>`)
+    - `displayName` 추가 (`createSortableHeader`)
+    - `React.ComponentType` 타입 명시화
+- **영향 파일**:
+  - `login/page.tsx`, `(main)/layout.tsx`
+  - `DataTable.tsx`, `DataGrid.tsx`, `FilterBar.tsx`, `PageHeader.tsx`
+  - `ContentArea.tsx`, `MainSidebar.tsx`
+  - `FloatPanel.tsx`, `SidebarFavorites.tsx`, `SidebarMenuTree.tsx`
+  - `CustomerRequestListPage.tsx`
+  - `DetailPageTemplate.tsx`, `ListPageTemplate.tsx`
+  - `useMenus.ts`, `useProjects.ts`
+  - `client.ts`, `menus.ts`
+  - `auth.ts`, `project.ts`
+  - `auth.store.ts`
+- **기능 영향**: 없음 (타입만 변경)
+- **검증 결과**:
+  - [x] tsc --noEmit 통과
+  - [x] eslint: ✔ No warnings or errors
+  - [x] build 통과
+- **커밋**: `f868cd0`
+
 ---
 
 ### Git 커밋 이력
@@ -169,6 +202,7 @@
 | `0ec0bd6` | docs: update execution log with WEB-03 step | 문서 |
 | `fe3850d` | docs: update code-quality scores and web-plan status | 문서 |
 | `9d8024a` | refactor(server): SRV-01 DatabaseService에 createPrismaClient 적용 | Step 9 |
+| `f868cd0` | refactor(web): ESLint 에러 및 경고 전면 해결 | Step 10 |
 
 **롤백 명령어**:
 ```bash
