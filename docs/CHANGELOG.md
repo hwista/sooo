@@ -9,19 +9,18 @@
 ### ✨ 기능 추가: 자동 품질 게이트 (IMM-01)
 
 **추가된 도구:**
-- Husky: Git hooks 자동 실행
-- lint-staged: 스테이지된 파일만 ESLint 자동 수정
+- Husky: Git hooks 자동 실행 (pre-commit, commit-msg)
 - Commitlint: 커밋 메시지 규칙 강제 (conventional commits)
 
 **설정 파일:**
-- `.husky/pre-commit`: lint-staged 실행
+- `.husky/pre-commit`: 전체 lint 실행
 - `.husky/commit-msg`: commitlint 검증
 - `commitlint.config.mjs`: 커밋 타입 규칙 정의
-- `package.json`: lint-staged 대상 파일 패턴
+- `apps/server/eslint.config.mjs`: ESLint v9 flat config 추가
 
 **효과:**
-- 커밋 시 자동 ESLint 수정으로 코드 품질 강제
-- 일관된 커밋 메시지로 변경 이력 추적 용이
+- 커밋 시 자동 ESLint 검증으로 코드 품질 강제
+- 일관된 커밋 메시지(feat/fix/docs 등)로 변경 이력 추적 용이
 
 ---
 
