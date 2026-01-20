@@ -91,6 +91,44 @@
 
 ---
 
+## 🔵 P4 - 품질 고도화 (9.5+ 달성)
+
+> 현재 평균 점수: 8.68/10 → 목표: 9.5+/10  
+> 상세 분석: [refactoring/analysis/code-quality.md](refactoring/analysis/code-quality.md)
+
+### 테스트 커버리지 확보 🔲
+
+| 영역 | 현재 | 목표 | 상태 |
+|------|:----:|:----:|:----:|
+| Unit Test (Server) | 0% | 80%+ | 🔲 |
+| Unit Test (Web) | 0% | 70%+ | 🔲 |
+| E2E Test | 0% | 주요 플로우 | 🔲 |
+
+- [ ] Server: Auth/User/Project 서비스 단위 테스트
+- [ ] Web: 핵심 컴포넌트 단위 테스트
+- [ ] E2E: 로그인 → 메인 → CRUD 플로우
+
+### API 문서화 🔲
+
+- [ ] Swagger/OpenAPI 설정
+- [ ] 모든 엔드포인트 문서화
+- [ ] Request/Response 스키마 정의
+- [ ] API 버저닝 전략
+
+### 에러 핸들링 고도화 🔲
+
+**Server**
+- [ ] 글로벌 Exception Filter 개선
+- [ ] 커스텀 에러 코드 체계
+- [ ] 에러 로깅 표준화
+
+**Web**
+- [ ] Error Boundary 구현
+- [ ] API 에러 중앙 처리
+- [ ] 사용자 친화적 에러 메시지
+
+---
+
 ## 📝 완료 항목
 
 > 상세 내역: [CHANGELOG.md](CHANGELOG.md)
