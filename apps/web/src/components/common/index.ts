@@ -39,8 +39,16 @@ export type {
   BreadcrumbItem as LegacyBreadcrumbItem 
 } from './PageHeader';
 
-export { DataTable, createSortableHeader, createActionsColumn } from './DataTable';
-export type { DataTableProps } from './DataTable';
+// DataTable (폴더 구조로 분리됨)
+export { 
+  DataTable, 
+  DataTableToolbar,
+  DataTableBody,
+  DataTableFooter,
+  createSortableHeader, 
+  createActionsColumn,
+} from './DataTable';
+export type { DataTableProps, ColumnDef } from './DataTable';
 
 export { Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';

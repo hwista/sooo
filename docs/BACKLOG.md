@@ -77,26 +77,36 @@
 
 ### P1-REFACTOR: 대형 컴포넌트 분리
 
-#### DataTable 분리 (WEB-05) 🔲
+#### DataTable 분리 (WEB-05) ✅
 
-- **위치**: `apps/web/src/components/common/DataTable.tsx`
-- **문제**: 436줄, 7가지 책임 혼재 (기준 150줄 3배 초과)
-- **해결 방안**:
+- **위치**: `apps/web/src/components/common/DataTable/`
+- **결과**: 454줄 → 5개 파일로 분리
   ```
   DataTable/
-  ├── DataTable.tsx (~100줄)
-  ├── DataTableToolbar.tsx (~50줄)
-  ├── DataTableBody.tsx (~80줄)
-  ├── DataTableFooter.tsx (~40줄)
-  └── data-table-utils.ts (~80줄)
+  ├── index.ts           (re-exports)
+  ├── DataTable.tsx      (~110줄, 메인 컴포넌트)
+  ├── DataTableToolbar.tsx (~45줄)
+  ├── DataTableBody.tsx  (~60줄)
+  ├── DataTableFooter.tsx (~50줄)
+  └── data-table-utils.tsx (~70줄)
   ```
-- **예상 소요**: 2시간
+- **완료일**: 2026-01-20
 
-#### MainSidebar 분리 (WEB-06) 🔲
+#### MainSidebar 분리 (WEB-06) ✅
 
-- **위치**: `apps/web/src/components/layout/MainSidebar.tsx`
-- **문제**: 275줄, 4개 컴포넌트 혼재 (기준 200줄 초과)
-- **예상 소요**: 1시간
+- **위치**: `apps/web/src/components/layout/MainSidebar/`
+- **결과**: 295줄 → 6개 파일로 분리
+  ```
+  MainSidebar/
+  ├── index.ts           (re-exports)
+  ├── MainSidebar.tsx    (~75줄, 메인 컴포넌트)
+  ├── CollapsedSidebar.tsx (~30줄)
+  ├── ExpandedSidebar.tsx (~55줄)
+  ├── FloatingPanel.tsx  (~40줄)
+  ├── SidebarSection.tsx (~35줄)
+  └── sidebar-constants.ts (~15줄)
+  ```
+- **완료일**: 2026-01-20
 
 ### P1-TYPE: 타입 정합성
 

@@ -6,6 +6,32 @@
 
 ## 2026-01-20
 
+### ✨ 리팩토링: 대형 컴포넌트 분리 (P1-REFACTOR)
+
+**DataTable 분리 (WEB-05):**
+- 454줄 단일 파일 → 5개 파일 폴더 구조
+- `DataTable.tsx`: 메인 컴포넌트 + 상태 관리
+- `DataTableToolbar.tsx`: 검색 + 컨럼 가시성
+- `DataTableBody.tsx`: 테이블 본문 + 로딩/빈상태
+- `DataTableFooter.tsx`: 선택 정보 + 페이지네이션
+- `data-table-utils.tsx`: 유틸리티 함수 (createSortableHeader, createActionsColumn)
+
+**MainSidebar 분리 (WEB-06):**
+- 295줄 단일 파일 → 6개 파일 폴더 구조
+- `MainSidebar.tsx`: 메인 컴포넌트 + 플로트 로직
+- `CollapsedSidebar.tsx`: 접힌 상태 (아이콘만)
+- `ExpandedSidebar.tsx`: 펼친 상태 (전체 UI)
+- `FloatingPanel.tsx`: 플로틸 패널
+- `SidebarSection.tsx`: 섹션 래퍼
+- `sidebar-constants.ts`: 상수 정의
+
+**효과:**
+- 컴포넌트별 단일 책임 원칙 준수
+- 코드 가독성 및 유지보수성 향상
+- 테스트 및 재사용성 개선
+
+---
+
 ### ✨ 기능 추가: 자동 품질 게이트 (IMM-01)
 
 **추가된 도구:**
