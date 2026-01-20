@@ -59,3 +59,6 @@ export type { FormSectionProps, FormActionsProps, FormFieldProps } from './FormC
 export { LoadingState, ErrorState, EmptyState } from './StateDisplay';
 export type { LoadingStateProps, ErrorStateProps, EmptyStateProps } from './StateDisplay';
 
+// 권한 기반 라우트 보호
+export { ProtectedRoute } from './ProtectedRoute';
+export type { } from './ProtectedRoute'; // Props는 내부 사용

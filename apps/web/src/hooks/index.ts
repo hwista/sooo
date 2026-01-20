@@ -7,6 +7,9 @@
 // React Query 훅 (데이터 페칭)
 export * from './queries';
 
+// 인증 및 권한
+export { useAuth } from './useAuth';
+
 // 추후 추가
 // export * from './useDebounce';
 // export * from './useLocalStorage';

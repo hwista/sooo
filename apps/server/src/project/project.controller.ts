@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { ProjectService } from './project.service';
 import { success, paginated, notFound, deleted } from '../common';
 import type {
@@ -9,7 +10,7 @@ import type {
 } from '@ssoo/types';
 
 @Controller('projects')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 

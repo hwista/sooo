@@ -124,10 +124,11 @@
 
 ### P1-FEATURE: 핵심 기능
 
-#### 권한 가드 구현 🔲
+#### 권한 가드 구현 ✅
 
-- [ ] 프론트엔드: 메뉴 필터링 + 라우트 가드
-- [ ] 백엔드: @UseGuards(JwtAuthGuard, RolesGuard) 전체 적용
+- [x] 프론트엔드: useAuth 훅 + ProtectedRoute 컴포넌트
+- [x] 백엔드: @Roles() 데코레이터 + RolesGuard 구현
+- [x] 모든 컨트롤러에 @UseGuards(JwtAuthGuard, RolesGuard) 적용
 
 #### 사용자 초대 플로우 🔲
 

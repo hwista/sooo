@@ -6,6 +6,37 @@
 
 ## 2026-01-20
 
+### ✨ 권한 가드 구현 (P1-FEATURE)
+
+**백엔드:**
+- `@Roles()` 데코레이터: 역할 기반 접근 제어 (예: `@Roles('admin', 'pm')`)
+- `RolesGuard`: JwtAuthGuard와 함께 사용하는 역할 검증 가드
+- 모든 컨트롤러에 `@UseGuards(JwtAuthGuard, RolesGuard)` 적용
+
+**프론트엔드:**
+- `useAuth` 훅: `hasRole()`, `isAdmin`, `isManager` 제공
+- `ProtectedRoute` 컴포넌트: 역할 기반 라우트 보호
+- `AuthUser` 타입 export (auth.store.ts)
+
+**사용 예시:**
+```typescript
+// 백엔드 - admin만 접근 가능한 엔드포인트
+@Delete(':id')
+@Roles('admin')
+async remove(@Param('id') id: string) { ... }
+
+// 프론트엔드 - 역할 기반 UI 제어
+const { hasRole, isAdmin } = useAuth();
+{hasRole('admin', 'pm') && <AdminPanel />}
+
+// 프론트엔드 - 라우트 보호
+<ProtectedRoute roles={['admin']}>
+  <AdminPage />
+</ProtectedRoute>
+```
+
+---
+
 ### ✅ 타입 정합성 검증 완료 (P1-TYPE)
 
 **SRV-06: any 타입 제거**

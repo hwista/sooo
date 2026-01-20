@@ -1,12 +1,13 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { TokenPayload } from '../auth/interfaces/auth.interface';
 import { success } from '../common';
 
 @Controller('menus')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
