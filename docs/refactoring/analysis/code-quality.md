@@ -26,7 +26,8 @@
 | **apps/web** | 8.6/10 | 9.2/10 | 8.7/10 | **+0.1** ✅ |
 | **전체 평균** | **8.68** | **9.48** | **9.35** | **+0.67** |
 
-> Phase 3 Step 1~8 완료 (2026-01-20)  
+> Phase 3 Step 1~9 완료 (2026-01-20)  
+> SRV-01: DatabaseService에 createPrismaClient 적용 완료  
 > WEB-03: index.ts 정리 + 레거시 @deprecated 추가 완료
 
 ### 세부 항목별 점수
