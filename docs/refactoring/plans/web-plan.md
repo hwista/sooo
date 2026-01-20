@@ -334,24 +334,33 @@ grep -rn "from '@/components'" apps/web/src/ | head -20
 
 ### WEB-01
 - [ ] 레거시 PageHeader 사용처 0개
-- [ ] 레거시 파일 `@deprecated` 추가
-- [ ] 타입 체크 통과
-- [ ] 빌드 통과
+- [x] 레거시 파일 `@deprecated` 추가 ✅ (2026-01-20)
+- [x] 타입 체크 통과
+- [x] 빌드 통과
+
+> **상태**: FormPageTemplate, DetailPageTemplate 내부에서만 사용 중 → 추후 개발 시 개선 예정
 
 ### WEB-02
-- [ ] 레거시 ListPageTemplate 사용처 0개
-- [ ] V2를 ListPageTemplate으로 이름 변경
-- [ ] 레거시 파일 제거
-- [ ] 타입 체크 통과
-- [ ] 빌드 통과
+- [x] 레거시 ListPageTemplate 사용처 0개 ✅ (이미 완료 상태)
+- [x] 레거시 파일 `@deprecated` 추가 ✅ (2026-01-20)
+- [ ] V2를 ListPageTemplate으로 이름 변경 (추후)
+- [ ] 레거시 파일 제거 (추후)
+- [x] 타입 체크 통과
+- [x] 빌드 통과
+
+> **상태**: 실제 페이지에서는 ListPageTemplateV2 사용 중, 레거시는 참조용으로 유지
 
 ### WEB-03
-- [ ] components/index.ts 정리
-- [ ] 가이드 주석 추가
-- [ ] 빌드 통과
+- [x] components/index.ts 정리 ✅ (2026-01-20)
+- [x] 가이드 주석 추가 ✅
+- [x] 빌드 통과 ✅
+
+> **상태**: ✅ 완료
 
 ### WEB-04
-- [ ] 타입 분석 완료
-- [ ] 공유 타입 이동 완료
-- [ ] 중복 타입 제거
-- [ ] 전체 빌드 통과
+- [x] 타입 분석 완료 ✅ (2026-01-20)
+- [x] 공유 타입 이동 완료 (해당 없음 - UI 전용 타입만 존재)
+- [x] 중복 타입 제거 (해당 없음)
+- [x] 전체 빌드 통과 ✅
+
+> **상태**: ✅ 완료 - `apps/web/src/types/`는 프론트엔드 전용 UI 타입(menu, tab, sidebar, layout)만 존재하여 `@ssoo/types`와 중복 없음
