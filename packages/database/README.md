@@ -195,3 +195,34 @@ node ./node_modules/typescript/lib/tsc.js --project tsconfig.json
 2. Prisma 클라이언트 재생성: `pnpm db:generate`
 3. DB에 적용: `pnpm db:push` (개발) 또는 `pnpm db:migrate` (운영)
 4. 필요시 `@ssoo/types`에 해당 타입 추가
+
+---
+
+## 🌱 Seed 데이터
+
+초기 데이터는 `prisma/seeds/` 폴더에서 관리됩니다.
+
+### 파일 구조
+
+| 파일 | 설명 |
+|------|------|
+| `00_user_code.sql` | 사용자 유형/상태 코드 |
+| `01_project_status_code.sql` | 프로젝트 상태 코드 |
+| `02_project_deliverable_status.sql` | 산출물 제출 상태 |
+| `03_project_close_condition.sql` | 종료조건 코드 |
+| `04_project_handoff_type.sql` | 핸드오프 유형 |
+| `05_menu_data.sql` | 메뉴 마스터 데이터 |
+| `06_role_menu_permission.sql` | 역할별 메뉴 권한 |
+| `07_user_menu_permission.sql` | 사용자별 메뉴 권한 |
+| `99_user_initial_admin.sql` | 초기 관리자 계정 |
+| `apply_all_seeds.sql` | 전체 실행 스크립트 |
+
+### 실행 방법
+
+```powershell
+# 전체 실행
+psql -U <user> -d <database> -f prisma/seeds/apply_all_seeds.sql
+
+# 개별 실행
+psql -U <user> -d <database> -f prisma/seeds/00_user_code.sql
+```

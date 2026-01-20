@@ -129,6 +129,7 @@ export const useMenuStore = create<MenuStore>()((set, get) => ({
       
       if (!accessToken) {
         console.warn('[MenuStore] No access token available for menu refresh');
+        set({ isLoading: false });
         return;
       }
       
@@ -139,16 +140,26 @@ export const useMenuStore = create<MenuStore>()((set, get) => ({
       });
       
       console.log('[MenuStore] Menu API response status:', response.status);
+      
+      // 401 에러 시 인증 초기화
+      if (response.status === 401) {
+        console.warn('[MenuStore] Unauthorized - clearing auth and menu');
+        useAuthStore.getState().clearAuth();
+        get().clearMenu();
+        set({ isLoading: false });
+        return;
+      }
+      
       const result = await response.json();
       console.log('[MenuStore] Menu API result:', result);
       
       if (result.success) {
         get().setMenuTree(result.data.menus);
-        get().setFavorites(result.data.favorites);
+        get().setFavorites(result.data.favorites || []);
       }
       set({ lastUpdatedAt: new Date() });
     } catch (error) {
-      console.error('Failed to refresh menu:', error);
+      console.error('[MenuStore] Failed to refresh menu:', error);
     } finally {
       set({ isLoading: false });
     }

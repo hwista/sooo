@@ -42,10 +42,12 @@ export default function MainLayout({
     },
   });
 
-  // 인증 상태 확인
+  // 인증 상태 확인 - 앱 시작 시 항상 서버에서 토큰 유효성 검증
   useEffect(() => {
     const check = async () => {
+      console.log('[MainLayout] Starting auth check...');
       await checkAuth();
+      console.log('[MainLayout] Auth check completed, isAuthenticated:', useAuthStore.getState().isAuthenticated);
       setIsChecking(false);
     };
     check();
@@ -53,7 +55,9 @@ export default function MainLayout({
 
   // 인증 성공 후 메뉴 로드
   useEffect(() => {
+    // isChecking이 끝나고, 인증된 상태이며, 메뉴가 비어있을 때만 로드
     if (!isChecking && !authLoading && isAuthenticated && menuTree.length === 0) {
+      console.log('[MainLayout] Loading menu...');
       refreshMenu();
     }
   }, [isChecking, authLoading, isAuthenticated, menuTree.length, refreshMenu]);
@@ -62,7 +66,8 @@ export default function MainLayout({
     setLoginError(null);
     try {
       await login(data.loginId, data.password);
-      // 로그인 성공 시 자동으로 isAuthenticated가 true가 되어 AppLayout이 렌더링됨
+      // 로그인 성공 시 메뉴도 함께 로드
+      await refreshMenu();
     } catch (err: any) {
       setLoginError(err.message || '로그인에 실패했습니다.');
     }
@@ -74,7 +79,7 @@ export default function MainLayout({
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">로딩 중...</p>
+          <p className="text-gray-500">인증 확인 중...</p>
         </div>
       </div>
     );

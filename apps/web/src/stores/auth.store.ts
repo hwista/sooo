@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: async () => {
-        const { accessToken, refreshToken, isAuthenticated } = get();
+        const { accessToken, refreshToken } = get();
         
         // 토큰이 없으면 인증되지 않음
         if (!accessToken && !refreshToken) {
@@ -88,41 +88,43 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        // 이미 인증된 상태면 사용자 정보만 확인
-        if (isAuthenticated && accessToken) {
-          set({ isLoading: true });
+        set({ isLoading: true });
+
+        // Access Token으로 사용자 정보 확인 시도
+        if (accessToken) {
           try {
             const meResponse = await authApi.me(accessToken);
             if (meResponse.success && meResponse.data) {
-              set({ user: meResponse.data, isLoading: false });
+              set({ user: meResponse.data, isAuthenticated: true, isLoading: false });
               return;
             }
-          } catch {
-            // 토큰 만료 시 리프레시 시도
+          } catch (error: any) {
+            // 401 에러 - Access Token 만료, refresh 시도
+            console.log('[AuthStore] Access token expired, trying refresh...');
           }
         }
 
-        // 리프레시 토큰으로 재인증 시도
+        // Access Token 실패 시 Refresh Token으로 재인증 시도
         if (refreshToken) {
-          set({ isLoading: true });
-          const success = await get().refreshTokens();
-          if (success) {
-            const newAccessToken = get().accessToken;
-            if (newAccessToken) {
-              try {
+          try {
+            const success = await get().refreshTokens();
+            if (success) {
+              const newAccessToken = get().accessToken;
+              if (newAccessToken) {
                 const meResponse = await authApi.me(newAccessToken);
                 if (meResponse.success && meResponse.data) {
-                  set({ user: meResponse.data, isLoading: false });
+                  set({ user: meResponse.data, isAuthenticated: true, isLoading: false });
                   return;
                 }
-              } catch {
-                // 사용자 정보 조회 실패
               }
             }
+          } catch (error: any) {
+            console.log('[AuthStore] Refresh token failed:', error.message);
           }
         }
 
-        // 모든 시도 실패
+        // 모든 시도 실패 - 인증 초기화
+        console.log('[AuthStore] All auth attempts failed, clearing auth');
         get().clearAuth();
       },
 
