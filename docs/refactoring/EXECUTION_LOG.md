@@ -136,6 +136,20 @@
   - [x] tsc --noEmit 통과
   - [x] build 통과
 
+#### Step 9: apps/server - SRV-01 DatabaseService Extension 적용 ✅
+- **시간**: 2026-01-20
+- **대상**: `apps/server/src/database/database.service.ts`
+- **변경 내용**: 
+  - `extends PrismaClient` → `createPrismaClient()` 사용
+  - `ExtendedPrismaClient` 타입 적용
+  - getter 패턴으로 기존 `this.db.xxx` 호환성 유지
+  - `$queryRaw`, `$executeRaw`, `$transaction` getter 추가
+- **기능 영향**: 없음 (Extension 활성화, API 동일)
+- **검증 결과**:
+  - [x] tsc --noEmit 통과
+  - [x] build 통과
+- **커밋**: `9d8024a`
+
 ---
 
 ### Git 커밋 이력
@@ -152,6 +166,9 @@
 | `09cb22d` | docs: update refactoring documentation | 문서 |
 | `4a6df43` | docs: add detailed execution process checklist | 프로세스 체크리스트 |
 | `76414ae` | refactor(web): WEB-03 정리 - index.ts 가이드 개선 및 레거시 @deprecated | Step 8 |
+| `0ec0bd6` | docs: update execution log with WEB-03 step | 문서 |
+| `fe3850d` | docs: update code-quality scores and web-plan status | 문서 |
+| `9d8024a` | refactor(server): SRV-01 DatabaseService에 createPrismaClient 적용 | Step 9 |
 
 **롤백 명령어**:
 ```bash

@@ -343,25 +343,33 @@ git commit -m "chore: checkpoint before server refactoring"
 
 ## ✅ 완료 조건
 
-### SRV-01
-- [ ] DatabaseService에 createPrismaClient 사용
-- [ ] 기존 this.db.xxx 패턴 유지
-- [ ] 타입 체크 통과
-- [ ] 빌드 통과
+### SRV-01 ✅ (2026-01-20)
+- [x] DatabaseService에 createPrismaClient 사용
+- [x] 기존 this.db.xxx 패턴 유지 (getter 패턴 적용)
+- [x] 타입 체크 통과
+- [x] 빌드 통과
 
-### SRV-02
-- [ ] ProjectController에 JwtAuthGuard 추가
-- [ ] 타입 체크 통과
-- [ ] 빌드 통과
+> 커밋: `9d8024a`
 
-### SRV-03
-- [ ] common/responses.ts 생성
-- [ ] common/index.ts 업데이트
-- [ ] 타입 체크 통과
+### SRV-02 ✅ (2026-01-20)
+- [x] ProjectController에 JwtAuthGuard 추가
+- [x] 타입 체크 통과
+- [x] 빌드 통과
 
-### SRV-04
-- [ ] project.controller.ts 응답 통일
-- [ ] user.controller.ts 응답 통일
-- [ ] auth.controller.ts 응답 통일
-- [ ] menu.controller.ts 응답 통일
-- [ ] 전체 빌드 통과
+> 커밋: `79b3e6b`
+
+### SRV-03 ✅ (2026-01-20)
+- [x] common/responses.ts 생성
+- [x] common/index.ts 업데이트
+- [x] 타입 체크 통과
+
+> 커밋: `519a9ea`
+
+### SRV-04 ✅ (2026-01-20)
+- [x] project.controller.ts 응답 통일
+- [x] user.controller.ts 응답 통일
+- [x] auth.controller.ts 응답 통일
+- [x] menu.controller.ts 응답 통일
+- [x] 전체 빌드 통과
+
+> 커밋: `7ee3c51`
