@@ -203,3 +203,157 @@ a:hover {
     -webkit-box-orient: vertical;
   }
 }
+
+/* ========================================
+   커스텀 스크롤바
+   ======================================== */
+
+/* 기본 스크롤바 스타일 (전체 앱에 적용) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox 스크롤바 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted) / 0.3);
+}
+
+@layer utilities {
+  /* ========================================
+     스크롤바 유틸리티 클래스
+     ======================================== */
+  
+  /* 스크롤바 숨기기 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 얇은 스크롤바 (4px) */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  /* 기본 스크롤바 (8px) */
+  .scrollbar-default::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-default {
+    scrollbar-width: auto;
+  }
+
+  /* 넓은 스크롤바 (12px) */
+  .scrollbar-wide::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Primary 색상 스크롤바 */
+  .scrollbar-primary::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.4);
+  }
+  .scrollbar-primary::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
+  }
+  .scrollbar-primary {
+    scrollbar-color: hsl(var(--primary) / 0.4) hsl(var(--muted) / 0.3);
+  }
+
+  /* Accent 색상 스크롤바 */
+  .scrollbar-accent::-webkit-scrollbar-thumb {
+    background: hsl(var(--accent) / 0.4);
+  }
+  .scrollbar-accent::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--accent) / 0.6);
+  }
+  .scrollbar-accent {
+    scrollbar-color: hsl(var(--accent) / 0.4) hsl(var(--muted) / 0.3);
+  }
+
+  /* 투명 트랙 스크롤바 */
+  .scrollbar-transparent::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-transparent {
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
+  /* 호버 시에만 보이는 스크롤바 */
+  .scrollbar-on-hover::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+  .scrollbar-on-hover:hover::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+  }
+  .scrollbar-on-hover:hover::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* 둥근 스크롤바 */
+  .scrollbar-rounded::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+  }
+  .scrollbar-rounded::-webkit-scrollbar-track {
+    border-radius: 9999px;
+  }
+
+  /* 사이드바용 스크롤바 (더 미니멀) */
+  .scrollbar-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .scrollbar-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-sidebar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 9999px;
+  }
+  .scrollbar-sidebar:hover::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+
+  /* 테이블/그리드용 스크롤바 */
+  .scrollbar-table::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-table::-webkit-scrollbar-track {
+    background: hsl(var(--border) / 0.5);
+  }
+  .scrollbar-table::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+  .scrollbar-table::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}

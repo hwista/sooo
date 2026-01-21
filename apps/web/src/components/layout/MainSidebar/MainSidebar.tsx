@@ -5,6 +5,7 @@ import { LAYOUT_SIZES, FLOAT_PANEL_CONFIG } from '@/types';
 import type { SidebarSection } from '@/types';
 import { useRef, useCallback } from 'react';
 import { Menu } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { CollapsedSidebar } from './CollapsedSidebar';
 import { ExpandedSidebar } from './ExpandedSidebar';
@@ -93,7 +94,10 @@ export function MainSidebar() {
         </div>
 
         {/* 사이드바 콘텐츠 */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-ssoo-content-bg">
+        <ScrollArea 
+          variant="sidebar" 
+          className="flex-1 bg-ssoo-content-bg"
+        >
           {isCollapsed ? (
             <CollapsedSidebar
               onMouseEnter={handleMouseEnter}
@@ -107,7 +111,7 @@ export function MainSidebar() {
               isRefreshing={isMenuLoading}
             />
           )}
-        </div>
+        </ScrollArea>
       </aside>
 
       {/* 플로팅 패널 */}
