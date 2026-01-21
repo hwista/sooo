@@ -6,13 +6,33 @@
 
 ## 2026-01-21
 
-### 📚 아키텍처 문서화 (상태 관리, 레이아웃)
+### 📚 UI 컴포넌트 및 유틸리티 문서화
 
-프론트엔드 아키텍처 문서를 추가했습니다.
+프론트엔드 컴포넌트 및 유틸리티 문서를 추가했습니다.
 
 **생성된 문서:**
 
 | 파일 | 설명 |
+|------|------|
+| `docs/architecture/ui-components.md` | 공통 UI 컴포넌트 (Button, Input, Select 등) |
+| `docs/architecture/utilities.md` | 공통 유틸리티 (apiClient, cn, icons, validations) |
+
+**ui-components.md 내용:**
+- shadcn/ui + Radix UI 기반 컴포넌트 17종
+- Button variants (default, secondary, outline, destructive, ghost, link)
+- 표준 높이 규격 (32px, 36px, 44px)
+- 각 컴포넌트 사용 예시
+
+**utilities.md 내용:**
+- apiClient: Axios 인스턴스, 자동 토큰 갱신
+- authApi: 인증 API 래퍼 함수
+- cn: Tailwind 클래스 병합
+- icons: Lucide 동적 로딩
+- validations: Zod 공통 스키마
+
+---
+
+### 📚 아키텍처 문서화 (상태 관리, 레이아웃)
 |------|------|
 | `docs/architecture/state-management.md` | Zustand 기반 상태 관리 |
 | `docs/architecture/layout-system.md` | 레이아웃 구조 및 컴포넌트 |
