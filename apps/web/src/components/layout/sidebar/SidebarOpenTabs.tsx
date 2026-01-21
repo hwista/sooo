@@ -6,11 +6,15 @@ import { getIconComponent } from '@/lib/utils/icons';
 
 /**
  * 사이드바 현재 열린 탭 목록
+ * - 홈 탭(/home)은 항상 고정이므로 제외
  */
 export function SidebarOpenTabs() {
   const { tabs, activeTabId, activateTab, closeTab } = useTabStore();
 
-  if (tabs.length === 0) {
+  // 홈 탭 제외 (항상 열려있는 고정 탭)
+  const openTabs = tabs.filter((tab) => tab.path !== '/home');
+
+  if (openTabs.length === 0) {
     return (
       <div className="px-3 py-2 text-xs text-gray-400">
         열린 페이지가 없습니다.
@@ -20,7 +24,7 @@ export function SidebarOpenTabs() {
 
   return (
     <div className="space-y-0.5">
-      {tabs.map((tab) => {
+      {openTabs.map((tab) => {
         const IconComponent = getIconComponent(tab.icon);
         const isActive = tab.id === activeTabId;
 
