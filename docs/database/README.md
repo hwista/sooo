@@ -261,3 +261,25 @@ npx ts-node scripts/run-sql.ts --query "SELECT * FROM cm_menu_m"
 - [Prisma Schema](../../packages/database/prisma/schema.prisma)
 - [User Invitation Flow](../service/actions/user_invitation.md)
 - [User Login Flow](../service/actions/user_login.md)
+
+---
+
+## Backlog
+
+> 이 영역 관련 개선/추가 예정 항목
+
+| ID | 항목 | 우선순위 | 상태 |
+|----|------|----------|------|
+| DB-01 | 인덱스 최적화 검토 | P3 | 🔲 대기 |
+| DB-02 | 소프트 딜리트 정책 수립 | P2 | 🔲 대기 |
+
+---
+
+## Changelog
+
+> 이 영역 관련 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-01-21 | cm_user_favorite_r 테이블에 soft delete (is_active) 적용 |
+| 2026-01-20 | 데이터베이스 문서 최초 작성 |

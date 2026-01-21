@@ -287,3 +287,27 @@ location.reload();
 - `apps/web/src/lib/api/auth.ts` - 인증 API 클라이언트
 - `apps/web/src/lib/api/client.ts` - Axios 인터셉터 (자동 토큰 갱신)
 - `apps/web/src/app/(main)/layout.tsx` - 인증 체크 및 라우팅
+
+---
+
+## Backlog
+
+> 이 영역 관련 개선/추가 예정 항목
+
+| ID | 항목 | 우선순위 | 상태 |
+|----|------|----------|------|
+| AUTH-01 | Refresh Token Rotation 검토 | P3 | 🔲 대기 |
+| AUTH-02 | 로그인 시도 횟수 제한 | P2 | 🔲 대기 |
+| AUTH-03 | 비밀번호 정책 강화 | P2 | 🔲 대기 |
+
+---
+
+## Changelog
+
+> 이 영역 관련 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-01-20 | 인증 시스템 문서 최초 작성 |
+| 2026-01-20 | 인증 가드 any 타입 제거 (IMM-03) |
+| 2026-01-20 | apiClient 자동 토큰 갱신 구현 |

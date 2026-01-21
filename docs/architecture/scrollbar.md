@@ -211,3 +211,25 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 - [globals.css](../../apps/web/src/app/globals.css) - 스크롤바 스타일 정의
 - [scroll-area.tsx](../../apps/web/src/components/ui/scroll-area.tsx) - ScrollArea 컴포넌트
+
+---
+
+## Backlog
+
+> 이 영역 관련 개선/추가 예정 항목
+
+| ID | 항목 | 우선순위 | 상태 |
+|----|------|----------|------|
+| SCR-01 | Firefox 스크롤바 색상 개선 | P4 | 🔲 대기 |
+
+---
+
+## Changelog
+
+> 이 영역 관련 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-01-21 | 스크롤바 문서 최초 작성 |
+| 2026-01-21 | 커스텀 스크롤바 CSS 유틸리티 추가 |
+| 2026-01-21 | ScrollArea 컴포넌트 추가 |
