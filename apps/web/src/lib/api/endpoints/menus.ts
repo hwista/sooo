@@ -1,5 +1,5 @@
 import { apiClient } from '../client';
-import { ApiResponse, PaginatedResponse, ListParams } from '../types';
+import { ApiResponse } from '../types';
 
 /**
  * 메뉴 타입

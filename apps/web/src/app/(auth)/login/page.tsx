@@ -36,8 +36,9 @@ export default function LoginPage() {
     try {
       await login(data.loginId, data.password);
       router.push('/');  // 메인으로 이동
-    } catch (err: any) {
-      setError(err.message || '로그인에 실패했습니다.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '로그인에 실패했습니다.';
+      setError(message);
     }
   };
 

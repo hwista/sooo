@@ -3,13 +3,11 @@
 import { useMenuStore, useTabStore } from '@/stores';
 import { Star } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
-import { useRouter } from 'next/navigation';
 
 /**
  * 사이드바 즐겨찾기 목록
  */
 export function SidebarFavorites() {
-  const router = useRouter();
   const { favorites } = useMenuStore();
   const { openTab } = useTabStore();
 

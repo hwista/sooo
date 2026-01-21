@@ -39,8 +39,16 @@ export type {
   BreadcrumbItem as LegacyBreadcrumbItem 
 } from './PageHeader';
 
-export { DataTable, createSortableHeader, createActionsColumn } from './DataTable';
-export type { DataTableProps } from './DataTable';
+// DataTable (폴더 구조로 분리됨)
+export { 
+  DataTable, 
+  DataTableToolbar,
+  DataTableBody,
+  DataTableFooter,
+  createSortableHeader, 
+  createActionsColumn,
+} from './DataTable';
+export type { DataTableProps, ColumnDef } from './DataTable';
 
 export { Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';
@@ -51,3 +59,6 @@ export type { FormSectionProps, FormActionsProps, FormFieldProps } from './FormC
 export { LoadingState, ErrorState, EmptyState } from './StateDisplay';
 export type { LoadingStateProps, ErrorStateProps, EmptyStateProps } from './StateDisplay';
 
+// 권한 기반 라우트 보호
+export { ProtectedRoute } from './ProtectedRoute';
+export type { } from './ProtectedRoute'; // Props는 내부 사용

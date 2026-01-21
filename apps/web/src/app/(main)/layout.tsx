@@ -68,8 +68,9 @@ export default function MainLayout({
       await login(data.loginId, data.password);
       // 로그인 성공 시 메뉴도 함께 로드
       await refreshMenu();
-    } catch (err: any) {
-      setLoginError(err.message || '로그인에 실패했습니다.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '로그인에 실패했습니다.';
+      setLoginError(message);
     }
   };
 

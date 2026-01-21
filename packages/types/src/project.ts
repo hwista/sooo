@@ -1,9 +1,10 @@
 /**
  * 프로젝트 상태 코드
- * - opportunity: 계약 전 기회
- * - execution: 계약 후 실행
+ * - opportunity: 기회 (계약 전)
+ * - execution: 실행 (계약 후)
+ * - done: 완료 (종료)
  */
-export type ProjectStatusCode = 'opportunity' | 'execution';
+export type ProjectStatusCode = 'opportunity' | 'execution' | 'done';
 
 /**
  * 프로젝트 단계 코드
@@ -14,19 +15,18 @@ export type ProjectStatusCode = 'opportunity' | 'execution';
 export type ProjectStageCode = 'waiting' | 'in_progress' | 'done';
 
 /**
- * 기회 종료 결과 코드 (opportunity + done 일 때만 사용)
- * - won: 수주
- * - lost: 실주
- * - hold: 보류
+ * 완료 결과 코드 (done 상태에서만 사용)
+ * - complete: 정상 완료
+ * - cancel: 취소
  */
-export type DoneResultCode = 'won' | 'lost' | 'hold';
+export type DoneResultCode = 'complete' | 'cancel';
 
 /**
  * 프로젝트 소스 코드
- * - request: 고객 요청
- * - proposal: 제안
+ * - direct: 직접 생성 (내부 발굴)
+ * - opportunity: 기회 (영업 기회)
  */
-export type ProjectSourceCode = 'request' | 'proposal';
+export type ProjectSourceCode = 'direct' | 'opportunity';
 
 /**
  * 프로젝트 엔티티

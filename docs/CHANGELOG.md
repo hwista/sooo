@@ -6,6 +6,117 @@
 
 ## 2026-01-20
 
+### ✨ 권한 가드 구현 (P1-FEATURE)
+
+**백엔드:**
+- `@Roles()` 데코레이터: 역할 기반 접근 제어 (예: `@Roles('admin', 'pm')`)
+- `RolesGuard`: JwtAuthGuard와 함께 사용하는 역할 검증 가드
+- 모든 컨트롤러에 `@UseGuards(JwtAuthGuard, RolesGuard)` 적용
+
+**프론트엔드:**
+- `useAuth` 훅: `hasRole()`, `isAdmin`, `isManager` 제공
+- `ProtectedRoute` 컴포넌트: 역할 기반 라우트 보호
+- `AuthUser` 타입 export (auth.store.ts)
+
+**사용 예시:**
+```typescript
+// 백엔드 - admin만 접근 가능한 엔드포인트
+@Delete(':id')
+@Roles('admin')
+async remove(@Param('id') id: string) { ... }
+
+// 프론트엔드 - 역할 기반 UI 제어
+const { hasRole, isAdmin } = useAuth();
+{hasRole('admin', 'pm') && <AdminPanel />}
+
+// 프론트엔드 - 라우트 보호
+<ProtectedRoute roles={['admin']}>
+  <AdminPage />
+</ProtectedRoute>
+```
+
+---
+
+### ✅ 타입 정합성 검증 완료 (P1-TYPE)
+
+**SRV-06: any 타입 제거**
+- `request-context.interceptor.ts`: `Observable<unknown>` 반환 확인 (이미 수정됨)
+
+**TYPE-05: 메뉴 타입 통합 검토**
+- 중복 없음 확인: `packages/types`(공통 엔티티) vs `apps/web/src/types`(프론트엔드 전용 UI)
+- 현 구조 유지 결정
+
+---
+
+### ✨ 리팩토링: 대형 컴포넌트 분리 (P1-REFACTOR)
+
+**DataTable 분리 (WEB-05):**
+- 454줄 단일 파일 → 5개 파일 폴더 구조
+- `DataTable.tsx`: 메인 컴포넌트 + 상태 관리
+- `DataTableToolbar.tsx`: 검색 + 컨럼 가시성
+- `DataTableBody.tsx`: 테이블 본문 + 로딩/빈상태
+- `DataTableFooter.tsx`: 선택 정보 + 페이지네이션
+- `data-table-utils.tsx`: 유틸리티 함수 (createSortableHeader, createActionsColumn)
+
+**MainSidebar 분리 (WEB-06):**
+- 295줄 단일 파일 → 6개 파일 폴더 구조
+- `MainSidebar.tsx`: 메인 컴포넌트 + 플로트 로직
+- `CollapsedSidebar.tsx`: 접힌 상태 (아이콘만)
+- `ExpandedSidebar.tsx`: 펼친 상태 (전체 UI)
+- `FloatingPanel.tsx`: 플로틸 패널
+- `SidebarSection.tsx`: 섹션 래퍼
+- `sidebar-constants.ts`: 상수 정의
+
+**효과:**
+- 컴포넌트별 단일 책임 원칙 준수
+- 코드 가독성 및 유지보수성 향상
+- 테스트 및 재사용성 개선
+
+---
+
+### ✨ 기능 추가: 자동 품질 게이트 (IMM-01)
+
+**추가된 도구:**
+- Husky: Git hooks 자동 실행 (pre-commit, commit-msg)
+- Commitlint: 커밋 메시지 규칙 강제 (conventional commits)
+
+**설정 파일:**
+- `.husky/pre-commit`: 전체 lint 실행
+- `.husky/commit-msg`: commitlint 검증
+- `commitlint.config.mjs`: 커밋 타입 규칙 정의
+- `apps/server/eslint.config.mjs`: ESLint v9 flat config 추가
+
+**효과:**
+- 커밋 시 자동 ESLint 검증으로 코드 품질 강제
+- 일관된 커밋 메시지(feat/fix/docs 등)로 변경 이력 추적 용이
+
+---
+
+### 🔧 개선: 하드코딩 URL 제거 (IMM-02)
+
+**변경:**
+- `apps/web/src/stores/menu.store.ts`
+- `fetch('http://localhost:4000/api/menus/my')` → `apiClient.get('/menus/my')`
+
+**추가 개선:**
+- 401 에러 처리 중복 제거 (apiClient에서 통합 처리)
+- 환경변수 기반 API URL로 배포 환경 대응
+
+---
+
+### 🔧 개선: 인증 가드 타입 안전성 강화 (IMM-03)
+
+**변경:**
+- `apps/server/src/auth/guards/jwt-auth.guard.ts`
+- `handleRequest(err: any, user: any, info: any): any`
+- → `handleRequest<TUser = TokenPayload>(err: Error | null, user: TUser | false, info: { message?: string }): TUser`
+
+**효과:**
+- 보안 핵심 모듈의 타입 안전성 확보
+- 런타임 에러 사전 방지
+
+---
+
 ### 🔧 버그 수정: 인증 토큰 만료 시 메뉴 로드 실패
 
 **증상:**

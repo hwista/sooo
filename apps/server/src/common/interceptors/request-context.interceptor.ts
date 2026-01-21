@@ -19,7 +19,7 @@ import { runWithContext, RequestContext } from '@ssoo/database';
 
 @Injectable()
 export class RequestContextInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest();
     
     // JWT 인증된 사용자 정보 추출

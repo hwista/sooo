@@ -2,6 +2,7 @@ import { Injectable, ExecutionContext, UnauthorizedException, Logger } from '@ne
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { TokenPayload } from '../interfaces/auth.interface';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -29,8 +30,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  override handleRequest(err: any, user: any, info: any) {
-    this.logger.debug(`handleRequest - err: ${err}, user: ${user ? 'exists' : 'null'}, info: ${info}`);
+  override handleRequest<TUser = TokenPayload>(
+    err: Error | null,
+    user: TUser | false,
+    info: { message?: string } | undefined,
+  ): TUser {
+    this.logger.debug(`handleRequest - err: ${err}, user: ${user ? 'exists' : 'null'}, info: ${info?.message}`);
     if (err || !user) {
       throw err || new UnauthorizedException('인증이 필요합니다.');
     }

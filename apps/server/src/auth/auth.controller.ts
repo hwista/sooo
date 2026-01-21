@@ -5,7 +5,6 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -13,6 +12,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { TokenPayload } from './interfaces/auth.interface';
+import { success } from '../common';
 
 @Controller('auth')
 export class AuthController {
@@ -26,11 +26,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
     const tokens = await this.authService.login(loginDto);
-    return {
-      success: true,
-      data: tokens,
-      message: '로그인 성공',
-    };
+    return success(tokens, '로그인 성공');
   }
 
   /**
@@ -41,11 +37,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     const tokens = await this.authService.refreshTokens(refreshTokenDto.refreshToken);
-    return {
-      success: true,
-      data: tokens,
-      message: '토큰 갱신 성공',
-    };
+    return success(tokens, '토큰 갱신 성공');
   }
 
   /**
@@ -56,12 +48,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async logout(@CurrentUser() user: TokenPayload) {
-    await this.authService.logout(BigInt(user.userId));  // string을 BigInt로 변환
-    return {
-      success: true,
-      data: null,
-      message: '로그아웃 성공',
-    };
+    await this.authService.logout(BigInt(user.userId));
+    return success(null, '로그아웃 성공');
   }
 
   /**
@@ -72,15 +60,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async me(@CurrentUser() user: TokenPayload) {
-    return {
-      success: true,
-      data: {
-        userId: user.userId,  // 이미 string
-        loginId: user.loginId,
-        roleCode: user.roleCode,
-        userTypeCode: user.userTypeCode,
-      },
-      message: '사용자 정보 조회 성공',
-    };
+    return success({
+      userId: user.userId,
+      loginId: user.loginId,
+      roleCode: user.roleCode,
+      userTypeCode: user.userTypeCode,
+    }, '사용자 정보 조회 성공');
   }
 }

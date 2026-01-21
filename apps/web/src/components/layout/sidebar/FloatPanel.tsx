@@ -17,7 +17,7 @@ interface FloatPanelProps {
  * - 패널 위에 마우스가 있으면 유지
  */
 export function FloatPanel({ section, title, icon, children }: FloatPanelProps) {
-  const { activeFloatSection, openFloatSection, closeFloatSection } = useSidebarStore();
+  const { activeFloatSection, closeFloatSection } = useSidebarStore();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -80,7 +80,7 @@ interface FloatPanelTriggerProps {
  * 접힌 사이드바의 플로팅 패널 트리거 버튼
  */
 export function FloatPanelTrigger({ section, icon, tooltip }: FloatPanelTriggerProps) {
-  const { openFloatSection, closeFloatSection, activeFloatSection } = useSidebarStore();
+  const { openFloatSection, activeFloatSection } = useSidebarStore();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = () => {

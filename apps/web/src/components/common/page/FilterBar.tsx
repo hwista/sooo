@@ -30,15 +30,20 @@ export interface FilterField {
 }
 
 /**
+ * 필터 값 타입 (문자열 기반)
+ */
+export type FilterValues = Record<string, string>;
+
+/**
  * FilterBar Props
  */
 export interface FilterBarProps {
   /** 필터 필드 목록 */
   fields: FilterField[];
   /** 현재 값들 */
-  values: Record<string, any>;
+  values: FilterValues;
   /** 값 변경 핸들러 */
-  onChange: (key: string, value: any) => void;
+  onChange: (key: string, value: string) => void;
   /** Enter 키로 검색 */
   onEnterSearch?: () => void;
   /** 추가 className */

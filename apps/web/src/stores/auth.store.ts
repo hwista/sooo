@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { authApi } from '@/lib/api/auth';
 
-interface User {
+export interface AuthUser {
   userId: string;
   loginId: string;
   roleCode: string;
@@ -13,7 +13,7 @@ interface AuthState {
   // State
   accessToken: string | null;
   refreshToken: string | null;
-  user: User | null;
+  user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
 
@@ -23,7 +23,7 @@ interface AuthState {
   checkAuth: () => Promise<void>;
   refreshTokens: () => Promise<boolean>;
   setTokens: (accessToken: string, refreshToken: string) => void;
-  setUser: (user: User) => void;
+  setUser: (user: AuthUser) => void;
   clearAuth: () => void;
 }
 
@@ -60,9 +60,9 @@ export const useAuthStore = create<AuthState>()(
           } else {
             throw new Error(response.message || '로그인에 실패했습니다.');
           }
-        } catch (error: any) {
+        } catch {
           set({ isLoading: false });
-          throw error;
+          throw new Error('로그인에 실패했습니다.');
         }
       },
 
@@ -98,7 +98,7 @@ export const useAuthStore = create<AuthState>()(
               set({ user: meResponse.data, isAuthenticated: true, isLoading: false });
               return;
             }
-          } catch (error: any) {
+          } catch {
             // 401 에러 - Access Token 만료, refresh 시도
             console.log('[AuthStore] Access token expired, trying refresh...');
           }
@@ -118,8 +118,9 @@ export const useAuthStore = create<AuthState>()(
                 }
               }
             }
-          } catch (error: any) {
-            console.log('[AuthStore] Refresh token failed:', error.message);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : 'Unknown error';
+            console.log('[AuthStore] Refresh token failed:', message);
           }
         }
 
@@ -153,7 +154,7 @@ export const useAuthStore = create<AuthState>()(
         set({ accessToken, refreshToken, isAuthenticated: true });
       },
 
-      setUser: (user: User) => {
+      setUser: (user: AuthUser) => {
         set({ user });
       },
 

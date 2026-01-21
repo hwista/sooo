@@ -1,5 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { ProjectService } from './project.service';
+import { success, paginated, notFound, deleted } from '../common';
 import type {
   CreateProjectDto,
   UpdateProjectDto,
@@ -7,39 +10,29 @@ import type {
 } from '@ssoo/types';
 
 @Controller('projects')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Get()
   async findAll(@Query() params: PaginationParams) {
     const { data, total } = await this.projectService.findAll(params);
-    return {
-      success: true,
-      data,
-      meta: {
-        page: params.page || 1,
-        limit: params.limit || 10,
-        total,
-      },
-    };
+    return paginated(data, params.page || 1, params.limit || 10, total);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const project = await this.projectService.findOne(BigInt(id));
     if (!project) {
-      return {
-        success: false,
-        error: { code: 'NOT_FOUND', message: 'Project not found' },
-      };
+      return notFound('프로젝트');
     }
-    return { success: true, data: project };
+    return success(project);
   }
 
   @Post()
   async create(@Body() dto: CreateProjectDto) {
     const project = await this.projectService.create(dto);
-    return { success: true, data: project };
+    return success(project);
   }
 
   @Put(':id')
@@ -49,17 +42,14 @@ export class ProjectController {
   ) {
     const project = await this.projectService.update(BigInt(id), dto);
     if (!project) {
-      return {
-        success: false,
-        error: { code: 'NOT_FOUND', message: 'Project not found' },
-      };
+      return notFound('프로젝트');
     }
-    return { success: true, data: project };
+    return success(project);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const deleted = await this.projectService.remove(BigInt(id));
-    return { success: true, data: { deleted } };
+    const result = await this.projectService.remove(BigInt(id));
+    return deleted(result);
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { api, projectsApi } from '@/lib/api';
+import { projectsApi } from '@/lib/api';
 import type {
   Project,
   ProjectFilters,
