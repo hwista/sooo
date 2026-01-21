@@ -6,6 +6,28 @@
 
 ## 2026-01-21
 
+### 🔄 ssoo-red → ls-red 통합
+
+**변경 사항:**
+- `--ssoo-red` CSS 변수 제거 (LS CI의 `--ls-red`와 동일 값 중복)
+- 모든 `ssoo-red` 사용처를 `ls-red`로 변경
+- `tailwind.config.ts`의 `ssoo.red`가 `--ls-red` 참조하도록 수정 (하위 호환성 유지)
+
+**수정된 파일:**
+- `globals.css`: `--ssoo-red` 변수 제거
+- `tailwind.config.ts`: `ssoo.red` → `var(--ls-red)` 참조
+- `button.tsx`: destructive variant `ls-red` 사용
+- `Header.tsx`, `login/page.tsx`, `CustomerRequestListPage.tsx`: `ls-red` 사용
+
+**사용 방법:**
+```tsx
+// Destructive/경고 색상은 ls-red 사용
+<div className="text-ls-red">에러 메시지</div>
+<div className="bg-ls-red/10 text-ls-red">경고 배지</div>
+```
+
+---
+
 ### 🎨 색상 중앙화 및 LS CI 팔레트 추가
 
 **디자인 시스템 개선:**

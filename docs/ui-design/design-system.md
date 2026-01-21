@@ -50,13 +50,14 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 | **Primary** | `#003876` | `ssoo-primary` | 메인 브랜드색, CUD 버튼 |
 | **Primary Hover** | `#235a98` | `ssoo-primary-hover` | Hover 상태 |
 | **Secondary** | `#235a98` | `ssoo-secondary` | 보조색, 일반 버튼 |
-| **SSOO Red** | `#FA002D` | `ssoo-red` | Destructive 액션, 경고 |
 | **Portal Background** | `#F9FBFD` | `ssoo-background` | 페이지 배경 |
 | **Content Border** | `#9FC1E7` | `ssoo-content-border` | 카드/패널 테두리 |
 | **Content Background** | `#DEE7F1` | `ssoo-content-bg` | 카드 배경, Muted 영역 |
 | **Sitemap Title** | `#016CA2` | `ssoo-sitemap-title` | 링크 색상, 액센트 |
 | **Sitemap Bullet** | `#00588A` | `ssoo-sitemap-bullet` | 보조 액센트 |
 | **Sitemap Background** | `#F6FBFF` | `ssoo-sitemap-bg` | Hover 배경 |
+
+> 📝 **참고**: 레드 색상은 LS CI의 `ls-red`를 사용합니다. (Destructive 액션, 경고)
 
 ### CSS 변수
 
@@ -67,7 +68,6 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 --ssoo-primary: #003876;
 --ssoo-primary-hover: #235a98;
 --ssoo-secondary: #235a98;
---ssoo-red: #FA002D;
 --ssoo-background: #F9FBFD;
 --ssoo-content-border: #9FC1E7;
 --ssoo-content-background: #DEE7F1;
@@ -77,7 +77,7 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 
 /* LS CI 색상 팔레트 */
 --ls-blue: #0A1E5A;      /* LS BLUE - 메인 */
---ls-red: #FA002D;       /* LS RED - 메인 */
+--ls-red: #FA002D;       /* LS RED - 메인 (Destructive 용도로 사용) */
 --ls-green: #009BB4;     /* GREEN - 서브 */
 --ls-sub-blue: #0569A0;  /* BLUE - 서브 */
 --ls-gray: #7D8282;      /* GRAY - 서브 */
@@ -94,7 +94,7 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 <div className="bg-[#003876] text-[#FA002D]">
 
 // ✅ 올바른 사용 (Tailwind 클래스)
-<div className="bg-ssoo-primary text-ssoo-red">
+<div className="bg-ssoo-primary text-ls-red">
 
 // ✅ LS CI 색상 사용
 <div className="bg-ls-blue text-ls-red">
@@ -114,11 +114,11 @@ bg-ssoo-secondary          /* Secondary */
 hover:bg-ssoo-primary      /* Hover 시 Primary로 */
 ```
 
-### Destructive (SSOO Red)
+### Destructive (LS Red)
 **용도**: 삭제, 경고, 위험한 작업
 ```tsx
-bg-ssoo-red            /* SSOO Red */
-hover:bg-ssoo-red-hover /* 어두운 레드 */
+bg-ls-red              /* LS RED */
+hover:bg-ls-red/90     /* 90% 투명도 */
 ```
 
 ### Outline (테두리)

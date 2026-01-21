@@ -20,7 +20,7 @@ const buttonVariants = cva(
           "border border-ssoo-content-border bg-white text-ssoo-primary shadow-sm hover:bg-ssoo-sitemap-bg",
         // Destructive: 삭제/위험 (SSOO Red)
         destructive:
-          "bg-ssoo-red text-white shadow-sm hover:bg-ssoo-red-hover",
+          "bg-ls-red text-white shadow-sm hover:bg-ls-red/90",
         // Ghost: 배경 없음
         ghost: "text-ssoo-primary hover:bg-ssoo-content-bg",
         // Link: 링크 스타일

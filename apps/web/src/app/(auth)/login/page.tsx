@@ -59,7 +59,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Error Message */}
           {error && (
-            <div className="bg-ssoo-red/10 border border-ssoo-red/20 text-ssoo-red px-4 py-3 rounded-md text-sm">
+            <div className="bg-ls-red/10 border border-ls-red/20 text-ls-red px-4 py-3 rounded-md text-sm">
               {error}
             </div>
           )}
@@ -78,7 +78,7 @@ export default function LoginPage() {
               placeholder="아이디를 입력하세요"
             />
             {errors.loginId && (
-              <p className="mt-1 text-sm text-ssoo-red">{errors.loginId.message}</p>
+              <p className="mt-1 text-sm text-ls-red">{errors.loginId.message}</p>
             )}
           </div>
 
@@ -96,7 +96,7 @@ export default function LoginPage() {
               placeholder="비밀번호를 입력하세요"
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-ssoo-red">{errors.password.message}</p>
+              <p className="mt-1 text-sm text-ls-red">{errors.password.message}</p>
             )}
           </div>
 
