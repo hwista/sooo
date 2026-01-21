@@ -177,3 +177,26 @@ types/
 - [tech-stack.md](tech-stack.md) - 기술 스택
 - [tech-decisions.md](tech-decisions.md) - 기술 결정 사항
 - [../ui-design/design-system.md](../ui-design/design-system.md) - 디자인 시스템
+
+---
+
+## Backlog
+
+> 이 영역 관련 개선/추가 예정 항목
+
+| ID | 항목 | 우선순위 | 상태 |
+|----|------|----------|------|
+| FES-01 | 에러 바운더리 컴포넌트 표준화 | P2 | 🔲 대기 |
+| FES-02 | 폼 컴포넌트 표준 가이드 작성 | P2 | 🔲 대기 |
+| FES-03 | 테스트 코드 표준 추가 | P3 | 🔲 대기 |
+
+---
+
+## Changelog
+
+> 이 영역 관련 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-01-21 | Backlog/Changelog 섹션 추가 |
+| 2026-01-20 | 프론트엔드 표준 문서 작성 |

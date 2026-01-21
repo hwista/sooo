@@ -41,6 +41,7 @@ SSOO 프로젝트의 모든 문서를 탐색할 수 있는 허브입니다.
 |------|------|
 | [tech-stack.md](architecture/tech-stack.md) | 기술 스택 |
 | [frontend-standards.md](architecture/frontend-standards.md) | 프론트엔드 표준 |
+| [workflow-process.md](architecture/workflow-process.md) | ⭐ 작업 프로세스 가이드 |
 | [tech-decisions.md](architecture/tech-decisions.md) | 기술 결정 사항 |
 | [auth-system.md](architecture/auth-system.md) | 인증 시스템 |
 | [security-standards.md](architecture/security-standards.md) | 보안 표준 |

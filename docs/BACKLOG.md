@@ -12,6 +12,8 @@
 
 | 영역 | 문서 위치 | 설명 |
 |------|----------|------|
+| **작업 프로세스** | [docs/architecture/workflow-process.md](./architecture/workflow-process.md#backlog) | 작업 프로세스/커밋/Git |
+| **프론트엔드 표준** | [docs/architecture/frontend-standards.md](./architecture/frontend-standards.md#backlog) | 컴포넌트 계층/표준 |
 | **API** | [docs/api/README.md](./api/README.md#backlog) | API 추가/개선 |
 | **레이아웃** | [docs/architecture/layout-system.md](./architecture/layout-system.md#backlog) | 레이아웃/모바일 |
 | **상태 관리** | [docs/architecture/state-management.md](./architecture/state-management.md#backlog) | Store 개선 |
