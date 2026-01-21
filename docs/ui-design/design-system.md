@@ -17,25 +17,53 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 ## 색상 체계
 
 > 📝 그룹웨어 색상 체계를 기반으로 브랜드 일관성을 유지합니다.
+> 
+> ⚠️ **중요**: 모든 색상은 CSS 변수 기반 Tailwind 클래스를 사용합니다. 하드코딩된 색상 코드(`[#XXXXXX]`)는 사용하지 않습니다.
 
-### 테마 색상 팔레트
+### LS CI 색상 팔레트
 
-| 색상명 | HEX | 용도 |
-|-------|-----|------|
-| **Primary** | `#003876` | 메인 브랜드색, 중요 액션, CUD 버튼 |
-| **Secondary** | `#235a98` | 보조색, 일반 작업 버튼, Hover 상태 |
-| **SSOO Red** | `#FA002D` | 회사 메인 레드, Destructive 액션, 경고 |
-| **Portal Background** | `#F9FBFD` | 페이지 배경 |
-| **Content Border** | `#9FC1E7` | 카드/패널 테두리 |
-| **Content Background** | `#DEE7F1` | 카드 배경, Muted 영역 |
-| **Sitemap Title** | `#016CA2` | 링크 색상, 액센트 |
-| **Sitemap Bullet** | `#00588A` | 보조 액센트 |
-| **Sitemap Background** | `#F6FBFF` | Hover 배경 |
+공식 CI 색상 가이드에 따른 색상 체계입니다.
+
+#### 메인 컬러
+
+| 색상명 | HEX | RGB | Tailwind 클래스 | 용도 |
+|-------|-----|-----|-----------------|------|
+| **LS BLUE** | `#0A1E5A` | RGB(10, 30, 90) | `ls-blue` | CI 메인 블루, 공식 로고 |
+| **LS RED** | `#FA002D` | RGB(250, 0, 45) | `ls-red` | CI 메인 레드, 강조 |
+
+#### 서브 컬러
+
+| 색상명 | HEX | RGB | Tailwind 클래스 | 용도 |
+|-------|-----|-----|-----------------|------|
+| **GREEN** | `#009BB4` | RGB(0, 155, 180) | `ls-green` | 성공, 완료 상태 |
+| **BLUE** | `#0569A0` | RGB(5, 105, 160) | `ls-sub-blue` | 정보, 링크 |
+| **GRAY** | `#7D8282` | RGB(125, 130, 130) | `ls-gray` | 비활성, 보조 텍스트 |
+| **SILVER** | `#87827D` | RGB(135, 130, 125) | `ls-silver` | 테두리, 구분선 |
+| **GOLD** | `#7D0D0D` | RGB(125, 13, 13) | `ls-gold` | 특별 강조, VIP |
+
+### SSOO 테마 색상 팔레트
+
+그룹웨어 기반 앱 전용 색상 체계입니다.
+
+| 색상명 | HEX | Tailwind 클래스 | 용도 |
+|-------|-----|-----------------|------|
+| **Primary** | `#003876` | `ssoo-primary` | 메인 브랜드색, CUD 버튼 |
+| **Primary Hover** | `#235a98` | `ssoo-primary-hover` | Hover 상태 |
+| **Secondary** | `#235a98` | `ssoo-secondary` | 보조색, 일반 버튼 |
+| **SSOO Red** | `#FA002D` | `ssoo-red` | Destructive 액션, 경고 |
+| **Portal Background** | `#F9FBFD` | `ssoo-background` | 페이지 배경 |
+| **Content Border** | `#9FC1E7` | `ssoo-content-border` | 카드/패널 테두리 |
+| **Content Background** | `#DEE7F1` | `ssoo-content-bg` | 카드 배경, Muted 영역 |
+| **Sitemap Title** | `#016CA2` | `ssoo-sitemap-title` | 링크 색상, 액센트 |
+| **Sitemap Bullet** | `#00588A` | `ssoo-sitemap-bullet` | 보조 액센트 |
+| **Sitemap Background** | `#F6FBFF` | `ssoo-sitemap-bg` | Hover 배경 |
 
 ### CSS 변수
 
 ```css
 /* globals.css에서 정의됨 */
+
+/* SSOO 테마 색상 */
 --ssoo-primary: #003876;
 --ssoo-primary-hover: #235a98;
 --ssoo-secondary: #235a98;
@@ -46,47 +74,71 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 --ssoo-sitemap-title: #016CA2;
 --ssoo-sitemap-bullet: #00588A;
 --ssoo-sitemap-background: #F6FBFF;
+
+/* LS CI 색상 팔레트 */
+--ls-blue: #0A1E5A;      /* LS BLUE - 메인 */
+--ls-red: #FA002D;       /* LS RED - 메인 */
+--ls-green: #009BB4;     /* GREEN - 서브 */
+--ls-sub-blue: #0569A0;  /* BLUE - 서브 */
+--ls-gray: #7D8282;      /* GRAY - 서브 */
+--ls-silver: #87827D;    /* SILVER - 서브 */
+--ls-gold: #7D0D0D;      /* GOLD - 서브 */
+```
+
+### Tailwind 클래스 사용법
+
+> ⚠️ **필수**: 색상 코드를 직접 사용하지 말고 Tailwind 클래스를 사용하세요.
+
+```tsx
+// ❌ 잘못된 사용 (하드코딩)
+<div className="bg-[#003876] text-[#FA002D]">
+
+// ✅ 올바른 사용 (Tailwind 클래스)
+<div className="bg-ssoo-primary text-ssoo-red">
+
+// ✅ LS CI 색상 사용
+<div className="bg-ls-blue text-ls-red">
 ```
 
 ### Primary (네이비 블루)
 **용도**: CUD(생성/수정/삭제) 작업, 중요한 액션, 메인 버튼
-```css
-bg-[#003876]            /* Primary */
-hover:bg-[#235a98]      /* Hover 시 Secondary로 */
+```tsx
+bg-ssoo-primary            /* Primary */
+hover:bg-ssoo-primary-hover /* Hover 상태 */
 ```
 
 ### Secondary (라이트 네이비)
 **용도**: 일반 작업, 보조 버튼, 취소 액션
-```css
-bg-[#235a98]            /* Secondary */
-hover:bg-[#003876]      /* Hover 시 Primary로 */
+```tsx
+bg-ssoo-secondary          /* Secondary */
+hover:bg-ssoo-primary      /* Hover 시 Primary로 */
 ```
 
 ### Destructive (SSOO Red)
 **용도**: 삭제, 경고, 위험한 작업
-```css
-bg-[#FA002D]            /* SSOO Red */
-hover:bg-red-700        /* 어두운 레드 */
+```tsx
+bg-ssoo-red            /* SSOO Red */
+hover:bg-ssoo-red-hover /* 어두운 레드 */
 ```
 
 ### Outline (테두리)
 **용도**: 덜 중요한 액션, 필터, 정렬
-```css
-border border-[#9FC1E7] bg-white text-[#003876]
-hover:bg-[#F6FBFF]
+```tsx
+border border-ssoo-content-border bg-white text-ssoo-primary
+hover:bg-ssoo-sitemap-bg
 ```
 
 ### Ghost (배경 없음)
 **용도**: 아이콘 버튼, 서브 액션
-```css
-text-[#003876]
-hover:bg-[#DEE7F1]
+```tsx
+text-ssoo-primary
+hover:bg-ssoo-content-bg
 ```
 
 ### Link (링크 스타일)
 **용도**: 텍스트 링크, 내비게이션
-```css
-text-[#016CA2]
+```tsx
+text-ssoo-sitemap-title
 hover:underline
 ```
 
@@ -98,16 +150,16 @@ hover:underline
 
 ### 헤더
 
-| 속성 | 값 | 설명 |
-|------|-----|------|
-| **높이** | 60px | `h-[60px]` 또는 `h-header-h` |
-| **배경색** | `#003876` | Primary 색상 |
-| **텍스트** | White | 아이콘, 버튼 텍스트 |
+| 속성 | 값 | Tailwind 클래스 | 설명 |
+|------|-----|-----------------|------|
+| **높이** | 60px | `h-[60px]` | 고정 헤더 높이 |
+| **배경색** | `#003876` | `bg-ssoo-primary` | Primary 색상 |
+| **텍스트** | White | `text-white` | 아이콘, 버튼 텍스트 |
 
 > 📝 로고와 접기 버튼은 **사이드바 헤더**에만 존재합니다. 메인 헤더에는 통합 검색란이 위치합니다.
 
 ```tsx
-<header className="h-[60px] bg-[#003876] flex items-center justify-between px-4">
+<header className="h-[60px] bg-ssoo-primary flex items-center justify-between px-4">
   {/* 왼쪽: 통합 검색 (추후 Elasticsearch/AI 챗 연동) */}
   <div className="flex items-center flex-1 max-w-md">
     <div className="relative w-full">
@@ -123,7 +175,7 @@ hover:underline
   
   {/* 오른쪽: 액션 버튼들 */}
   <div className="flex items-center gap-2">
-    <button className="h-control-h px-3 bg-white text-[#003876] rounded-md">새 프로젝트</button>
+    <button className="h-control-h px-3 bg-white text-ssoo-primary rounded-md">새 프로젝트</button>
     <button className="hover:bg-white/10 text-white">알림</button>
     <button className="hover:bg-white/10 text-white">프로필</button>
   </div>
@@ -132,25 +184,25 @@ hover:underline
 
 ### 사이드바
 
-| 속성 | 값 | 설명 |
-|------|-----|------|
-| **펼침 너비** | 340px | 그룹웨어 기준 |
-| **접힘 너비** | 56px | 아이콘만 표시 |
-| **헤더 높이** | 60px | 메인 헤더와 동일 |
-| **헤더 배경** | `#003876` | Primary |
-| **본문 배경** | `#DEE7F1` | Content Background |
-| **우측 보더** | `#9FC1E7` | 사이드바 구분선 |
+| 속성 | 값 | Tailwind 클래스 | 설명 |
+|------|-----|-----------------|------|
+| **펼침 너비** | 340px | - | 그룹웨어 기준 |
+| **접힘 너비** | 56px | - | 아이콘만 표시 |
+| **헤더 높이** | 60px | `h-[60px]` | 메인 헤더와 동일 |
+| **헤더 배경** | `#003876` | `bg-ssoo-primary` | Primary |
+| **본문 배경** | `#DEE7F1` | `bg-ssoo-content-bg` | Content Background |
+| **우측 보더** | `#9FC1E7` | `border-ssoo-content-border` | 사이드바 구분선 |
 
 ```tsx
 <aside 
-  className="bg-[#DEE7F1] border-r border-[#9FC1E7]" 
+  className="bg-ssoo-content-bg border-r border-ssoo-content-border" 
   style={{ width: 340 }}
 >
   {/* 사이드바 헤더 - 로고 + 접기 버튼 */}
-  <div className="h-[60px] bg-[#003876] flex items-center justify-between px-3">
+  <div className="h-[60px] bg-ssoo-primary flex items-center justify-between px-3">
     <div className="flex items-center gap-2">
       <div className="w-9 h-9 bg-white rounded flex items-center justify-center">
-        <span className="text-[#003876] font-bold">S</span>
+        <span className="text-ssoo-primary font-bold">S</span>
       </div>
       <span className="text-white font-semibold text-lg">SSOO</span>
     </div>
@@ -160,7 +212,7 @@ hover:underline
   </div>
   
   {/* 콘텐츠 영역 */}
-  <div className="bg-[#DEE7F1]">
+  <div className="bg-ssoo-content-bg">
     {/* 검색, 메뉴 등 */}
   </div>
 </aside>
@@ -168,15 +220,15 @@ hover:underline
 
 #### 사이드바 요소 스타일
 
-| 요소 | 클래스 | 설명 |
-|------|--------|------|
-| 외곽 보더 | `border-[#9FC1E7]` | 사이드바 우측 구분선 |
+| 요소 | Tailwind 클래스 | 설명 |
+|------|-----------------|------|
+| 외곽 보더 | `border-ssoo-content-border` | 사이드바 우측 구분선 |
 | 섹션 보더 | `border-gray-200` | 내부 섹션 구분선 |
-| 검색란 보더 | `border-[#9FC1E7]` | 외곽 보더와 동일 |
-| 아이콘 색상 | `text-[#003876]` | Primary |
-| 텍스트 색상 | `text-[#003876]` | Primary |
-| Hover 배경 | `bg-[#F6FBFF]` | 은은한 Hover (Sitemap Background) |
-| 선택 배경 | `bg-[#9FC1E7]` | 활성화된 메뉴 항목 |
+| 검색란 보더 | `border-ssoo-content-border` | 외곽 보더와 동일 |
+| 아이콘 색상 | `text-ssoo-primary` | Primary |
+| 텍스트 색상 | `text-ssoo-primary` | Primary |
+| Hover 배경 | `bg-ssoo-sitemap-bg` | 은은한 Hover (Sitemap Background) |
+| 선택 배경 | `bg-ssoo-content-border` | 활성화된 메뉴 항목 |
 
 ### 탭바 (MDI 탭 영역)
 
@@ -472,7 +524,7 @@ export function PageHeader() {
     <div className="flex items-center justify-between mb-6">
       {/* 제목 */}
       <div className="flex items-center gap-3">
-        <FolderIcon className="icon-h1 text-[#003876]" />
+        <FolderIcon className="icon-h1 text-ssoo-primary" />
         <h1 className="heading-1">고객 요청 관리</h1>
       </div>
       

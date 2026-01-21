@@ -73,6 +73,16 @@ const config: Config = {
           'sitemap-bullet': 'var(--ssoo-sitemap-bullet)',
           'sitemap-bg': 'var(--ssoo-sitemap-background)',
         },
+        // LS CI 색상 팔레트
+        ls: {
+          blue: 'var(--ls-blue)',
+          red: 'var(--ls-red)',
+          green: 'var(--ls-green)',
+          'sub-blue': 'var(--ls-sub-blue)',
+          gray: 'var(--ls-gray)',
+          silver: 'var(--ls-silver)',
+          gold: 'var(--ls-gold)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

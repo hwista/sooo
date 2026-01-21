@@ -66,6 +66,20 @@
     --ssoo-sitemap-bullet: #00588A;
     --ssoo-sitemap-background: #F6FBFF;
     --ssoo-red: #FA002D;                   /* 회사 메인 레드 */
+    
+    /* ========================================
+       LS CI 색상 팔레트
+       ======================================== */
+    /* 메인 컬러 */
+    --ls-blue: #0A1E5A;                     /* LS BLUE - RGB(10, 30, 90) */
+    --ls-red: #FA002D;                      /* LS RED - RGB(250, 0, 45) */
+    
+    /* 서브 컬러 */
+    --ls-green: #009BB4;                    /* GREEN - RGB(0, 155, 180) */
+    --ls-sub-blue: #0569A0;                 /* BLUE - RGB(5, 105, 160) */
+    --ls-gray: #7D8282;                     /* GRAY - RGB(125, 130, 130) */
+    --ls-silver: #87827D;                   /* SILVER - RGB(135, 130, 125) */
+    --ls-gold: #7D0D0D;                     /* GOLD - RGB(125, 13, 13) */
   }
 
   .dark {

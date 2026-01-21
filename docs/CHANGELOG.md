@@ -4,6 +4,46 @@
 
 ---
 
+## 2026-01-21
+
+### 🎨 색상 중앙화 및 LS CI 팔레트 추가
+
+**디자인 시스템 개선:**
+- 모든 하드코딩된 색상 코드(`[#XXXXXX]`)를 Tailwind CSS 변수 기반 클래스로 교체
+- `tailwind.config.ts`에 `ssoo-*` 및 `ls-*` 색상 팔레트 추가
+- 다크모드 및 테마 변경 지원 기반 마련
+
+**LS CI 색상 팔레트 추가:**
+
+| 구분 | 색상명 | HEX | Tailwind 클래스 |
+|------|--------|-----|-----------------|
+| 메인 | LS BLUE | `#0A1E5A` | `ls-blue` |
+| 메인 | LS RED | `#FA002D` | `ls-red` |
+| 서브 | GREEN | `#009BB4` | `ls-green` |
+| 서브 | BLUE | `#0569A0` | `ls-sub-blue` |
+| 서브 | GRAY | `#7D8282` | `ls-gray` |
+| 서브 | SILVER | `#87827D` | `ls-silver` |
+| 서브 | GOLD | `#7D0D0D` | `ls-gold` |
+
+**수정된 파일 (15개):**
+- `globals.css`, `tailwind.config.ts`: CI 색상 변수 및 팔레트 추가
+- `button.tsx`, `Header.tsx`, `TabBar.tsx`, `login/page.tsx`
+- MainSidebar 5개 컴포넌트 (`MainSidebar`, `ExpandedSidebar`, `CollapsedSidebar`, `FloatingPanel`, `SidebarSection`)
+- sidebar 4개 컴포넌트 (`SidebarSearch`, `SidebarOpenTabs`, `SidebarMenuTree`, `SidebarFavorites`)
+- `CustomerRequestListPage.tsx`
+
+**사용 방법:**
+```tsx
+// ❌ 금지: 하드코딩
+<div className="bg-[#003876]">
+
+// ✅ 권장: Tailwind 클래스
+<div className="bg-ssoo-primary">  // SSOO 테마 색상
+<div className="bg-ls-blue">       // LS CI 색상
+```
+
+---
+
 ## 2026-01-20
 
 ### ✨ 권한 가드 구현 (P1-FEATURE)
