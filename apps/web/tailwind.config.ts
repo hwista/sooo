@@ -64,8 +64,6 @@ const config: Config = {
           primary: 'var(--ssoo-primary)',
           'primary-hover': 'var(--ssoo-primary-hover)',
           secondary: 'var(--ssoo-secondary)',
-          red: 'var(--ls-red)',            // LS CI 색상 참조 (동일 값)
-          'red-hover': '#d90027',
           background: 'var(--ssoo-background)',
           'content-border': 'var(--ssoo-content-border)',
           'content-bg': 'var(--ssoo-content-background)',
