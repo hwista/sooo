@@ -211,7 +211,7 @@ PR 생성 전 자체 점검:
 
 ```bash
 # .husky/pre-commit
-npx lint-staged
+pnpm run lint
 ```
 
 ```json
@@ -259,6 +259,7 @@ npx --no -- commitlint --edit "$1"
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | Husky hook Node/pnpm 가드 추가 및 예시 업데이트 |
 | 2026-01-21 | 작업 프로세스 가이드 최초 작성 |
 | 2026-01-21 | 분산형 문서 관리 체계 도입 |
 | 2026-01-20 | Husky + lint-staged + Commitlint 설정 |

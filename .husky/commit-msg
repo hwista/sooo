@@ -1,1 +1,14 @@
-npx --no -- commitlint --edit $1
+#!/usr/bin/env sh
+set -e
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "husky: node not found. Install Node.js in this environment."
+  exit 1
+fi
+
+if ! command -v npx >/dev/null 2>&1; then
+  echo "husky: npx not found. Install Node.js/npm in this environment."
+  exit 1
+fi
+
+npx --no -- commitlint --edit "$1"

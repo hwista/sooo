@@ -1,1 +1,14 @@
+#!/usr/bin/env sh
+set -e
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "husky: node not found. Install Node.js in this environment."
+  exit 1
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "husky: pnpm not found. Install pnpm or enable corepack."
+  exit 1
+fi
+
 pnpm run lint
