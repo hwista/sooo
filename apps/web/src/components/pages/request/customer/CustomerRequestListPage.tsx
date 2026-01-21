@@ -64,7 +64,7 @@ const columns: ColumnDef<CustomerRequest>[] = [
         '검토중': 'bg-yellow-100 text-yellow-800',
         '진행중': 'bg-green-100 text-green-800',
         '완료': 'bg-gray-100 text-gray-800',
-        '반려': 'bg-red-100 text-red-800',
+        '반려': 'bg-[#FA002D]/10 text-[#FA002D]',
       };
       return (
         <span className={`px-2 py-1 rounded text-xs font-medium ${colorMap[status] || 'bg-gray-100'}`}>
