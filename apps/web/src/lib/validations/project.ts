@@ -3,6 +3,8 @@ import {
   requiredStringMax,
   optionalStringMax,
   optionalId,
+  amountField,
+  dateField,
   optionalSelect,
 } from './common';
 

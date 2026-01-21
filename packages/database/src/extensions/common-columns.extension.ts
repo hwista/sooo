@@ -96,13 +96,24 @@ function prepareUpdateData(data: any, modelName: string, action: string = 'updat
  * 사용법:
  * const prisma = new PrismaClient().$extends(commonColumnsExtension);
  */
+/**
+ * 공통 컬럼 Extension에서 제외할 모델 목록
+ * - History 접미사 모델: 히스토리 테이블은 트리거에서 관리
+ * - UserFavorite: 단순 관계 테이블로 공통 컬럼 없음
+ */
+const EXCLUDED_MODELS = ['UserFavorite'];
+
+function shouldExcludeModel(model: string): boolean {
+  return model.endsWith('History') || EXCLUDED_MODELS.includes(model);
+}
+
 export const commonColumnsExtension = Prisma.defineExtension({
   name: 'common-columns',
   query: {
     $allModels: {
       async create({ model, args, query }) {
-        // 히스토리 모델은 제외
-        if (model.endsWith('History')) {
+        // 제외 대상 모델은 원본 쿼리 실행
+        if (shouldExcludeModel(model)) {
           return query(args);
         }
         
@@ -111,8 +122,8 @@ export const commonColumnsExtension = Prisma.defineExtension({
       },
 
       async createMany({ model, args, query }) {
-        // 히스토리 모델은 제외
-        if (model.endsWith('History')) {
+        // 제외 대상 모델은 원본 쿼리 실행
+        if (shouldExcludeModel(model)) {
           return query(args);
         }
 
@@ -125,8 +136,8 @@ export const commonColumnsExtension = Prisma.defineExtension({
       },
 
       async update({ model, args, query }) {
-        // 히스토리 모델은 제외
-        if (model.endsWith('History')) {
+        // 제외 대상 모델은 원본 쿼리 실행
+        if (shouldExcludeModel(model)) {
           return query(args);
         }
 
@@ -135,8 +146,8 @@ export const commonColumnsExtension = Prisma.defineExtension({
       },
 
       async updateMany({ model, args, query }) {
-        // 히스토리 모델은 제외
-        if (model.endsWith('History')) {
+        // 제외 대상 모델은 원본 쿼리 실행
+        if (shouldExcludeModel(model)) {
           return query(args);
         }
 
@@ -145,8 +156,8 @@ export const commonColumnsExtension = Prisma.defineExtension({
       },
 
       async upsert({ model, args, query }) {
-        // 히스토리 모델은 제외
-        if (model.endsWith('History')) {
+        // 제외 대상 모델은 원본 쿼리 실행
+        if (shouldExcludeModel(model)) {
           return query(args);
         }
 

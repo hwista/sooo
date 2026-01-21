@@ -308,32 +308,17 @@ export class MenuService {
 
   /**
    * 즐겨찾기 추가
+   * - 기존 레코드가 있으면 is_active=true로 UPDATE (재등록)
+   * - 없으면 새로 INSERT
    */
   async addFavorite(userId: bigint, menuId: bigint) {
-    // 이미 즐겨찾기에 있는지 확인
+    // 기존 레코드 확인 (is_active 상관없이)
     const existing = await this.db.userFavorite.findFirst({
       where: {
         userId: userId,
         menuId: menuId,
-        isActive: true,
       },
     });
-
-    if (existing) {
-      // 이미 존재하면 기존 데이터 반환
-      const menu = await this.db.menu.findUnique({
-        where: { id: menuId },
-      });
-      return {
-        id: existing.id.toString(),
-        menuId: menuId.toString(),
-        menuCode: menu?.menuCode || '',
-        menuName: menu?.menuName || '',
-        menuPath: menu?.menuPath,
-        icon: menu?.icon,
-        sortOrder: existing.sortOrder,
-      };
-    }
 
     // 현재 최대 sortOrder 조회
     const maxSortOrder = await this.db.userFavorite.aggregate({
@@ -345,18 +330,37 @@ export class MenuService {
         sortOrder: true,
       },
     });
-
     const newSortOrder = (maxSortOrder._max.sortOrder ?? -1) + 1;
 
-    // 새 즐겨찾기 생성
-    const favorite = await this.db.userFavorite.create({
-      data: {
-        userId: userId,
-        menuId: menuId,
-        sortOrder: newSortOrder,
-        isActive: true,
-      },
-    });
+    let favorite: { id: bigint; sortOrder: number };
+
+    if (existing) {
+      if (existing.isActive) {
+        // 이미 활성 상태면 기존 데이터 그대로 반환
+        favorite = existing;
+      } else {
+        // 비활성 상태면 다시 활성화 (재등록)
+        const updated = await this.db.userFavorite.update({
+          where: { id: existing.id },
+          data: {
+            isActive: true,
+            sortOrder: newSortOrder,
+          },
+        });
+        favorite = updated;
+      }
+    } else {
+      // 새 즐겨찾기 생성
+      const created = await this.db.userFavorite.create({
+        data: {
+          userId: userId,
+          menuId: menuId,
+          sortOrder: newSortOrder,
+          isActive: true,
+        },
+      });
+      favorite = created;
+    }
 
     // 메뉴 정보 조회
     const menu = await this.db.menu.findUnique({
