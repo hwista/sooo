@@ -29,7 +29,8 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 | 색상명 | HEX | RGB | Tailwind 클래스 | 용도 |
 |-------|-----|-----|-----------------|------|
 | **LS BLUE** | `#0A1E5A` | RGB(10, 30, 90) | `ls-blue` | CI 메인 블루, 공식 로고 |
-| **LS RED** | `#FA002D` | RGB(250, 0, 45) | `ls-red` | CI 메인 레드, 강조 |
+| **LS RED** | `#FA002D` | RGB(250, 0, 45) | `ls-red` | CI 메인 레드, Destructive 액션 |
+| **LS RED Hover** | `#d90027` | - | `ls-red-hover` | LS RED의 Hover 상태 |
 
 #### 서브 컬러
 
@@ -83,6 +84,9 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 --ls-gray: #7D8282;      /* GRAY - 서브 */
 --ls-silver: #87827D;    /* SILVER - 서브 */
 --ls-gold: #7D0D0D;      /* GOLD - 서브 */
+
+/* Tailwind 전용 (CSS 변수 없음) */
+ls-red-hover: #d90027;   /* LS RED Hover */
 ```
 
 ### Tailwind 클래스 사용법
@@ -117,8 +121,8 @@ hover:bg-ssoo-primary      /* Hover 시 Primary로 */
 ### Destructive (LS Red)
 **용도**: 삭제, 경고, 위험한 작업
 ```tsx
-bg-ls-red              /* LS RED */
-hover:bg-ls-red/90     /* 90% 투명도 */
+bg-ls-red              /* LS RED (#FA002D) */
+hover:bg-ls-red-hover  /* Hover (#d90027) */
 ```
 
 ### Outline (테두리)
