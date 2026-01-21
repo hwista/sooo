@@ -1,14 +1,16 @@
 'use client';
 
 import type { SidebarSection as SidebarSectionType } from '@/types';
-import { Star, Layers, FolderTree, RefreshCw } from 'lucide-react';
+import { Star, Layers, FolderTree, RefreshCw, Shield } from 'lucide-react';
 import {
   SidebarSearch,
   SidebarFavorites,
   SidebarOpenTabs,
   SidebarMenuTree,
+  SidebarAdminMenu,
 } from '../sidebar';
 import { SidebarSection } from './SidebarSection';
+import { useAuthStore, useMenuStore } from '@/stores';
 
 interface ExpandedSidebarProps {
   expandedSections: SidebarSectionType[];
@@ -26,6 +28,12 @@ export function ExpandedSidebar({
   onRefresh,
   isRefreshing,
 }: ExpandedSidebarProps) {
+  const { user } = useAuthStore();
+  const { adminMenus } = useMenuStore();
+  
+  // 관리자 메뉴 표시 여부: isAdmin && 관리자 메뉴가 있는 경우
+  const showAdminSection = user?.isAdmin && adminMenus.length > 0;
+
   return (
     <div className="flex flex-col">
       {/* 검색 + 새로고침 */}
@@ -75,8 +83,17 @@ export function ExpandedSidebar({
         <SidebarMenuTree />
       </SidebarSection>
 
-      {/* 관리자 페이지 (추후 개발) */}
-      {/* <SidebarAdmin /> */}
+      {/* 관리자 메뉴 (isAdmin 사용자만) */}
+      {showAdminSection && (
+        <SidebarSection
+          title="관리자"
+          icon={Shield}
+          isExpanded={expandedSections.includes('admin')}
+          onToggle={() => onToggleSection('admin')}
+        >
+          <SidebarAdminMenu />
+        </SidebarSection>
+      )}
     </div>
   );
 }

@@ -26,7 +26,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   const { isAuthenticated, isLoading: authLoading, checkAuth, login } = useAuthStore();
-  const { refreshMenu, menuTree } = useMenuStore();
+  const { refreshMenu, generalMenus } = useMenuStore();
   const [isChecking, setIsChecking] = useState(true);
   const [loginError, setLoginError] = useState<string | null>(null);
 
@@ -56,11 +56,11 @@ export default function MainLayout({
   // 인증 성공 후 메뉴 로드
   useEffect(() => {
     // isChecking이 끝나고, 인증된 상태이며, 메뉴가 비어있을 때만 로드
-    if (!isChecking && !authLoading && isAuthenticated && menuTree.length === 0) {
+    if (!isChecking && !authLoading && isAuthenticated && generalMenus.length === 0) {
       console.log('[MainLayout] Loading menu...');
       refreshMenu();
     }
-  }, [isChecking, authLoading, isAuthenticated, menuTree.length, refreshMenu]);
+  }, [isChecking, authLoading, isAuthenticated, generalMenus.length, refreshMenu]);
 
   const onSubmit = async (data: LoginFormData) => {
     setLoginError(null);

@@ -1,6 +1,6 @@
 -- =========================================================
 -- History Trigger: pr_project_close_condition_r_m -> pr_project_close_condition_r_h
--- PK: (project_id, phase_code, condition_code)
+-- PK: (project_id, status_code, condition_code)
 -- =========================================================
 
 CREATE OR REPLACE FUNCTION fn_pr_project_close_condition_r_h_trigger()
@@ -27,18 +27,18 @@ BEGIN
   INTO v_history_seq
   FROM pr_project_close_condition_r_h
   WHERE project_id = v_record.project_id
-    AND phase_code = v_record.phase_code
+    AND status_code = v_record.status_code
     AND condition_code = v_record.condition_code;
 
   -- 히스토리 테이블에 삽입
   INSERT INTO pr_project_close_condition_r_h (
-    project_id, phase_code, condition_code, history_seq, event_type, event_at,
-    is_checked, checked_at, checked_by, sort_order,
+    project_id, status_code, condition_code, history_seq, event_type, event_at,
+    requires_deliverable, is_checked, checked_at, checked_by, sort_order,
     is_active, memo, created_by, created_at, updated_by, updated_at,
     last_source, last_activity, transaction_id
   ) VALUES (
-    v_record.project_id, v_record.phase_code, v_record.condition_code, v_history_seq, v_event_type, NOW(),
-    v_record.is_checked, v_record.checked_at, v_record.checked_by, v_record.sort_order,
+    v_record.project_id, v_record.status_code, v_record.condition_code, v_history_seq, v_event_type, NOW(),
+    v_record.requires_deliverable, v_record.is_checked, v_record.checked_at, v_record.checked_by, v_record.sort_order,
     v_record.is_active, v_record.memo, v_record.created_by, v_record.created_at, v_record.updated_by, v_record.updated_at,
     v_record.last_source, v_record.last_activity, v_record.transaction_id
   );

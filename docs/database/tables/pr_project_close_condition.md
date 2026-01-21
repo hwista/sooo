@@ -23,7 +23,8 @@
 #### Identity
 - `project_id` (bigint, required) — 원본 프로젝트 ID(논리 FK)
 - `status_code` (varchar(30), required)
-  - values: `opportunity`, `execution`
+  - code_group: `PROJECT_STATUS`
+  - values: `request`, `proposal`, `execution`, `transition`
 - `condition_code` (varchar(50), required)
   - 종료 조건 “항목” 코드(논리 FK, code_group 예: `PROJECT_CLOSE_CONDITION_ITEM`)
 

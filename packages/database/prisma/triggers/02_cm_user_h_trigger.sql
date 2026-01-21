@@ -30,7 +30,7 @@ BEGIN
   -- 히스토리 테이블에 삽입
   INSERT INTO cm_user_h (
     user_id, history_seq, event_type, event_at,
-    is_system_user, user_type_code, login_id, password_hash, password_salt,
+    is_system_user, is_admin, user_type_code, login_id, password_hash, password_salt,
     user_name, display_name, email, phone, avatar_url,
     department_code, position_code, employee_number,
     company_name, customer_id,
@@ -42,7 +42,7 @@ BEGIN
     last_source, last_activity, transaction_id
   ) VALUES (
     v_record.user_id, v_history_seq, v_event_type, NOW(),
-    v_record.is_system_user, v_record.user_type_code, v_record.login_id, v_record.password_hash, v_record.password_salt,
+    v_record.is_system_user, v_record.is_admin, v_record.user_type_code, v_record.login_id, v_record.password_hash, v_record.password_salt,
     v_record.user_name, v_record.display_name, v_record.email, v_record.phone, v_record.avatar_url,
     v_record.department_code, v_record.position_code, v_record.employee_number,
     v_record.company_name, v_record.customer_id,

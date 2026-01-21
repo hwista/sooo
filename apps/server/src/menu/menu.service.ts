@@ -13,9 +13,15 @@ interface MenuTreeItem {
   menuLevel: number;
   parentMenuId: string | null;
   isVisible: boolean;
+  isAdminMenu: boolean;
   description: string | null;
   accessType: string;
   children: MenuTreeItem[];
+}
+
+interface UserMenuResponse {
+  generalMenus: MenuTreeItem[];  // is_admin_menu = false
+  adminMenus: MenuTreeItem[];    // is_admin_menu = true (isAdmin 사용자만)
 }
 
 @Injectable()
@@ -23,13 +29,24 @@ export class MenuService {
   constructor(private readonly db: DatabaseService) {}
 
   /**
-   * 사용자별 메뉴 트리 조회
-   * - cm_user_menu_r 테이블에서 사용자 권한 조회
-   * - 트리 구조로 변환
+   * 사용자별 메뉴 트리 조회 (역할 기반 + 관리자 메뉴 분리)
+   * - 역할(role_code)에 따른 메뉴 권한 조회
+   * - isAdmin 사용자는 관리자 메뉴도 포함
+   * - 일반 메뉴와 관리자 메뉴를 분리하여 반환
    */
-  async getMenuTreeByUserId(userId: bigint): Promise<MenuTreeItem[]> {
-    // 사용자 권한이 있는 메뉴만 조회
-    const userMenus = await this.db.$queryRaw<
+  async getMenuTreeByUserId(userId: bigint): Promise<UserMenuResponse> {
+    // 1. 사용자 정보 조회 (roleCode, isAdmin)
+    const user = await this.db.user.findUnique({
+      where: { id: userId },
+      select: { roleCode: true, isAdmin: true },
+    });
+
+    if (!user) {
+      return { generalMenus: [], adminMenus: [] };
+    }
+
+    // 2. 역할 기반 메뉴 권한 조회 (일반 메뉴만)
+    const roleMenus = await this.db.$queryRaw<
       Array<{
         menu_id: bigint;
         menu_code: string;
@@ -42,6 +59,7 @@ export class MenuService {
         menu_level: number;
         parent_menu_id: bigint | null;
         is_visible: boolean;
+        is_admin_menu: boolean;
         description: string | null;
         access_type: string;
       }>
@@ -58,6 +76,50 @@ export class MenuService {
         m.menu_level,
         m.parent_menu_id,
         m.is_visible,
+        m.is_admin_menu,
+        m.description,
+        rm.access_type
+      FROM cm_menu_m m
+      INNER JOIN cm_role_menu_r rm ON m.menu_id = rm.menu_id
+      WHERE rm.role_code = ${user.roleCode}
+        AND rm.is_active = true
+        AND m.is_active = true
+        AND m.is_admin_menu = false
+      ORDER BY m.menu_level, m.sort_order
+    `;
+
+    // 3. 사용자 개별 권한 메뉴 추가 (grant된 것만)
+    const userGrantMenus = await this.db.$queryRaw<
+      Array<{
+        menu_id: bigint;
+        menu_code: string;
+        menu_name: string;
+        menu_name_en: string | null;
+        menu_type: string;
+        menu_path: string | null;
+        icon: string | null;
+        sort_order: number;
+        menu_level: number;
+        parent_menu_id: bigint | null;
+        is_visible: boolean;
+        is_admin_menu: boolean;
+        description: string | null;
+        access_type: string;
+      }>
+    >`
+      SELECT 
+        m.menu_id,
+        m.menu_code,
+        m.menu_name,
+        m.menu_name_en,
+        m.menu_type,
+        m.menu_path,
+        m.icon,
+        m.sort_order,
+        m.menu_level,
+        m.parent_menu_id,
+        m.is_visible,
+        m.is_admin_menu,
         m.description,
         um.access_type
       FROM cm_menu_m m
@@ -66,11 +128,70 @@ export class MenuService {
         AND um.is_active = true
         AND um.override_type = 'grant'
         AND m.is_active = true
+        AND m.is_admin_menu = false
       ORDER BY m.menu_level, m.sort_order
     `;
 
-    // 플랫 리스트를 트리로 변환
-    return this.buildMenuTree(userMenus);
+    // 4. 역할 메뉴 + 사용자 개별 메뉴 병합 (중복 제거)
+    const menuMap = new Map<string, typeof roleMenus[0]>();
+    for (const menu of roleMenus) {
+      menuMap.set(menu.menu_id.toString(), menu);
+    }
+    for (const menu of userGrantMenus) {
+      if (!menuMap.has(menu.menu_id.toString())) {
+        menuMap.set(menu.menu_id.toString(), menu);
+      }
+    }
+
+    const generalMenus = this.buildMenuTree(Array.from(menuMap.values()));
+
+    // 5. 관리자 메뉴 조회 (isAdmin 사용자만)
+    let adminMenus: MenuTreeItem[] = [];
+    if (user.isAdmin) {
+      const adminMenuData = await this.db.$queryRaw<
+        Array<{
+          menu_id: bigint;
+          menu_code: string;
+          menu_name: string;
+          menu_name_en: string | null;
+          menu_type: string;
+          menu_path: string | null;
+          icon: string | null;
+          sort_order: number;
+          menu_level: number;
+          parent_menu_id: bigint | null;
+          is_visible: boolean;
+          is_admin_menu: boolean;
+          description: string | null;
+        }>
+      >`
+        SELECT 
+          m.menu_id,
+          m.menu_code,
+          m.menu_name,
+          m.menu_name_en,
+          m.menu_type,
+          m.menu_path,
+          m.icon,
+          m.sort_order,
+          m.menu_level,
+          m.parent_menu_id,
+          m.is_visible,
+          m.is_admin_menu,
+          m.description
+        FROM cm_menu_m m
+        WHERE m.is_active = true
+          AND m.is_admin_menu = true
+        ORDER BY m.menu_level, m.sort_order
+      `;
+
+      // 관리자 메뉴는 full 권한
+      adminMenus = this.buildMenuTree(
+        adminMenuData.map((m) => ({ ...m, access_type: 'full' }))
+      );
+    }
+
+    return { generalMenus, adminMenus };
   }
 
   /**
@@ -89,6 +210,7 @@ export class MenuService {
       menu_level: number;
       parent_menu_id: bigint | null;
       is_visible: boolean;
+      is_admin_menu: boolean;
       description: string | null;
       access_type: string;
     }>
@@ -110,6 +232,7 @@ export class MenuService {
         menuLevel: menu.menu_level,
         parentMenuId: menu.parent_menu_id?.toString() || null,
         isVisible: menu.is_visible,
+        isAdminMenu: menu.is_admin_menu,
         description: menu.description,
         accessType: menu.access_type,
         children: [],

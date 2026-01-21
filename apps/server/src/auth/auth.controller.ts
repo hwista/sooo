@@ -65,6 +65,7 @@ export class AuthController {
       loginId: user.loginId,
       roleCode: user.roleCode,
       userTypeCode: user.userTypeCode,
+      isAdmin: user.isAdmin,
     }, '사용자 정보 조회 성공');
   }
 }

@@ -7,6 +7,7 @@ export interface AuthUser {
   loginId: string;
   roleCode: string;
   userTypeCode: string;
+  isAdmin: boolean; // 관리자 여부
 }
 
 interface AuthState {

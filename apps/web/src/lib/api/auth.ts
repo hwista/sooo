@@ -16,6 +16,7 @@ export interface UserInfo {
   loginId: string;
   roleCode: string;
   userTypeCode: string;
+  isAdmin: boolean; // 관리자 여부 (관리자 메뉴 접근 권한)
 }
 
 export const authApi = {

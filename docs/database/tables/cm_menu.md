@@ -27,8 +27,9 @@
 | 10 | `menu_level` | INT | NO | 1 | 메뉴 깊이 (1=최상위) |
 | 11 | `is_visible` | BOOLEAN | NO | true | 사이드바에 표시 여부 |
 | 12 | `is_enabled` | BOOLEAN | NO | true | 메뉴 활성화 여부 |
-| 13 | `open_type` | VARCHAR(20) | NO | `tab` | 열기 방식: `tab`, `modal`, `external` |
-| 14 | `description` | TEXT | YES | - | 메뉴 설명 |
+| 13 | `is_admin_menu` | BOOLEAN | NO | false | **관리자 전용 메뉴 여부** |
+| 14 | `open_type` | VARCHAR(20) | NO | `tab` | 열기 방식: `tab`, `modal`, `external` |
+| 15 | `description` | TEXT | YES | - | 메뉴 설명 |
 | - | *공통 컬럼* | - | - | - | is_active, memo, created_by, created_at, ... |
 
 ---
@@ -53,38 +54,106 @@
 
 ---
 
-## 5. 초기 메뉴 구조
+## 5. 사이드바 UI 구조
+
+### 5.1 사이드바 레이아웃
+
+사이드바는 4개의 독립적인 섹션으로 구성되며, **관리자 메뉴는 전체메뉴의 하위가 아닌 동일 레벨로 분리**:
+
+```
+┌──────────────────────────────────────┐
+│  ⭐ 즐겨찾기                          │ ← 사용자별 즐겨찾기 메뉴
+├──────────────────────────────────────┤
+│  📄 현재 열린 페이지                   │ ← MDI 탭으로 열린 페이지 목록
+├──────────────────────────────────────┤
+│  📁 전체메뉴                          │ ← is_admin_menu = false 메뉴
+│    ├── 대시보드                       │
+│    ├── 요청                           │
+│    ├── 제안                           │
+│    ├── 실행                           │
+│    └── 전환                           │
+├──────────────────────────────────────┤
+│  🔒 관리자 (is_admin 전용)            │ ← is_admin_menu = true 메뉴
+│    ├── 사용자 관리                    │   (cm_user_m.is_admin = true인
+│    ├── 역할 관리                      │    사용자에게만 표시)
+│    ├── 메뉴 관리                      │
+│    ├── 코드 관리                      │
+│    ├── 고객사 관리                    │
+│    └── 부서 관리                      │
+└──────────────────────────────────────┘
+```
+
+### 5.2 일반 사용자 메뉴 (is_admin_menu = false)
+프로젝트 상태 기반 메뉴 구조:
 
 ```
 dashboard (대시보드)
 ├── menu_level: 1, sort_order: 1
 
-project (프로젝트)
+request (요청)
 ├── menu_level: 1, sort_order: 2, menu_type: group
-├── project.list (프로젝트 목록)
+├── request.list (요청 목록)
 │   └── menu_level: 2, sort_order: 1
-├── project.create (프로젝트 생성) - action
-│   └── menu_level: 2, menu_type: action
 
-customer (고객사)
+proposal (제안)
 ├── menu_level: 1, sort_order: 3, menu_type: group
-├── customer.list (고객사 목록)
-├── customer.plant (플랜트 관리)
+├── proposal.list (제안 목록)
+│   └── menu_level: 2, sort_order: 1
 
-system (시스템)
+execution (실행)
 ├── menu_level: 1, sort_order: 4, menu_type: group
-├── system.list (시스템 목록)
-├── system.instance (인스턴스 관리)
+├── execution.list (실행 프로젝트 목록)
+│   └── menu_level: 2, sort_order: 1
 
-report (리포트)
+transition (전환)
 ├── menu_level: 1, sort_order: 5, menu_type: group
+├── transition.list (전환 목록)
+│   └── menu_level: 2, sort_order: 1
+```
 
+### 5.3 관리자 메뉴 (is_admin_menu = true)
+관리자 전용 메뉴 (cm_user_m.is_admin = true 인 사용자만 접근):
+
+```
 admin (관리자)
-├── menu_level: 1, sort_order: 99, menu_type: group
+├── menu_level: 1, sort_order: 1, is_admin_menu: true
 ├── admin.user (사용자 관리)
+│   └── menu_level: 2, sort_order: 1, is_admin_menu: true
 ├── admin.role (역할 관리)
+│   └── menu_level: 2, sort_order: 2, is_admin_menu: true
 ├── admin.menu (메뉴 관리)
+│   └── menu_level: 2, sort_order: 3, is_admin_menu: true
 ├── admin.code (코드 관리)
+│   └── menu_level: 2, sort_order: 4, is_admin_menu: true
+├── admin.customer (고객사 관리)
+│   └── menu_level: 2, sort_order: 5, is_admin_menu: true
+├── admin.dept (부서 관리)
+│   └── menu_level: 2, sort_order: 6, is_admin_menu: true
+```
+
+### 5.4 메뉴 권한 규칙
+| 사용자 유형 | is_admin | 전체메뉴 | 관리자 섹션 |
+|------------|----------|---------|------------|
+| 일반 사용자 | false | ✅ 표시 | ❌ 숨김 |
+| 관리자 | true | ✅ 표시 | ✅ 표시 |
+
+**프론트엔드 구현 가이드:**
+```typescript
+// 메뉴 조회 API 응답 구조
+interface MenuResponse {
+  generalMenus: Menu[];   // is_admin_menu = false (전체메뉴 섹션)
+  adminMenus: Menu[];     // is_admin_menu = true (관리자 섹션, is_admin=true만)
+}
+
+// 사이드바 렌더링 로직
+const Sidebar = ({ user, menus }: Props) => (
+  <>
+    <FavoriteSection />
+    <OpenPagesSection />
+    <GeneralMenuSection menus={menus.generalMenus} />
+    {user.isAdmin && <AdminMenuSection menus={menus.adminMenus} />}
+  </>
+);
 ```
 
 ---

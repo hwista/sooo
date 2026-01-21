@@ -14,18 +14,20 @@ export class MenuController {
   /**
    * 현재 사용자의 메뉴 트리 조회
    * GET /api/menus/my
+   * 응답: { generalMenus: [], adminMenus: [], favorites: [] }
    */
   @Get('my')
   async getMyMenu(@CurrentUser() currentUser: TokenPayload) {
     const userId = BigInt(currentUser.userId);
 
-    const [menuTree, favorites] = await Promise.all([
+    const [menuData, favorites] = await Promise.all([
       this.menuService.getMenuTreeByUserId(userId),
       this.menuService.getFavoritesByUserId(userId),
     ]);
 
     return success({
-      menus: menuTree,
+      generalMenus: menuData.generalMenus,
+      adminMenus: menuData.adminMenus,
       favorites,
     });
   }

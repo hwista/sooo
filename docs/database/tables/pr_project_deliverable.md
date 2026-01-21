@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 프로젝트가 관리해야 할 산출물 목록과 제출 상태, 업로드 파일 식별 정보를 관리한다.  
-키는 `(project_id, status_code, deliverable_code)`로 구성하여 프로젝트의 “기회/실행” 상태별 산출물 관리를 지원한다.  
+키는 `(project_id, status_code, deliverable_code)`로 구성하여 프로젝트의 상태별 산출물 관리를 지원한다.
 산출물 제출 상태는 3단계(제출 전/제출/확정)로 관리하며, 종료 조건 검증(Validation)에 활용한다.
 
 ---
@@ -23,7 +23,8 @@
 #### Identity
 - `project_id` (bigint, required) — 프로젝트 ID(논리 FK)
 - `status_code` (varchar(30), required)
-  - values: `opportunity`, `execution`
+  - code_group: `PROJECT_STATUS`
+  - values: `request`, `proposal`, `execution`, `transition`
 - `deliverable_code` (varchar(50), required)
   - 논리 FK: `pr_deliverable_m.deliverable_code`
 

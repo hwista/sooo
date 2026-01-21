@@ -1,10 +1,11 @@
 # Table Spec — pr_project_m / pr_project_h (Unified Project)
 
 ## 1. Purpose
-Opportunity(계약 전 기회)와 Execution(계약 후 실행)을 **단일 Project 엔티티**에서 관리한다.  
-현재 흐름은 `status_code` + `stage_code`로 표현하고, 기회 종료 결과는 `done_result_code`로 구분한다.  
+프로젝트의 전체 라이프사이클을 **단일 Project 엔티티**에서 관리한다.  
+프로젝트는 4단계 상태(`request` → `proposal` → `execution` → `transition`)를 거치며,  
+각 상태 내에서 `stage_code`로 진행 단계(`waiting` → `in_progress` → `done`)를 추적한다.  
 역할 간 인계는 별도 트랙(`handoff_*`)으로 관리한다.  
-Opportunity/Execution별 상세(목표/오너/일정/종료조건)는 하위 테이블(`pr_project_phase_*`)로 분리한다.
+**상태별 특화 데이터는 하위 테이블로 분리**하여 해당 상태일 때 함께 조회한다.
 
 ---
 
@@ -14,26 +15,81 @@ Opportunity/Execution별 상세(목표/오너/일정/종료조건)는 하위 테
 
 ---
 
-## 3. Master Table — pr_project_m
+## 3. Project Lifecycle (4 Stages)
 
-### 3.1 Primary Key
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                           PROJECT LIFECYCLE                                       │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌─────────┐     ┌──────────┐     ┌───────────┐     ┌────────────┐              │
+│  │ REQUEST │ ──▶ │ PROPOSAL │ ──▶ │ EXECUTION │ ──▶ │ TRANSITION │              │
+│  │  요청    │     │   제안    │     │   실행     │     │    전환     │              │
+│  └─────────┘     └──────────┘     └───────────┘     └────────────┘              │
+│       │               │                │                  │                      │
+│   accepted        won              completed         transferred                 │
+│   (수용)          (수주)            (완료)             (전환완료)                   │
+│                                                                                  │
+│  [하위 테이블]    [하위 테이블]     [하위 테이블]      [하위 테이블]                  │
+│  - 요청 정보      - 계약 정보       - 마일스톤/태스크   - 운영 전환 체크              │
+│                  - 견적 정보        - 산출물           - 인수인계 문서              │
+│                                    - 이슈/리스크                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.1 Status Codes (PROJECT_STATUS)
+
+| status_code | 한글명 | 영문명 | 설명 | done_result 옵션 |
+|-------------|--------|--------|------|-----------------|
+| `request` | 요청 | Request | 고객 요청 접수 및 검토 | accepted, rejected, hold |
+| `proposal` | 제안 | Proposal | 견적/제안서 작성 및 계약 협상 | won, lost, hold |
+| `execution` | 실행 | Execution | 계약 체결 후 프로젝트 수행 | completed, cancelled, hold |
+| `transition` | 전환 | Transition | 완료 후 운영/유지보수 전환 | transferred, cancelled |
+
+### 3.2 Stage Codes (PROJECT_STAGE)
+
+| stage_code | 한글명 | 영문명 | 설명 |
+|------------|--------|--------|------|
+| `waiting` | 대기 | Waiting | 본격 작업 전 (대기) |
+| `in_progress` | 진행 | In Progress | 작업 진행 중 |
+| `done` | 완료 | Done | 해당 상태 종료 |
+
+### 3.3 State Transition Rules
+
+| 현재 상태 | done_result | 다음 상태 |
+|----------|-------------|----------|
+| request + done | `accepted` | proposal + waiting |
+| request + done | `rejected` | 종료 |
+| proposal + done | `won` | execution + waiting |
+| proposal + done | `lost` | 종료 |
+| execution + done | `completed` | transition + waiting |
+| execution + done | `cancelled` | 종료 |
+| transition + done | `transferred` | 종료 (운영 전환 완료) |
+| (any) + done | `hold` | 보류 (재개 시 같은 상태 in_progress) |
+
+---
+
+## 4. Master Table — pr_project_m
+
+### 4.1 Primary Key
 - `project_id` (bigserial)
 
-### 3.2 Columns
+### 4.2 Columns
 
 #### Core
 - `project_name` (text, required) — 프로젝트명(표시용)
 
 #### Workflow Codes (logical FK by varchar)
 - `status_code` (varchar(30), required)
-  - values: `opportunity`, `execution`
+  - code_group: `PROJECT_STATUS`
+  - values: `request`, `proposal`, `execution`, `transition`
 - `stage_code` (varchar(30), required)
+  - code_group: `PROJECT_STAGE`
   - values: `waiting`, `in_progress`, `done`
-- `project_source_code` (varchar(30), required)
-  - values: `request`, `proposal`
 - `done_result_code` (varchar(30), optional)
-  - values: `won`, `lost`, `hold`
-  - 의미 규칙: `status_code=opportunity AND stage_code=done`일 때만 사용
+  - code_group: `PROJECT_DONE_RESULT`
+  - values: `accepted`, `rejected`, `won`, `lost`, `completed`, `cancelled`, `transferred`, `hold`
+  - 의미 규칙: `stage_code=done`일 때만 사용
 
 #### Current Owner
 - `current_owner_user_id` (bigint, optional)
@@ -42,7 +98,7 @@ Opportunity/Execution별 상세(목표/오너/일정/종료조건)는 하위 테
 
 #### Handoff Track (current/last)
 - `handoff_type_code` (varchar(50), optional)
-  - 예: `PRE_TO_PM`, `PRE_TO_CONTRACT_OWNER`, `EXEC_TO_CONTRACT_OWNER`, `EXEC_TO_SM`
+  - 예: `REQ_TO_PRE`, `PRE_TO_PM`, `PM_TO_SM`
 - `handoff_stage_code` (varchar(30), optional)
   - values: `waiting`, `in_progress`, `done`
 - `handoff_user_id` (bigint, optional)
@@ -66,12 +122,12 @@ Opportunity/Execution별 상세(목표/오너/일정/종료조건)는 하위 테
 
 ---
 
-## 4. History Table — pr_project_h
+## 5. History Table — pr_project_h
 
-### 4.1 Primary Key
+### 5.1 Primary Key
 - composite PK: `(project_id, history_seq)`
 
-### 4.2 History Columns (additional)
+### 5.2 History Columns (additional)
 - `history_seq` (bigint, required)
   - 동일 project_id 범위 내 1부터 증가
 - `event_type` (char(1), required)
@@ -79,22 +135,37 @@ Opportunity/Execution별 상세(목표/오너/일정/종료조건)는 하위 테
 - `event_at` (timestamptz, required)
   - 권장 규칙: 원본 row의 `updated_at`과 동일 값으로 기록
 
-### 4.3 Snapshot Rule
+### 5.3 Snapshot Rule
 - `pr_project_m`의 모든 컬럼을 **동일 명칭으로 그대로 복사**하여 저장한다.
 
 ---
 
-## 5. Constraints / Validation Rules (Logical)
-- `done_result_code`는 `status_code=opportunity AND stage_code=done`일 때만 세팅한다.
-- `handoff_stage_code`는 `handoff_type_code`가 있을 때만 의미가 있다.
-- 물리 삭제 대신 `is_active=false`로 비활성화하고, 히스토리에 `event_type=D`로 기록한다.
-- 하나의 논리 흐름에서 이벤트가 2개 발생하면(예: 기회 won 확정 → 실행 waiting 전환) 원본 row를 2회 업데이트할 수 있으며, 히스토리는 2건 누적된다.
+## 6. Related Tables by Status
+
+각 상태별로 특화된 데이터를 관리하는 하위 테이블:
+
+| status_code | 하위 테이블 | 설명 |
+|-------------|------------|------|
+| `request` | `pr_project_request_m` (예정) | 요청 상세 정보 |
+| `proposal` | `pr_project_contract_m` (예정) | 계약/견적 정보 |
+| `execution` | `pr_project_status_m` | 실행 상세 (목표/일정/종료조건) |
+| `execution` | `pr_project_deliverable_r_m` | 산출물 관리 |
+| `execution` | `pr_project_close_condition_r_m` | 종료조건 체크 |
+| `transition` | `pr_project_transition_m` (예정) | 전환 체크리스트 |
 
 ---
 
-## 6. Indexing (initial)
+## 7. Constraints / Validation Rules (Logical)
+- `done_result_code`는 `stage_code=done`일 때만 세팅한다.
+- 상태별 유효한 `done_result_code` 조합을 검증한다 (Section 3.3 참조).
+- `handoff_stage_code`는 `handoff_type_code`가 있을 때만 의미가 있다.
+- 물리 삭제 대신 `is_active=false`로 비활성화하고, 히스토리에 `event_type=D`로 기록한다.
+- 상태 전이 시 원본 row를 업데이트하고, 히스토리가 누적된다.
+
+---
+
+## 8. Indexing (initial)
 - `(status_code, stage_code)`
-- `project_source_code`
 - `current_owner_user_id`
 - `customer_id`
 - `system_instance_id`

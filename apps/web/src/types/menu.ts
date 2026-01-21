@@ -61,8 +61,9 @@ export interface MenuItem {
   sortOrder: number;
   menuLevel: number;
   isVisible: boolean;
-  isEnabled: boolean;
-  openType: MenuOpenType;
+  isEnabled?: boolean;
+  isAdminMenu: boolean; // 관리자 전용 메뉴 여부
+  openType?: MenuOpenType;
   accessType: AccessType; // 해당 사용자의 권한
   children: MenuItem[];
   parentMenuId?: string;

@@ -6,8 +6,11 @@ import { useTabStore } from '@/stores';
 // 페이지 컴포넌트 동적 import (Next.js 라우팅에서 제외됨)
 const pageComponents: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   '/home': lazy(() => import('@/components/pages/home/HomeDashboardPage')),
-  '/request/customer': lazy(() => import('@/components/pages/request/customer/CustomerRequestListPage')),
-  '/request/customer/create': lazy(() => import('@/components/pages/request/customer/CustomerRequestCreatePage')),
+  '/request': lazy(() => import('@/components/pages/request/RequestListPage')),
+  '/request/create': lazy(() => import('@/components/pages/request/RequestCreatePage')),
+  '/proposal': lazy(() => import('@/components/pages/proposal/ProposalListPage')),
+  '/execution': lazy(() => import('@/components/pages/execution/ExecutionListPage')),
+  '/transition': lazy(() => import('@/components/pages/transition/TransitionListPage')),
 };
 
 interface ContentAreaProps {

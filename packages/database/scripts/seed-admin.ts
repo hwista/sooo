@@ -18,7 +18,16 @@ async function main() {
   });
 
   if (existing) {
-    console.log('✅ 관리자 계정이 이미 존재합니다.');
+    // 기존 계정에 isAdmin 플래그가 없으면 업데이트
+    if (!existing.isAdmin) {
+      await prisma.user.update({
+        where: { loginId },
+        data: { isAdmin: true },
+      });
+      console.log('✅ 관리자 계정에 isAdmin 권한이 부여되었습니다.');
+    } else {
+      console.log('✅ 관리자 계정이 이미 존재합니다.');
+    }
     console.log(`   Login ID: ${loginId}`);
     return;
   }
@@ -27,6 +36,7 @@ async function main() {
   const admin = await prisma.user.create({
     data: {
       isSystemUser: true,
+      isAdmin: true,  // 관리자 메뉴 접근 권한
       userTypeCode: 'internal',
       loginId,
       passwordHash,

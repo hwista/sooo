@@ -4,9 +4,11 @@ import { useAuthStore } from './auth.store';
 import { apiClient } from '@/lib/api/client';
 
 interface MenuStoreState {
-  // 전체 메뉴 트리 (권한 적용된 상태)
-  menuTree: MenuItem[];
-  // 플랫 메뉴 맵 (빠른 조회용)
+  // 일반 메뉴 트리 (is_admin_menu = false)
+  generalMenus: MenuItem[];
+  // 관리자 메뉴 트리 (is_admin_menu = true, isAdmin 사용자만)
+  adminMenus: MenuItem[];
+  // 플랫 메뉴 맵 (빠른 조회용 - 일반 + 관리자 통합)
   menuMap: Map<string, MenuItem>;
   // 즐겨찾기 메뉴
   favorites: FavoriteMenuItem[];
@@ -18,7 +20,7 @@ interface MenuStoreState {
 
 interface MenuStoreActions {
   // 메뉴 로드 (API 호출 후 설정)
-  setMenuTree: (menus: MenuItem[]) => void;
+  setMenus: (generalMenus: MenuItem[], adminMenus: MenuItem[]) => void;
   // 즐겨찾기 설정
   setFavorites: (favorites: FavoriteMenuItem[]) => void;
   // 즐겨찾기 여부 확인
@@ -62,17 +64,21 @@ const buildMenuMap = (menus: MenuItem[]): Map<string, MenuItem> => {
 
 export const useMenuStore = create<MenuStore>()((set, get) => ({
   // Initial State
-  menuTree: [],
+  generalMenus: [],
+  adminMenus: [],
   menuMap: new Map(),
   favorites: [],
   isLoading: false,
   lastUpdatedAt: null,
 
   // Actions
-  setMenuTree: (menus: MenuItem[]) => {
-    const menuMap = buildMenuMap(menus);
+  setMenus: (generalMenus: MenuItem[], adminMenus: MenuItem[]) => {
+    // 일반 메뉴와 관리자 메뉴를 통합하여 menuMap 구성
+    const allMenus = [...generalMenus, ...adminMenus];
+    const menuMap = buildMenuMap(allMenus);
     set({
-      menuTree: menus,
+      generalMenus,
+      adminMenus,
       menuMap,
       lastUpdatedAt: new Date(),
     });
@@ -142,7 +148,10 @@ export const useMenuStore = create<MenuStore>()((set, get) => ({
       console.log('[MenuStore] Menu API result:', result);
       
       if (result.success) {
-        get().setMenuTree(result.data.menus);
+        get().setMenus(
+          result.data.generalMenus || [],
+          result.data.adminMenus || []
+        );
         get().setFavorites(result.data.favorites || []);
       }
       set({ lastUpdatedAt: new Date() });
@@ -168,7 +177,8 @@ export const useMenuStore = create<MenuStore>()((set, get) => ({
 
   clearMenu: () => {
     set({
-      menuTree: [],
+      generalMenus: [],
+      adminMenus: [],
       menuMap: new Map(),
       favorites: [],
       isLoading: false,

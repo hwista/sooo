@@ -59,6 +59,7 @@ export class AuthService {
       loginId: user.loginId!,
       roleCode: user.roleCode,
       userTypeCode: user.userTypeCode,
+      isAdmin: user.isAdmin,
     });
 
     // 8. Refresh Token 해시 저장
@@ -102,6 +103,7 @@ export class AuthService {
         loginId: user.loginId!,
         roleCode: user.roleCode,
         userTypeCode: user.userTypeCode,
+        isAdmin: user.isAdmin,
       });
 
       // 6. 새 Refresh Token 저장

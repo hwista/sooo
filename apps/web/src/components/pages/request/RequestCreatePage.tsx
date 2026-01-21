@@ -21,7 +21,7 @@ const createRequestSchema = z.object({
 
 type FormData = z.infer<typeof createRequestSchema>;
 
-export default function CustomerRequestCreatePage() {
+export default function RequestCreatePage() {
   const { accessToken } = useAuthStore();
   const { openTab } = useTabStore();
   const [loading, setLoading] = useState(false);
@@ -46,8 +46,7 @@ export default function CustomerRequestCreatePage() {
         body: JSON.stringify({
           name: data.projectName,
           description: data.description || undefined,
-          projectSourceCode: 'request',
-          statusCode: 'opportunity',
+          statusCode: 'request',
           stageCode: 'waiting',
         }),
       });
@@ -57,10 +56,10 @@ export default function CustomerRequestCreatePage() {
       if (result.success) {
         // 목록 페이지 탭 열기
         openTab({
-          menuCode: 'request.customer',
-          menuId: 'request.customer',
-          title: '고객요청 목록',
-          path: '/request/customer',
+          menuCode: 'request.list',
+          menuId: 'request.list',
+          title: '요청 목록',
+          path: '/request',
         });
       } else {
         alert(result.error?.message || '등록에 실패했습니다');
@@ -76,9 +75,9 @@ export default function CustomerRequestCreatePage() {
   return (
     <FormPageTemplate
       header={{
-        title: '고객요청 등록',
+        title: '요청 등록',
         description: '고객사로부터 접수된 새로운 요청을 등록합니다',
-        breadcrumb: ['요청', '고객요청 관리', '등록'],
+        breadcrumb: ['요청', '요청 목록', '등록'],
       }}
       sections={[
         {
@@ -124,9 +123,8 @@ export default function CustomerRequestCreatePage() {
                   📌 등록 시 자동 설정되는 값
                 </p>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• 상태: <strong>기회 (Opportunity)</strong></li>
+                  <li>• 상태: <strong>요청 (Request)</strong></li>
                   <li>• 단계: <strong>대기 (Waiting)</strong></li>
-                  <li>• 소스: <strong>고객요청 (Request)</strong></li>
                 </ul>
               </div>
             </>
@@ -135,10 +133,10 @@ export default function CustomerRequestCreatePage() {
       ]}
       onFormSubmit={form.handleSubmit(onSubmit)}
       onCancel={() => openTab({
-        menuCode: 'request.customer',
-        menuId: 'request.customer',
-        title: '고객요청 목록',
-        path: '/request/customer',
+        menuCode: 'request.list',
+        menuId: 'request.list',
+        title: '요청 목록',
+        path: '/request',
       })}
       submitLabel="등록"
       cancelLabel="취소"

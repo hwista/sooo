@@ -150,10 +150,10 @@ function filterMenuTree(items: MenuItem[], query: string): MenuItem[] {
  * 사이드바 메뉴 트리
  */
 export function SidebarMenuTree() {
-  const { menuTree } = useMenuStore();
+  const { generalMenus } = useMenuStore();
   const { searchQuery } = useSidebarStore();
   
-  const displayTree = searchQuery ? filterMenuTree(menuTree, searchQuery) : menuTree;
+  const displayTree = searchQuery ? filterMenuTree(generalMenus, searchQuery) : generalMenus;
 
   if (displayTree.length === 0) {
     return (

@@ -27,7 +27,7 @@ BEGIN
         menu_id, history_seq, event_type, event_at,
         menu_code, menu_name, menu_name_en, menu_type,
         parent_menu_id, menu_path, icon, sort_order, menu_level,
-        is_visible, is_enabled, open_type, description,
+        is_visible, is_enabled, is_admin_menu, open_type, description,
         is_active, memo, created_by, created_at, updated_by, updated_at,
         last_source, last_activity, transaction_id
     ) VALUES (
@@ -46,6 +46,7 @@ BEGIN
         v_record.menu_level,
         v_record.is_visible,
         v_record.is_enabled,
+        v_record.is_admin_menu,
         v_record.open_type,
         v_record.description,
         v_record.is_active,

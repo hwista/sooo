@@ -1,6 +1,7 @@
 # 페이지 보안 및 라우팅 전략
 
 > **작성일**: 2026-01-19  
+> **최종 업데이트**: 2026-01-22  
 > **목적**: Next.js 라우팅 노출 방지 및 권한 기반 접근 제어
 
 ---
@@ -9,7 +10,7 @@
 
 ### 문제점
 - Next.js 파일 시스템 라우팅은 URL 구조를 그대로 노출
-- `/request/customer`, `/request/customer/create` 같은 경로가 주소창에 노출
+- `/request`, `/proposal` 같은 경로가 주소창에 노출
 - 권한이 없는 사용자도 URL을 알면 직접 접근 가능
 - 라우팅 구조 분석을 통한 정보 수집 및 해킹 위험
 
@@ -26,7 +27,11 @@ apps/web/src/
 ├── app/
 │   ├── (main)/
 │   │   ├── layout.tsx          # 메인 레이아웃 (인증 필요)
-│   │   └── page.tsx            # 대시보드 (/)
+│   │   ├── page.tsx            # 대시보드 (/)
+│   │   ├── request/page.tsx    # 얇은 래퍼 → RequestListPage
+│   │   ├── proposal/page.tsx   # 얇은 래퍼 → ProposalListPage
+│   │   ├── execution/page.tsx  # 얇은 래퍼 → ExecutionListPage
+│   │   └── transition/page.tsx # 얇은 래퍼 → TransitionListPage
 │   ├── auth/
 │   │   ├── login/page.tsx      # 로그인
 │   │   └── register/page.tsx   # 회원가입
@@ -34,17 +39,50 @@ apps/web/src/
 │   └── layout.tsx              # 루트 레이아웃
 ├── components/
 │   └── pages/                  # ← 실제 비즈니스 페이지 컴포넌트
-│       └── request/
-│           └── customer/
-│               ├── CustomerRequestListPage.tsx
-│               └── CustomerRequestCreatePage.tsx
+│       ├── home/
+│       │   ├── index.ts
+│       │   └── HomeDashboardPage.tsx
+│       ├── request/
+│       │   ├── index.ts
+│       │   ├── RequestListPage.tsx
+│       │   └── RequestCreatePage.tsx
+│       ├── proposal/
+│       │   ├── index.ts
+│       │   └── ProposalListPage.tsx
+│       ├── execution/
+│       │   ├── index.ts
+│       │   └── ExecutionListPage.tsx
+│       └── transition/
+│           ├── index.ts
+│           └── TransitionListPage.tsx
 └── middleware.ts               # 미들웨어 (직접 접근 차단)
 ```
 
 **핵심 원칙**: 
-- `app/(main)` 내부에는 라우팅용 파일만 최소한으로 유지
+- `app/(main)` 내부에는 라우팅용 파일만 최소한으로 유지 (얇은 래퍼)
 - 실제 비즈니스 로직 페이지는 `components/pages/`에 배치
-- Next.js 라우팅에 등록되지 않아 URL로 직접 접근 불가
+- 탭, 모달 등에서 컴포넌트 재사용 가능
+
+### 2. 얇은 래퍼 패턴 예시
+
+```typescript
+// app/(main)/request/page.tsx - 얇은 래퍼
+import { RequestListPage } from '@/components/pages/request';
+
+export default function RequestPage() {
+  return <RequestListPage />;
+}
+```
+
+```typescript
+// components/pages/request/RequestListPage.tsx - 실제 비즈니스 로직
+'use client';
+
+export default function RequestListPage() {
+  // 실제 UI 구현
+  return <div>요청 목록</div>;
+}
+```
 
 ---
 
@@ -94,11 +132,21 @@ export default function NotFound() {
 ```typescript
 // components/layout/ContentArea.tsx
 const pageComponents = {
-  '/request/customer': lazy(() => 
-    import('@/components/pages/request/customer/CustomerRequestListPage')
+  '/home': lazy(() => import('@/components/pages/home/HomeDashboardPage')),
+  '/request': lazy(() => 
+    import('@/components/pages/request/RequestListPage')
   ),
-  '/request/customer/create': lazy(() => 
-    import('@/components/pages/request/customer/CustomerRequestCreatePage')
+  '/request/create': lazy(() => 
+    import('@/components/pages/request/RequestCreatePage')
+  ),
+  '/proposal': lazy(() => 
+    import('@/components/pages/proposal/ProposalListPage')
+  ),
+  '/execution': lazy(() => 
+    import('@/components/pages/execution/ExecutionListPage')
+  ),
+  '/transition': lazy(() => 
+    import('@/components/pages/transition/TransitionListPage')
   ),
 };
 
@@ -108,7 +156,7 @@ return <PageComponent />;
 ```
 
 **작동 방식**:
-- 메뉴 클릭 시 `openTab({ path: '/request/customer' })` 호출
+- 메뉴 클릭 시 `openTab({ path: '/request' })` 호출
 - ContentArea가 path를 보고 해당 컴포넌트를 lazy load
 - URL은 `http://localhost:3000/`에 고정
 
@@ -165,7 +213,7 @@ not-found.tsx에서 무조건 / 로 리다이렉트
 **URL 변화**: `http://localhost:3000/` (변화 없음)
 
 ### 시나리오 2: URL 직접 입력 시도
-1. 주소창에 `http://localhost:3000/request/customer` 입력
+1. 주소창에 `http://localhost:3000/request` 입력
 2. 미들웨어가 차단 → 404 페이지
 3. 404 페이지에서 `/`로 리다이렉트
 4. `(main)/layout.tsx`의 `checkAuth` 실행
@@ -187,16 +235,21 @@ not-found.tsx에서 무조건 / 로 리다이렉트
 
 ### Phase 1: 기본 구조 ✅
 - [x] `components/pages/` 디렉토리 생성
-- [x] 페이지 컴포넌트 이동
+- [x] 페이지 컴포넌트 이동 (request, proposal, execution, transition)
 - [x] ContentArea에 lazy import 추가
-- [x] `app/(main)/request/` 폴더 삭제
+- [x] `app/(main)/*/page.tsx`를 얇은 래퍼로 구성
 
 ### Phase 2: 보안 강화 ✅
 - [x] `middleware.ts` 생성 및 allowedPaths 설정
 - [x] `app/not-found.tsx` 생성 및 자동 리다이렉트
 - [x] 직접 URL 접근 테스트
 
-### Phase 3: 확장 (향후)
+### Phase 3: 구조 정리 (2026-01-22) ✅
+- [x] customer 폴더 삭제, Request로 통합
+- [x] 4단계 프로젝트 상태 (request → proposal → execution → transition)
+- [x] 얇은 래퍼 패턴 적용
+
+### Phase 4: 확장 (향후)
 - [ ] 더 많은 페이지 컴포넌트 추가
 - [ ] ContentArea의 pageComponents 자동 등록 시스템
 - [ ] 권한별 탭 접근 제어 (현재는 메뉴 기반만)
@@ -209,33 +262,43 @@ not-found.tsx에서 무조건 / 로 리다이렉트
 
 1. **페이지 컴포넌트 생성**
    ```
-   components/pages/[domain]/[feature]/[PageName].tsx
+   components/pages/[domain]/[PageName].tsx
+   components/pages/[domain]/index.ts
    ```
 
-2. **ContentArea에 등록**
+2. **app/(main) 래퍼 생성** (선택사항)
+   ```typescript
+   // app/(main)/[domain]/page.tsx
+   import { PageName } from '@/components/pages/[domain]';
+   export default function Page() {
+     return <PageName />;
+   }
+   ```
+
+3. **ContentArea에 등록**
    ```typescript
    // components/layout/ContentArea.tsx
    const pageComponents = {
      // 기존...
-     '/new/page': lazy(() => import('@/components/pages/new/page/NewPage')),
+     '/new-page': lazy(() => import('@/components/pages/new/NewPage')),
    };
    ```
 
-3. **메뉴 데이터베이스에 등록**
+4. **메뉴 데이터베이스에 등록**
    ```sql
    INSERT INTO cm_menu_m (menu_path, menu_name, ...) 
-   VALUES ('/new/page', '새 페이지', ...);
+   VALUES ('/new-page', '새 페이지', ...);
    ```
 
-4. **권한 설정**
+5. **권한 설정**
    ```sql
    INSERT INTO cm_role_menu_r (role_code, menu_id, access_type, ...)
    VALUES ('admin', [menu_id], 'full', ...);
    ```
 
 ### 주의사항
-- `app/(main)` 내부에 새 폴더를 만들지 말 것
 - 모든 비즈니스 페이지는 `components/pages/`에 배치
+- `app/(main)` 페이지는 얇은 래퍼로만 구성 (import + export default)
 - `middleware.ts`의 allowedPaths는 최소한만 유지
 - 직접 URL 접근이 필요한 페이지만 `app/` 내부에 생성
 
@@ -282,4 +345,4 @@ not-found.tsx에서 무조건 / 로 리다이렉트
 
 **작성자**: GitHub Copilot  
 **검토자**: 개발팀  
-**버전**: 1.0
+**버전**: 1.1

@@ -8,10 +8,9 @@ create table if not exists pr_project_m (
     project_name        text not null,
 
     -- Current workflow codes (logical FK via varchar)
-    project_source_code varchar(30) not null,   -- request / proposal
-    status_code         varchar(30) not null,   -- opportunity / execution
+    status_code         varchar(30) not null,   -- request / proposal / execution / transition
     stage_code          varchar(30) not null,   -- waiting / in_progress / done
-    done_result_code    varchar(30),            -- won / lost / hold (meaningful when opportunity+done)
+    done_result_code    varchar(30),            -- accepted/rejected/won/lost/completed/cancelled/transferred/hold
 
     -- Current owner (for list/report convenience)
     current_owner_user_id bigint,               -- logical FK (internal user)
@@ -40,14 +39,13 @@ create table if not exists pr_project_m (
     transaction_id      uuid
 );
 
-comment on table pr_project_m is '통합 프로젝트 마스터(기회/실행). 최신 상태 1행 유지.';
+comment on table pr_project_m is '통합 프로젝트 마스터. 최신 상태 1행 유지.';
 comment on column pr_project_m.project_id is '프로젝트 PK (bigserial).';
 comment on column pr_project_m.project_name is '프로젝트명(표시용).';
 
-comment on column pr_project_m.project_source_code is '유입 소스: request(고객요청) / proposal(영업제안).';
-comment on column pr_project_m.status_code is '메인 상태 코드: opportunity(계약 전) / execution(계약 후).';
+comment on column pr_project_m.status_code is '메인 상태 코드: request(요청) / proposal(제안) / execution(실행) / transition(전환).';
 comment on column pr_project_m.stage_code is '단계 코드: waiting / in_progress / done.';
-comment on column pr_project_m.done_result_code is '기회 완료 결과: won/lost/hold. (opportunity+done에서만 의미)';
+comment on column pr_project_m.done_result_code is '완료 결과 코드: 상태별로 다른 값(accepted/rejected/won/lost/completed/cancelled/transferred/hold).';
 
 comment on column pr_project_m.current_owner_user_id is '현재 오너(업무 책임자) 내부 사용자 ID(논리 FK).';
 
@@ -72,9 +70,6 @@ comment on column pr_project_m.transaction_id is '트랜잭션 ID(UUID). 서버 
 -- Indexes
 create index if not exists ix_pr_project_m_status_stage
     on pr_project_m (status_code, stage_code);
-
-create index if not exists ix_pr_project_m_source
-    on pr_project_m (project_source_code);
 
 create index if not exists ix_pr_project_m_owner
     on pr_project_m (current_owner_user_id);
@@ -107,7 +102,6 @@ create table if not exists pr_project_h (
     -- Snapshot of pr_project_m
     project_name          text not null,
 
-    project_source_code   varchar(30) not null,
     status_code           varchar(30) not null,
     stage_code            varchar(30) not null,
     done_result_code      varchar(30),

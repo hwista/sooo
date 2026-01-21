@@ -8,7 +8,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import type { FilterValues } from '@/components/common/page/PageHeader';
 
 // 샘플 데이터 타입
-interface CustomerRequest {
+interface RequestItem {
   id: string;
   requestNo: string;
   title: string;
@@ -19,11 +19,31 @@ interface CustomerRequest {
 }
 
 // 샘플 데이터
-const sampleData: CustomerRequest[] = [
+const sampleData: RequestItem[] = [
   { id: '1', requestNo: 'REQ-2026-001', title: '시스템 개선 요청', customerName: '삼성전자', status: '접수', requestDate: '2026-01-15', dueDate: '2026-02-15' },
   { id: '2', requestNo: 'REQ-2026-002', title: '신규 기능 개발', customerName: 'LG전자', status: '검토중', requestDate: '2026-01-16', dueDate: '2026-03-01' },
   { id: '3', requestNo: 'REQ-2026-003', title: '버그 수정 요청', customerName: 'SK하이닉스', status: '진행중', requestDate: '2026-01-17', dueDate: '2026-01-25' },
   { id: '4', requestNo: 'REQ-2026-004', title: 'UI 개선 작업', customerName: '현대자동차', status: '접수', requestDate: '2026-01-18', dueDate: '2026-02-28' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
+  { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
   { id: '5', requestNo: 'REQ-2026-005', title: '데이터 마이그레이션', customerName: '삼성전자', status: '완료', requestDate: '2026-01-10', dueDate: '2026-01-19' },
 ];
 
@@ -37,7 +57,7 @@ const statusOptions = [
 ];
 
 // 테이블 컬럼 정의
-const columns: ColumnDef<CustomerRequest>[] = [
+const columns: ColumnDef<RequestItem>[] = [
   {
     accessorKey: 'requestNo',
     header: '요청번호',
@@ -85,7 +105,7 @@ const columns: ColumnDef<CustomerRequest>[] = [
   },
 ];
 
-export default function CustomerRequestListPage() {
+export default function RequestListPage() {
   const { openTab } = useTabStore();
   const [data] = useState(sampleData);
   const [page, setPage] = useState(1);
@@ -93,10 +113,10 @@ export default function CustomerRequestListPage() {
 
   const handleCreate = () => {
     openTab({
-      menuCode: 'request.customer.create',
-      menuId: 'request.customer.create',
-      title: '고객요청 등록',
-      path: '/request/customer/create',
+      menuCode: 'request.create',
+      menuId: 'request.create',
+      title: '요청 등록',
+      path: '/request/create',
     });
   };
 
@@ -112,18 +132,18 @@ export default function CustomerRequestListPage() {
     console.log('검색 초기화');
   }, []);
 
-  const handleRowClick = useCallback((row: CustomerRequest) => {
+  const handleRowClick = useCallback((row: RequestItem) => {
     openTab({
-      menuCode: `request.customer.${row.id}`,
-      menuId: `request.customer.${row.id}`,
+      menuCode: `request.${row.id}`,
+      menuId: `request.${row.id}`,
       title: `${row.requestNo} - ${row.title}`,
-      path: `/request/customer/${row.id}`,
+      path: `/request/${row.id}`,
     });
   }, [openTab]);
 
   return (
     <ListPageTemplateV2
-      breadcrumb={['요청', '고객요청 관리']}
+      breadcrumb={['요청', '요청 목록']}
       header={{
         collapsible: true,
         actions: [

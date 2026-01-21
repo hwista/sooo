@@ -96,6 +96,7 @@ model Menu {
   
   isVisible       Boolean  @default(true) @map("is_visible") // 사이드바 표시 여부
   isEnabled       Boolean  @default(true) @map("is_enabled") // 활성화 여부
+  isAdminMenu     Boolean  @default(false) @map("is_admin_menu") // 관리자 전용 메뉴 여부
   openType        String   @default("tab") @map("open_type") // tab, modal, external
   description     String?
   
@@ -146,6 +147,7 @@ model MenuHistory {
   menuLevel       Int      @map("menu_level")
   isVisible       Boolean  @map("is_visible")
   isEnabled       Boolean  @map("is_enabled")
+  isAdminMenu     Boolean  @default(false) @map("is_admin_menu")
   openType        String   @map("open_type")
   description     String?
 
@@ -329,6 +331,7 @@ model User {
   
   // System Access Control
   isSystemUser    Boolean  @default(false) @map("is_system_user")
+  isAdmin         Boolean  @default(false) @map("is_admin") // 관리자 여부 (관리자 메뉴 접근)
   userTypeCode    String   @default("internal") @map("user_type_code") // internal, external
   
   // Authentication (nullable - only for isSystemUser = true)
@@ -401,21 +404,22 @@ model User {
 
 // ============================================
 // Project (프로젝트) - pr_project_m
+// status_code: request → proposal → execution → transition
+// stage_code: waiting → in_progress → done
 // ============================================
 model Project {
   id                    BigInt   @id @default(autoincrement()) @map("project_id")
   
   projectName           String   @map("project_name")
-  projectSourceCode     String   @map("project_source_code") // direct, opportunity
-  statusCode            String   @map("status_code") // opportunity, execution, done
-  stageCode             String   @map("stage_code")
-  doneResultCode        String?  @map("done_result_code") // complete, cancel
+  statusCode            String   @map("status_code") // request, proposal, execution, transition
+  stageCode             String   @map("stage_code") // waiting, in_progress, done
+  doneResultCode        String?  @map("done_result_code") // accepted, rejected, won, lost, completed, cancelled, transferred, hold
   
   currentOwnerUserId    BigInt?  @map("current_owner_user_id")
   
   // Handoff
-  handoffTypeCode       String?  @map("handoff_type_code") // automatic, manual
-  handoffStatusCode     String?  @map("handoff_status_code") // ready, in_progress, confirmed, rejected
+  handoffTypeCode       String?  @map("handoff_type_code") // REQ_TO_PRE, PRE_TO_PM, PM_TO_SM, etc.
+  handoffStatusCode     String?  @map("handoff_status_code") // waiting, in_progress, done
   handoffRequestedAt    DateTime? @map("handoff_requested_at")
   handoffConfirmedAt    DateTime? @map("handoff_confirmed_at")
   handoffConfirmedBy    BigInt?  @map("handoff_confirmed_by")
@@ -443,7 +447,6 @@ model Project {
   projectCloseConditions ProjectCloseCondition[]
 
   @@index([statusCode, stageCode], name: "ix_pr_project_m_status_stage")
-  @@index([projectSourceCode], name: "ix_pr_project_m_source")
   @@index([currentOwnerUserId], name: "ix_pr_project_m_owner")
   @@index([customerId], name: "ix_pr_project_m_customer")
   @@index([systemInstanceId], name: "ix_pr_project_m_system_instance")
@@ -455,10 +458,11 @@ model Project {
 // ============================================
 // Project Status (프로젝트 상태 상세) - pr_project_status_m
 // PK: (project_id, status_code)
+// status_code: request, proposal, execution, transition
 // ============================================
 model ProjectStatus {
   projectId               BigInt   @map("project_id")
-  statusCode              String   @map("status_code") // opportunity, execution
+  statusCode              String   @map("status_code") // request, proposal, execution, transition
   
   statusGoal              String   @map("status_goal")
   statusOwnerUserId       BigInt?  @map("status_owner_user_id")
@@ -648,10 +652,11 @@ model CloseConditionGroupItem {
 // ============================================
 // Project Deliverable (프로젝트 산출물 매핑) - pr_project_deliverable_r_m
 // PK: (project_id, status_code, deliverable_code)
+// status_code: request, proposal, execution, transition
 // ============================================
 model ProjectDeliverable {
   projectId             BigInt   @map("project_id")
-  statusCode            String   @map("status_code") // opportunity, execution
+  statusCode            String   @map("status_code") // request, proposal, execution, transition
   deliverableCode       String   @map("deliverable_code")
   
   submissionStatusCode  String   @map("submission_status_code")
@@ -688,13 +693,15 @@ model ProjectDeliverable {
 
 // ============================================
 // Project Close Condition (프로젝트 종료조건 매핑) - pr_project_close_condition_r_m
-// PK: (project_id, phase_code, condition_code)
+// PK: (project_id, status_code, condition_code)
+// status_code: request, proposal, execution, transition
 // ============================================
 model ProjectCloseCondition {
   projectId       BigInt   @map("project_id")
-  phaseCode       String   @map("phase_code") // opportunity, execution
+  statusCode      String   @map("status_code") // request, proposal, execution, transition
   conditionCode   String   @map("condition_code")
   
+  requiresDeliverable Boolean @default(false) @map("requires_deliverable")
   isChecked       Boolean  @default(false) @map("is_checked")
   checkedAt       DateTime? @map("checked_at")
   checkedBy       BigInt?  @map("checked_by")
@@ -715,8 +722,8 @@ model ProjectCloseCondition {
   // Relations
   project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@id([projectId, phaseCode, conditionCode], name: "pk_pr_project_close_condition_r_m")
-  @@index([projectId, phaseCode, isChecked], name: "ix_pr_project_close_condition_r_m_checked")
+  @@id([projectId, statusCode, conditionCode], name: "pk_pr_project_close_condition_r_m")
+  @@index([projectId, statusCode, isChecked], name: "ix_pr_project_close_condition_r_m_checked")
   @@index([conditionCode], name: "ix_pr_project_close_condition_r_m_condition")
   @@index([updatedAt], name: "ix_pr_project_close_condition_r_m_updated_at")
   @@map("pr_project_close_condition_r_m")
@@ -737,6 +744,7 @@ model UserHistory {
   eventAt         DateTime @map("event_at")
 
   isSystemUser    Boolean  @map("is_system_user")
+  isAdmin         Boolean  @default(false) @map("is_admin")
   userTypeCode    String   @map("user_type_code")
   loginId         String?  @map("login_id")
   passwordHash    String?  @map("password_hash")
@@ -791,7 +799,6 @@ model ProjectHistory {
   eventAt               DateTime @map("event_at")
 
   projectName           String   @map("project_name")
-  projectSourceCode     String   @map("project_source_code")
   statusCode            String   @map("status_code")
   stageCode             String   @map("stage_code")
   doneResultCode        String?  @map("done_result_code")
@@ -1048,13 +1055,14 @@ model ProjectDeliverableHistory {
 // ============================================
 model ProjectCloseConditionHistory {
   projectId       BigInt   @map("project_id")
-  phaseCode       String   @map("phase_code")
+  statusCode      String   @map("status_code")
   conditionCode   String   @map("condition_code")
   historySeq      BigInt   @map("history_seq")
   
   eventType       String   @map("event_type") @db.Char(1)
   eventAt         DateTime @map("event_at")
 
+  requiresDeliverable Boolean @map("requires_deliverable")
   isChecked       Boolean  @map("is_checked")
   checkedAt       DateTime? @map("checked_at")
   checkedBy       BigInt?  @map("checked_by")
@@ -1070,7 +1078,7 @@ model ProjectCloseConditionHistory {
   lastActivity    String?  @map("last_activity")
   transactionId   String?  @map("transaction_id") @db.Uuid
 
-  @@id([projectId, phaseCode, conditionCode, historySeq], name: "pk_pr_project_close_condition_r_h")
+  @@id([projectId, statusCode, conditionCode, historySeq], name: "pk_pr_project_close_condition_r_h")
   @@index([eventAt], name: "ix_pr_project_close_condition_r_h_event_at")
   @@index([transactionId], name: "ix_pr_project_close_condition_r_h_tx")
   @@map("pr_project_close_condition_r_h")

@@ -30,7 +30,7 @@ BEGIN
   -- 히스토리 테이블에 삽입
   INSERT INTO pr_project_h (
     project_id, history_seq, event_type, event_at,
-    project_name, project_source_code, status_code, stage_code, done_result_code,
+    project_name, status_code, stage_code, done_result_code,
     current_owner_user_id,
     handoff_type_code, handoff_status_code, handoff_requested_at, handoff_confirmed_at, handoff_confirmed_by,
     customer_id, plant_id, system_instance_id,
@@ -38,7 +38,7 @@ BEGIN
     last_source, last_activity, transaction_id
   ) VALUES (
     v_record.project_id, v_history_seq, v_event_type, NOW(),
-    v_record.project_name, v_record.project_source_code, v_record.status_code, v_record.stage_code, v_record.done_result_code,
+    v_record.project_name, v_record.status_code, v_record.stage_code, v_record.done_result_code,
     v_record.current_owner_user_id,
     v_record.handoff_type_code, v_record.handoff_status_code, v_record.handoff_requested_at, v_record.handoff_confirmed_at, v_record.handoff_confirmed_by,
     v_record.customer_id, v_record.plant_id, v_record.system_instance_id,

@@ -3,6 +3,7 @@ export interface TokenPayload {
   loginId: string;
   roleCode: string;
   userTypeCode: string;
+  isAdmin: boolean; // 관리자 여부
   type?: 'access' | 'refresh';
 }
 

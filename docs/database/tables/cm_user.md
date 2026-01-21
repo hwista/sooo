@@ -46,6 +46,9 @@
 #### System Access Control
 - `is_system_user` (boolean, required, default false)
   - 시스템 로그인 가능 여부
+- `is_admin` (boolean, required, default false)
+  - **관리자 여부** (관리자 메뉴 접근 권한)
+  - `true`인 경우 `is_admin_menu=true`인 메뉴에 접근 가능
 - `user_type_code` (varchar(30), required, default 'internal')
   - 사용자 유형: `internal` / `external`
 
