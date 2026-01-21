@@ -10,6 +10,7 @@ import {
   SidebarAdminMenu,
 } from '../sidebar';
 import { SidebarSection } from './SidebarSection';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuthStore, useMenuStore } from '@/stores';
 
 interface ExpandedSidebarProps {
@@ -35,9 +36,9 @@ export function ExpandedSidebar({
   const showAdminSection = user?.isAdmin && adminMenus.length > 0;
 
   return (
-    <div className="flex flex-col">
-      {/* 검색 + 새로고침 */}
-      <div className="p-2 border-b border-gray-200">
+    <div className="flex flex-col h-full">
+      {/* 검색 + 새로고침 (고정) */}
+      <div className="p-2 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-1">
           <SidebarSearch />
           <button
@@ -53,8 +54,10 @@ export function ExpandedSidebar({
         </div>
       </div>
 
-      {/* 즐겨찾기 */}
-      <SidebarSection
+      {/* 스크롤 영역 (검색란 아래) */}
+      <ScrollArea variant="sidebar" className="flex-1">
+        {/* 즐겨찾기 */}
+        <SidebarSection
         title="즐겨찾기"
         icon={Star}
         isExpanded={expandedSections.includes('favorites')}
@@ -83,17 +86,18 @@ export function ExpandedSidebar({
         <SidebarMenuTree />
       </SidebarSection>
 
-      {/* 관리자 메뉴 (isAdmin 사용자만) */}
-      {showAdminSection && (
-        <SidebarSection
-          title="관리자"
-          icon={Shield}
-          isExpanded={expandedSections.includes('admin')}
-          onToggle={() => onToggleSection('admin')}
-        >
-          <SidebarAdminMenu />
-        </SidebarSection>
-      )}
+        {/* 관리자 메뉴 (isAdmin 사용자만) */}
+        {showAdminSection && (
+          <SidebarSection
+            title="관리자"
+            icon={Shield}
+            isExpanded={expandedSections.includes('admin')}
+            onToggle={() => onToggleSection('admin')}
+          >
+            <SidebarAdminMenu />
+          </SidebarSection>
+        )}
+      </ScrollArea>
     </div>
   );
 }

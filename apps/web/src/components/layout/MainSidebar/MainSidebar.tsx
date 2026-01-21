@@ -94,15 +94,14 @@ export function MainSidebar() {
         </div>
 
         {/* 사이드바 콘텐츠 */}
-        <ScrollArea 
-          variant="sidebar" 
-          className="flex-1 bg-ssoo-content-bg"
-        >
+        <div className="flex-1 flex flex-col overflow-hidden bg-ssoo-content-bg">
           {isCollapsed ? (
-            <CollapsedSidebar
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            />
+            <ScrollArea variant="sidebar" className="flex-1">
+              <CollapsedSidebar
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              />
+            </ScrollArea>
           ) : (
             <ExpandedSidebar
               expandedSections={expandedSections}
@@ -111,7 +110,7 @@ export function MainSidebar() {
               isRefreshing={isMenuLoading}
             />
           )}
-        </ScrollArea>
+        </div>
       </aside>
 
       {/* 플로팅 패널 */}
