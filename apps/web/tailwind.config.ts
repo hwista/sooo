@@ -75,6 +75,7 @@ const config: Config = {
         ls: {
           blue: 'var(--ls-blue)',
           red: 'var(--ls-red)',
+          'red-hover': '#d90027',
           green: 'var(--ls-green)',
           'sub-blue': 'var(--ls-sub-blue)',
           gray: 'var(--ls-gray)',
