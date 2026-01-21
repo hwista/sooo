@@ -6,6 +6,29 @@
 
 ## 2026-01-21
 
+### 📚 API 명세서 문서화
+
+REST API 명세서를 체계적으로 문서화했습니다.
+
+**생성된 문서:**
+
+| 파일 | 설명 |
+|------|------|
+| `docs/api/README.md` | API 명세서 개요 (응답 형식, 에러 코드, 인증 방식) |
+| `docs/api/auth.md` | 인증 API (login, refresh, logout, me) |
+| `docs/api/menu.md` | 메뉴 API (my, favorites) |
+| `docs/api/user.md` | 사용자 API (profile) |
+| `docs/api/project.md` | 프로젝트 API (CRUD) |
+
+**문서 내용:**
+- 엔드포인트별 Request/Response 예시
+- 필드 타입 및 설명
+- 에러 응답 코드
+- 관련 테이블 구조
+- 구현 파일 위치
+
+---
+
 ### ⭐ 즐겨찾기 DB 연동 구현
 
 **문제:**
