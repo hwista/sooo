@@ -70,15 +70,15 @@ export function MainSidebar() {
   return (
     <>
       <aside
-        className="fixed left-0 top-0 h-full bg-[#DEE7F1] border-r border-[#9FC1E7] flex flex-col transition-all duration-300 z-40"
+        className="fixed left-0 top-0 h-full bg-ssoo-content-bg border-r border-ssoo-content-border flex flex-col transition-all duration-300 z-40"
         style={{ width: sidebarWidth }}
       >
         {/* 사이드바 헤더 - 그룹웨어 스타일 */}
-        <div className="flex items-center justify-between h-[60px] px-3 bg-[#003876]">
+        <div className="flex items-center justify-between h-[60px] px-3 bg-ssoo-primary">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 bg-white rounded flex items-center justify-center">
-                <span className="text-[#003876] font-bold text-base">S</span>
+                <span className="text-ssoo-primary font-bold text-base">S</span>
               </div>
               <span className="font-semibold text-white text-lg">SSOO</span>
             </div>
@@ -93,7 +93,7 @@ export function MainSidebar() {
         </div>
 
         {/* 사이드바 콘텐츠 */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-[#DEE7F1]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-ssoo-content-bg">
           {isCollapsed ? (
             <CollapsedSidebar
               onMouseEnter={handleMouseEnter}

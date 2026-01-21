@@ -39,7 +39,7 @@ export function SidebarFavorites() {
           <button
             key={favorite.id}
             onClick={() => handleClick(favorite)}
-            className="flex items-center gap-2 w-full h-control-h px-3 text-sm text-gray-700 hover:bg-[#F6FBFF] rounded-md transition-colors"
+            className="flex items-center gap-2 w-full h-control-h px-3 text-sm text-gray-700 hover:bg-ssoo-sitemap-bg rounded-md transition-colors"
           >
             {IconComponent ? (
               <IconComponent className="w-4 h-4 text-gray-500" />

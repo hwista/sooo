@@ -66,8 +66,8 @@ function MenuTreeNode({ item, level }: MenuTreeNodeProps) {
         onClick={handleClick}
         className={`flex items-center gap-1 w-full h-control-h px-2 text-sm rounded-md transition-colors cursor-pointer group ${
           isActive 
-            ? 'bg-[#9FC1E7] text-[#003876] font-medium' 
-            : 'hover:bg-[#F6FBFF] text-gray-700'
+            ? 'bg-ssoo-content-border text-ssoo-primary font-medium' 
+            : 'hover:bg-ssoo-sitemap-bg text-gray-700'
         }`}
         style={{ paddingLeft: `${8 + level * 16}px` }}
       >
@@ -83,10 +83,10 @@ function MenuTreeNode({ item, level }: MenuTreeNodeProps) {
         )}
 
         {/* 메뉴 아이콘 */}
-        <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#003876]' : 'text-gray-500'}`} />
+        <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-ssoo-primary' : 'text-gray-500'}`} />
 
         {/* 메뉴명 */}
-        <span className={`flex-1 truncate ${isActive ? 'text-[#003876]' : 'text-gray-700'}`}>{item.menuName}</span>
+        <span className={`flex-1 truncate ${isActive ? 'text-ssoo-primary' : 'text-gray-700'}`}>{item.menuName}</span>
 
         {/* 즐겨찾기 버튼 (메뉴만) */}
         {!isFolder && (

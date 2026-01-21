@@ -26,12 +26,12 @@ export function CollapsedSidebar({
         return (
           <button
             key={section}
-            className="p-3 hover:bg-[#F6FBFF] rounded-lg transition-colors"
+            className="p-3 hover:bg-ssoo-sitemap-bg rounded-lg transition-colors"
             title={SIDEBAR_SECTION_LABELS[section]}
             onMouseEnter={() => onMouseEnter(section)}
             onMouseLeave={onMouseLeave}
           >
-            <Icon className="w-5 h-5 text-[#003876]" />
+            <Icon className="w-5 h-5 text-ssoo-primary" />
           </button>
         );
       })}

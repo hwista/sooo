@@ -18,7 +18,7 @@ export function SidebarSearch() {
         placeholder="메뉴 검색..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full h-control-h pl-8 pr-3 text-sm border border-[#9FC1E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003876] focus:border-transparent"
+        className="w-full h-control-h pl-8 pr-3 text-sm border border-ssoo-content-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ssoo-primary focus:border-transparent"
       />
       {searchQuery && (
         <button

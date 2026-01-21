@@ -35,11 +35,11 @@ export function ExpandedSidebar({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="p-2 hover:bg-[#F6FBFF] rounded-lg transition-colors disabled:opacity-50"
-            title="메뉴 새로고침"
+            className="p-2 hover:bg-ssoo-sitemap-bg rounded-lg transition-colors disabled:opacity-50"
+            title="새로고침"
           >
             <RefreshCw
-              className={`w-4 h-4 text-[#003876] ${isRefreshing ? 'animate-spin' : ''}`}
+              className={`w-4 h-4 text-ssoo-primary ${isRefreshing ? 'animate-spin' : ''}`}
             />
           </button>
         </div>

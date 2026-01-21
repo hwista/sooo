@@ -29,14 +29,14 @@ export function FloatingPanel({
 
   return (
     <div
-      className="fixed left-14 top-[60px] w-72 max-h-[calc(100vh-80px)] bg-white border border-[#9FC1E7] rounded-lg shadow-lg overflow-hidden z-50"
+      className="fixed left-14 top-[60px] w-72 max-h-[calc(100vh-80px)] bg-white border border-ssoo-content-border rounded-lg shadow-lg overflow-hidden z-50"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       {/* 헤더 */}
-      <div className="flex items-center gap-2 px-3 h-control-h border-b border-[#9FC1E7] bg-[#DEE7F1]">
-        <Icon className="w-4 h-4 text-[#003876]" />
-        <span className="text-sm font-medium text-[#003876]">
+      <div className="flex items-center gap-2 px-3 h-control-h border-b border-ssoo-content-border bg-ssoo-content-bg">
+        <Icon className="w-4 h-4 text-ssoo-primary" />
+        <span className="text-sm font-medium text-ssoo-primary">
           {SIDEBAR_SECTION_LABELS[activeSection]}
         </span>
       </div>

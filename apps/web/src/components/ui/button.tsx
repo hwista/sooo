@@ -9,22 +9,22 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary: 네이비 블루 (#003876) - CUD/중요 작업
+        // Primary: 네이비 블루 - CUD/중요 작업
         default:
-          "bg-[#003876] text-white shadow hover:bg-[#235a98]",
-        // Secondary: 보조색 (#235a98) - 일반 작업
+          "bg-ssoo-primary text-white shadow hover:bg-ssoo-primary-hover",
+        // Secondary: 보조색 - 일반 작업
         secondary:
-          "bg-[#235a98] text-white shadow-sm hover:bg-[#003876]",
+          "bg-ssoo-secondary text-white shadow-sm hover:bg-ssoo-primary",
         // Outline: 테두리만
         outline:
-          "border border-[#9FC1E7] bg-white text-[#003876] shadow-sm hover:bg-[#F6FBFF]",
+          "border border-ssoo-content-border bg-white text-ssoo-primary shadow-sm hover:bg-ssoo-sitemap-bg",
         // Destructive: 삭제/위험 (SSOO Red)
         destructive:
-          "bg-[#FA002D] text-white shadow-sm hover:bg-[#d90027]",
+          "bg-ssoo-red text-white shadow-sm hover:bg-ssoo-red-hover",
         // Ghost: 배경 없음
-        ghost: "text-[#003876] hover:bg-[#DEE7F1]",
+        ghost: "text-ssoo-primary hover:bg-ssoo-content-bg",
         // Link: 링크 스타일
-        link: "text-[#016CA2] underline-offset-4 hover:underline",
+        link: "text-ssoo-sitemap-title underline-offset-4 hover:underline",
       },
       size: {
         // 표준 높이: 36px (h-control-h)

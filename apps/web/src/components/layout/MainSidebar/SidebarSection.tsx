@@ -26,16 +26,16 @@ export function SidebarSection({
     <div className="border-b border-gray-200">
       <button
         onClick={onToggle}
-        className="flex items-center justify-between w-full px-3 py-2 hover:bg-[#F6FBFF] transition-colors"
+        className="flex items-center justify-between w-full px-3 py-2 hover:bg-ssoo-sitemap-bg transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4 text-[#003876]" />
-          <span className="text-sm font-medium text-[#003876]">{title}</span>
+          <Icon className="w-4 h-4 text-ssoo-primary" />
+          <span className="text-sm font-medium text-ssoo-primary">{title}</span>
         </div>
         {isExpanded ? (
-          <ChevronDown className="w-4 h-4 text-[#003876]" />
+          <ChevronDown className="w-4 h-4 text-ssoo-primary" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-[#003876]" />
+          <ChevronRight className="w-4 h-4 text-ssoo-primary" />
         )}
       </button>
       {isExpanded && <div className="pb-2">{children}</div>}

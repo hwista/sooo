@@ -59,6 +59,20 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // SSOO 전용 색상 (CSS 변수 기반)
+        ssoo: {
+          primary: 'var(--ssoo-primary)',
+          'primary-hover': 'var(--ssoo-primary-hover)',
+          secondary: 'var(--ssoo-secondary)',
+          red: 'var(--ssoo-red)',
+          'red-hover': '#d90027',
+          background: 'var(--ssoo-background)',
+          'content-border': 'var(--ssoo-content-border)',
+          'content-bg': 'var(--ssoo-content-background)',
+          'sitemap-title': 'var(--ssoo-sitemap-title)',
+          'sitemap-bullet': 'var(--ssoo-sitemap-bullet)',
+          'sitemap-bg': 'var(--ssoo-sitemap-background)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

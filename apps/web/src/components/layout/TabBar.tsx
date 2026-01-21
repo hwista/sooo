@@ -73,7 +73,7 @@ export function TabBar() {
               key={tab.id}
               className={`flex-shrink-0 flex items-center gap-1.5 px-3 h-control-h border-r border-gray-200 transition-colors cursor-pointer group ${
                 isActive
-                  ? 'bg-white border-b-2 border-b-[#003876]'
+                  ? 'bg-white border-b-2 border-b-ssoo-primary'
                   : 'hover:bg-gray-100'
               }`}
             >

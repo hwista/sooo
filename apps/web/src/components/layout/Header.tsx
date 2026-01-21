@@ -12,7 +12,7 @@ import { Search, Plus, Bell, User, ChevronDown } from 'lucide-react';
  */
 export function Header() {
   return (
-    <header className="h-[60px] flex items-center justify-between px-4 bg-[#003876]">
+    <header className="h-[60px] flex items-center justify-between px-4 bg-ssoo-primary">
       {/* 왼쪽: 통합 검색 (추후 Elasticsearch 또는 AI 챗 연동 예정) */}
       <div className="flex items-center flex-1 max-w-md">
         <div className="relative w-full">
@@ -30,7 +30,7 @@ export function Header() {
       <div className="flex items-center gap-2">
         {/* 빠른 생성 */}
         <button
-          className="flex items-center gap-1 h-control-h px-3 bg-white text-[#003876] text-sm font-medium rounded-md hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-1 h-control-h px-3 bg-white text-ssoo-primary text-sm font-medium rounded-md hover:bg-gray-100 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>새 프로젝트</span>
@@ -43,7 +43,7 @@ export function Header() {
         >
           <Bell className="w-5 h-5 text-white" />
           {/* 알림 뱃지 (임시) */}
-          <span className="absolute top-1 right-1 w-2 h-2 bg-[#FA002D] rounded-full" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-ssoo-red rounded-full" />
         </button>
 
         {/* 사용자 프로필 */}
