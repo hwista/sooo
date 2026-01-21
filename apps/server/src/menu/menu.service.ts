@@ -311,68 +311,66 @@ export class MenuService {
    */
   async addFavorite(userId: bigint, menuId: bigint) {
     // 이미 즐겨찾기에 있는지 확인
-    const existing = await this.db.cm_user_favorite_r.findFirst({
+    const existing = await this.db.userFavorite.findFirst({
       where: {
-        user_id: userId,
-        menu_id: menuId,
-        is_active: true,
+        userId: userId,
+        menuId: menuId,
+        isActive: true,
       },
     });
 
     if (existing) {
       // 이미 존재하면 기존 데이터 반환
-      const menu = await this.db.cm_menu_m.findUnique({
-        where: { menu_id: menuId },
+      const menu = await this.db.menu.findUnique({
+        where: { id: menuId },
       });
       return {
-        id: existing.user_favorite_id.toString(),
+        id: existing.id.toString(),
         menuId: menuId.toString(),
-        menuCode: menu?.menu_code || '',
-        menuName: menu?.menu_name || '',
-        menuPath: menu?.menu_path,
+        menuCode: menu?.menuCode || '',
+        menuName: menu?.menuName || '',
+        menuPath: menu?.menuPath,
         icon: menu?.icon,
-        sortOrder: existing.sort_order,
+        sortOrder: existing.sortOrder,
       };
     }
 
     // 현재 최대 sortOrder 조회
-    const maxSortOrder = await this.db.cm_user_favorite_r.aggregate({
+    const maxSortOrder = await this.db.userFavorite.aggregate({
       where: {
-        user_id: userId,
-        is_active: true,
+        userId: userId,
+        isActive: true,
       },
       _max: {
-        sort_order: true,
+        sortOrder: true,
       },
     });
 
-    const newSortOrder = (maxSortOrder._max.sort_order ?? -1) + 1;
+    const newSortOrder = (maxSortOrder._max.sortOrder ?? -1) + 1;
 
     // 새 즐겨찾기 생성
-    const favorite = await this.db.cm_user_favorite_r.create({
+    const favorite = await this.db.userFavorite.create({
       data: {
-        user_id: userId,
-        menu_id: menuId,
-        sort_order: newSortOrder,
-        is_active: true,
-        created_by: userId,
-        updated_by: userId,
+        userId: userId,
+        menuId: menuId,
+        sortOrder: newSortOrder,
+        isActive: true,
       },
     });
 
     // 메뉴 정보 조회
-    const menu = await this.db.cm_menu_m.findUnique({
-      where: { menu_id: menuId },
+    const menu = await this.db.menu.findUnique({
+      where: { id: menuId },
     });
 
     return {
-      id: favorite.user_favorite_id.toString(),
+      id: favorite.id.toString(),
       menuId: menuId.toString(),
-      menuCode: menu?.menu_code || '',
-      menuName: menu?.menu_name || '',
-      menuPath: menu?.menu_path,
+      menuCode: menu?.menuCode || '',
+      menuName: menu?.menuName || '',
+      menuPath: menu?.menuPath,
       icon: menu?.icon,
-      sortOrder: favorite.sort_order,
+      sortOrder: favorite.sortOrder,
     };
   }
 
@@ -380,16 +378,14 @@ export class MenuService {
    * 즐겨찾기 삭제
    */
   async removeFavorite(userId: bigint, menuId: bigint) {
-    await this.db.cm_user_favorite_r.updateMany({
+    await this.db.userFavorite.updateMany({
       where: {
-        user_id: userId,
-        menu_id: menuId,
-        is_active: true,
+        userId: userId,
+        menuId: menuId,
+        isActive: true,
       },
       data: {
-        is_active: false,
-        updated_by: userId,
-        updated_at: new Date(),
+        isActive: false,
       },
     });
   }

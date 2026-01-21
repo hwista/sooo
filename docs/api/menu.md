@@ -245,8 +245,31 @@ updated_at TIMESTAMP
 
 - Controller: `apps/server/src/menu/menu.controller.ts`
 - Service: `apps/server/src/menu/menu.service.ts`
+- DatabaseService: `apps/server/src/database/database.service.ts`
 
 ## 관련 문서
 
 - [API 명세서 개요](./README.md)
 - [메뉴 구조](../domain/menu-structure.md)
+
+---
+
+## Backlog
+
+> 이 영역 관련 개선/추가 예정 항목
+
+| ID | 항목 | 우선순위 | 상태 |
+|----|------|----------|------|
+| MNU-01 | 즐겨찾기 순서 변경 API | P3 | 🔲 대기 |
+| MNU-02 | 메뉴 검색 API | P3 | 🔲 대기 |
+
+---
+
+## Changelog
+
+> 이 영역 관련 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-01-21 | 즐겨찾기 API 버그 수정 (Prisma 모델명/필드명 수정) |
+| 2026-01-21 | Backlog/Changelog 섹션 추가 |

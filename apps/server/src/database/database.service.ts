@@ -41,6 +41,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return this._client.menu;
   }
 
+  get userFavorite() {
+    return this._client.userFavorite;
+  }
+
   // ===== Raw Query (기존 this.db.$queryRaw 패턴 유지) =====
 
   get $queryRaw() {
