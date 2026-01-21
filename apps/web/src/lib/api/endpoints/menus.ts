@@ -4,7 +4,7 @@ import { ApiResponse } from '../types';
 /**
  * 메뉴 타입
  */
-export type MenuType = 'group' | 'page' | 'action' | 'external';
+export type MenuType = 'group' | 'menu' | 'action';
 
 /**
  * 접근 권한 타입
@@ -15,15 +15,18 @@ export type AccessType = 'full' | 'read' | 'none';
  * 메뉴 아이템
  */
 export interface MenuItem {
-  menuId: number;
+  menuId: string;
   menuCode: string;
   menuName: string;
+  menuNameEn?: string | null;
   menuType: MenuType;
-  parentId: number | null;
+  parentMenuId: string | null;
   menuPath: string | null;
-  iconName: string | null;
+  icon: string | null;
   sortOrder: number;
   menuLevel: number;
+  isVisible: boolean;
+  isAdminMenu: boolean;
   accessType: AccessType;
   children?: MenuItem[];
 }
@@ -32,11 +35,12 @@ export interface MenuItem {
  * 즐겨찾기 메뉴
  */
 export interface FavoriteMenu {
-  menuId: number;
+  id: string;
+  menuId: string;
   menuCode: string;
   menuName: string;
   menuPath: string | null;
-  iconName: string | null;
+  icon: string | null;
   sortOrder: number;
 }
 
@@ -44,7 +48,8 @@ export interface FavoriteMenu {
  * 내 메뉴 응답
  */
 export interface MyMenuResponse {
-  menus: MenuItem[];
+  generalMenus: MenuItem[];
+  adminMenus: MenuItem[];
   favorites: FavoriteMenu[];
 }
 
@@ -63,7 +68,7 @@ export const menusApi = {
   /**
    * 즐겨찾기 추가
    */
-  addFavorite: async (menuId: number): Promise<ApiResponse<null>> => {
+  addFavorite: async (menuId: string): Promise<ApiResponse<null>> => {
     const response = await apiClient.post<ApiResponse<null>>('/menus/favorites', { menuId });
     return response.data;
   },
@@ -71,18 +76,8 @@ export const menusApi = {
   /**
    * 즐겨찾기 삭제
    */
-  removeFavorite: async (menuId: number): Promise<ApiResponse<null>> => {
+  removeFavorite: async (menuId: string): Promise<ApiResponse<null>> => {
     const response = await apiClient.delete<ApiResponse<null>>(`/menus/favorites/${menuId}`);
-    return response.data;
-  },
-
-  /**
-   * 즐겨찾기 순서 변경
-   */
-  reorderFavorites: async (menuIds: number[]): Promise<ApiResponse<null>> => {
-    const response = await apiClient.put<ApiResponse<null>>('/menus/favorites/reorder', {
-      menuIds,
-    });
     return response.data;
   },
 };

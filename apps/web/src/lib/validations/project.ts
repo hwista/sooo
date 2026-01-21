@@ -3,8 +3,6 @@ import {
   requiredStringMax,
   optionalStringMax,
   optionalId,
-  amountField,
-  dateField,
   optionalSelect,
 } from './common';
 
@@ -17,7 +15,7 @@ import {
 // ========================================
 
 /** 프로젝트 상태 코드 */
-export const projectStatusCodeSchema = z.enum(['opportunity', 'execution'], {
+export const projectStatusCodeSchema = z.enum(['request', 'proposal', 'execution', 'transition'], {
   errorMap: () => ({ message: '유효한 상태를 선택하세요.' }),
 });
 
@@ -26,13 +24,10 @@ export const projectStageCodeSchema = z.enum(['waiting', 'in_progress', 'done'],
   errorMap: () => ({ message: '유효한 단계를 선택하세요.' }),
 });
 
-/** 프로젝트 소스 코드 */
-export const projectSourceCodeSchema = z.enum(['request', 'referral', 'direct', 'tender', 'etc'], {
-  errorMap: () => ({ message: '유효한 유입경로를 선택하세요.' }),
-});
-
 /** 프로젝트 완료 결과 코드 */
-export const projectDoneResultCodeSchema = z.enum(['won', 'lost', 'hold'], {
+export const projectDoneResultCodeSchema = z.enum(
+  ['accepted', 'rejected', 'won', 'lost', 'completed', 'cancelled', 'transferred', 'hold'],
+  {
   errorMap: () => ({ message: '유효한 결과를 선택하세요.' }),
 });
 
@@ -43,14 +38,10 @@ export const projectDoneResultCodeSchema = z.enum(['won', 'lost', 'hold'], {
 /** 프로젝트 생성 스키마 */
 export const createProjectSchema = z.object({
   projectName: requiredStringMax(200).describe('프로젝트명'),
-  statusCode: projectStatusCodeSchema.optional().default('opportunity'),
+  statusCode: projectStatusCodeSchema.optional().default('request'),
   stageCode: projectStageCodeSchema.optional().default('waiting'),
-  projectSourceCode: projectSourceCodeSchema.optional(),
   customerId: optionalId.describe('고객사'),
   description: optionalStringMax(2000).describe('설명'),
-  startDate: dateField.describe('시작일'),
-  endDate: dateField.describe('종료일'),
-  contractAmount: amountField.describe('계약금액'),
 });
 
 /** 프로젝트 수정 스키마 */

@@ -36,7 +36,7 @@ export class ProjectService {
   async create(dto: CreateProjectDto) {
     return this.db.project.create({
       data: {
-        projectName: dto.name,
+        projectName: dto.projectName,
         statusCode: dto.statusCode || 'request',
         stageCode: dto.stageCode || 'waiting',
         currentOwnerUserId: dto.ownerId ? BigInt(dto.ownerId) : null,
@@ -51,7 +51,7 @@ export class ProjectService {
       return await this.db.project.update({
         where: { id },
         data: {
-          ...(dto.name && { projectName: dto.name }),
+          ...(dto.projectName && { projectName: dto.projectName }),
           ...(dto.description !== undefined && { memo: dto.description }),
           ...(dto.statusCode && { statusCode: dto.statusCode }),
           ...(dto.stageCode && { stageCode: dto.stageCode }),

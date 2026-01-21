@@ -1,6 +1,6 @@
 # Phase 1.4: apps/server 분석
 
-> 분석일: 2026-01-20  
+> 분석일: 2026-01-21  
 > 상태: 완료
 
 ---
@@ -170,8 +170,8 @@ export class AppModule {}
 
 | 메서드 | 경로 | 인증 | 설명 |
 |--------|------|:----:|------|
-| POST | `/api/auth/login` | ❌ | 로그인 |
-| POST | `/api/auth/refresh` | ❌ | 토큰 갱신 |
+| POST | `/api/auth/login` | ✅ | 로그인 |
+| POST | `/api/auth/refresh` | ✅ | 토큰 갱신 |
 | POST | `/api/auth/logout` | ✅ | 로그아웃 |
 | POST | `/api/auth/me` | ✅ | 현재 사용자 |
 
@@ -190,25 +190,27 @@ export class AppModule {}
 
 ```typescript
 @Injectable()
-export class DatabaseService extends PrismaClient {
-  async onModuleInit() {
-    await this.$connect();
+export class DatabaseService implements OnModuleInit, OnModuleDestroy {
+  private readonly _client: ExtendedPrismaClient;
+
+  constructor() {
+    this._client = createPrismaClient();
   }
+
+  async onModuleInit() {
+    await this._client.$connect();
+  }
+
   async onModuleDestroy() {
-    await this.$disconnect();
+    await this._client.$disconnect();
   }
 }
 ```
 
 | 항목 | 상태 | 의견 |
 |------|:----:|------|
-| PrismaClient 상속 | ⚠️ | @ssoo/database의 확장 미적용 |
+| PrismaClient 확장 | ✅ | createPrismaClient로 Extension 적용 |
 | 라이프사이클 | ✅ | 연결/해제 관리 |
-
-**문제점 발견:**
-- `DatabaseService`가 `PrismaClient`를 직접 상속
-- `@ssoo/database`에서 제공하는 `commonColumnsExtension`이 적용되지 않음
-- 히스토리 관리용 공통 컬럼 자동 세팅이 동작하지 않을 수 있음
 
 ---
 
@@ -236,11 +238,11 @@ export class DatabaseService extends PrismaClient {
 
 | 메서드 | 경로 | 인증 | 설명 |
 |--------|------|:----:|------|
-| GET | `/api/projects` | ❌ | 목록 조회 |
-| GET | `/api/projects/:id` | ❌ | 단건 조회 |
-| POST | `/api/projects` | ❌ | 생성 |
-| PUT | `/api/projects/:id` | ❌ | 수정 |
-| DELETE | `/api/projects/:id` | ❌ | 삭제 |
+| GET | `/api/projects` | ✅ | 목록 조회 |
+| GET | `/api/projects/:id` | ✅ | 단건 조회 |
+| POST | `/api/projects` | ✅ | 생성 |
+| PUT | `/api/projects/:id` | ✅ | 수정 |
+| DELETE | `/api/projects/:id` | ✅ | 삭제 |
 
 #### 분석 결과
 
@@ -248,12 +250,8 @@ export class DatabaseService extends PrismaClient {
 |------|:----:|------|
 | CRUD | ✅ | 기본 구현 |
 | 페이지네이션 | ✅ | PaginationParams 사용 |
-| 인증 | ⚠️ | JwtAuthGuard 미적용 |
+| 인증 | ✅ | JwtAuthGuard + RolesGuard 적용 |
 | @ssoo/types 사용 | ✅ | DTO 타입 공유 |
-
-**문제점 발견:**
-- Project 컨트롤러에 `@UseGuards(JwtAuthGuard)` 미적용
-- 인증 없이 프로젝트 CRUD 가능
 
 ---
 
@@ -288,7 +286,7 @@ export class RequestContextInterceptor implements NestInterceptor {
 
 ```typescript
 // database.service.ts
-import { PrismaClient } from '@ssoo/database';  // ✅ 사용
+import { createPrismaClient } from '@ssoo/database';  // ✅ 사용
 
 // request-context.interceptor.ts
 import { runWithContext, RequestContext } from '@ssoo/database';  // ✅ 사용
@@ -312,14 +310,13 @@ import type { ApiResponse } from '@ssoo/types';
 
 | # | 내용 | 위치 | 영향 |
 |---|------|------|------|
-| 1 | DatabaseService가 Extension 미적용 | database.service.ts | 공통 컬럼 자동 세팅 안됨 |
-| 2 | Project API 인증 미적용 | project.controller.ts | 보안 취약 |
+| - | 없음 | - | - |
 
 ### 4.2 심각도 중간 🟡
 
 | # | 내용 | 위치 | 영향 |
 |---|------|------|------|
-| 3 | User API 인증 미적용 여부 확인 필요 | user.controller.ts | 보안 확인 필요 |
+| - | 없음 | - | - |
 
 ### 4.3 심각도 낮음 🟢
 
@@ -350,9 +347,9 @@ apps/server/
     │
     ├── user/                ✅ 기본 구현
     ├── menu/                ✅ 메뉴 트리 조회
-    ├── project/             ⚠️ 인증 미적용
+    ├── project/             ✅ 인증 적용
     │
-    ├── database/            ⚠️ Extension 미적용
+    ├── database/            ✅ Extension 적용
     │   └── database.service.ts
     │
     ├── health/              ✅ 헬스체크
@@ -370,20 +367,15 @@ apps/server/
 |------|:----:|------|
 | 전체 구조 | 9/10 | NestJS 표준 준수 |
 | 인증 모듈 | 9/10 | JWT + Refresh 완비 |
-| DB 연동 | 6/10 | Extension 미적용 문제 |
-| API 보안 | 7/10 | 일부 API 인증 누락 |
+| DB 연동 | 8/10 | Extension 적용 |
+| API 보안 | 8/10 | 주요 API 인증 적용 |
 | 타입 공유 | 9/10 | @ssoo/types 잘 활용 |
-| **종합** | **8.0/10** | 양호, 일부 수정 필요 |
+| **종합** | **8.5/10** | 양호 |
 
 ### 권장 조치
 
-1. **Phase 2에서 검토 필요** (실행 단계에서 수정)
-   - DatabaseService Extension 적용 문제
-   - Project API 인증 적용 여부
-
-2. **현재 동작에는 영향 없음**
-   - 기능적으로 동작
-   - 보안/히스토리 기능 일부 미동작 가능성
+1. **Phase 2에서 검토 필요**
+   - 추가 권한 정책/감사 로그 확장 여부
 
 ---
 
@@ -405,3 +397,11 @@ apps/server/
 ## 📎 다음 단계
 
 → [Phase 1.5: apps/web 분석](apps-web.md)
+
+---
+
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-01-21 | 인증/프로젝트/DB 분석 내용 최신화 |

@@ -38,8 +38,8 @@ interface ProtectedRouteProps {
  *   <AdminPanel />
  * </ProtectedRoute>
  *
- * // admin 또는 pm 역할 필요, 권한 없으면 커스텀 UI
- * <ProtectedRoute roles={['admin', 'pm']} fallback={<AccessDenied />}>
+ * // admin 또는 manager 역할 필요, 권한 없으면 커스텀 UI
+ * <ProtectedRoute roles={['admin', 'manager']} fallback={<AccessDenied />}>
  *   <ProjectSettings />
  * </ProtectedRoute>
  */

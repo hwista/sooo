@@ -39,11 +39,10 @@ Authorization: Bearer <access_token>
   "data": [
     {
       "id": "1",
-      "projectCode": "PRJ-2026-001",
       "projectName": "신규 시스템 구축",
-      "statusCode": "IN_PROGRESS",
-      "startDate": "2026-01-01",
-      "endDate": "2026-12-31",
+      "statusCode": "execution",
+      "stageCode": "in_progress",
+      "memo": "프로젝트 설명...",
       "createdAt": "2026-01-01T00:00:00.000Z"
     }
   ],
@@ -60,11 +59,10 @@ Authorization: Bearer <access_token>
 | 필드 | 타입 | 설명 |
 |------|------|------|
 | `id` | string | 프로젝트 ID |
-| `projectCode` | string | 프로젝트 코드 |
 | `projectName` | string | 프로젝트명 |
 | `statusCode` | string | 상태 코드 |
-| `startDate` | string | 시작일 (YYYY-MM-DD) |
-| `endDate` | string | 종료일 (YYYY-MM-DD) |
+| `stageCode` | string | 단계 코드 |
+| `memo` | string \| null | 설명 (메모) |
 | `createdAt` | string | 생성일시 (ISO 8601) |
 
 ---
@@ -92,15 +90,13 @@ Authorization: Bearer <access_token>
   "success": true,
   "data": {
     "id": "1",
-    "projectCode": "PRJ-2026-001",
     "projectName": "신규 시스템 구축",
-    "description": "프로젝트 설명...",
-    "statusCode": "IN_PROGRESS",
-    "startDate": "2026-01-01",
-    "endDate": "2026-12-31",
-    "budget": 100000000,
-    "managerId": "10",
-    "departmentCode": "DEPT_DEV",
+    "memo": "프로젝트 설명...",
+    "statusCode": "execution",
+    "stageCode": "in_progress",
+    "doneResultCode": null,
+    "currentOwnerUserId": "10",
+    "customerId": "20",
     "createdAt": "2026-01-01T00:00:00.000Z",
     "updatedAt": "2026-01-15T10:30:00.000Z"
   }
@@ -129,29 +125,23 @@ Authorization: Bearer <access_token>
 
 ```json
 {
-  "projectCode": "PRJ-2026-002",
   "projectName": "모바일 앱 개발",
   "description": "프로젝트 설명...",
-  "statusCode": "PLANNING",
-  "startDate": "2026-02-01",
-  "endDate": "2026-08-31",
-  "budget": 50000000,
-  "managerId": "10",
-  "departmentCode": "DEPT_DEV"
+  "statusCode": "request",
+  "stageCode": "waiting",
+  "customerId": "20",
+  "ownerId": "10"
 }
 ```
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
-| `projectCode` | string | ✅ | 프로젝트 코드 (고유) |
 | `projectName` | string | ✅ | 프로젝트명 |
-| `description` | string | ❌ | 프로젝트 설명 |
-| `statusCode` | string | ❌ | 상태 코드 (기본: PLANNING) |
-| `startDate` | string | ❌ | 시작일 (YYYY-MM-DD) |
-| `endDate` | string | ❌ | 종료일 (YYYY-MM-DD) |
-| `budget` | number | ❌ | 예산 |
-| `managerId` | string | ❌ | 담당자 ID |
-| `departmentCode` | string | ❌ | 부서 코드 |
+| `description` | string | ❌ | 프로젝트 설명 (memo) |
+| `statusCode` | string | ❌ | 상태 코드 (기본: request) |
+| `stageCode` | string | ❌ | 단계 코드 (기본: waiting) |
+| `customerId` | string | ❌ | 고객사 ID |
+| `ownerId` | string | ❌ | 담당자 ID |
 
 ### Response (200 OK)
 
@@ -160,7 +150,6 @@ Authorization: Bearer <access_token>
   "success": true,
   "data": {
     "id": "2",
-    "projectCode": "PRJ-2026-002",
     "projectName": "모바일 앱 개발",
     "...": "..."
   }
@@ -172,7 +161,6 @@ Authorization: Bearer <access_token>
 | HTTP Status | 에러 코드 | 상황 |
 |-------------|----------|------|
 | 400 | `VALIDATION_ERROR` | 필수 필드 누락 |
-| 409 | `DUPLICATE_CODE` | 중복된 프로젝트 코드 |
 
 ---
 
@@ -197,8 +185,9 @@ Authorization: Bearer <access_token>
 ```json
 {
   "projectName": "수정된 프로젝트명",
-  "statusCode": "IN_PROGRESS",
-  "endDate": "2026-12-31"
+  "statusCode": "execution",
+  "stageCode": "in_progress",
+  "doneResultCode": "completed"
 }
 ```
 
@@ -265,33 +254,38 @@ Authorization: Bearer <access_token>
 
 | 코드 | 설명 |
 |------|------|
-| `PLANNING` | 기획 중 |
-| `IN_PROGRESS` | 진행 중 |
-| `ON_HOLD` | 보류 |
-| `COMPLETED` | 완료 |
-| `CANCELLED` | 취소 |
+| `request` | 요청 |
+| `proposal` | 제안 |
+| `execution` | 실행 |
+| `transition` | 전환 |
+
+## 프로젝트 단계 코드
+
+| 코드 | 설명 |
+|------|------|
+| `waiting` | 대기 |
+| `in_progress` | 진행 |
+| `done` | 완료 |
 
 ---
 
 ## 관련 테이블
 
-### pr_project (프로젝트)
+### pr_project_m (프로젝트)
 
 ```sql
 -- 주요 컬럼
-id               BIGINT PRIMARY KEY
-project_code     VARCHAR(50)   -- 프로젝트 코드
-project_name     VARCHAR(200)  -- 프로젝트명
-description      TEXT          -- 설명
-status_code      VARCHAR(20)   -- 상태 코드
-start_date       DATE          -- 시작일
-end_date         DATE          -- 종료일
-budget           DECIMAL       -- 예산
-manager_id       BIGINT        -- 담당자 ID
-department_code  VARCHAR(20)   -- 부서 코드
-is_active        BOOLEAN       -- 활성화 여부
-created_at       TIMESTAMP
-updated_at       TIMESTAMP
+project_id             BIGINT PRIMARY KEY
+project_name           VARCHAR(200)  -- 프로젝트명
+status_code            VARCHAR(20)   -- 상태 코드
+stage_code             VARCHAR(20)   -- 단계 코드
+done_result_code       VARCHAR(30)   -- 종료 결과 코드
+current_owner_user_id  BIGINT        -- 담당자 ID
+customer_id            BIGINT        -- 고객사 ID
+memo                   TEXT          -- 설명(메모)
+is_active              BOOLEAN       -- 활성화 여부
+created_at             TIMESTAMP
+updated_at             TIMESTAMP
 ```
 
 ---

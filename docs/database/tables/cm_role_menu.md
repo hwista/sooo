@@ -38,32 +38,22 @@
 | 코드 | 설명 | 주요 권한 |
 |------|------|----------|
 | `admin` | 시스템 관리자 | 모든 메뉴 full 접근 |
-| `sales` | 영업 담당자 | 대시보드, 프로젝트, 고객사 full |
-| `am` | Account Manager | 대시보드, 프로젝트, 고객사, 시스템 full |
-| `pm` | Project Manager | 대시보드, 프로젝트 full, 고객사 read |
-| `sm` | SM 담당자 | 대시보드, 프로젝트, 시스템 full, 고객사 read |
-| `external` | 외부 사용자 | 대시보드, 본인 프로젝트만 |
+| `manager` | 매니저 | 관리자 메뉴 제외 전체 full |
+| `user` | 일반 사용자 | 관리자 메뉴 제외 전체 read |
+| `viewer` | 조회 전용 | 대시보드 read |
 
 ---
 
 ## 5. 초기 데이터 (권한 매트릭스)
 
-| 메뉴 | admin | sales | am | pm | sm | external |
-|------|-------|-------|----|----|----|----|
-| dashboard | full | full | full | full | full | full |
-| project | full | full | full | full | full | full |
-| project.list | full | full | full | full | full | full |
-| project.create | full | full | full | none | none | none |
-| customer | full | full | full | read | read | none |
-| customer.list | full | full | full | read | read | none |
-| system | full | read | full | full | full | none |
-| system.list | full | read | full | full | full | none |
-| report | full | full | full | full | full | none |
-| admin | full | none | none | none | none | none |
-| admin.user | full | none | none | none | none | none |
-| admin.role | full | none | none | none | none | none |
-| admin.menu | full | none | none | none | none | none |
-| admin.code | full | none | none | none | none | none |
+| 메뉴 | admin | manager | user | viewer |
+|------|-------|---------|------|--------|
+| dashboard | full | full | read | read |
+| request | full | full | read | none |
+| proposal | full | full | read | none |
+| execution | full | full | read | none |
+| transition | full | full | read | none |
+| admin | full | none | none | none |
 
 ---
 

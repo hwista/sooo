@@ -103,21 +103,25 @@
 
 | 항목 | @ssoo/types | Prisma Schema | 상태 |
 |------|-------------|---------------|------|
-| `ProjectSourceCode` | `'request' \| 'proposal'` | `'direct' \| 'opportunity'` | ❌ 불일치 |
-| `DoneResultCode` | `'won' \| 'lost' \| 'hold'` | `'complete' \| 'cancel'` | ❌ 불일치 |
-| `ProjectStatusCode` | `'opportunity' \| 'execution'` | `'opportunity' \| 'execution' \| 'done'` | ⚠️ 불완전 |
+| `ProjectStatusCode` | `'request' \| 'proposal' \| 'execution' \| 'transition'` | `'request' \| 'proposal' \| 'execution' \| 'transition'` | ✅ 일치 |
+| `DoneResultCode` | `accepted/rejected/won/lost/completed/cancelled/transferred/hold` | 동일 | ✅ 일치 |
 
 **영향:**
-- 프론트엔드에서 잘못된 값 사용 가능
-- 타입 체크가 실제 DB 제약과 불일치
-- 런타임 에러 발생 가능
+- 타입 불일치 리스크 해소
 
 **해결 방안:**
 ```typescript
 // packages/types/src/project.ts - Prisma 스키마와 동기화
-export type ProjectSourceCode = 'direct' | 'opportunity';
-export type DoneResultCode = 'complete' | 'cancel';
-export type ProjectStatusCode = 'opportunity' | 'execution' | 'done';
+export type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
+export type DoneResultCode =
+  | 'accepted'
+  | 'rejected'
+  | 'won'
+  | 'lost'
+  | 'completed'
+  | 'cancelled'
+  | 'transferred'
+  | 'hold';
 ```
 
 ---

@@ -150,8 +150,8 @@ Authorization: Bearer <access_token>
   "data": {
     "userId": "123",
     "loginId": "john.doe",
-    "roleCode": "ROLE_USER",
-    "userTypeCode": "INTERNAL",
+    "roleCode": "user",
+    "userTypeCode": "internal",
     "isAdmin": false
   },
   "message": "사용자 정보 조회 성공"

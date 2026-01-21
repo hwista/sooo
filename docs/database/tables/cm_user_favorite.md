@@ -64,14 +64,8 @@ ORDER BY f.sort_order;
 
 ### 3. 즐겨찾기 삭제
 ```sql
-DELETE FROM cm_user_favorite_r 
-WHERE user_id = :userId AND menu_id = :menuId;
-```
-
-### 4. 즐겨찾기 순서 변경
-```sql
-UPDATE cm_user_favorite_r 
-SET sort_order = :newOrder
+UPDATE cm_user_favorite_r
+SET is_active = false
 WHERE user_id = :userId AND menu_id = :menuId;
 ```
 
@@ -81,15 +75,22 @@ WHERE user_id = :userId AND menu_id = :menuId;
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| `GET` | `/api/menu/favorites` | 내 즐겨찾기 목록 |
-| `POST` | `/api/menu/favorites` | 즐겨찾기 추가 |
-| `DELETE` | `/api/menu/favorites/:menuId` | 즐겨찾기 삭제 |
-| `PATCH` | `/api/menu/favorites/reorder` | 순서 변경 |
+| `GET` | `/api/menus/my` | 내 메뉴 + 즐겨찾기 조회 |
+| `POST` | `/api/menus/favorites` | 즐겨찾기 추가 |
+| `DELETE` | `/api/menus/favorites/:menuId` | 즐겨찾기 삭제 |
 
 ---
 
 ## 비고
 
 - 히스토리 트리거 미적용: 단순 ON/OFF 성격, 감사 로그 불필요
-- 정렬 순서: 드래그앤드롭으로 순서 변경 가능
+- 정렬 순서: sort_order 필드 보유 (재정렬 API는 미구현)
 - 권한 체크: 즐겨찾기 조회 시 해당 메뉴 권한도 함께 검증
+
+---
+
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-01-21 | 즐겨찾기 삭제 방식(soft delete) 및 API 경로 정합성 반영 |

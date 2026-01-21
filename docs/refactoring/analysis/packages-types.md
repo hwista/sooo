@@ -113,7 +113,7 @@ export interface IdParam {
 ### src/user.ts (사용자 타입)
 
 ```typescript
-export type UserRole = 'sales' | 'am' | 'pm' | 'sm' | 'admin';
+export type UserRole = 'admin' | 'manager' | 'user' | 'viewer';
 
 export interface User {
   id: string;
@@ -163,21 +163,28 @@ export interface UpdateCustomerDto { ... }
 ### src/project.ts (프로젝트 타입)
 
 ```typescript
-export type ProjectStatusCode = 'opportunity' | 'execution';
+export type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
 export type ProjectStageCode = 'waiting' | 'in_progress' | 'done';
-export type DoneResultCode = 'won' | 'lost' | 'hold';
-export type ProjectSourceCode = 'request' | 'proposal';
+export type DoneResultCode =
+  | 'accepted'
+  | 'rejected'
+  | 'won'
+  | 'lost'
+  | 'completed'
+  | 'cancelled'
+  | 'transferred'
+  | 'hold';
 
 export interface Project {
   id: string;
-  name: string;
-  description?: string;
-  customerId?: string;
-  projectSourceCode: ProjectSourceCode;
+  projectName: string;
+  memo?: string | null;
+  customerId?: string | null;
   statusCode: ProjectStatusCode;
   stageCode: ProjectStageCode;
   doneResultCode?: DoneResultCode;
-  ownerId?: string;
+  currentOwnerUserId?: string | null;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -187,8 +194,7 @@ export interface Project {
 |------|:----:|------|
 | StatusCode | ✅ | Prisma와 일치 |
 | StageCode | ✅ | Prisma와 일치 |
-| DoneResultCode | ⚠️ | Prisma에 done 외 cancel도 있음 |
-| ProjectSourceCode | ⚠️ | Prisma는 direct/opportunity, 여기는 request/proposal |
+| DoneResultCode | ✅ | Prisma와 일치 |
 
 ---
 
@@ -198,10 +204,7 @@ export interface Project {
 
 | 항목 | @ssoo/types | Prisma 스키마 | 심각도 |
 |------|-------------|---------------|:------:|
-| UserRole | sales, am, pm, sm, admin | admin, manager, user, viewer | 🟡 중간 |
 | User.id 타입 | string | BigInt | 🟡 중간 |
-| ProjectSourceCode | request, proposal | direct, opportunity | 🟡 중간 |
-| doneResultCode | won, lost, hold | complete, cancel | 🟡 중간 |
 | Customer | 타입 정의됨 | 모델 없음 (논리적 FK) | 🟢 낮음 |
 
 ### 분석
@@ -241,27 +244,19 @@ packages/types/
 | 패키지 구조 | 10/10 | 깔끔함 |
 | 타입 구조 | 9/10 | 일관된 패턴 |
 | 문서화 | 8/10 | JSDoc 있음 |
-| Prisma 동기화 | 6/10 | 불일치 존재 |
-| **종합** | **8.3/10** | 양호 |
+| Prisma 동기화 | 8/10 | 주요 불일치 해소 |
+| **종합** | **8.7/10** | 양호 |
 
 ### 발견된 이슈
 
 | # | 우선순위 | 내용 | 영향도 |
 |---|:--------:|------|:------:|
-| 1 | 중간 | UserRole이 Prisma roleCode와 불일치 | API 오류 가능 |
-| 2 | 중간 | ProjectSourceCode 값 불일치 | API 오류 가능 |
-| 3 | 낮음 | id 타입 string vs BigInt | 직렬화 시 자동 변환 |
+| 1 | 낮음 | id 타입 string vs BigInt | 직렬화 시 자동 변환 |
 
 ### 권장 조치
 
 1. **Phase 2에서 상세 검토 필요**
-   - 현재 apps/server에서 실제로 어떻게 사용되는지 확인
-   - 의도적 분리인지 실수인지 판단 필요
-
-2. **가능한 방향**
-   - A) Prisma 타입을 직접 사용 (타입 안전성 최대화)
-   - B) API 타입과 DB 타입 매핑 레이어 명시적 구현
-   - C) 현재 상태 유지 (동작에 문제 없으면)
+   - API 응답 직렬화 정책(BigInt → string) 일관성 강화
 
 ---
 

@@ -24,10 +24,10 @@ ON CONFLICT (user_id, menu_id) DO NOTHING;
 -- 예시: PM 사용자 (user_id=2)가 생성되면
 -- INSERT INTO cm_user_menu_r (user_id, menu_id, access_type, override_type, updated_at)
 -- SELECT 2, menu_id, 'full', 'grant', CURRENT_TIMESTAMP 
--- FROM cm_menu_m WHERE menu_code IN ('dashboard', 'project', 'project.list', 'closing', 'handoff')
+-- FROM cm_menu_m WHERE menu_code IN ('dashboard', 'execution', 'execution.list', 'transition')
 -- ON CONFLICT (user_id, menu_id) DO NOTHING;
 --
 -- INSERT INTO cm_user_menu_r (user_id, menu_id, access_type, override_type, updated_at)
 -- SELECT 2, menu_id, 'read', 'grant', CURRENT_TIMESTAMP 
--- FROM cm_menu_m WHERE menu_code IN ('request', 'opportunity', 'contract', 'operation')
+-- FROM cm_menu_m WHERE menu_code IN ('request', 'proposal', 'execution', 'transition')
 -- ON CONFLICT (user_id, menu_id) DO NOTHING;

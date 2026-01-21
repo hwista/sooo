@@ -228,7 +228,7 @@ const SettingsIcon = getIconComponent('Settings');
 {HomeIcon && <HomeIcon className="w-5 h-5" />}
 
 // 메뉴 아이콘 렌더링
-const IconComponent = getIconComponent(menu.iconCode);
+const IconComponent = getIconComponent(menu.icon);
 return IconComponent ? <IconComponent /> : null;
 ```
 
@@ -386,4 +386,5 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | 메뉴 아이콘 필드명 정합화 (icon) |
 | 2026-01-21 | 유틸리티 문서 최초 작성 |

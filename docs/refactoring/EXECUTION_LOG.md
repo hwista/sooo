@@ -55,9 +55,9 @@
 - **시간**: 2026-01-20
 - **대상**: `packages/types/src/project.ts`
 - **변경 내용**: 
-  - `ProjectSourceCode`: `request|proposal` → `direct|opportunity`
-  - `DoneResultCode`: `won|lost|hold` → `complete|cancel`
-  - `ProjectStatusCode`: `done` 상태 추가
+  - `ProjectStatusCode`: request/proposal/execution/transition로 확장
+  - `DoneResultCode`: accepted/rejected/won/lost/completed/cancelled/transferred/hold로 확장
+  - `ProjectSourceCode` 관련 필드 제거
 - **검증 결과**:
   - [x] tsc --noEmit 통과
   - [x] build 통과
@@ -108,7 +108,8 @@
 - **시간**: 2026-01-20
 - **대상**: `apps/server/src/project/project.service.ts`
 - **변경 내용**: 
-  - `projectSourceCode` 기본값: `request` → `direct`
+  - `statusCode` 기본값: `request`
+  - `stageCode` 기본값: `waiting`
 - **검증 결과**:
   - [x] build 통과
 

@@ -14,7 +14,7 @@ SSOO 시스템의 핵심 도메인 개념을 정의합니다.
 - 제안/요청 검토/딜/협상 과정이 여기에서 관리된다.
 - 계약이 성사되면 **Execution(실행) 상태로 전환**된다.
 
-> **구현 관점**: Opportunity는 별도 엔티티 분리 없이 **Project의 상태(status_code=opportunity)** 로 표현한다.
+> **구현 관점**: Opportunity는 별도 엔티티 분리 없이 **Project의 상태(status_code=request/proposal)** 로 표현한다.
 
 ---
 
@@ -26,8 +26,10 @@ SSOO 시스템의 핵심 도메인 개념을 정의합니다.
 ### 상태 (status_code)
 | 값 | 설명 |
 |---|------|
-| `opportunity` | 계약 전 기회 |
-| `execution` | 계약 후 실행 |
+| `request` | 요청 |
+| `proposal` | 제안 |
+| `execution` | 실행 |
+| `transition` | 전환 |
 
 ### 단계 (stage_code)
 | 값 | 설명 |
@@ -36,14 +38,19 @@ SSOO 시스템의 핵심 도메인 개념을 정의합니다.
 | `in_progress` | 진행 중 |
 | `done` | 완료 |
 
-### 기회 종료 결과 (done_result_code)
+### 종료 결과 (done_result_code)
 | 값 | 설명 |
 |---|------|
+| `accepted` | 수용 |
+| `rejected` | 거부 |
 | `won` | 수주 성공 |
 | `lost` | 실주 |
+| `completed` | 완료 |
+| `cancelled` | 취소 |
+| `transferred` | 전환완료 |
 | `hold` | 보류 |
 
-> 사용 규칙: `status_code=opportunity AND stage_code=done`일 때만 의미 있음
+> 사용 규칙: `status_code=request/proposal/execution/transition`에서 `stage_code=done`일 때 의미 있음
 
 ---
 
@@ -154,7 +161,7 @@ Customer/Plant → System Instance
 System Instance ↔ Integration (인터페이스)
 Project → Customer (필수), Plant/System Instance (선택)
 User → Project/System (오너/담당)
-Opportunity = Project (status_code=opportunity)
+Opportunity = Project (status_code=request/proposal)
 ```
 
 ---

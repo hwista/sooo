@@ -19,7 +19,7 @@
 | 3 | System Catalog | 시스템 종류/계층 |
 | 4 | System Instance | 고객/플랜트별 시스템 인스턴스 + 운영 주체 구분 |
 | 5 | Integration | 시스템 간 인터페이스 |
-| 6 | Project | 통합 단일 엔티티 (opportunity/execution을 상태로 표현) |
+| 6 | Project | 통합 단일 엔티티 (request/proposal/execution/transition 상태로 표현) |
 | 7 | User | 사람 (내부 직원 + 외부 이해관계자, 시스템 사용 여부로 구분) |
 
 > MVP-0에서는 "단계/핸드오프/종료조건/산출물/태스크"를 강하게 도입하지 않는다.  
@@ -29,8 +29,8 @@
 
 ## MVP-1: 상태/단계 + 전환/종료 이벤트 적용
 
-- `status_code(opportunity/execution)` + `stage_code(waiting/in_progress/done)` 적용
-- 기회 완료 시 `done_result(won/lost/hold)`로 결과 구분
+- `status_code(request/proposal/execution/transition)` + `stage_code(waiting/in_progress/done)` 적용
+- 요청/제안 완료 시 `done_result(accepted/rejected/won/lost/hold)`로 결과 구분
 - 계약 체결 시 execution으로 전환
 - 종료 시점에 운영 전환 여부 선택 (운영 전환이면 SM 지정)
 

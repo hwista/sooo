@@ -50,10 +50,8 @@
 
 | # | 작업 | 우선순위 | 영향 범위 | 계획서 |
 |---|------|:--------:|----------|--------|
-| TYPE-01 | ProjectSourceCode 동기화 | P0 | types, server, web | [types-plan.md](types-plan.md) |
-| TYPE-02 | DoneResultCode 동기화 | P0 | types, server, web | [types-plan.md](types-plan.md) |
-| TYPE-03 | ProjectStatusCode 보완 | P0 | types, server, web | [types-plan.md](types-plan.md) |
-| TYPE-04 | Index export 정리 | P3 | types | [types-plan.md](types-plan.md) |
+| TYPE-01 | Project 타입 정합화 | P0 | types, server, web | [types-plan.md](types-plan.md) |
+| TYPE-02 | Index export 정리 | P3 | types | [types-plan.md](types-plan.md) |
 
 ---
 
@@ -89,7 +87,7 @@
                               ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Step 1: packages/types (P0)                                  │
-│ ├── TYPE-01: ProjectSourceCode 동기화                        │
+│ ├── TYPE-01: Project 타입 정합화                            │
 │ ├── TYPE-02: DoneResultCode 동기화                           │
 │ └── TYPE-03: ProjectStatusCode 보완                          │
 │                                                              │
@@ -151,7 +149,7 @@
 git checkout -b refactor/phase-3
 
 # 각 Step별 커밋
-git commit -m "refactor(types): sync ProjectSourceCode with Prisma schema"
+git commit -m "refactor(types): align project types with schema"
 git commit -m "refactor(server): apply database extension"
 git commit -m "refactor(server): add JwtAuthGuard to ProjectController"
 ```

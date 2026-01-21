@@ -29,8 +29,6 @@ interface MenuStoreActions {
   addFavorite: (item: Omit<FavoriteMenuItem, 'id' | 'sortOrder'>) => Promise<void>;
   // 즐겨찾기 삭제
   removeFavorite: (menuId: string) => Promise<void>;
-  // 즐겨찾기 순서 변경
-  reorderFavorites: (fromIndex: number, toIndex: number) => Promise<void>;
   // 메뉴 새로고침
   refreshMenu: () => Promise<void>;
   // 특정 메뉴 권한 확인
@@ -120,21 +118,6 @@ export const useMenuStore = create<MenuStore>()((set, get) => ({
       console.error('[MenuStore] Failed to remove favorite:', error);
       throw error;
     }
-  },
-
-  reorderFavorites: async (fromIndex: number, toIndex: number) => {
-    set((state) => {
-      const newFavorites = [...state.favorites];
-      const removed = newFavorites.splice(fromIndex, 1)[0];
-      if (!removed) return state;
-      newFavorites.splice(toIndex, 0, removed);
-      // sortOrder 재정렬
-      return {
-        favorites: newFavorites.map((f, i) => ({ ...f, sortOrder: i })),
-      };
-    });
-    // TODO: API 호출로 서버에 순서 저장
-    // await menuApi.reorderFavorites(get().favorites);
   },
 
   refreshMenu: async () => {

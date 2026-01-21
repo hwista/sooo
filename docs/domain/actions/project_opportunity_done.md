@@ -1,18 +1,18 @@
-# Action Spec — A03 기회 종료 처리(opportunity done + done_result)
+# Action Spec — A03 요청/제안 종료 처리(request/proposal done + done_result)
 
 ## 1) 목적
-기회 단계 종료: won/lost/hold 결과 확정
+요청/제안 단계 종료 결과 확정
 
 ## 2) Actor
 - 영업/AM(기회 오너)
 
 ## 3) 입력
 - project_id
-- done_result_code in {won, lost, hold}
+- done_result_code in {accepted, rejected, won, lost, hold}
 
 ## 4) 상태 변경
 - pr_project_m:
-  - status_code=opportunity 유지
+  - status_code=request 또는 proposal 유지
   - stage_code=done
   - done_result_code=입력값
 
@@ -21,7 +21,7 @@
 - INSERT pr_project_h (U)
 
 ## 6) Validation
-- status_code=opportunity
+- status_code in {request, proposal}
 - done_result_code 필수
 
 # Action Spec — C02 종료조건 체크(Validation 포함)

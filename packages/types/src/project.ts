@@ -1,10 +1,11 @@
 /**
  * 프로젝트 상태 코드
- * - opportunity: 기회 (계약 전)
- * - execution: 실행 (계약 후)
- * - done: 완료 (종료)
+ * - request: 요청
+ * - proposal: 제안
+ * - execution: 실행
+ * - transition: 전환
  */
-export type ProjectStatusCode = 'opportunity' | 'execution' | 'done';
+export type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
 
 /**
  * 프로젝트 단계 코드
@@ -16,31 +17,38 @@ export type ProjectStageCode = 'waiting' | 'in_progress' | 'done';
 
 /**
  * 완료 결과 코드 (done 상태에서만 사용)
- * - complete: 정상 완료
- * - cancel: 취소
+ * - accepted: 수용
+ * - rejected: 거부
+ * - won: 수주
+ * - lost: 실주
+ * - completed: 완료
+ * - cancelled: 취소
+ * - transferred: 전환완료
+ * - hold: 보류
  */
-export type DoneResultCode = 'complete' | 'cancel';
-
-/**
- * 프로젝트 소스 코드
- * - direct: 직접 생성 (내부 발굴)
- * - opportunity: 기회 (영업 기회)
- */
-export type ProjectSourceCode = 'direct' | 'opportunity';
+export type DoneResultCode =
+  | 'accepted'
+  | 'rejected'
+  | 'won'
+  | 'lost'
+  | 'completed'
+  | 'cancelled'
+  | 'transferred'
+  | 'hold';
 
 /**
  * 프로젝트 엔티티
  */
 export interface Project {
   id: string;
-  name: string;
-  description?: string;
-  customerId?: string;
-  projectSourceCode: ProjectSourceCode;
+  projectName: string;
+  memo?: string | null;
+  customerId?: string | null;
   statusCode: ProjectStatusCode;
   stageCode: ProjectStageCode;
   doneResultCode?: DoneResultCode;
-  ownerId?: string;
+  currentOwnerUserId?: string | null;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,10 +57,9 @@ export interface Project {
  * 프로젝트 생성 DTO
  */
 export interface CreateProjectDto {
-  name: string;
+  projectName: string;
   description?: string;
   customerId?: string;
-  projectSourceCode?: ProjectSourceCode;
   statusCode?: ProjectStatusCode;
   stageCode?: ProjectStageCode;
   ownerId?: string;
@@ -62,7 +69,7 @@ export interface CreateProjectDto {
  * 프로젝트 수정 DTO
  */
 export interface UpdateProjectDto {
-  name?: string;
+  projectName?: string;
   description?: string;
   statusCode?: ProjectStatusCode;
   stageCode?: ProjectStageCode;

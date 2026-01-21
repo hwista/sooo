@@ -268,7 +268,7 @@ export interface ApiResponse<T> {
 }
 
 // type: 유니온, 리터럴, 복잡한 조합
-export type ProjectStatusCode = 'opportunity' | 'execution';
+export type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
 export type ProjectStageCode = 'waiting' | 'in_progress' | 'done';
 ```
 

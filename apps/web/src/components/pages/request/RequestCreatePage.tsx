@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuthStore } from '@/stores/auth.store';
 import { FormPageTemplate } from '@/components/templates';
 import { FormField } from '@/components/common';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useTabStore } from '@/stores';
+import { apiClient } from '@/lib/api/client';
 
 // Validation Schema
 const createRequestSchema = z.object({
@@ -22,7 +22,6 @@ const createRequestSchema = z.object({
 type FormData = z.infer<typeof createRequestSchema>;
 
 export default function RequestCreatePage() {
-  const { accessToken } = useAuthStore();
   const { openTab } = useTabStore();
   const [loading, setLoading] = useState(false);
 
@@ -37,21 +36,14 @@ export default function RequestCreatePage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:4000/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          name: data.projectName,
-          description: data.description || undefined,
-          statusCode: 'request',
-          stageCode: 'waiting',
-        }),
+      const response = await apiClient.post('/projects', {
+        projectName: data.projectName,
+        description: data.description || undefined,
+        statusCode: 'request',
+        stageCode: 'waiting',
       });
 
-      const result = await res.json();
+      const result = response.data;
 
       if (result.success) {
         // 목록 페이지 탭 열기

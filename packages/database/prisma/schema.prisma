@@ -173,7 +173,7 @@ model MenuHistory {
 model RoleMenu {
   id              BigInt   @id @default(autoincrement()) @map("role_menu_id")
   
-  roleCode        String   @map("role_code") // admin, sales, am, pm, sm, external
+  roleCode        String   @map("role_code") // admin, manager, user, viewer
   menuId          BigInt   @map("menu_id")
   accessType      String   @default("full") @map("access_type") // full, read, none
   

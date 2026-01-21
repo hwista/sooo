@@ -58,6 +58,13 @@ SSOO 백엔드 서버의 REST API 명세 문서입니다.
 
 ## API 목록
 
+### 헬스체크 (Health)
+| Method | Endpoint | 설명 | 인증 필요 |
+|--------|----------|------|----------|
+| GET | `/health` | 서버 상태 확인 | ❌ |
+
+➡️ [헬스체크 API 상세](./health.md)
+
 ### 인증 (Auth)
 | Method | Endpoint | 설명 | 인증 필요 |
 |--------|----------|------|----------|
@@ -134,5 +141,7 @@ Authorization: Bearer <access_token>
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | Project/User/Menu API 명세 정합화 |
+| 2026-01-21 | Health API 문서 추가 |
 | 2026-01-21 | API 명세서 최초 작성 (auth, menu, user, project) |
 | 2026-01-21 | 즐겨찾기 API 추가 (POST/DELETE /menus/favorites) |

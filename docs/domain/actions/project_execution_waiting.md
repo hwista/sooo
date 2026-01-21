@@ -1,7 +1,7 @@
 # Action Spec — A04 계약 확정/실행 전환(execution waiting)
 
 ## 1) 목적
-계약 체결(합의)로 기회 → 실행으로 전환. (추적성 위해 이벤트 분리 권장)
+계약 체결(합의)로 제안 → 실행으로 전환. (추적성 위해 이벤트 분리 권장)
 
 ## 2) Actor
 - AM(주), 또는 영업/AM
@@ -11,7 +11,7 @@
 - (선택) execution 상세(예상 시작/종료, execution 오너=PM 예정 등)
 
 ## 4) 상태 변경(권장 2-step)
-- Step1: (이미 A03에서) opportunity done(won)
+- Step1: (이미 A03에서) proposal done(won)
 - Step2: execution waiting 전환
   - pr_project_m:
     - status_code=execution
@@ -24,5 +24,5 @@
 - INSERT pr_project_h (U)
 
 ## 6) Validation
-- 직전 상태가 opportunity done(won) 인지 확인(정책)
+- 직전 상태가 proposal done(won) 인지 확인(정책)
 - 또는 계약 이벤트가 존재하면 강제 전환 가능(추후 계약 테이블 생기면 그 이벤트로 판단)

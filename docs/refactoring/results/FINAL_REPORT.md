@@ -47,7 +47,7 @@
 
 | ID | 작업명 | 우선순위 | 상태 | 비고 |
 |----|--------|:--------:|:----:|------|
-| TYPE-01 | ProjectSourceCode 동기화 | P0 | ✅ | `request\|proposal` → `direct\|opportunity` |
+| TYPE-01 | Project 타입 정합화 | P0 | ✅ | statusCode/doneResultCode 확장, projectSourceCode 제거 |
 | TYPE-02 | DoneResultCode 동기화 | P0 | ✅ | `won\|lost\|hold` → `complete\|cancel` |
 | TYPE-03 | ProjectStatusCode 보완 | P0 | ✅ | `done` 상태 추가 |
 | SRV-01 | DatabaseService Extension 적용 | P0 | ✅ | `createPrismaClient()` 사용 |

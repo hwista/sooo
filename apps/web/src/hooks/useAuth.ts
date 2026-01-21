@@ -9,8 +9,8 @@ import type { UserRole } from '@ssoo/types';
  * @example
  * const { user, hasRole, isAdmin, isAuthenticated } = useAuth();
  *
- * if (hasRole('admin', 'pm')) {
- *   // admin 또는 pm만 볼 수 있는 컨텐츠
+ * if (hasRole('admin', 'manager')) {
+ *   // admin 또는 manager만 볼 수 있는 컨텐츠
  * }
  */
 export function useAuth() {
@@ -24,7 +24,7 @@ export function useAuth() {
    *
    * @example
    * hasRole('admin') // admin만
-   * hasRole('admin', 'pm', 'sm') // admin, pm, sm 중 하나
+   * hasRole('admin', 'manager', 'user') // admin, manager, user 중 하나
    */
   const hasRole = (...roles: UserRole[]): boolean => {
     if (!user?.roleCode) return false;
@@ -37,9 +37,9 @@ export function useAuth() {
   const isAdmin = user?.roleCode === 'admin';
 
   /**
-   * 관리자급 역할 확인 (admin, pm, sm)
+   * 관리자급 역할 확인 (admin, manager)
    */
-  const isManager = hasRole('admin', 'pm', 'sm');
+  const isManager = hasRole('admin', 'manager');
 
   return {
     user,

@@ -1,7 +1,7 @@
 /**
  * 사용자 역할
  */
-export type UserRole = 'sales' | 'am' | 'pm' | 'sm' | 'admin';
+export type UserRole = 'admin' | 'manager' | 'user' | 'viewer';
 
 /**
  * 사용자 엔티티

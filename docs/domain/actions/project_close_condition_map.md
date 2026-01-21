@@ -4,11 +4,11 @@
 템플릿 그룹 선택으로 종료조건 체크리스트 자동 생성
 
 ## 2) Actor
-- PM(실행), 영업/AM(기회) — 정책 결정
+- PM(실행), 영업/AM(요청/제안) — 정책 결정
 
 ## 3) 입력
 - project_id
-- status_code(opportunity|execution)
+- status_code(request|proposal|execution|transition)
 - close_condition_group_code (템플릿 그룹 코드)
 
 ## 4) DB 영향(권장 로직)

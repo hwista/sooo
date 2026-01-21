@@ -33,8 +33,8 @@ Authorization: Bearer <access_token>
     "email": "john.doe@example.com",
     "phone": "010-1234-5678",
     "avatarUrl": "/uploads/avatars/123.jpg",
-    "roleCode": "ROLE_USER",
-    "userTypeCode": "INTERNAL",
+    "roleCode": "user",
+    "userTypeCode": "internal",
     "departmentCode": "DEPT_DEV",
     "positionCode": "POS_MANAGER",
     "lastLoginAt": "2026-01-21T09:00:00.000Z"
@@ -66,17 +66,17 @@ Authorization: Bearer <access_token>
 
 | 코드 | 설명 |
 |------|------|
-| `ROLE_ADMIN` | 시스템 관리자 |
-| `ROLE_USER` | 일반 사용자 |
-| `ROLE_VIEWER` | 조회 전용 |
+| `admin` | 시스템 관리자 |
+| `manager` | 매니저 |
+| `user` | 일반 사용자 |
+| `viewer` | 조회 전용 |
 
 #### userTypeCode (사용자 유형)
 
 | 코드 | 설명 |
 |------|------|
-| `INTERNAL` | 내부 사용자 |
-| `EXTERNAL` | 외부 사용자 |
-| `PARTNER` | 협력사 |
+| `internal` | 내부 사용자 |
+| `external` | 외부 사용자 |
 
 ### 에러 응답
 

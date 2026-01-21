@@ -127,7 +127,6 @@ interface MenuStoreState {
 | `isFavorite(menuId)` | 즐겨찾기 여부 확인 |
 | `addFavorite(item)` | 즐겨찾기 추가 (API 호출) |
 | `removeFavorite(menuId)` | 즐겨찾기 삭제 (API 호출) |
-| `reorderFavorites(from, to)` | 즐겨찾기 순서 변경 |
 | `refreshMenu()` | 메뉴 새로고침 (API 호출) |
 | `getMenuAccess(menuCode)` | 메뉴 권한 조회 |
 | `getMenuByCode(menuCode)` | 메뉴 코드로 조회 |
@@ -143,11 +142,11 @@ function Sidebar() {
 
   const handleAddFavorite = async (menu) => {
     await addFavorite({
-      menuId: menu.id,
+      menuId: menu.menuId,
       menuCode: menu.menuCode,
       menuName: menu.menuName,
       menuPath: menu.menuPath,
-      iconCode: menu.iconCode,
+      icon: menu.icon,
     });
   };
 }
@@ -157,14 +156,14 @@ function Sidebar() {
 
 ```typescript
 interface MenuItem {
-  id: string;
+  menuId: string;
   menuCode: string;
   menuName: string;
   menuPath: string | null;
-  iconCode: string | null;
+  icon: string | null;
   sortOrder: number;
-  depth: number;
-  parentId: string | null;
+  menuLevel: number;
+  parentMenuId: string | null;
   children: MenuItem[];
   accessType?: AccessType;
 }
@@ -239,9 +238,9 @@ function MenuTree() {
   const handleMenuClick = (menu) => {
     openTab({
       menuCode: menu.menuCode,
-      menuId: menu.id,
+      menuId: menu.menuId,
       title: menu.menuName,
-      icon: menu.iconCode,
+      icon: menu.icon,
       path: menu.menuPath,
     });
   };
@@ -396,8 +395,7 @@ window.addEventListener('resize', () => {
 
 | ID | 항목 | 우선순위 | 상태 |
 |----|------|----------|------|
-| STM-01 | 즐겨찾기 순서 변경 API 연동 | P2 | 🔲 대기 |
-| STM-02 | 타입 정의 전용 문서 작성 | P3 | 🔲 대기 |
+| STM-01 | 타입 정의 전용 문서 작성 | P3 | 🔲 대기 |
 
 ---
 
@@ -407,6 +405,8 @@ window.addEventListener('resize', () => {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | 메뉴 응답 필드명 정합화 (menuId/icon/menuLevel/parentMenuId) |
+| 2026-01-21 | 즐겨찾기 순서 변경 항목 제거 (API 미지원) |
 | 2026-01-21 | 상태 관리 문서 최초 작성 |
 | 2026-01-21 | 즐겨찾기 DB 연동 (addFavorite, removeFavorite API 호출) |
 | 2026-01-21 | 현재 열린 페이지에서 홈 탭 제외 |

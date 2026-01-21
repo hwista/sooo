@@ -14,34 +14,20 @@ Prisma 스키마와 `@ssoo/types`의 타입 정의 동기화
 
 ## 📋 작업 목록
 
-### TYPE-01: ProjectSourceCode 동기화 (P0)
+### TYPE-01: ProjectSourceCode 정리 (P0)
 
 **현재 상태:**
-```typescript
-// packages/types/src/project.ts (현재)
-export type ProjectSourceCode = 'request' | 'proposal';
-```
-
-**Prisma 스키마:**
-```prisma
-// packages/database/prisma/schema.prisma
-projectSourceCode String @map("project_source_code") // direct, opportunity
-```
+- Prisma 스키마에 `project_source_code` 컬럼 없음
+- `@ssoo/types`에서도 제거 필요
 
 **수정 내용:**
-```typescript
-// packages/types/src/project.ts (수정 후)
-/**
- * 프로젝트 소스 코드
- * - direct: 직접 생성 (내부 발굴)
- * - opportunity: 기회 (영업 기회)
- */
-export type ProjectSourceCode = 'direct' | 'opportunity';
-```
+- `packages/types/src/project.ts`에서 `ProjectSourceCode` 및 관련 필드 제거
+- 프론트/서버 요청 타입에서 `projectSourceCode` 제거
 
 **영향 범위:**
-- `apps/server/src/project/project.service.ts` - create 함수 기본값 수정 필요
-- `apps/web/` - ProjectSourceCode 사용하는 컴포넌트 확인
+- `apps/server/src/project/project.service.ts`
+- `apps/web/src/lib/api/endpoints/projects.ts`
+- `apps/web/src/lib/validations/project.ts`
 
 ---
 
@@ -56,7 +42,7 @@ export type DoneResultCode = 'won' | 'lost' | 'hold';
 **Prisma 스키마:**
 ```prisma
 // packages/database/prisma/schema.prisma
-doneResultCode String? @map("done_result_code") // complete, cancel
+doneResultCode String? @map("done_result_code") // accepted, rejected, won, lost, completed, cancelled, transferred, hold
 ```
 
 **수정 내용:**
@@ -76,18 +62,18 @@ export type DoneResultCode = 'complete' | 'cancel';
 
 ---
 
-### TYPE-03: ProjectStatusCode 보완 (P0)
+### TYPE-03: ProjectStatusCode 확장 (P0)
 
 **현재 상태:**
 ```typescript
 // packages/types/src/project.ts (현재)
-export type ProjectStatusCode = 'opportunity' | 'execution';
+export type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
 ```
 
 **Prisma 스키마:**
 ```prisma
 // packages/database/prisma/schema.prisma
-statusCode String @map("status_code") // opportunity, execution, done
+statusCode String @map("status_code") // request, proposal, execution, transition
 ```
 
 **수정 내용:**
@@ -95,11 +81,12 @@ statusCode String @map("status_code") // opportunity, execution, done
 // packages/types/src/project.ts (수정 후)
 /**
  * 프로젝트 상태 코드
- * - opportunity: 기회 (계약 전)
- * - execution: 실행 (계약 후)
- * - done: 완료 (종료)
+ * - request: 요청
+ * - proposal: 제안
+ * - execution: 실행
+ * - transition: 전환
  */
-export type ProjectStatusCode = 'opportunity' | 'execution' | 'done';
+export type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
 ```
 
 **영향 범위:**
@@ -148,11 +135,12 @@ git commit -m "chore: checkpoint before types refactoring"
 ```typescript
 /**
  * 프로젝트 상태 코드
- * - opportunity: 기회 (계약 전)
- * - execution: 실행 (계약 후)
- * - done: 완료 (종료)
+ * - request: 요청
+ * - proposal: 제안
+ * - execution: 실행
+ * - transition: 전환
  */
-export type ProjectStatusCode = 'opportunity' | 'execution' | 'done';
+export type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
 
 /**
  * 프로젝트 단계 코드
@@ -164,17 +152,24 @@ export type ProjectStageCode = 'waiting' | 'in_progress' | 'done';
 
 /**
  * 완료 결과 코드 (done 상태에서만 사용)
- * - complete: 정상 완료
- * - cancel: 취소
+ * - accepted: 수용
+ * - rejected: 거부
+ * - won: 수주
+ * - lost: 실주
+ * - completed: 완료
+ * - cancelled: 취소
+ * - transferred: 전환완료
+ * - hold: 보류
  */
-export type DoneResultCode = 'complete' | 'cancel';
-
-/**
- * 프로젝트 소스 코드
- * - direct: 직접 생성 (내부 발굴)
- * - opportunity: 기회 (영업 기회)
- */
-export type ProjectSourceCode = 'direct' | 'opportunity';
+export type DoneResultCode =
+  | 'accepted'
+  | 'rejected'
+  | 'won'
+  | 'lost'
+  | 'completed'
+  | 'cancelled'
+  | 'transferred'
+  | 'hold';
 ```
 
 ### Step 3: 검증
@@ -192,13 +187,11 @@ pnpm -r exec tsc --noEmit
 
 ```bash
 git add packages/types/
-git commit -m "refactor(types): sync type definitions with Prisma schema
+git commit -m "refactor(types): align project types with schema
 
-- ProjectSourceCode: request|proposal → direct|opportunity
-- DoneResultCode: won|lost|hold → complete|cancel
-- ProjectStatusCode: added 'done' status
-
-BREAKING CHANGE: Type literal values changed to match database schema"
+- ProjectStatusCode: request/proposal/execution/transition
+- DoneResultCode: accepted/rejected/won/lost/completed/cancelled/transferred/hold
+- ProjectSourceCode 제거"
 ```
 
 ---
@@ -213,7 +206,7 @@ BREAKING CHANGE: Type literal values changed to match database schema"
 
 ## ✅ 완료 조건
 
-- [ ] ProjectSourceCode 동기화
+- [ ] ProjectSourceCode 제거
 - [ ] DoneResultCode 동기화
 - [ ] ProjectStatusCode 보완
 - [ ] 타입 체크 통과

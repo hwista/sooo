@@ -30,24 +30,24 @@ Authorization: Bearer <access_token>
   "data": {
     "generalMenus": [
       {
-        "id": "1",
+        "menuId": "1",
         "menuCode": "MENU_PROJECT",
         "menuName": "프로젝트",
         "menuPath": "/project",
-        "iconCode": "folder",
+        "icon": "folder",
         "sortOrder": 1,
-        "depth": 1,
-        "parentId": null,
+        "menuLevel": 1,
+        "parentMenuId": null,
         "children": [
           {
-            "id": "2",
+            "menuId": "2",
             "menuCode": "MENU_PROJECT_LIST",
             "menuName": "프로젝트 목록",
             "menuPath": "/project/list",
-            "iconCode": "list",
+            "icon": "list",
             "sortOrder": 1,
-            "depth": 2,
-            "parentId": "1",
+            "menuLevel": 2,
+            "parentMenuId": "1",
             "children": []
           }
         ]
@@ -55,14 +55,14 @@ Authorization: Bearer <access_token>
     ],
     "adminMenus": [
       {
-        "id": "100",
+        "menuId": "100",
         "menuCode": "MENU_ADMIN_USER",
         "menuName": "사용자 관리",
         "menuPath": "/admin/user",
-        "iconCode": "users",
+        "icon": "users",
         "sortOrder": 1,
-        "depth": 1,
-        "parentId": null,
+        "menuLevel": 1,
+        "parentMenuId": null,
         "children": []
       }
     ],
@@ -73,7 +73,7 @@ Authorization: Bearer <access_token>
         "menuCode": "MENU_PROJECT_LIST",
         "menuName": "프로젝트 목록",
         "menuPath": "/project/list",
-        "iconCode": "list"
+        "icon": "list"
       }
     ]
   }
@@ -86,14 +86,14 @@ Authorization: Bearer <access_token>
 
 | 필드 | 타입 | 설명 |
 |------|------|------|
-| `id` | string | 메뉴 ID |
+| `menuId` | string | 메뉴 ID |
 | `menuCode` | string | 메뉴 코드 |
 | `menuName` | string | 메뉴명 |
 | `menuPath` | string \| null | 메뉴 경로 (URL) |
-| `iconCode` | string \| null | 아이콘 코드 |
+| `icon` | string \| null | 아이콘 코드 |
 | `sortOrder` | number | 정렬 순서 |
-| `depth` | number | 메뉴 깊이 (1부터 시작) |
-| `parentId` | string \| null | 부모 메뉴 ID |
+| `menuLevel` | number | 메뉴 깊이 (1부터 시작) |
+| `parentMenuId` | string \| null | 부모 메뉴 ID |
 | `children` | array | 하위 메뉴 배열 |
 
 #### favorites
@@ -105,12 +105,12 @@ Authorization: Bearer <access_token>
 | `menuCode` | string | 메뉴 코드 |
 | `menuName` | string | 메뉴명 |
 | `menuPath` | string | 메뉴 경로 |
-| `iconCode` | string \| null | 아이콘 코드 |
+| `icon` | string \| null | 아이콘 코드 |
 
 ### 메뉴 분류 기준
 
-- **generalMenus**: `menu_type = 'GENERAL'` 인 메뉴
-- **adminMenus**: `menu_type = 'ADMIN'` 인 메뉴 (관리자에게만 표시)
+- **generalMenus**: `is_admin_menu = false` 인 메뉴
+- **adminMenus**: `is_admin_menu = true` 인 메뉴 (관리자에게만 표시)
 
 ---
 
@@ -214,15 +214,16 @@ Authorization: Bearer <access_token>
 
 ```sql
 -- 주요 컬럼
-id            BIGINT PRIMARY KEY
-menu_code     VARCHAR(50)   -- 메뉴 코드
-menu_name     VARCHAR(100)  -- 메뉴명
-menu_path     VARCHAR(200)  -- URL 경로
-icon_code     VARCHAR(50)   -- 아이콘 코드
-menu_type     VARCHAR(20)   -- GENERAL | ADMIN
-parent_id     BIGINT        -- 부모 메뉴 ID
-sort_order    INT           -- 정렬 순서
-depth         INT           -- 메뉴 깊이
+menu_id        BIGINT PRIMARY KEY
+menu_code      VARCHAR(50)   -- 메뉴 코드
+menu_name      VARCHAR(100)  -- 메뉴명
+menu_path      VARCHAR(200)  -- URL 경로
+icon           VARCHAR(50)   -- 아이콘 코드
+menu_type      VARCHAR(20)   -- group | menu | action
+parent_menu_id BIGINT        -- 부모 메뉴 ID
+sort_order     INT           -- 정렬 순서
+menu_level     INT           -- 메뉴 깊이
+is_admin_menu  BOOLEAN       -- 관리자 전용 여부
 ```
 
 ### cm_user_favorite_r (즐겨찾기)
@@ -231,12 +232,12 @@ depth         INT           -- 메뉴 깊이
 
 ```sql
 -- 주요 컬럼
-id         BIGINT PRIMARY KEY
-user_id    BIGINT    -- 사용자 ID
-menu_id    BIGINT    -- 메뉴 ID
-is_active  BOOLEAN   -- 활성화 여부 (soft delete)
-created_at TIMESTAMP
-updated_at TIMESTAMP
+user_favorite_id BIGINT PRIMARY KEY
+user_id          BIGINT    -- 사용자 ID
+menu_id          BIGINT    -- 메뉴 ID
+sort_order       INT       -- 정렬 순서
+is_active        BOOLEAN   -- 활성화 여부 (soft delete)
+created_at       TIMESTAMP
 ```
 
 ---
@@ -271,5 +272,6 @@ updated_at TIMESTAMP
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | 메뉴 응답/테이블 필드 정합화 (menuId, menuLevel, icon 등) |
 | 2026-01-21 | 즐겨찾기 API 버그 수정 (Prisma 모델명/필드명 수정) |
 | 2026-01-21 | Backlog/Changelog 섹션 추가 |

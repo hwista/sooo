@@ -66,7 +66,7 @@ interface PaginationParams {
 ### user.ts — 사용자
 
 ```typescript
-type UserRole = 'sales' | 'am' | 'pm' | 'sm' | 'admin';
+type UserRole = 'admin' | 'manager' | 'user' | 'viewer';
 
 interface User {
   id: string;
@@ -101,24 +101,33 @@ interface UpdateCustomerDto { ... }
 ### project.ts — 프로젝트
 
 ```typescript
-// 상태 코드 (opportunity: 기회, execution: 실행)
-type ProjectStatusCode = 'opportunity' | 'execution';
+// 상태 코드 (request, proposal, execution, transition)
+type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
 
 // 단계 코드
 type ProjectStageCode = 'waiting' | 'in_progress' | 'done';
 
-// 기회 종료 결과 (opportunity + done일 때만)
-type DoneResultCode = 'won' | 'lost' | 'hold';
+// 종료 결과 코드
+type DoneResultCode =
+  | 'accepted'
+  | 'rejected'
+  | 'won'
+  | 'lost'
+  | 'completed'
+  | 'cancelled'
+  | 'transferred'
+  | 'hold';
 
 interface Project {
   id: string;
-  name: string;
-  description?: string;
-  customerId: string;
+  projectName: string;
+  memo?: string | null;
+  customerId?: string | null;
   statusCode: ProjectStatusCode;
   stageCode: ProjectStageCode;
   doneResultCode?: DoneResultCode;
-  ownerId: string;
+  currentOwnerUserId?: string | null;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

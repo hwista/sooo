@@ -4,11 +4,11 @@
 템플릿 그룹 선택으로 프로젝트 산출물 목록 자동 생성
 
 ## 2) Actor
-- PM(실행), 영업/AM(기회) — 정책 결정
+- PM(실행), 영업/AM(요청/제안) — 정책 결정
 
 ## 3) 입력
 - project_id
-- status_code(opportunity|execution)
+- status_code(request|proposal|execution|transition)
 - deliverable_group_code
 
 ## 4) DB 영향

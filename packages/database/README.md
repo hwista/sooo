@@ -46,17 +46,17 @@ packages/database/
 
 ```prisma
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  role      String   @default("pm")  // sales, am, pm, sm, admin
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           BigInt   @id @default(autoincrement()) @map("user_id")
+  loginId      String?  @unique @map("login_id")
+  userName     String   @map("user_name")
+  email        String   @unique
+  roleCode     String   @default("viewer") @map("role_code") // admin, manager, user, viewer
+  userTypeCode String   @default("internal") @map("user_type_code")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  ownedProjects Project[] @relation("ProjectOwner")
-
-  @@map("users")
+  @@map("cm_user_m")
 }
 ```
 
@@ -81,22 +81,19 @@ model Customer {
 
 ```prisma
 model Project {
-  id             String   @id @default(cuid())
-  name           String
-  description    String?
-  statusCode     String   @default("opportunity")  // opportunity, execution
-  stageCode      String   @default("waiting")      // waiting, in_progress, done
-  doneResultCode String?  // won, lost, hold (opportunity + done일 때만)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              BigInt   @id @default(autoincrement()) @map("project_id")
+  projectName     String   @map("project_name")
+  statusCode      String   @map("status_code") // request, proposal, execution, transition
+  stageCode       String   @map("stage_code") // waiting, in_progress, done
+  doneResultCode  String?  @map("done_result_code")
+  currentOwnerUserId BigInt? @map("current_owner_user_id")
+  customerId      BigInt?  @map("customer_id")
+  memo            String?
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
-
-  ownerId String
-  owner   User @relation("ProjectOwner", fields: [ownerId], references: [id])
-
-  @@map("projects")
+  @@map("pr_project_m")
 }
 ```
 

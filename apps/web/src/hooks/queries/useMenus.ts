@@ -35,7 +35,7 @@ export function useAddFavorite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (menuId: number) => menusApi.addFavorite(menuId),
+    mutationFn: (menuId: string) => menusApi.addFavorite(menuId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: menuKeys.my() });
     },
@@ -49,21 +49,7 @@ export function useRemoveFavorite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (menuId: number) => menusApi.removeFavorite(menuId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: menuKeys.my() });
-    },
-  });
-}
-
-/**
- * 즐겨찾기 순서 변경
- */
-export function useReorderFavorites() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (menuIds: number[]) => menusApi.reorderFavorites(menuIds),
+    mutationFn: (menuId: string) => menusApi.removeFavorite(menuId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: menuKeys.my() });
     },

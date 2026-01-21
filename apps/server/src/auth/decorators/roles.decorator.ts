@@ -11,7 +11,7 @@ export const ROLES_KEY = 'roles';
  * @Roles('admin')
  *
  * // 복수 역할 (OR 조건)
- * @Roles('admin', 'pm', 'sm')
+ * @Roles('admin', 'manager')
  *
  * // 컨트롤러 전체 적용
  * @Controller('admin')

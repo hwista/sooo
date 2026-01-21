@@ -4,7 +4,7 @@ import { ApiResponse, PaginatedResponse, ListParams } from '../types';
 /**
  * 프로젝트 상태 코드
  */
-export type ProjectStatusCode = 'opportunity' | 'execution';
+export type ProjectStatusCode = 'request' | 'proposal' | 'execution' | 'transition';
 
 /**
  * 프로젝트 단계 코드
@@ -14,32 +14,29 @@ export type ProjectStageCode = 'waiting' | 'in_progress' | 'done';
 /**
  * 프로젝트 소스 코드
  */
-export type ProjectSourceCode = 'request' | 'referral' | 'direct' | 'tender' | 'etc';
-
-/**
- * 프로젝트 완료 결과 코드
- */
-export type ProjectDoneResultCode = 'won' | 'lost' | 'hold';
+export type ProjectDoneResultCode =
+  | 'accepted'
+  | 'rejected'
+  | 'won'
+  | 'lost'
+  | 'completed'
+  | 'cancelled'
+  | 'transferred'
+  | 'hold';
 
 /**
  * 프로젝트 DTO
  */
 export interface Project {
-  projectId: number;
+  id: number;
   projectName: string;
-  projectCode?: string;
   statusCode: ProjectStatusCode;
   stageCode: ProjectStageCode;
-  projectSourceCode?: ProjectSourceCode;
   doneResultCode?: ProjectDoneResultCode;
   customerId?: number;
-  customerName?: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
-  contractAmount?: number;
-  ownerId?: number;
-  ownerName?: string;
+  currentOwnerUserId?: number;
+  memo?: string | null;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,12 +48,8 @@ export interface CreateProjectRequest {
   projectName: string;
   statusCode?: ProjectStatusCode;
   stageCode?: ProjectStageCode;
-  projectSourceCode?: ProjectSourceCode;
   customerId?: number;
   description?: string;
-  startDate?: string;
-  endDate?: string;
-  contractAmount?: number;
 }
 
 /**
@@ -72,7 +65,6 @@ export interface UpdateProjectRequest extends Partial<CreateProjectRequest> {
 export interface ProjectFilters extends ListParams {
   statusCode?: ProjectStatusCode;
   stageCode?: ProjectStageCode;
-  projectSourceCode?: ProjectSourceCode;
   customerId?: number;
 }
 
