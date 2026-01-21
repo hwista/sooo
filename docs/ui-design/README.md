@@ -53,6 +53,7 @@
 |------|-----|------|
 | Primary | `#003876` | 헤더, 브랜드, 주요 액션 |
 | Secondary | `#235a98` | 보조 액션, hover |
+| SSOO Red | `#FA002D` | 회사 메인 레드, 삭제/경고 |
 | Content Border | `#9FC1E7` | 외곽 테두리, 선택 상태 |
 | Content Background | `#DEE7F1` | 사이드바 배경 |
 | Hover Background | `#F6FBFF` | 은은한 hover |

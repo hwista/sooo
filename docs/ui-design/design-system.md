@@ -24,6 +24,7 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 |-------|-----|------|
 | **Primary** | `#003876` | 메인 브랜드색, 중요 액션, CUD 버튼 |
 | **Secondary** | `#235a98` | 보조색, 일반 작업 버튼, Hover 상태 |
+| **SSOO Red** | `#FA002D` | 회사 메인 레드, Destructive 액션, 경고 |
 | **Portal Background** | `#F9FBFD` | 페이지 배경 |
 | **Content Border** | `#9FC1E7` | 카드/패널 테두리 |
 | **Content Background** | `#DEE7F1` | 카드 배경, Muted 영역 |
@@ -38,6 +39,7 @@ SSOO 프로젝트의 일관된 UI/UX를 위한 디자인 시스템 표준 문서
 --ssoo-primary: #003876;
 --ssoo-primary-hover: #235a98;
 --ssoo-secondary: #235a98;
+--ssoo-red: #FA002D;
 --ssoo-background: #F9FBFD;
 --ssoo-content-border: #9FC1E7;
 --ssoo-content-background: #DEE7F1;
@@ -60,11 +62,11 @@ bg-[#235a98]            /* Secondary */
 hover:bg-[#003876]      /* Hover 시 Primary로 */
 ```
 
-### Destructive (빨간색)
+### Destructive (SSOO Red)
 **용도**: 삭제, 경고, 위험한 작업
 ```css
-bg-red-600
-hover:bg-red-700
+bg-[#FA002D]            /* SSOO Red */
+hover:bg-red-700        /* 어두운 레드 */
 ```
 
 ### Outline (테두리)

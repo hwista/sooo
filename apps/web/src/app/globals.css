@@ -42,7 +42,7 @@
     --accent-foreground: 0 0% 100%;
     
     /* Destructive: 위험/삭제 */
-    --destructive: 0 84.2% 60.2%;         /* 빨간색 유지 */
+    --destructive: 353 98% 49%;           /* #FA002D - SSOO Red */
     --destructive-foreground: 0 0% 100%;
     
     /* Border & Input - 도드라지지 않는 회색 */
@@ -65,6 +65,7 @@
     --ssoo-sitemap-title: #016CA2;
     --ssoo-sitemap-bullet: #00588A;
     --ssoo-sitemap-background: #F6FBFF;
+    --ssoo-red: #FA002D;                   /* 회사 메인 레드 */
   }
 
   .dark {
