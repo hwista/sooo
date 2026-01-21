@@ -6,6 +6,60 @@
 
 ## 2026-01-21
 
+### 🏠 Home 탭 기본 생성
+
+**변경 사항:**
+- 첫 접속 시 빈 페이지 대신 **Home 탭이 기본 생성**됨
+- Home 탭은 닫기 불가 (`closable: false`)
+- Home 탭은 아이콘만 표시 (텍스트 없음)
+- 대시보드 위젯 placeholder 추가 (추후 개발 예정)
+
+**구현 내용:**
+- `HOME_TAB` 상수 추가 (`tab.store.ts`)
+- `HomeDashboardPage` 컴포넌트 생성
+- `ContentArea`에 `/home` 경로 등록
+- 세션 복원 시 Home 탭 보장 로직 추가
+
+**추후 대시보드 개발 예정:**
+- 오늘의 할 일 (My Tasks)
+- 프로젝트 진척도 요약
+- 일정 캘린더
+- 최근 활동 내역
+
+**파일 구조:**
+```
+src/
+├── stores/tab.store.ts          # HOME_TAB 상수, 초기 상태
+├── stores/index.ts              # HOME_TAB export 추가
+├── components/
+│   ├── layout/ContentArea.tsx   # /home 경로 등록
+│   ├── layout/TabBar.tsx        # Home 탭 전용 스타일
+│   └── pages/home/
+│       ├── HomeDashboardPage.tsx
+│       └── index.ts
+└── app/(main)/page.tsx          # 메뉴 초기화만 담당 (UI 제거)
+```
+
+---
+
+### 🎨 탭 스타일 개선
+
+**탭 색상 체계:**
+
+| 탭 유형 | 상태 | 배경색 | 텍스트/아이콘 | 하단 보더 |
+|--------|------|--------|--------------|----------|
+| Home 탭 | 활성 | `ssoo-content-border` | `ssoo-primary` | `ls-red` |
+| Home 탭 | 비활성 | `ls-gray` | `white` | - |
+| 일반 탭 | 활성 | `ssoo-content-border` | `ssoo-primary` | `ls-red` |
+| 일반 탭 | 비활성 | - | `gray-600` | - |
+
+**변경 내용:**
+- Home 탭: 아이콘만 표시, 고정 너비 (`w-10`)
+- 활성 탭: 밝은 파란색 배경 (`#9FC1E7`), 빨간 하단 보더 (`#FA002D`)
+- 비활성 Home 탭: 회색 배경 (`#7D8282`)
+
+---
+
 ### 🔄 ssoo-red → ls-red 통합
 
 **변경 사항:**

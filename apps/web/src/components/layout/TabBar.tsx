@@ -1,6 +1,6 @@
 'use client';
 
-import { useTabStore } from '@/stores';
+import { useTabStore, HOME_TAB } from '@/stores';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
 import { useRef, useState, useEffect } from 'react';
@@ -67,13 +67,38 @@ export function TabBar() {
         {tabs.map((tab) => {
           const IconComponent = getIconComponent(tab.icon);
           const isActive = tab.id === activeTabId;
+          const isHomeTab = tab.menuCode === HOME_TAB.menuCode;
 
+          // Home 탭 전용 스타일
+          if (isHomeTab) {
+            return (
+              <div
+                key={tab.id}
+                className={`flex-shrink-0 flex items-center justify-center w-10 h-control-h border-r border-gray-200 transition-colors cursor-pointer ${
+                  isActive
+                    ? 'bg-ssoo-content-border border-b-2 border-b-ls-red'
+                    : 'bg-ls-gray hover:bg-ssoo-content-border/80'
+                }`}
+              >
+                <button
+                  onClick={() => activateTab(tab.id)}
+                  className="flex items-center justify-center w-full h-full"
+                >
+                  {IconComponent && (
+                    <IconComponent className={`w-5 h-5 ${isActive ? 'text-ssoo-primary' : 'text-white'}`} />
+                  )}
+                </button>
+              </div>
+            );
+          }
+
+          // 일반 탭
           return (
             <div
               key={tab.id}
               className={`flex-shrink-0 flex items-center gap-1.5 px-3 h-control-h border-r border-gray-200 transition-colors cursor-pointer group ${
                 isActive
-                  ? 'bg-white border-b-2 border-b-ssoo-primary'
+                  ? 'bg-ssoo-content-border border-b-2 border-b-ls-red'
                   : 'hover:bg-gray-100'
               }`}
             >
@@ -82,11 +107,11 @@ export function TabBar() {
                 className="flex items-center gap-1.5"
               >
                 {IconComponent && (
-                  <IconComponent className="w-4 h-4 text-gray-500" />
+                  <IconComponent className={`w-4 h-4 ${isActive ? 'text-ssoo-primary' : 'text-gray-500'}`} />
                 )}
                 <span
                   className={`text-sm truncate max-w-[120px] ${
-                    isActive ? 'text-gray-900' : 'text-gray-600'
+                    isActive ? 'text-ssoo-primary font-medium' : 'text-gray-600'
                   }`}
                 >
                   {tab.title}
@@ -98,9 +123,11 @@ export function TabBar() {
                     e.stopPropagation();
                     closeTab(tab.id);
                   }}
-                  className="p-0.5 opacity-0 group-hover:opacity-100 hover:bg-gray-200 rounded transition-opacity"
+                  className={`p-0.5 opacity-0 group-hover:opacity-100 rounded transition-opacity ${
+                    isActive ? 'hover:bg-ssoo-primary/20' : 'hover:bg-gray-200'
+                  }`}
                 >
-                  <X className="w-3 h-3 text-gray-500" />
+                  <X className={`w-3 h-3 ${isActive ? 'text-ssoo-primary' : 'text-gray-500'}`} />
                 </button>
               )}
             </div>

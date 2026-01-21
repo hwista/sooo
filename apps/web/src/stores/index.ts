@@ -4,7 +4,7 @@
 // ============================================
 
 export { useAuthStore } from './auth.store';
-export { useTabStore } from './tab.store';
+export { useTabStore, HOME_TAB } from './tab.store';
 export { useMenuStore } from './menu.store';
 export { useSidebarStore } from './sidebar.store';
 export { useLayoutStore } from './layout.store';

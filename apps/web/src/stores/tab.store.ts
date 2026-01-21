@@ -7,6 +7,33 @@ import type {
   TabStoreActions,
 } from '@/types';
 
+// Home 탭 상수 (닫기 불가)
+export const HOME_TAB = {
+  menuCode: 'HOME',
+  menuId: 'home',
+  title: 'Home',
+  icon: 'Home',
+  path: '/home',
+  closable: false,
+} as const;
+
+// 초기 Home 탭 생성
+const createHomeTab = (): TabItem => {
+  const now = new Date();
+  return {
+    id: HOME_TAB.menuCode,
+    menuCode: HOME_TAB.menuCode,
+    menuId: HOME_TAB.menuId,
+    title: HOME_TAB.title,
+    icon: HOME_TAB.icon,
+    path: HOME_TAB.path,
+    closable: HOME_TAB.closable,
+    status: 'active',
+    openedAt: now,
+    lastActiveAt: now,
+  };
+};
+
 // 탭 ID 생성 (menuCode + params 조합)
 const generateTabId = (menuCode: string, params?: Record<string, string>): string => {
   if (!params || Object.keys(params).length === 0) {
@@ -24,9 +51,9 @@ interface TabStore extends TabStoreState, TabStoreActions {}
 export const useTabStore = create<TabStore>()(
   persist(
     (set, get) => ({
-      // Initial State
-      tabs: [],
-      activeTabId: null,
+      // Initial State - Home 탭으로 시작
+      tabs: [createHomeTab()],
+      activeTabId: HOME_TAB.menuCode,
       maxTabs: 10,
 
       // Actions
@@ -187,14 +214,26 @@ export const useTabStore = create<TabStore>()(
         tabs: state.tabs,
         activeTabId: state.activeTabId,
       }),
-      // Date 객체 직렬화 처리
+      // Date 객체 직렬화 처리 및 Home 탭 보장
       onRehydrateStorage: () => (state) => {
         if (state) {
+          // Date 복원
           state.tabs = state.tabs.map((tab) => ({
             ...tab,
             openedAt: new Date(tab.openedAt),
             lastActiveAt: new Date(tab.lastActiveAt),
           }));
+
+          // Home 탭이 없으면 추가 (항상 첫 번째에 위치)
+          const hasHomeTab = state.tabs.some((tab) => tab.menuCode === HOME_TAB.menuCode);
+          if (!hasHomeTab) {
+            state.tabs = [createHomeTab(), ...state.tabs];
+          }
+
+          // activeTabId가 없으면 Home 탭으로 설정
+          if (!state.activeTabId) {
+            state.activeTabId = HOME_TAB.menuCode;
+          }
         }
       },
     }

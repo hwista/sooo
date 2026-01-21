@@ -5,6 +5,7 @@ import { useTabStore } from '@/stores';
 
 // 페이지 컴포넌트 동적 import (Next.js 라우팅에서 제외됨)
 const pageComponents: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
+  '/home': lazy(() => import('@/components/pages/home/HomeDashboardPage')),
   '/request/customer': lazy(() => import('@/components/pages/request/customer/CustomerRequestListPage')),
   '/request/customer/create': lazy(() => import('@/components/pages/request/customer/CustomerRequestCreatePage')),
 };
@@ -62,34 +63,9 @@ export function ContentArea({ children }: ContentAreaProps) {
     );
   }
 
-  // 열린 탭이 없을 때
-  if (tabs.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-              />
-            </svg>
-          </div>
-          <p className="text-gray-500">좌측 메뉴에서 원하는 항목을 선택하세요.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // activeTab이 없으면 탭 선택 안내
-  if (!activeTab) {
+  // Home 탭이 항상 존재하므로 빈 상태는 발생하지 않음
+  // activeTab이 없거나 path가 없으면 Home으로 리다이렉트 처리
+  if (!activeTab || !activeTab.path) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
         <p className="text-gray-500">탭을 선택하세요.</p>
@@ -97,7 +73,7 @@ export function ContentArea({ children }: ContentAreaProps) {
     );
   }
 
-  // Placeholder for tab content
+  // 등록되지 않은 페이지 컴포넌트인 경우
   return (
     <div className="flex-1 overflow-auto bg-white">
       <div className="p-6">
@@ -105,7 +81,7 @@ export function ContentArea({ children }: ContentAreaProps) {
           {activeTab.title}
         </h1>
         <p className="text-gray-500">
-          경로: {activeTab.path}
+          페이지 준비 중: {activeTab.path}
         </p>
       </div>
     </div>
