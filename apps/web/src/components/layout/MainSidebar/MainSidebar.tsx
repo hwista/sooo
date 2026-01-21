@@ -111,6 +111,21 @@ export function MainSidebar() {
             />
           )}
         </div>
+
+        {/* 사이드바 푸터 - 카피라이트 (고정) */}
+        <div className="flex-shrink-0 border-t border-ssoo-content-border bg-ssoo-content-bg px-3 py-2">
+          {isCollapsed ? (
+            <div className="text-center text-[10px] text-gray-400">
+              © LS
+            </div>
+          ) : (
+            <div className="text-xs text-gray-500 space-y-0.5">
+              <div className="font-medium text-gray-600">SSOO v1.0.0</div>
+              <div>© 2026 LS Electric Co., Ltd.</div>
+              <div className="text-[10px] text-gray-400">All rights reserved.</div>
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* 플로팅 패널 */}
