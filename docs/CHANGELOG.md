@@ -6,6 +6,33 @@
 
 ## 2026-01-21
 
+### ⭐ 즐겨찾기 DB 연동 구현
+
+**문제:**
+- 즐겨찾기 추가/삭제 시 화면에만 반영되고 DB에는 저장되지 않음
+
+**해결:**
+
+서버 API 추가 (`menu.controller.ts`, `menu.service.ts`):
+- `POST /api/menus/favorites` - 즐겨찾기 추가
+- `DELETE /api/menus/favorites/:menuId` - 즐겨찾기 삭제
+
+클라이언트 수정 (`menu.store.ts`):
+- `addFavorite()`: API 호출 후 store 업데이트
+- `removeFavorite()`: API 호출 후 store 업데이트
+
+**테이블:** `cm_user_favorite_r`
+- `is_active = false`로 soft delete 처리
+
+---
+
+### 🏠 현재 열린 페이지에서 홈 탭 제외
+
+- 홈 탭(`/home`)은 항상 열려있는 고정 탭이므로 목록에서 제외
+- 홈 탭 외에 열린 페이지가 없으면 "열린 페이지가 없습니다" 표시
+
+---
+
 ### 🎨 커스텀 스크롤바 디자인 시스템
 
 **CSS 유틸리티 클래스 (globals.css):**

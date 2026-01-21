@@ -93,24 +93,33 @@ export const useMenuStore = create<MenuStore>()((set, get) => ({
   },
 
   addFavorite: async (item: Omit<FavoriteMenuItem, 'id' | 'sortOrder'>) => {
-    // TODO: API 호출
-    // const response = await menuApi.addFavorite(item.menuId);
-    const newFavorite: FavoriteMenuItem = {
-      id: `fav-${item.menuId}`,
-      ...item,
-      sortOrder: get().favorites.length,
-    };
-    set((state) => ({
-      favorites: [...state.favorites, newFavorite],
-    }));
+    try {
+      const response = await apiClient.post('/menus/favorites', {
+        menuId: item.menuId,
+      });
+      
+      if (response.data.success) {
+        const newFavorite: FavoriteMenuItem = response.data.data;
+        set((state) => ({
+          favorites: [...state.favorites, newFavorite],
+        }));
+      }
+    } catch (error) {
+      console.error('[MenuStore] Failed to add favorite:', error);
+      throw error;
+    }
   },
 
   removeFavorite: async (menuId: string) => {
-    // TODO: API 호출
-    // await menuApi.removeFavorite(menuId);
-    set((state) => ({
-      favorites: state.favorites.filter((f) => f.menuId !== menuId),
-    }));
+    try {
+      await apiClient.delete(`/menus/favorites/${menuId}`);
+      set((state) => ({
+        favorites: state.favorites.filter((f) => f.menuId !== menuId),
+      }));
+    } catch (error) {
+      console.error('[MenuStore] Failed to remove favorite:', error);
+      throw error;
+    }
   },
 
   reorderFavorites: async (fromIndex: number, toIndex: number) => {

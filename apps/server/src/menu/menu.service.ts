@@ -305,4 +305,92 @@ export class MenuService {
       sortOrder: f.sort_order,
     }));
   }
+
+  /**
+   * 즐겨찾기 추가
+   */
+  async addFavorite(userId: bigint, menuId: bigint) {
+    // 이미 즐겨찾기에 있는지 확인
+    const existing = await this.db.cm_user_favorite_r.findFirst({
+      where: {
+        user_id: userId,
+        menu_id: menuId,
+        is_active: true,
+      },
+    });
+
+    if (existing) {
+      // 이미 존재하면 기존 데이터 반환
+      const menu = await this.db.cm_menu_m.findUnique({
+        where: { menu_id: menuId },
+      });
+      return {
+        id: existing.user_favorite_id.toString(),
+        menuId: menuId.toString(),
+        menuCode: menu?.menu_code || '',
+        menuName: menu?.menu_name || '',
+        menuPath: menu?.menu_path,
+        icon: menu?.icon,
+        sortOrder: existing.sort_order,
+      };
+    }
+
+    // 현재 최대 sortOrder 조회
+    const maxSortOrder = await this.db.cm_user_favorite_r.aggregate({
+      where: {
+        user_id: userId,
+        is_active: true,
+      },
+      _max: {
+        sort_order: true,
+      },
+    });
+
+    const newSortOrder = (maxSortOrder._max.sort_order ?? -1) + 1;
+
+    // 새 즐겨찾기 생성
+    const favorite = await this.db.cm_user_favorite_r.create({
+      data: {
+        user_id: userId,
+        menu_id: menuId,
+        sort_order: newSortOrder,
+        is_active: true,
+        created_by: userId,
+        updated_by: userId,
+      },
+    });
+
+    // 메뉴 정보 조회
+    const menu = await this.db.cm_menu_m.findUnique({
+      where: { menu_id: menuId },
+    });
+
+    return {
+      id: favorite.user_favorite_id.toString(),
+      menuId: menuId.toString(),
+      menuCode: menu?.menu_code || '',
+      menuName: menu?.menu_name || '',
+      menuPath: menu?.menu_path,
+      icon: menu?.icon,
+      sortOrder: favorite.sort_order,
+    };
+  }
+
+  /**
+   * 즐겨찾기 삭제
+   */
+  async removeFavorite(userId: bigint, menuId: bigint) {
+    await this.db.cm_user_favorite_r.updateMany({
+      where: {
+        user_id: userId,
+        menu_id: menuId,
+        is_active: true,
+      },
+      data: {
+        is_active: false,
+        updated_by: userId,
+        updated_at: new Date(),
+      },
+    });
+  }
 }
