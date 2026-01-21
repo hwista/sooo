@@ -7,6 +7,7 @@ import {
   SidebarFavorites,
   SidebarOpenTabs,
   SidebarMenuTree,
+  SidebarAdminMenu,
 } from '../sidebar';
 import { SECTION_ICONS } from './sidebar-constants';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -51,6 +52,7 @@ export function FloatingPanel({
         {activeSection === 'favorites' && <SidebarFavorites />}
         {activeSection === 'openTabs' && <SidebarOpenTabs />}
         {activeSection === 'menuTree' && <SidebarMenuTree />}
+        {activeSection === 'admin' && <SidebarAdminMenu />}
       </ScrollArea>
     </div>
   );
