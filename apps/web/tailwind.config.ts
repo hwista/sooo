@@ -75,7 +75,7 @@ const config: Config = {
         ls: {
           blue: 'var(--ls-blue)',
           red: 'var(--ls-red)',
-          'red-hover': '#c50025',           // 더 어두운 hover 색상
+          'red-hover': '#d90027',           // hover 색상
           green: 'var(--ls-green)',
           'sub-blue': 'var(--ls-sub-blue)',
           gray: 'var(--ls-gray)',

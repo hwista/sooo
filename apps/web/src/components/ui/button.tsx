@@ -18,9 +18,9 @@ const buttonVariants = cva(
         // Outline: 테두리만
         outline:
           "border border-ssoo-content-border bg-white text-ssoo-primary shadow-sm hover:bg-ssoo-sitemap-bg",
-        // Destructive: 삭제/위험 (SSOO Red)
+        // Destructive: 삭제/위험 (LS Red)
         destructive:
-          "bg-ls-red text-white shadow-sm hover:bg-ls-red/90",
+          "bg-ls-red text-white shadow-sm hover:bg-ls-red-hover",
         // Ghost: 배경 없음
         ghost: "text-ssoo-primary hover:bg-ssoo-content-bg",
         // Link: 링크 스타일
