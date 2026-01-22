@@ -13,6 +13,8 @@
 | seeds_20260120/ | 2026-01-20 시드 SQL 백업 |
 | CHANGELOG-legacy.md | 과거 변경 이력 백업 |
 | BACKLOG-legacy.md | 과거 백로그 백업 |
+| changelog-2025.md | 2025년 이전 변경 이력 아카이브 (예정) |
+| backlog-completed.md | 완료된 백로그 아카이브 (예정) |
 
 ---
 
