@@ -77,6 +77,54 @@ packages/
 
 ---
 
+## 문서 시스템 구성 정리 (롤백 기준)
+
+프로젝트 관리 시스템에 임시로 붙이려던 문서 시스템 구성과 실제 적용 범위를 정리한다.
+
+### 계획했던 구성
+
+1. **MDX 기반 가이드 문서**
+2. **OpenAPI 렌더러 (ReDoc)**
+3. **TypeDoc 기반 코드 레퍼런스**
+4. **Storybook 기반 UI 문서**
+
+### 실제 적용된 범위
+
+- **ReDoc 기반 API Reference UI**: web-pms에 적용됨
+- **Markdown 렌더링(파일 기반)**: web-pms에 적용됨
+- **OpenAPI JSON 제공**: server에 `/api/openapi.json` 추가
+- **TypeDoc/Storybook**: 미적용
+
+### 구성 요소 역할
+
+- **`@nestjs/swagger`**: 서버에서 OpenAPI JSON을 생성하는 용도 (필수)
+- **Swagger UI**: OpenAPI를 화면에 보여주는 뷰어 (선택)
+- **ReDoc**: OpenAPI를 화면에 보여주는 뷰어 (선택)
+
+> ReDoc는 Swagger UI를 대체하는 **뷰어**이며, 서버의 OpenAPI JSON 생성(@nestjs/swagger)을 대체하지 않는다.
+> 따라서 ReDoc를 쓰더라도 서버에서 `@nestjs/swagger`로 `openapi.json`을 생성해야 한다.
+
+### 롤백 기준
+
+- **web-pms 내부 문서 UI/렌더링**은 롤백 대상
+- **서버 OpenAPI JSON 제공**은 도큐먼트 관리 시스템에서도 활용되므로 유지 권장
+- **TypeDoc/Storybook**은 도큐먼트 관리 시스템 도입 시점에 적용
+
+### TypeDoc/Storybook 역할
+
+- **TypeDoc**: TypeScript 코드(클래스/함수/타입)를 자동으로 문서화해 “내부 API 레퍼런스”를 만든다.
+- **Storybook**: UI 컴포넌트의 예제/Props/상호작용을 문서로 제공해 “디자인 시스템/컴포넌트 매뉴얼” 역할을 한다.
+
+> 두 도구는 PMS 내부에 붙이기보다 도큐먼트 관리 시스템에서 통합 제공하는 것이 구조적으로 적합하다.
+
+### 문서 전환 원칙
+
+- TypeDoc/Storybook으로 대체 가능한 “기작성 레퍼런스 문서”는 단계적으로 정리한다.
+- 대체 완료 기준: 자동 생성 문서가 동일/상위 품질로 제공되고, 링크/탐색이 보장될 때만 기존 문서를 정리한다.
+- 전환은 문서 섹션 단위로 진행하고, 공지/링크 리디렉션을 포함한다.
+
+---
+
 ## 실행 계획
 
 ### Phase 0: 준비
@@ -125,6 +173,7 @@ packages/
 | 2026-01-21 | Phase 0 | 통합 계획 문서 초안 작성 | ✅ |
 | 2026-01-21 | Phase 1 | apps/web → apps/web-pms 리네임 완료 | ✅ |
 | 2026-01-21 | Phase 1 | apps/web-dms 디렉토리 준비 | ✅ |
+| 2026-01-21 | Phase 1 | PMS 문서 UI/렌더링 롤백 진행 | 🔄 |
 
 ---
 

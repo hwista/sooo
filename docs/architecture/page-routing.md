@@ -28,10 +28,6 @@ apps/web-pms/src/
 │   ├── (main)/
 │   │   ├── layout.tsx          # 메인 레이아웃 (인증 필요)
 │   │   ├── page.tsx            # 대시보드 (/)
-│   │   ├── docs/               # 문서 허브 (/docs)
-│   │   │   ├── page.tsx         # 문서 홈
-│   │   │   ├── api-reference/   # ReDoc 렌더링
-│   │   │   └── [...slug]/       # docs/*.md 렌더링
 │   │   ├── request/page.tsx    # 얇은 래퍼 → RequestListPage
 │   │   ├── proposal/page.tsx   # 얇은 래퍼 → ProposalListPage
 │   │   ├── execution/page.tsx  # 얇은 래퍼 → ExecutionListPage
@@ -98,7 +94,6 @@ export default function RequestListPage() {
 // 허용된 경로만 통과, 나머지는 404로 리다이렉트
 const allowedPaths = [
   '/',
-  '/docs',
   '/auth/login',
   '/auth/register',
 ];
@@ -352,7 +347,6 @@ not-found.tsx에서 무조건 / 로 리다이렉트
 
 | 날짜 | 변경 내용 |
 |------|----------|
-| 2026-01-21 | /docs 라우팅 및 문서 렌더 경로 추가 |
 
 ---
 

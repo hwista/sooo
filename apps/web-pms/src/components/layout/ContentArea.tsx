@@ -1,7 +1,6 @@
 'use client';
 
 import { ReactNode, Suspense, lazy } from 'react';
-import { usePathname } from 'next/navigation';
 import { useTabStore } from '@/stores';
 
 // 페이지 컴포넌트 동적 import (Next.js 라우팅에서 제외됨)
@@ -24,27 +23,8 @@ interface ContentAreaProps {
  * - 탭이 없을 때 빈 상태 표시
  */
 export function ContentArea({ children }: ContentAreaProps) {
-  const pathname = usePathname();
   const { tabs, activeTabId } = useTabStore();
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
-
-  // docs 경로는 탭보다 우선적으로 children 렌더링
-  if (pathname?.startsWith('/docs') && children) {
-    return (
-      <div className="flex-1 overflow-auto bg-white">
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-gray-500">페이지 로딩 중...</p>
-            </div>
-          </div>
-        }>
-          {children}
-        </Suspense>
-      </div>
-    );
-  }
 
   // activeTab이 있으면 해당 페이지 컴포넌트를 렌더링
   if (activeTab && activeTab.path) {
