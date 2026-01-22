@@ -1,6 +1,6 @@
 'use client';
 
-import { useMenuStore, useSidebarStore, useTabStore, useAuthStore } from '@/stores';
+import { useMenuStore, useSidebarStore, useTabStore } from '@/stores';
 import { MenuItem } from '@/types';
 import { ChevronRight, Folder, FolderOpen, FileText, Shield } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
