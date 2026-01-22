@@ -1,7 +1,7 @@
 # 문서 구조 정리 계획
 
 > 작성일: 2026-01-21  
-> 상태: 계획 수립  
+> 상태: 적용 완료  
 > 목적: PMS/DMS 통합 전 문서 구조를 표준화하고 이관 기준을 확정
 
 ---
@@ -16,8 +16,6 @@ docs/
   api/               # 공용 API 문서
   architecture/      # 공통 아키텍처
   database/          # DB 설계/스키마
-  tests/             # 테스트 시나리오
-  ui-design/         # UI/UX 디자인
   _archive/          # 아카이브
 ```
 
@@ -28,32 +26,32 @@ docs/
 1. **공통 문서는 common**으로 이동
 2. **PMS 전용 문서는 pms**로 이동
 3. **DMS 문서는 dms**에 신규 작성
-4. **API/DB/Architecture/Test/UI는 유지**하고 필요 시 경로만 정리
+4. **API/DB/Architecture는 루트 유지**, PMS UI/테스트 문서는 pms로 이동
 5. 이관은 **문서 단위로 체크포인트 커밋**
 
 ---
 
-## 이관 매핑 (초안)
+## 이관 매핑
 
 ### 루트 문서
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/common/README.md` | `docs/common/README.md` | 공통 허브 |
-| `docs/common/setup.md` | `docs/common/setup.md` | 공통 가이드 |
-| `docs/common/roadmap.md` | `docs/common/roadmap.md` | 공통 로드맵 |
-| `docs/common/backlog.md` | `docs/common/backlog.md` | 공통 백로그 |
-| `docs/common/changelog.md` | `docs/common/changelog.md` | 공통 변경 이력 |
+| `docs/README.md` | `docs/common/README.md` | 공통 허브(기존) |
+| `docs/SETUP.md` | `docs/common/setup.md` | 공통 가이드 |
+| `docs/ROADMAP.md` | `docs/common/roadmap.md` | 공통 로드맵 |
+| `docs/BACKLOG.md` | `docs/common/backlog.md` | 공통 백로그 |
+| `docs/CHANGELOG.md` | `docs/common/changelog.md` | 공통 변경 이력 |
 
 ### 도메인
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/pms/domain/service-overview.md` | `docs/pms/domain/service-overview.md` | PMS |
-| `docs/pms/domain/concepts.md` | `docs/pms/domain/concepts.md` | PMS |
-| `docs/pms/domain/menu-structure.md` | `docs/pms/domain/menu-structure.md` | PMS |
-| `docs/pms/domain/actions/*` | `docs/pms/domain/actions/*` | PMS |
-| `docs/pms/domain/workflows/*` | `docs/pms/domain/workflows/*` | PMS |
+| `docs/domain/service-overview.md` | `docs/pms/domain/service-overview.md` | PMS |
+| `docs/domain/concepts.md` | `docs/pms/domain/concepts.md` | PMS |
+| `docs/domain/menu-structure.md` | `docs/pms/domain/menu-structure.md` | PMS |
+| `docs/domain/actions/*` | `docs/pms/domain/actions/*` | PMS |
+| `docs/domain/workflows/*` | `docs/pms/domain/workflows/*` | PMS |
 
 ### 아키텍처
 
@@ -77,8 +75,8 @@ docs/
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/pms/ui-design/*` | `docs/pms/ui-design/*` | PMS |
-| `docs/pms/tests/*` | `docs/pms/tests/*` | PMS |
+| `docs/ui-design/*` | `docs/pms/ui-design/*` | PMS |
+| `docs/tests/*` | `docs/pms/tests/*` | PMS |
 
 ---
 
@@ -101,6 +99,15 @@ docs/
 
 ---
 
+## 적용 결과 요약
+
+- `docs/tests`, `docs/ui-design`은 `docs/pms`로 이동
+- 루트 문서는 `docs/common`으로 이동
+- `docs/api`, `docs/architecture`, `docs/database`는 루트 유지
+- 새 `docs/README.md`는 구조 허브로 재작성
+
+---
+
 ## Backlog
 
 | ID | 항목 | 우선순위 | 상태 |
@@ -117,3 +124,4 @@ docs/
 | 날짜 | 변경 내용 |
 |------|----------|
 | 2026-01-21 | 문서 구조 정리 계획 초안 작성 |
+| 2026-01-21 | 적용 결과 반영 및 상태 갱신 |
