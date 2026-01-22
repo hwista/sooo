@@ -681,9 +681,9 @@ interface DataGridProps {
 
 | 페이지 | 경로 | 템플릿 | 상태 | 비고 |
 |--------|------|--------|------|------|
-| 고객요청 목록 | /request/customer | ListPageTemplate | 🔲 예정 | 새 표준 적용 |
-| 고객요청 등록 | /request/customer/create | FormPageTemplate | 🔲 예정 | 새 표준 적용 |
-| 고객요청 상세 | /request/customer/[id] | DetailPageTemplate | 🔲 예정 | 새 표준 적용 |
+| 고객요청 목록 | /request | ListPageTemplate | 🔲 예정 | 새 표준 적용 |
+| 고객요청 등록 | /request/create | FormPageTemplate | 🔲 예정 | 새 표준 적용 |
+| 고객요청 상세 | /request/:id | DetailPageTemplate | 🔲 예정 | 탭 경로 기준 |
 
 ---
 

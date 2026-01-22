@@ -172,25 +172,25 @@
 | **우선순위** | P1 (High) |
 | **전제조건** | 브라우저에서 테스트 |
 | **입력** | UI에서 로그인 |
-| **실행 단계** | 1. /login 페이지 접속 → 2. 로그인 폼 제출 |
-| **예상 결과** | /dashboard로 리다이렉트 |
+| **실행 단계** | 1. / 페이지 접속 → 2. 로그인 폼 제출 |
+| **예상 결과** | /로 리다이렉트 |
 | **검증 항목** | |
-| | ☑️ URL이 /dashboard로 변경 |
+| | ☑️ URL이 /로 변경 |
 | | ☑️ localStorage에 토큰 저장 |
 | | ☑️ Zustand 상태에 user 정보 저장 |
 | **자동화** | ✅ Playwright |
 
 ---
 
-### TC-LOGIN-10: 로그인 상태에서 /login 접근 ⭐ P2
+### TC-LOGIN-10: 로그인 상태에서 / 접근 ⭐ P2
 
 | 항목 | 내용 |
 |------|------|
 | **우선순위** | P2 (Medium) |
 | **전제조건** | 이미 로그인된 상태 |
-| **입력** | 브라우저에서 /login 직접 접근 |
-| **실행 단계** | 1. /login URL 직접 입력 |
-| **예상 결과** | /dashboard로 자동 리다이렉트 |
+| **입력** | 브라우저에서 / 직접 접근 |
+| **실행 단계** | 1. / URL 직접 입력 |
+| **예상 결과** | /로 자동 리다이렉트 |
 | **검증 항목** | |
 | | ☑️ 로그인 페이지 표시 안됨 |
 | **자동화** | ✅ Playwright |
@@ -253,12 +253,12 @@ describe('POST /api/auth/login', () => {
 ```typescript
 // apps/web-pms/e2e/auth/login.spec.ts
 test('TC-LOGIN-09: 대시보드 리다이렉트', async ({ page }) => {
-  await page.goto('/login');
+  await page.goto('/');
   await page.fill('[name="loginId"]', 'admin');
   await page.fill('[name="password"]', 'admin123!');
   await page.click('button[type="submit"]');
   
-  await expect(page).toHaveURL('/dashboard');
+  await expect(page).toHaveURL('/');
 });
 ```
 

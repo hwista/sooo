@@ -33,7 +33,7 @@ JWT_REFRESH_EXPIRES_IN=7d
 │ Client  │         │ Server  │         │   DB    │
 └────┬────┘         └────┬────┘         └────┬────┘
      │                   │                   │
-     │ POST /auth/login  │                   │
+     │ POST /api/auth/login  │               │
      │ {loginId, password}                   │
      │──────────────────>│                   │
      │                   │ findByLoginId     │
@@ -97,7 +97,7 @@ JWT_REFRESH_EXPIRES_IN=7d
      │ 401 Unauthorized  │                   │
      │ (Access Token 만료)                   │
      │                   │                   │
-     │ POST /auth/refresh│                   │
+     │ POST /api/auth/refresh│               │
      │ {refreshToken}    │                   │
      │──────────────────>│                   │
      │                   │                   │

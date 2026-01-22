@@ -22,8 +22,8 @@
 
 ```
                     ┌──────────────────┐
-                    │   로그인 페이지   │
-                    │ /login (web-pms)     │
+                    │   로그인 폼     │
+                    │ / (web-pms)      │
                     └────────┬─────────┘
                              │
          ┌───────────────────┴───────────────────┐
@@ -31,7 +31,7 @@
          ▼                                       ▼
 ┌─────────────────┐                    ┌─────────────────┐
 │  로그인 성공     │                    │  로그인 실패     │
-│  → /dashboard   │                    │  → 에러 표시     │
+│  → /           │                    │  → 에러 표시     │
 └────────┬────────┘                    └─────────────────┘
          │
          ▼
@@ -54,7 +54,7 @@
          ▼
 ┌─────────────────┐
 │   로그아웃       │
-│   → /login      │
+│   → /           │
 └─────────────────┘
 ```
 
@@ -66,7 +66,7 @@
 
 | 파일 | 역할 |
 |------|------|
-| [apps/web-pms/src/app/(auth)/login/page.tsx][pms-login-page] | 로그인 페이지 UI |
+| [apps/web-pms/src/app/(main)/layout.tsx][pms-main-layout] | 미인증 로그인 폼 |
 | [apps/web-pms/src/app/(main)/page.tsx][pms-main-page] | 로그인 후 메인 페이지 |
 | [apps/web-pms/src/stores/auth.store.ts](../../../../apps/web-pms/src/stores/auth.store.ts) | Zustand 인증 상태 관리 |
 | [apps/web-pms/src/lib/api/client.ts](../../../../apps/web-pms/src/lib/api/client.ts) | Axios 클라이언트 (자동 토큰 갱신) |
@@ -215,7 +215,7 @@ interface AuthState {
 }
 ```
 
-[pms-login-page]: ../../../../apps/web-pms/src/app/(auth)/login/page.tsx
+[pms-main-layout]: ../../../../apps/web-pms/src/app/(main)/layout.tsx
 [pms-main-page]: ../../../../apps/web-pms/src/app/(main)/page.tsx
 
 ### 로컬 스토리지 영속화

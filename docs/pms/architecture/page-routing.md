@@ -26,15 +26,14 @@
 apps/web-pms/src/
 ├── app/
 │   ├── (main)/
-│   │   ├── layout.tsx          # 메인 레이아웃 (인증 필요)
-│   │   ├── page.tsx            # 대시보드 (/)
+│   │   ├── layout.tsx          # 메인 레이아웃 (인증 필요, 미인증 시 로그인 폼)
+│   │   ├── page.tsx            # 홈 (/)
 │   │   ├── request/page.tsx    # 얇은 래퍼 → RequestListPage
 │   │   ├── proposal/page.tsx   # 얇은 래퍼 → ProposalListPage
 │   │   ├── execution/page.tsx  # 얇은 래퍼 → ExecutionListPage
 │   │   └── transition/page.tsx # 얇은 래퍼 → TransitionListPage
-│   ├── auth/
-│   │   ├── login/page.tsx      # 로그인
-│   │   └── register/page.tsx   # 회원가입
+│   ├── (auth)/
+│   │   └── login/page.tsx      # 로그인 (현재 미사용)
 │   ├── not-found.tsx           # 404 페이지 (자동 리다이렉트)
 │   └── layout.tsx              # 루트 레이아웃
 ├── components/
@@ -94,8 +93,6 @@ export default function RequestListPage() {
 // 허용된 경로만 통과, 나머지는 404로 리다이렉트
 const allowedPaths = [
   '/',
-  '/auth/login',
-  '/auth/register',
 ];
 
 // 그 외 모든 경로는 차단
@@ -103,7 +100,7 @@ return NextResponse.rewrite(new URL('/not-found', request.url));
 ```
 
 **작동 방식**:
-- `/request/customer` 접근 시 → 미들웨어에서 차단 → `/not-found`로 리다이렉트
+- `/request` 접근 시 → 미들웨어에서 차단 → `/not-found`로 리다이렉트
 - API 라우트, 정적 파일은 제외
 
 ### 2. 404 페이지 (app/not-found.tsx)
@@ -122,10 +119,10 @@ export default function NotFound() {
 
 **작동 방식**:
 - 존재하지 않는 URL 접근 시 무조건 `/`로 리다이렉트
-- 메인 페이지의 `(main)/layout.tsx`에 있는 `checkAuth` 로직이:
-  - 로그인됨 → 메인 페이지 표시
-  - 미로그인 → `/auth/login`으로 자동 리다이렉트
-- 무한 루프 방지: 404 → `/` → checkAuth → (필요시) `/auth/login`
+- `(main)/layout.tsx`가 인증 상태를 확인해:
+  - 로그인됨 → AppLayout 렌더링
+  - 미로그인 → `/`에서 로그인 폼 표시
+- 무한 루프 방지: 404 → `/` → checkAuth → (필요시) 로그인 폼 표시
 
 ### 3. ContentArea 동적 로딩
 
@@ -183,7 +180,7 @@ ContentArea가 동적 컴포넌트 렌더링
 ### 2. 직접 URL 접근 시도
 
 ```
-http://localhost:3000/request/customer 입력
+http://localhost:3000/request 입력
     ↓
 middleware.ts에서 allowedPaths 체크
     ↓
@@ -194,7 +191,7 @@ not-found.tsx에서 무조건 / 로 리다이렉트
 (main)/layout.tsx의 checkAuth 실행
     ↓
 로그인됨 → 메인 페이지
-미로그인 → /auth/login
+미로그인 → `/`에서 로그인 폼 표시
 ```
 
 ---
@@ -219,15 +216,15 @@ not-found.tsx에서 무조건 / 로 리다이렉트
 4. `(main)/layout.tsx`의 `checkAuth` 실행
 5. 로그인 상태 확인:
    - 로그인됨 → 메인 페이지 표시
-   - 미로그인 → `/auth/login`으로 리다이렉트
+   - 미로그인 → `/`에서 로그인 폼 표시
 
 ### 시나리오 3: 미로그인 상태 직접 접근
 1. 주소창에 `http://localhost:3000/some-random-path` 입력
 2. 미들웨어가 차단 → 404 페이지
 3. 404 페이지에서 `/`로 리다이렉트
 4. `(main)/layout.tsx`의 `checkAuth` 실행
-5. 토큰 없음 감지 → `/auth/login`으로 리다이렉트
-6. 로그인 페이지 표시
+5. 토큰 없음 감지 → `/`에서 로그인 폼 표시
+6. 로그인 폼 표시
 
 ---
 
