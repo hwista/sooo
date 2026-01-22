@@ -396,13 +396,13 @@ pnpm --filter @ssoo/database build
 |------|------|------|
 | **개발 가이드** | [docs/SETUP.md](docs/SETUP.md) | 개발 환경 설정 가이드 |
 | **진행 상황** | [docs/BACKLOG.md](docs/BACKLOG.md) | Phase별 태스크 및 완료 현황 |
-| **UI 설계** | [docs/ui-design/README.md](docs/ui-design/README.md) | 페이지 레이아웃, 보안, 디자인 시스템 |
-| **디자인 시스템** | [docs/ui-design/design-system.md](docs/ui-design/design-system.md) | 타이포그래피, 색상, 버튼 표준 |
+| **UI 설계** | [docs/pms/ui-design/README.md](docs/pms/ui-design/README.md) | 페이지 레이아웃, 보안, 디자인 시스템 |
+| **디자인 시스템** | [docs/pms/ui-design/design-system.md](docs/pms/ui-design/design-system.md) | 타이포그래피, 색상, 버튼 표준 |
 | 서비스 정의 | [docs/README.md](docs/README.md) | 서비스 컨셉, 핵심 개념, MVP 로드맵 |
 | DB 설계 규칙 | [docs/database/rules.md](docs/database/rules.md) | 테이블 네이밍, 컬럼 규칙 |
 | DB 접속 정보 | [docs/database/README.md](docs/database/README.md) | 개발/운영 DB 접속 정보 |
-| 업무 흐름 | [docs/service/workflows/](docs/service/workflows/) | 프로젝트 라이프사이클, 인증 흐름 등 |
-| 액션 명세 | [docs/service/actions/](docs/service/actions/) | 로그인, 프로젝트 관리 등 상세 명세 |
+| 업무 흐름 | [docs/pms/domain/workflows/](docs/pms/domain/workflows/) | 프로젝트 라이프사이클, 인증 흐름 등 |
+| 액션 명세 | [docs/pms/domain/actions/](docs/pms/domain/actions/) | 로그인, 프로젝트 관리 등 상세 명세 |
 
 ---
 
@@ -440,8 +440,8 @@ pnpm --filter @ssoo/database build
 
 ### 관련 문서
 
-- [디자인 시스템 가이드](docs/ui-design/design-system.md) - 상세 가이드 및 코드 예시
-- [UI Design 문서](docs/ui-design/README.md) - 전체 UI 설계 문서
+- [디자인 시스템 가이드](docs/pms/ui-design/design-system.md) - 상세 가이드 및 코드 예시
+- [UI Design 문서](docs/pms/ui-design/README.md) - 전체 UI 설계 문서
 
 ---
 
@@ -473,8 +473,8 @@ Role: admin
 
 ### 관련 문서
 
-- [사용자 인증 워크플로우](docs/service/workflows/user_authentication.md)
-- [로그인 액션 상세](docs/service/actions/user_login.md)
+- [사용자 인증 워크플로우](docs/pms/domain/workflows/user_authentication.md)
+- [로그인 액션 상세](docs/pms/domain/actions/user_login.md)
 
 ---
 

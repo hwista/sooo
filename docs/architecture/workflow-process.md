@@ -78,8 +78,8 @@ SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 
 | 파일 | 역할 |
 |------|------|
-| `docs/CHANGELOG.md` | 최근 변경 요약 + 영역별 링크 |
-| `docs/BACKLOG.md` | 우선순위 높은 항목 요약 + 영역별 링크 |
+| `docs/common/changelog.md` | 최근 변경 요약 + 영역별 링크 |
+| `docs/common/backlog.md` | 우선순위 높은 항목 요약 + 영역별 링크 |
 
 ### 아카이브 정책
 

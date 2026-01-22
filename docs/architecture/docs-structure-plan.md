@@ -39,21 +39,21 @@ docs/
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/README.md` | `docs/common/README.md` | 공통 허브 |
-| `docs/SETUP.md` | `docs/common/setup.md` | 공통 가이드 |
-| `docs/ROADMAP.md` | `docs/common/roadmap.md` | 공통 로드맵 |
-| `docs/BACKLOG.md` | `docs/common/backlog.md` | 공통 백로그 |
-| `docs/CHANGELOG.md` | `docs/common/changelog.md` | 공통 변경 이력 |
+| `docs/common/README.md` | `docs/common/README.md` | 공통 허브 |
+| `docs/common/setup.md` | `docs/common/setup.md` | 공통 가이드 |
+| `docs/common/roadmap.md` | `docs/common/roadmap.md` | 공통 로드맵 |
+| `docs/common/backlog.md` | `docs/common/backlog.md` | 공통 백로그 |
+| `docs/common/changelog.md` | `docs/common/changelog.md` | 공통 변경 이력 |
 
 ### 도메인
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/domain/service-overview.md` | `docs/pms/domain/service-overview.md` | PMS |
-| `docs/domain/concepts.md` | `docs/pms/domain/concepts.md` | PMS |
-| `docs/domain/menu-structure.md` | `docs/pms/domain/menu-structure.md` | PMS |
-| `docs/domain/actions/*` | `docs/pms/domain/actions/*` | PMS |
-| `docs/domain/workflows/*` | `docs/pms/domain/workflows/*` | PMS |
+| `docs/pms/domain/service-overview.md` | `docs/pms/domain/service-overview.md` | PMS |
+| `docs/pms/domain/concepts.md` | `docs/pms/domain/concepts.md` | PMS |
+| `docs/pms/domain/menu-structure.md` | `docs/pms/domain/menu-structure.md` | PMS |
+| `docs/pms/domain/actions/*` | `docs/pms/domain/actions/*` | PMS |
+| `docs/pms/domain/workflows/*` | `docs/pms/domain/workflows/*` | PMS |
 
 ### 아키텍처
 
@@ -77,8 +77,8 @@ docs/
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/ui-design/*` | `docs/pms/ui-design/*` | PMS |
-| `docs/tests/*` | `docs/pms/tests/*` | PMS |
+| `docs/pms/ui-design/*` | `docs/pms/ui-design/*` | PMS |
+| `docs/pms/tests/*` | `docs/pms/tests/*` | PMS |
 
 ---
 
@@ -92,14 +92,23 @@ docs/
 
 ---
 
+## 실행 로그
+
+| 날짜 | 내용 | 상태 |
+|------|------|------|
+| 2026-01-21 | common/pms/dms 폴더 생성 및 문서 이동 | ✅ |
+| 2026-01-21 | 인덱스/링크/CHANGELOG 정리 | ✅ |
+
+---
+
 ## Backlog
 
 | ID | 항목 | 우선순위 | 상태 |
 |----|------|----------|------|
-| DOCS-01 | 문서 구조 이관 매핑 확정 | P1 | 🔲 대기 |
-| DOCS-02 | common/pms/dms 폴더 생성 | P1 | 🔲 대기 |
-| DOCS-03 | 문서 이동 및 링크 정리 | P1 | 🔲 대기 |
-| DOCS-04 | 문서 인덱스/CHANGELOG 갱신 | P1 | 🔲 대기 |
+| DOCS-01 | 문서 구조 이관 매핑 확정 | P1 | ✅ 완료 |
+| DOCS-02 | common/pms/dms 폴더 생성 | P1 | ✅ 완료 |
+| DOCS-03 | 문서 이동 및 링크 정리 | P1 | ✅ 완료 |
+| DOCS-04 | 문서 인덱스/CHANGELOG 갱신 | P1 | ✅ 완료 |
 
 ---
 

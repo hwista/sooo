@@ -12,7 +12,7 @@
 ## 2. 문서 구조
 
 ```
-docs/tests/
+docs/pms/tests/
 ├── README.md                     ← 현재 문서
 ├── auth/                         ← 인증 관련 테스트
 │   ├── login.test.md             ← 로그인 테스트

@@ -282,7 +282,7 @@ not-found.tsx → 로그인 상태 체크
 - ✅ `apps/web-pms/src/components/layout/ContentArea.tsx`
 - ✅ `apps/web-pms/src/components/pages/request/customer/CustomerRequestListPage.tsx`
 - ✅ `apps/web-pms/src/components/pages/request/customer/CustomerRequestCreatePage.tsx`
-- ✅ `docs/ui-design/page-security-routing.md` (상세 문서)
+- ✅ `docs/pms/ui-design/page-security-routing.md` (상세 문서)
 
 **테스트 완료:**
 - ✅ 메뉴 클릭 → 탭 열림 → 페이지 렌더링 (URL 변화 없음)

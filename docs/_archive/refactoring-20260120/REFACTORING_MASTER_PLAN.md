@@ -238,7 +238,7 @@ docs/_archive/refactoring-20260120/
 └── results/                        # Phase 4 결과
     └── FINAL_REPORT.md             # 최종 보고서
 
-docs/BACKLOG.md                     # 통합 백로그 (P4 섹션에 리팩토링 항목)
+docs/common/backlog.md                     # 통합 백로그 (P4 섹션에 리팩토링 항목)
 ```
 │   ├── types-plan.md               # (NEW)
 │   ├── server-plan.md              # (NEW)

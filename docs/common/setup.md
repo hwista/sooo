@@ -304,9 +304,9 @@ pnpm --filter server build
    - ID: `admin` / PW: `admin123!`
 
 2. **문서 확인**:
-   - [BACKLOG.md](./docs/BACKLOG.md) - 진행 상황
-   - [UI Design](./docs/ui-design/README.md) - UI 가이드
-   - [Design System](./docs/ui-design/design-system.md) - 디자인 표준
+   - [backlog.md](./backlog.md) - 진행 상황
+   - [UI Design](./docs/pms/ui-design/README.md) - UI 가이드
+   - [Design System](./docs/pms/ui-design/design-system.md) - 디자인 표준
 
 3. **개발 시작**:
    - 새 기능 개발 전 BACKLOG 확인
