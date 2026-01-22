@@ -71,7 +71,7 @@ config.headers.Authorization = `Bearer ${accessToken}`;
 // 401 에러 시 자동 토큰 갱신
 if (error.response?.status === 401 && !originalRequest._retry) {
   // refreshToken으로 새 accessToken 발급
-  // 실패 시 /login으로 리다이렉트
+  // 실패 시 /로 리다이렉트 (로그인 폼 노출)
 }
 ```
 
@@ -386,5 +386,6 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-22 | 토큰 갱신 실패 시 리다이렉트 경로 정합화 |
 | 2026-01-21 | 메뉴 아이콘 필드명 정합화 (icon) |
 | 2026-01-21 | 유틸리티 문서 최초 작성 |

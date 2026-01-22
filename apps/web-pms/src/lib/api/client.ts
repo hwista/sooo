@@ -71,9 +71,9 @@ apiClient.interceptors.response.use(
               }
             }
           } catch {
-            // 토큰 갱신 실패 - 로그아웃 처리
+            // 토큰 갱신 실패 - 로그아웃 처리 후 홈으로 이동
             localStorage.removeItem('ssoo-auth');
-            window.location.href = '/login';
+            window.location.href = '/';
           }
         }
       }
