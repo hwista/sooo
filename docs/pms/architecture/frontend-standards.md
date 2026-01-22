@@ -24,7 +24,8 @@ components/
 
 | 컴포넌트 | 용도 | Props |
 |----------|------|-------|
-| `PageHeader` | 페이지 제목 + 브레드크럼 + 액션 | title, breadcrumb, actions |
+| `PageHeader` | 페이지 제목 + 액션 + 필터 | title, actions, filters |
+| `PageHeader (legacy)` | 구버전 헤더 (유지보수) | title, breadcrumb, actions |
 | `DataTable` | 정렬/선택/페이지네이션 테이블 | columns, data, loading, pagination |
 | `Pagination` | 페이지 네비게이션 | page, pageSize, total, onChange |
 | `FormSection` | 폼 섹션 제목 + 필드 그룹 | title, description, children |
@@ -33,6 +34,15 @@ components/
 | `EmptyState` | 데이터 없음 표시 | icon, title, description, action |
 | `LoadingState` | 로딩 상태 표시 | message |
 | `ErrorState` | 에러 상태 표시 | error, onRetry |
+| `ProtectedRoute` | 인증 보호 래퍼 | children |
+
+### Page 전용 컴포넌트 (common/page/)
+
+| 컴포넌트 | 용도 |
+|----------|------|
+| `PageHeader` | 액션 + 필터 통합 헤더 (표준) |
+| `PageContent` | 본문 레이아웃 래퍼 |
+| `DataGrid` | DataTable + Pagination 묶음 |
 
 ---
 
@@ -40,7 +50,8 @@ components/
 
 | 템플릿 | 용도 | 주요 Props |
 |--------|------|-----------|
-| `ListPageTemplate` | 목록 페이지 | header, filterFields, columns, data, pagination |
+| `ListPageTemplate` | 목록 페이지 (레거시) | header, filterFields, columns, data, pagination |
+| `ListPageTemplateV2` | 목록 페이지 (표준) | header, table |
 | `FormPageTemplate` | 등록/수정 페이지 | header, sections[], onSubmit, onCancel |
 | `DetailPageTemplate` | 상세 페이지 | header, sections[], DetailFields |
 
@@ -118,6 +129,12 @@ hooks/
 │   ├── useMenus.ts     # useMyMenus
 │   └── index.ts
 └── index.ts
+
+추가 훅:
+```
+hooks/
+└── useAuth.ts       # 인증 헬퍼 훅
+```
 ```
 
 ### 사용 패턴
@@ -198,5 +215,6 @@ types/
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-22 | 공통/템플릿/훅 구조를 현재 코드 기준으로 정합화 |
 | 2026-01-21 | Backlog/Changelog 섹션 추가 |
 | 2026-01-20 | 프론트엔드 표준 문서 작성 |
