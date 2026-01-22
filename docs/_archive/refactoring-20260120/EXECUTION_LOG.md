@@ -122,12 +122,12 @@
 - **검증 결과**:
   - [x] build 통과
 
-#### Step 8: apps/web - WEB-03 정리 ✅
+#### Step 8: apps/web-pms - WEB-03 정리 ✅
 - **시간**: 2026-01-20
 - **대상**: 
-  - `apps/web/src/components/index.ts`
-  - `apps/web/src/components/common/PageHeader.tsx`
-  - `apps/web/src/components/templates/ListPageTemplate.tsx`
+  - `apps/web-pms/src/components/index.ts`
+  - `apps/web-pms/src/components/common/PageHeader.tsx`
+  - `apps/web-pms/src/components/templates/ListPageTemplate.tsx`
 - **변경 내용**: 
   - `components/index.ts` 가이드 주석 개선 (직접 import 경로 안내)
   - 레거시 `PageHeader`에 `@deprecated` JSDoc 추가
@@ -151,9 +151,9 @@
   - [x] build 통과
 - **커밋**: `9d8024a`
 
-#### Step 10: apps/web - ESLint 에러 및 경고 전면 해결 ✅
+#### Step 10: apps/web-pms - ESLint 에러 및 경고 전면 해결 ✅
 - **시간**: 2026-01-20
-- **대상**: apps/web (21개 파일)
+- **대상**: apps/web-pms (21개 파일)
 - **변경 내용**: 
   - **no-explicit-any 에러 수정** (18개 → 0개)
     - `any` → 구체적 타입으로 변경 (`FilterValues`, error handling)

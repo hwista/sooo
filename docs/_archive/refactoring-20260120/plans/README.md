@@ -66,7 +66,7 @@
 
 ---
 
-### 4. apps/web (P2-P3)
+### 4. apps/web-pms (P2-P3)
 
 | # | 작업 | 우선순위 | 영향 범위 | 계획서 |
 |---|------|:--------:|----------|--------|
@@ -114,11 +114,11 @@
                               │
                               ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Step 4: apps/web (P2)                                        │
+│ Step 4: apps/web-pms (P2)                                        │
 │ ├── WEB-01: 레거시 PageHeader 마이그레이션                    │
 │ └── WEB-02: 레거시 ListPageTemplate 마이그레이션              │
 │                                                              │
-│ 검증: pnpm run build:web                                     │
+│ 검증: pnpm run build:web-pms                                     │
 └──────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -183,7 +183,7 @@ docs/_archive/refactoring-20260120/plans/
 ├── README.md                 # ← 현재 문서 (전체 계획 개요)
 ├── types-plan.md            # packages/types 세부 계획
 ├── server-plan.md           # apps/server 세부 계획
-└── web-plan.md              # apps/web 세부 계획
+└── web-plan.md              # apps/web-pms 세부 계획
 ```
 
 ---

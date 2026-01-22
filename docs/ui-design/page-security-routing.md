@@ -22,7 +22,7 @@
 
 ### 1. 페이지 컴포넌트 위치
 ```
-apps/web/src/
+apps/web-pms/src/
 ├── app/
 │   ├── (main)/
 │   │   ├── layout.tsx          # 메인 레이아웃 (인증 필요)

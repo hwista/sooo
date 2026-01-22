@@ -17,7 +17,7 @@ SSOO 프론트엔드는 **Zustand**를 사용하여 전역 상태를 관리합�
 ### 파일 위치
 
 ```
-apps/web/src/stores/
+apps/web-pms/src/stores/
 ├── auth.store.ts      # 인증 상태
 ├── menu.store.ts      # 메뉴/즐겨찾기 상태
 ├── tab.store.ts       # 탭 상태
@@ -375,11 +375,11 @@ window.addEventListener('resize', () => {
 
 ## 구현 파일
 
-- `apps/web/src/stores/auth.store.ts`
-- `apps/web/src/stores/menu.store.ts`
-- `apps/web/src/stores/tab.store.ts`
-- `apps/web/src/stores/sidebar.store.ts`
-- `apps/web/src/stores/layout.store.ts`
+- `apps/web-pms/src/stores/auth.store.ts`
+- `apps/web-pms/src/stores/menu.store.ts`
+- `apps/web-pms/src/stores/tab.store.ts`
+- `apps/web-pms/src/stores/sidebar.store.ts`
+- `apps/web-pms/src/stores/layout.store.ts`
 
 ## 관련 문서
 

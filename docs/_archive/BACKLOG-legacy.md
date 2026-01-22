@@ -52,7 +52,7 @@
 
 > **왜 즉시?** 배포 환경에서 동작 불가
 
-- **위치**: `apps/web/src/stores/menu.store.ts`
+- **위치**: `apps/web-pms/src/stores/menu.store.ts`
 - **해결**: `apiClient.get('/menus/my')` 사용으로 변경
 - **추가 개선**: 401 중복 처리 로직 제거 (apiClient에서 통합 처리)
 
@@ -79,7 +79,7 @@
 
 #### DataTable 분리 (WEB-05) ✅
 
-- **위치**: `apps/web/src/components/common/DataTable/`
+- **위치**: `apps/web-pms/src/components/common/DataTable/`
 - **결과**: 454줄 → 5개 파일로 분리
   ```
   DataTable/
@@ -94,7 +94,7 @@
 
 #### MainSidebar 분리 (WEB-06) ✅
 
-- **위치**: `apps/web/src/components/layout/MainSidebar/`
+- **위치**: `apps/web-pms/src/components/layout/MainSidebar/`
 - **결과**: 295줄 → 6개 파일로 분리
   ```
   MainSidebar/
@@ -119,7 +119,7 @@
 #### 메뉴 타입 통합 (TYPE-05) ✅
 
 - **결과**: 중복 없음 확인 완료
-- **현황**: `packages/types`는 공통 엔티티, `apps/web/src/types`는 프론트엔드 전용 UI 타입
+- **현황**: `packages/types`는 공통 엔티티, `apps/web-pms/src/types`는 프론트엔드 전용 UI 타입
 - **완료일**: 2026-01-20 (검토 완료)
 
 ### P1-FEATURE: 핵심 기능
@@ -153,13 +153,13 @@
 
 #### 레거시 PageHeader 완전 제거 (WEB-01) 🔲
 
-- **위치**: `apps/web/src/components/common/PageHeader.tsx`
+- **위치**: `apps/web-pms/src/components/common/PageHeader.tsx`
 - **현재 상태**: @deprecated, FormPageTemplate/DetailPageTemplate에서 사용 중
 - **예상 소요**: 30분
 
 #### 레거시 ListPageTemplate 이름 정리 (WEB-02) 🔲
 
-- **위치**: `apps/web/src/components/templates/ListPageTemplate.tsx`
+- **위치**: `apps/web-pms/src/components/templates/ListPageTemplate.tsx`
 - **현재 상태**: @deprecated, V2로 마이그레이션 필요
 - **예상 소요**: 20분
 

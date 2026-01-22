@@ -105,30 +105,30 @@
 
 | 구분 | 파일 | 설명 |
 |------|------|------|
-| **타입 정의** | `apps/web/src/types/menu.ts` | MenuType, AccessType, MenuItem, FavoriteMenuItem, MenuPermission |
-| | `apps/web/src/types/tab.ts` | TabItem, TabStoreState, TabStoreActions |
-| | `apps/web/src/types/sidebar.ts` | SidebarSection, SidebarState, FLOAT_PANEL_CONFIG |
-| | `apps/web/src/types/layout.ts` | DeviceType, BREAKPOINTS, LAYOUT_SIZES |
-| | `apps/web/src/types/index.ts` | 통합 export |
-| **상태 관리** | `apps/web/src/stores/tab.store.ts` | MDI 탭 관리 (persist, sessionStorage) |
-| | `apps/web/src/stores/sidebar.store.ts` | 사이드바 UI 상태 |
-| | `apps/web/src/stores/menu.store.ts` | 메뉴 트리, 즐겨찾기, 권한 |
-| | `apps/web/src/stores/layout.store.ts` | 디바이스 타입 감지 |
-| | `apps/web/src/stores/index.ts` | 통합 export |
-| **레이아웃** | `apps/web/src/components/layout/AppLayout.tsx` | 메인 레이아웃 래퍼 |
-| | `apps/web/src/components/layout/Header.tsx` | 상단 헤더 (로고, 알림, 프로필) |
-| | `apps/web/src/components/layout/MainSidebar.tsx` | 사이드바 (접힘/펼침, 플로팅) |
-| | `apps/web/src/components/layout/TabBar.tsx` | MDI 탭바 |
-| | `apps/web/src/components/layout/ContentArea.tsx` | 콘텐츠 영역 |
-| | `apps/web/src/components/layout/index.ts` | 통합 export |
-| **사이드바** | `apps/web/src/components/layout/sidebar/SidebarSearch.tsx` | 실시간 메뉴 검색 |
-| | `apps/web/src/components/layout/sidebar/SidebarFavorites.tsx` | 즐겨찾기 목록 |
-| | `apps/web/src/components/layout/sidebar/SidebarOpenTabs.tsx` | 열린 탭 목록 |
-| | `apps/web/src/components/layout/sidebar/SidebarMenuTree.tsx` | 메뉴 트리 (필터링 포함) |
-| | `apps/web/src/components/layout/sidebar/SidebarAdmin.tsx` | 관리자 버튼 |
-| | `apps/web/src/components/layout/sidebar/FloatPanel.tsx` | 플로팅 패널 컴포넌트 |
-| | `apps/web/src/components/layout/sidebar/index.ts` | 통합 export |
-| **유틸리티** | `apps/web/src/lib/utils/icons.ts` | Lucide 아이콘 동적 로드 유틸 |
+| **타입 정의** | `apps/web-pms/src/types/menu.ts` | MenuType, AccessType, MenuItem, FavoriteMenuItem, MenuPermission |
+| | `apps/web-pms/src/types/tab.ts` | TabItem, TabStoreState, TabStoreActions |
+| | `apps/web-pms/src/types/sidebar.ts` | SidebarSection, SidebarState, FLOAT_PANEL_CONFIG |
+| | `apps/web-pms/src/types/layout.ts` | DeviceType, BREAKPOINTS, LAYOUT_SIZES |
+| | `apps/web-pms/src/types/index.ts` | 통합 export |
+| **상태 관리** | `apps/web-pms/src/stores/tab.store.ts` | MDI 탭 관리 (persist, sessionStorage) |
+| | `apps/web-pms/src/stores/sidebar.store.ts` | 사이드바 UI 상태 |
+| | `apps/web-pms/src/stores/menu.store.ts` | 메뉴 트리, 즐겨찾기, 권한 |
+| | `apps/web-pms/src/stores/layout.store.ts` | 디바이스 타입 감지 |
+| | `apps/web-pms/src/stores/index.ts` | 통합 export |
+| **레이아웃** | `apps/web-pms/src/components/layout/AppLayout.tsx` | 메인 레이아웃 래퍼 |
+| | `apps/web-pms/src/components/layout/Header.tsx` | 상단 헤더 (로고, 알림, 프로필) |
+| | `apps/web-pms/src/components/layout/MainSidebar.tsx` | 사이드바 (접힘/펼침, 플로팅) |
+| | `apps/web-pms/src/components/layout/TabBar.tsx` | MDI 탭바 |
+| | `apps/web-pms/src/components/layout/ContentArea.tsx` | 콘텐츠 영역 |
+| | `apps/web-pms/src/components/layout/index.ts` | 통합 export |
+| **사이드바** | `apps/web-pms/src/components/layout/sidebar/SidebarSearch.tsx` | 실시간 메뉴 검색 |
+| | `apps/web-pms/src/components/layout/sidebar/SidebarFavorites.tsx` | 즐겨찾기 목록 |
+| | `apps/web-pms/src/components/layout/sidebar/SidebarOpenTabs.tsx` | 열린 탭 목록 |
+| | `apps/web-pms/src/components/layout/sidebar/SidebarMenuTree.tsx` | 메뉴 트리 (필터링 포함) |
+| | `apps/web-pms/src/components/layout/sidebar/SidebarAdmin.tsx` | 관리자 버튼 |
+| | `apps/web-pms/src/components/layout/sidebar/FloatPanel.tsx` | 플로팅 패널 컴포넌트 |
+| | `apps/web-pms/src/components/layout/sidebar/index.ts` | 통합 export |
+| **유틸리티** | `apps/web-pms/src/lib/utils/icons.ts` | Lucide 아이콘 동적 로드 유틸 |
 
 **라우팅 구조 완료 (2026-01-19):**
 - ✅ Next.js App Router Route Groups 적용
@@ -139,7 +139,7 @@
 
 **라우팅 구조:**
 ```
-apps/web/src/app/
+apps/web-pms/src/app/
 ├── globals.css
 ├── layout.tsx              # 루트 레이아웃 (Providers)
 ├── providers.tsx           # React Query, Zustand 등
@@ -194,7 +194,7 @@ apps/web/src/app/
 
 **파일 구조 변경:**
 ```
-apps/web/src/
+apps/web-pms/src/
 ├── app/
 │   ├── (main)/
 │   │   ├── layout.tsx          # 메인 레이아웃 (인증 필요)
@@ -277,11 +277,11 @@ not-found.tsx → 로그인 상태 체크
 | 해킹 리스크 | ✗ 라우팅 분석 가능 | ✓ 라우팅 구조 숨김 |
 
 **구현 파일:**
-- ✅ `apps/web/src/middleware.ts`
-- ✅ `apps/web/src/app/not-found.tsx`
-- ✅ `apps/web/src/components/layout/ContentArea.tsx`
-- ✅ `apps/web/src/components/pages/request/customer/CustomerRequestListPage.tsx`
-- ✅ `apps/web/src/components/pages/request/customer/CustomerRequestCreatePage.tsx`
+- ✅ `apps/web-pms/src/middleware.ts`
+- ✅ `apps/web-pms/src/app/not-found.tsx`
+- ✅ `apps/web-pms/src/components/layout/ContentArea.tsx`
+- ✅ `apps/web-pms/src/components/pages/request/customer/CustomerRequestListPage.tsx`
+- ✅ `apps/web-pms/src/components/pages/request/customer/CustomerRequestCreatePage.tsx`
 - ✅ `docs/ui-design/page-security-routing.md` (상세 문서)
 
 **테스트 완료:**
@@ -295,8 +295,8 @@ not-found.tsx → 로그인 상태 체크
 - ✅ `apps/server/src/menu/menu.controller.ts` - GET /api/menus/my 엔드포인트
 - ✅ `apps/server/src/menu/menu.module.ts` - 모듈 정의
 - ✅ `apps/server/src/app.module.ts` - MenuModule 등록
-- ✅ `apps/web/src/stores/menu.store.ts` - API 호출 및 Authorization 헤더
-- ✅ `apps/web/src/app/(main)/layout.tsx` - 인증 후 메뉴 자동 로드
+- ✅ `apps/web-pms/src/stores/menu.store.ts` - API 호출 및 Authorization 헤더
+- ✅ `apps/web-pms/src/app/(main)/layout.tsx` - 인증 후 메뉴 자동 로드
 
 ---
 
@@ -813,7 +813,7 @@ pnpm add -D jest @types/jest ts-jest supertest @types/supertest @nestjs/testing
 
 **설치 패키지**:
 ```bash
-cd apps/web
+cd apps/web-pms
 pnpm add -D @playwright/test
 npx playwright install
 ```

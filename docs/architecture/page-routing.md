@@ -1,7 +1,7 @@
 # 페이지 보안 및 라우팅 전략
 
 > **작성일**: 2026-01-19  
-> **최종 업데이트**: 2026-01-22  
+> **최종 업데이트**: 2026-01-21  
 > **목적**: Next.js 라우팅 노출 방지 및 권한 기반 접근 제어
 
 ---
@@ -23,11 +23,15 @@
 
 ### 1. 페이지 컴포넌트 위치
 ```
-apps/web/src/
+apps/web-pms/src/
 ├── app/
 │   ├── (main)/
 │   │   ├── layout.tsx          # 메인 레이아웃 (인증 필요)
 │   │   ├── page.tsx            # 대시보드 (/)
+│   │   ├── docs/               # 문서 허브 (/docs)
+│   │   │   ├── page.tsx         # 문서 홈
+│   │   │   ├── api-reference/   # ReDoc 렌더링
+│   │   │   └── [...slug]/       # docs/*.md 렌더링
 │   │   ├── request/page.tsx    # 얇은 래퍼 → RequestListPage
 │   │   ├── proposal/page.tsx   # 얇은 래퍼 → ProposalListPage
 │   │   ├── execution/page.tsx  # 얇은 래퍼 → ExecutionListPage
@@ -94,6 +98,7 @@ export default function RequestListPage() {
 // 허용된 경로만 통과, 나머지는 404로 리다이렉트
 const allowedPaths = [
   '/',
+  '/docs',
   '/auth/login',
   '/auth/register',
 ];
@@ -343,6 +348,14 @@ not-found.tsx에서 무조건 / 로 리다이렉트
 
 ---
 
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-01-21 | /docs 라우팅 및 문서 렌더 경로 추가 |
+
+---
+
 **작성자**: GitHub Copilot  
 **검토자**: 개발팀  
-**버전**: 1.1
+**버전**: 1.2

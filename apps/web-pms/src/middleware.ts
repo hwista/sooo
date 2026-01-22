@@ -26,6 +26,7 @@ export default function middleware(request: NextRequest) {
   // 허용된 경로 목록 (오직 메인 페이지만 허용)
   const allowedPaths = [
     '/',
+    '/docs',
   ];
 
   // 허용된 경로면 통과

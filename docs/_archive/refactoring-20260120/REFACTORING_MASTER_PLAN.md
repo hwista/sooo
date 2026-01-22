@@ -146,13 +146,13 @@ hwista-ssoo/                          # 모노레포 루트
               │              │              │
               ▼              ▼              │
     ┌─────────────────┐  ┌─────────────────┐
-    │ @ssoo/database  │  │    apps/web     │
+    │ @ssoo/database  │  │    apps/web-pms     │
     │  (Prisma ORM)   │  │   (Next.js)     │
     └────────┬────────┘  └─────────────────┘
              │
              ▼
     ┌─────────────────┐
-    │   apps/server   │───────▶ HTTP API ───▶ apps/web
+    │   apps/server   │───────▶ HTTP API ───▶ apps/web-pms
     │    (NestJS)     │
     └─────────────────┘
 ```
@@ -177,7 +177,7 @@ hwista-ssoo/                          # 모노레포 루트
 | 1.2 packages/database | ✅ | [analysis/packages-database.md](analysis/packages-database.md) |
 | 1.3 packages/types | ✅ | [analysis/packages-types.md](analysis/packages-types.md) |
 | 1.4 apps/server | ✅ | [analysis/apps-server.md](analysis/apps-server.md) |
-| 1.5 apps/web | ✅ | [analysis/apps-web.md](analysis/apps-web.md) |
+| 1.5 apps/web-pms | ✅ | [analysis/apps-web.md](analysis/apps-web.md) |
 
 ### Phase 2: 계획 수립 `완료`
 
@@ -264,7 +264,7 @@ pnpm run build
 
 # 개별 빌드
 pnpm run build:server
-pnpm run build:web
+pnpm run build:web-pms
 ```
 
 ---

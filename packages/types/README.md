@@ -146,7 +146,7 @@ interface UpdateProjectDto { ... }
 // apps/server에서
 import { Project, CreateProjectDto, ApiResponse } from '@ssoo/types';
 
-// apps/web에서
+// apps/web-pms에서
 import type { Project, ApiResponse } from '@ssoo/types';
 ```
 

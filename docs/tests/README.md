@@ -92,7 +92,7 @@ pnpm test:e2e
 ### Phase 2: E2E 테스트 (Playwright)
 ```bash
 # 웹 E2E 테스트
-cd apps/web
+cd apps/web-pms
 pnpm test:e2e
 ```
 

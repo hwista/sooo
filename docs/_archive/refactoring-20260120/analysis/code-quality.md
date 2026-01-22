@@ -23,7 +23,7 @@
 | **packages/database** | 9.8/10 | 9.9/10 | 9.9/10 | +0.1 ✅ |
 | **packages/types** | 8.3/10 | 9.5/10 | 9.5/10 | **+1.2** ✅ |
 | **apps/server** | 8.0/10 | 9.3/10 | 9.3/10 | **+1.3** ✅ |
-| **apps/web** | 8.6/10 | 9.2/10 | **9.5/10** | **+0.9** ✅ |
+| **apps/web-pms** | 8.6/10 | 9.2/10 | **9.5/10** | **+0.9** ✅ |
 | **전체 평균** | **8.68** | **9.48** | **9.55** | **+0.87** |
 
 > Phase 3 P1 완료 (2026-01-20)  
@@ -53,7 +53,7 @@
 | 일관성 | 8/10 | 9/10 | 9/10 ✅ |
 | 구조 | 9/10 | 9/10 | 9/10 |
 
-#### apps/web
+#### apps/web-pms
 
 | 점검 항목 | 현재 | 예상 | 실제 |
 |----------|:----:|:----:|:----:|
@@ -229,7 +229,7 @@ export function error(code: string, message: string) {
 
 ### 5. 레거시 컴포넌트 이원화 (MEDIUM)
 
-**위치:** `apps/web/src/components/`
+**위치:** `apps/web-pms/src/components/`
 
 **현재 상태:**
 ```
@@ -257,7 +257,7 @@ components/
 
 ### 6. 미사용 Export 주석 처리 (LOW)
 
-**위치:** `apps/web/src/components/index.ts`
+**위치:** `apps/web-pms/src/components/index.ts`
 
 ```typescript
 // common 컴포넌트
@@ -279,7 +279,7 @@ components/
 
 ### 7. 유틸리티 함수 미개발 (LOW)
 
-**위치:** `apps/web/src/lib/utils/index.ts`
+**위치:** `apps/web-pms/src/lib/utils/index.ts`
 
 ```typescript
 export { cn } from './cn';
@@ -305,7 +305,7 @@ export * from './icons';
 
 ### 1. 중앙집중식 API 클라이언트 ✅
 
-**위치:** `apps/web/src/lib/api/index.ts`
+**위치:** `apps/web-pms/src/lib/api/index.ts`
 
 ```typescript
 export const api = {
@@ -324,7 +324,7 @@ export const api = {
 
 ### 2. Zod 스키마 공용화 ✅
 
-**위치:** `apps/web/src/lib/validations/common.ts`
+**위치:** `apps/web-pms/src/lib/validations/common.ts`
 
 ```typescript
 // 재사용 가능한 기본 스키마
@@ -348,7 +348,7 @@ export const loginFormSchema = z.object({
 
 ### 3. 컴포넌트 계층 구조 명확 ✅
 
-**위치:** `apps/web/src/components/`
+**위치:** `apps/web-pms/src/components/`
 
 ```
 ui/          (Level 1 - 원자)
@@ -369,7 +369,7 @@ pages/       (Level 4 - 페이지별)
 
 ### 4. 상태 관리 분리 ✅
 
-**위치:** `apps/web/src/stores/`
+**위치:** `apps/web-pms/src/stores/`
 
 | Store | 책임 |
 |-------|------|

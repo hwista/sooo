@@ -1,4 +1,4 @@
-# SSOO Web
+# SSOO Web PMS
 
 > Next.js 기반 프론트엔드 웹 애플리케이션
 
@@ -6,7 +6,7 @@
 
 ## 📋 개요
 
-`apps/web`은 SSOO 서비스의 **프론트엔드 웹 애플리케이션**입니다. Next.js 15 App Router를 사용하여 모던한 React 기반 UI를 제공합니다.
+`apps/web-pms`은 SSOO 서비스의 **프론트엔드 웹 애플리케이션**입니다. Next.js 15 App Router를 사용하여 모던한 React 기반 UI를 제공합니다.
 
 ### 기술 스택 선정 이유
 
@@ -25,7 +25,7 @@
 ## 📁 구조
 
 ```
-apps/web/
+apps/web-pms/
 ├── src/
 │   ├── app/                    # App Router
 │   │   ├── layout.tsx          # 루트 레이아웃
@@ -194,13 +194,13 @@ interface AuthState {
 
 ```powershell
 # 개발 서버 실행 (일반 환경)
-pnpm dev:web
+pnpm dev:web-pms
 
 # 개발 서버 실행 (보안 환경)
 node ./node_modules/next/dist/bin/next dev --port 3000
 
 # 프로덕션 빌드
-pnpm build:web
+pnpm build:web-pms
 
 # 프로덕션 실행
 pnpm start

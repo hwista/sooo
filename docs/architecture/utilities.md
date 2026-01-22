@@ -5,7 +5,7 @@ SSOO 프론트엔드의 공통 유틸리티 함수 및 모듈 문서입니다.
 ## 파일 구조
 
 ```
-apps/web/src/lib/
+apps/web-pms/src/lib/
 ├── api/                  # API 클라이언트
 │   ├── client.ts         # Axios 인스턴스
 │   ├── auth.ts           # 인증 API
@@ -28,7 +28,7 @@ apps/web/src/lib/
 
 Axios 기반 HTTP 클라이언트입니다.
 
-**파일:** `apps/web/src/lib/api/client.ts`
+**파일:** `apps/web-pms/src/lib/api/client.ts`
 
 ```typescript
 import { apiClient } from '@/lib/api/client';
@@ -81,7 +81,7 @@ if (error.response?.status === 401 && !originalRequest._retry) {
 
 인증 관련 API 함수들입니다.
 
-**파일:** `apps/web/src/lib/api/auth.ts`
+**파일:** `apps/web-pms/src/lib/api/auth.ts`
 
 ```typescript
 import { authApi } from '@/lib/api/auth';
@@ -122,7 +122,7 @@ interface UserInfo {
 
 ## API 응답 타입
 
-**파일:** `apps/web/src/lib/api/types.ts`
+**파일:** `apps/web-pms/src/lib/api/types.ts`
 
 ### ApiResponse
 
@@ -177,7 +177,7 @@ interface ListParams extends PaginationParams, SortParams {
 
 Tailwind CSS 클래스 병합 유틸리티입니다.
 
-**파일:** `apps/web/src/lib/utils/index.ts`
+**파일:** `apps/web-pms/src/lib/utils/index.ts`
 
 ```typescript
 import { cn } from '@/lib/utils';
@@ -213,7 +213,7 @@ export function cn(...inputs: ClassValue[]) {
 
 Lucide Icons 동적 로딩 유틸리티입니다.
 
-**파일:** `apps/web/src/lib/utils/icons.ts`
+**파일:** `apps/web-pms/src/lib/utils/icons.ts`
 
 ### getIconComponent
 
@@ -260,7 +260,7 @@ Plus, Minus, Edit, Trash, Save, Refresh, ...
 
 ### 공통 스키마
 
-**파일:** `apps/web/src/lib/validations/common.ts`
+**파일:** `apps/web-pms/src/lib/validations/common.ts`
 
 #### 문자열
 
@@ -354,12 +354,12 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 ## 구현 파일
 
-- `apps/web/src/lib/api/client.ts` - Axios 클라이언트
-- `apps/web/src/lib/api/auth.ts` - 인증 API
-- `apps/web/src/lib/api/types.ts` - API 타입
-- `apps/web/src/lib/utils/index.ts` - cn 유틸리티
-- `apps/web/src/lib/utils/icons.ts` - 아이콘 유틸리티
-- `apps/web/src/lib/validations/*.ts` - Zod 스키마
+- `apps/web-pms/src/lib/api/client.ts` - Axios 클라이언트
+- `apps/web-pms/src/lib/api/auth.ts` - 인증 API
+- `apps/web-pms/src/lib/api/types.ts` - API 타입
+- `apps/web-pms/src/lib/utils/index.ts` - cn 유틸리티
+- `apps/web-pms/src/lib/utils/icons.ts` - 아이콘 유틸리티
+- `apps/web-pms/src/lib/validations/*.ts` - Zod 스키마
 
 ## 관련 문서
 

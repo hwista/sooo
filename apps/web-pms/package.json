@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "web-pms",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -33,6 +33,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.0",
+    "marked": "^12.0.0",
+    "redoc": "^2.1.4",
     "recharts": "^3.6.0",
     "socket.io-client": "^4.8.0",
     "sonner": "^1.7.0",

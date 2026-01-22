@@ -68,7 +68,7 @@ AppLayout
 
 ### 파일 위치
 
-`apps/web/src/components/layout/AppLayout.tsx`
+`apps/web-pms/src/components/layout/AppLayout.tsx`
 
 ### 구조
 
@@ -99,7 +99,7 @@ AppLayout
 
 ### 파일 위치
 
-`apps/web/src/components/layout/MainSidebar/`
+`apps/web-pms/src/components/layout/MainSidebar/`
 
 ```
 MainSidebar/
@@ -183,7 +183,7 @@ const FLOAT_PANEL_CONFIG = {
 
 ### 파일 위치
 
-`apps/web/src/components/layout/Header.tsx`
+`apps/web-pms/src/components/layout/Header.tsx`
 
 ### 구성 요소
 
@@ -205,7 +205,7 @@ MDI(Multiple Document Interface) 탭바 컴포넌트입니다.
 
 ### 파일 위치
 
-`apps/web/src/components/layout/TabBar.tsx`
+`apps/web-pms/src/components/layout/TabBar.tsx`
 
 ### 구성 요소
 
@@ -230,7 +230,7 @@ MDI(Multiple Document Interface) 탭바 컴포넌트입니다.
 
 ### 파일 위치
 
-`apps/web/src/components/layout/ContentArea.tsx`
+`apps/web-pms/src/components/layout/ContentArea.tsx`
 
 ### 동작 방식
 
@@ -294,21 +294,21 @@ const pageComponents = {
 
 ### 컴포넌트
 
-- `apps/web/src/components/layout/AppLayout.tsx`
-- `apps/web/src/components/layout/MainSidebar/`
-- `apps/web/src/components/layout/Header.tsx`
-- `apps/web/src/components/layout/TabBar.tsx`
-- `apps/web/src/components/layout/ContentArea.tsx`
+- `apps/web-pms/src/components/layout/AppLayout.tsx`
+- `apps/web-pms/src/components/layout/MainSidebar/`
+- `apps/web-pms/src/components/layout/Header.tsx`
+- `apps/web-pms/src/components/layout/TabBar.tsx`
+- `apps/web-pms/src/components/layout/ContentArea.tsx`
 
 ### Store
 
-- `apps/web/src/stores/sidebar.store.ts`
-- `apps/web/src/stores/layout.store.ts`
-- `apps/web/src/stores/tab.store.ts`
+- `apps/web-pms/src/stores/sidebar.store.ts`
+- `apps/web-pms/src/stores/layout.store.ts`
+- `apps/web-pms/src/stores/tab.store.ts`
 
 ### 타입 정의
 
-- `apps/web/src/types/layout.types.ts`
+- `apps/web-pms/src/types/layout.types.ts`
 
 ## 관련 문서
 

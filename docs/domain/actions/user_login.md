@@ -48,11 +48,11 @@
 
 | 파일 | 역할 |
 |------|------|
-| `apps/web/src/app/login/page.tsx` | 로그인 페이지 UI (react-hook-form + zod) |
-| `apps/web/src/app/dashboard/page.tsx` | 로그인 후 대시보드 |
-| `apps/web/src/stores/auth.store.ts` | Zustand 인증 상태 관리 |
-| `apps/web/src/lib/api/client.ts` | Axios 클라이언트 (자동 토큰 갱신) |
-| `apps/web/src/lib/api/auth.ts` | 인증 API 호출 함수 |
+| `apps/web-pms/src/app/login/page.tsx` | 로그인 페이지 UI (react-hook-form + zod) |
+| `apps/web-pms/src/app/dashboard/page.tsx` | 로그인 후 대시보드 |
+| `apps/web-pms/src/stores/auth.store.ts` | Zustand 인증 상태 관리 |
+| `apps/web-pms/src/lib/api/client.ts` | Axios 클라이언트 (자동 토큰 갱신) |
+| `apps/web-pms/src/lib/api/auth.ts` | 인증 API 호출 함수 |
 
 ### 4.2 Backend (NestJS)
 
@@ -214,7 +214,7 @@ async login(loginDto: LoginDto): Promise<TokenResponse> {
 ### 6.2 Zustand login 액션
 
 ```typescript
-// apps/web/src/stores/auth.store.ts
+// apps/web-pms/src/stores/auth.store.ts
 login: async (loginId: string, password: string) => {
   set({ isLoading: true });
   try {

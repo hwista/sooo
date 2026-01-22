@@ -286,7 +286,7 @@ pnpm run dev
 
 # 개별 실행
 pnpm run dev:server   # 백엔드만 (http://localhost:4000)
-pnpm run dev:web      # 프론트엔드만 (http://localhost:3000)
+pnpm run dev:web-pms      # 프론트엔드만 (http://localhost:3000)
 ```
 
 ### 서비스 URL

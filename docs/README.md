@@ -47,6 +47,7 @@ SSOO 프로젝트의 모든 문서를 탐색할 수 있는 허브입니다.
 | [auth-system.md](architecture/auth-system.md) | 인증 시스템 |
 | [security-standards.md](architecture/security-standards.md) | 보안 표준 |
 | [page-routing.md](architecture/page-routing.md) | 페이지 라우팅 |
+| [wiki-integration-plan.md](architecture/wiki-integration-plan.md) | 위키 통합 계획 |
 
 ---
 

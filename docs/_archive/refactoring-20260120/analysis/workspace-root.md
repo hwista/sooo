@@ -37,9 +37,9 @@
     "lint": "turbo lint",
     "clean": "turbo clean && rimraf node_modules",
     "dev:server": "turbo dev --filter=server",
-    "dev:web": "turbo dev --filter=web",
+    "dev:web-pms": "turbo dev --filter=web-pms",
     "build:server": "turbo build --filter=server",
-    "build:web": "turbo build --filter=web"
+    "build:web-pms": "turbo build --filter=web-pms"
   },
   "devDependencies": {
     "turbo": "^2.3.0",
@@ -73,10 +73,10 @@
     "lint": "turbo lint",
     "clean": "turbo clean && rimraf node_modules",
     "dev:server": "turbo dev --filter=server",
-    "dev:web": "turbo dev --filter=web",
+    "dev:web-pms": "turbo dev --filter=web-pms",
     "build:server": "turbo build --filter=server",
--   "build:web": "turbo build --filter=web"
-+   "build:web": "turbo build --filter=web",
+-   "build:web-pms": "turbo build --filter=web-pms"
++   "build:web-pms": "turbo build --filter=web-pms",
 +   "db:generate": "turbo db:generate --filter=@ssoo/database",
 +   "db:push": "turbo db:push --filter=@ssoo/database",
 +   "db:studio": "turbo db:studio --filter=@ssoo/database"

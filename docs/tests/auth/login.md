@@ -251,7 +251,7 @@ describe('POST /api/auth/login', () => {
 ### 4.2 Playwright (E2E)
 
 ```typescript
-// apps/web/e2e/auth/login.spec.ts
+// apps/web-pms/e2e/auth/login.spec.ts
 test('TC-LOGIN-09: 대시보드 리다이렉트', async ({ page }) => {
   await page.goto('/login');
   await page.fill('[name="loginId"]', 'admin');

@@ -26,8 +26,8 @@ Prisma 스키마와 `@ssoo/types`의 타입 정의 동기화
 
 **영향 범위:**
 - `apps/server/src/project/project.service.ts`
-- `apps/web/src/lib/api/endpoints/projects.ts`
-- `apps/web/src/lib/validations/project.ts`
+- `apps/web-pms/src/lib/api/endpoints/projects.ts`
+- `apps/web-pms/src/lib/validations/project.ts`
 
 ---
 
@@ -58,7 +58,7 @@ export type DoneResultCode = 'complete' | 'cancel';
 
 **영향 범위:**
 - `apps/server/src/project/project.service.ts` - update 함수
-- `apps/web/` - 완료 결과 선택 UI (있을 경우)
+- `apps/web-pms/` - 완료 결과 선택 UI (있을 경우)
 
 ---
 

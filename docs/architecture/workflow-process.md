@@ -114,7 +114,7 @@ SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 
 ### Scope (선택)
 
-- `web`: 프론트엔드
+- `web-pms`: 프로젝트 관리 프론트엔드
 - `server`: 백엔드
 - `db`: 데이터베이스
 - `docs`: 문서
@@ -123,7 +123,7 @@ SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 ### 예시
 
 ```
-feat(web): 커스텀 스크롤바 디자인 시스템 추가
+feat(web-pms): 커스텀 스크롤바 디자인 시스템 추가
 
 ## CSS 유틸리티
 - scrollbar-thin, scrollbar-default, scrollbar-wide
@@ -263,6 +263,7 @@ npx --no -- commitlint --edit "$1"
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | scope 명칭을 web-pms로 정리 |
 | 2026-01-21 | 개발 표준 문서 위치를 architecture로 이동 |
 | 2026-01-21 | Husky hook에서 Windows 경로 변환 처리 추가 |
 | 2026-01-21 | Husky hook에서 Windows pnpm/npx 경로 우회 처리 |

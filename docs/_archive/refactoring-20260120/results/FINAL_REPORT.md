@@ -92,7 +92,7 @@
 
 #### 1. DataTable.tsx 크기 초과 (436줄)
 
-**위치**: `apps/web/src/components/common/DataTable.tsx`
+**위치**: `apps/web-pms/src/components/common/DataTable.tsx`
 
 **문제**:
 - 복합 컴포넌트 기준 150줄을 **3배 초과**
@@ -181,7 +181,7 @@ override handleRequest<TUser = TokenPayload>(
 | packages/database | 9.8/10 | 9.9/10 | +0.1 |
 | packages/types | 8.3/10 | 9.5/10 | **+1.2** |
 | apps/server | 8.0/10 | 9.3/10 | **+1.3** |
-| apps/web | 8.6/10 | 9.2/10 | **+0.6** |
+| apps/web-pms | 8.6/10 | 9.2/10 | **+0.6** |
 | **전체 평균** | **8.68** | **9.48** | **+0.80** |
 
 ### 핵심 지표 달성

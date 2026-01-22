@@ -1,6 +1,6 @@
 # Web 리팩터링 계획서
 
-> 대상: `apps/web/`  
+> 대상: `apps/web-pms/`  
 > 우선순위: P2-P3  
 > 예상 소요: 45분
 
@@ -36,7 +36,7 @@ components/common/
 **사용처 확인 방법:**
 ```bash
 # 레거시 PageHeader import 검색
-grep -r "LegacyPageHeader\|from.*PageHeader" apps/web/src/
+grep -r "LegacyPageHeader\|from.*PageHeader" apps/web-pms/src/
 ```
 
 **교체 예시:**
@@ -149,7 +149,7 @@ import { ListPageTemplateV2 } from '@/components/templates';
 
 **현재 상태:**
 ```typescript
-// apps/web/src/components/index.ts
+// apps/web-pms/src/components/index.ts
 
 // UI 컴포넌트 - shadcn/ui 기반
 export * from './ui';
@@ -171,9 +171,9 @@ export * from './layout';
 **확인 사항:**
 ```bash
 # 실제 import 패턴 확인
-grep -r "from '@/components/common'" apps/web/src/
-grep -r "from '@/components/templates'" apps/web/src/
-grep -r "from '@/components'" apps/web/src/
+grep -r "from '@/components/common'" apps/web-pms/src/
+grep -r "from '@/components/templates'" apps/web-pms/src/
+grep -r "from '@/components'" apps/web-pms/src/
 ```
 
 **결정:**
@@ -182,7 +182,7 @@ grep -r "from '@/components'" apps/web/src/
 
 **수정 내용:**
 ```typescript
-// apps/web/src/components/index.ts
+// apps/web-pms/src/components/index.ts
 
 /**
  * 컴포넌트 계층 구조
@@ -210,7 +210,7 @@ export * from './layout';
 
 **현재 상태:**
 ```
-apps/web/src/types/
+apps/web-pms/src/types/
 ├── index.ts
 ├── auth.ts
 ├── menu.ts
@@ -219,7 +219,7 @@ apps/web/src/types/
 ```
 
 **분석 필요:**
-1. `apps/web/src/types/`에 정의된 타입들 확인
+1. `apps/web-pms/src/types/`에 정의된 타입들 확인
 2. `@ssoo/types`와 중복 여부 확인
 3. 프론트엔드 전용인지, 공유 가능한지 판단
 
@@ -229,12 +229,12 @@ apps/web/src/types/
 | API DTO, 엔티티 | `@ssoo/types` |
 | 컴포넌트 Props | 컴포넌트 파일 내 |
 | 페이지 로컬 상태 | 페이지 파일 내 |
-| UI 전용 타입 | `apps/web/src/types/` |
+| UI 전용 타입 | `apps/web-pms/src/types/` |
 
 **실행 계획:**
 1. 각 타입 파일 분석
 2. 공유 가능한 타입 → `@ssoo/types`로 이동
-3. UI 전용 타입 → `apps/web/src/types/` 유지
+3. UI 전용 타입 → `apps/web-pms/src/types/` 유지
 4. 중복 타입 → 제거 및 import 변경
 
 ---
@@ -244,7 +244,7 @@ apps/web/src/types/
 ### Step 1: 준비
 
 ```bash
-cd apps/web
+cd apps/web-pms
 pnpm exec tsc --noEmit
 
 git add .
@@ -255,11 +255,11 @@ git commit -m "chore: checkpoint before web refactoring"
 
 ```bash
 # 레거시 컴포넌트 사용처 확인
-grep -rn "LegacyPageHeader" apps/web/src/
-grep -rn "ListPageTemplate[^V]" apps/web/src/
+grep -rn "LegacyPageHeader" apps/web-pms/src/
+grep -rn "ListPageTemplate[^V]" apps/web-pms/src/
 
 # Import 패턴 확인
-grep -rn "from '@/components'" apps/web/src/ | head -20
+grep -rn "from '@/components'" apps/web-pms/src/ | head -20
 ```
 
 ### Step 3: WEB-01 실행 (점진적)
@@ -286,7 +286,7 @@ grep -rn "from '@/components'" apps/web/src/ | head -20
 
 ### Step 6: WEB-04 실행
 
-1. `apps/web/src/types/` 분석
+1. `apps/web-pms/src/types/` 분석
 2. 공유 타입 이동 계획 수립
 3. 타입 이동 및 import 수정
 4. 커밋
@@ -363,4 +363,4 @@ grep -rn "from '@/components'" apps/web/src/ | head -20
 - [x] 중복 타입 제거 (해당 없음)
 - [x] 전체 빌드 통과 ✅
 
-> **상태**: ✅ 완료 - `apps/web/src/types/`는 프론트엔드 전용 UI 타입(menu, tab, sidebar, layout)만 존재하여 `@ssoo/types`와 중복 없음
+> **상태**: ✅ 완료 - `apps/web-pms/src/types/`는 프론트엔드 전용 UI 타입(menu, tab, sidebar, layout)만 존재하여 `@ssoo/types`와 중복 없음

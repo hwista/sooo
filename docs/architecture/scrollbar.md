@@ -209,8 +209,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 ## 관련 파일
 
-- [globals.css](../../apps/web/src/app/globals.css) - 스크롤바 스타일 정의
-- [scroll-area.tsx](../../apps/web/src/components/ui/scroll-area.tsx) - ScrollArea 컴포넌트
+- [globals.css](../../apps/web-pms/src/app/globals.css) - 스크롤바 스타일 정의
+- [scroll-area.tsx](../../apps/web-pms/src/components/ui/scroll-area.tsx) - ScrollArea 컴포넌트
 
 ---
 

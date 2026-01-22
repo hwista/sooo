@@ -58,7 +58,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    TypeScript (단일 언어)                    │
 ├─────────────┬─────────────┬──────────────┬──────────────────┤
-│ apps/server │  apps/web   │ apps/mobile  │   apps/desktop   │
+│ apps/server │  apps/web-pms       │ apps/mobile  │   apps/desktop   │
 │   NestJS    │  Next.js    │ React Native │    Electron      │
 │  (백엔드)    │ (프론트엔드) │   (나중에)    │     (나중에)      │
 ├─────────────┴─────────────┴──────────────┴──────────────────┤
@@ -94,7 +94,8 @@ hwista-ssoo/
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
-│   └── web/                     # Next.js 프론트엔드
+│   ├── web-pms/                 # Next.js 프론트엔드
+│   └── web-dms/                 # 도큐먼트 관리 시스템
 │       ├── src/app/             # App Router
 │       │   ├── layout.tsx       # 루트 레이아웃
 │       │   ├── page.tsx         # 메인 페이지
@@ -187,12 +188,12 @@ pnpm --filter @ssoo/database db:push
 ### 4. 개발 서버 실행
 
 ```bash
-# 전체 실행 (server + web 동시)
+# 전체 실행 (server + web-pms 동시)
 pnpm dev
 
 # 또는 개별 실행
 pnpm dev:server   # 백엔드: http://localhost:4000
-pnpm dev:web      # 프론트엔드: http://localhost:3000
+pnpm dev:web-pms      # 프론트엔드: http://localhost:3000
 ```
 
 ### 5. 동작 확인
@@ -272,7 +273,7 @@ node ./node_modules/typescript/lib/tsc.js --project tsconfig.json
 node dist/main.js
 
 # 9. 웹 실행 (새 터미널에서)
-cd c:\WorkSpace\dev\source\hwista-ssoo\apps\web
+cd c:\WorkSpace\dev\source\hwista-ssoo\apps\web-pms
 node ./node_modules/next/dist/bin/next dev --port 3000
 ```
 
@@ -282,7 +283,7 @@ node ./node_modules/next/dist/bin/next dev --port 3000
 ✅ Server: http://localhost:4000/api/health
    → {"success":true,"data":{"status":"ok","service":"ssoo-server","version":"0.0.1"}}
 
-✅ Web: http://localhost:3000
+✅ Web PMS: http://localhost:3000
    → SSOO 메인 페이지 + Server Status 연동 확인
 ```
 
@@ -315,8 +316,8 @@ pnpm dev:server
 pnpm build:server
 
 # Web만 실행/빌드
-pnpm dev:web
-pnpm build:web
+pnpm dev:web-pms
+pnpm build:web-pms
 
 # 특정 앱 + 의존 패키지만 빌드
 pnpm build --filter=server...
@@ -356,8 +357,8 @@ pnpm --filter @ssoo/database build
 
 | 장점 | 설명 |
 |------|------|
-| **타입 공유** | Server ↔ Web 간 DTO/Entity 타입 100% 동기화 |
-| **원자적 변경** | API 변경 시 Server + Web을 하나의 PR로 처리 |
+| **타입 공유** | Server ↔ Web PMS 간 DTO/Entity 타입 100% 동기화 |
+| **원자적 변경** | API 변경 시 Server + Web PMS를 하나의 PR로 처리 |
 | **의존성 통일** | 모든 앱이 같은 버전의 라이브러리 사용 |
 | **독립 배포** | 각 앱별로 필요할 때만 개별 배포 가능 |
 
@@ -373,8 +374,8 @@ pnpm --filter @ssoo/database build
     │         │
     ▼         ▼
 ┌────────┐  ┌────────┐
-│ server │  │  web   │
-│ NestJS │  │Next.js │
+│ server │  │ web-pms │
+│ NestJS │  │ Next.js │
 └────────┘  └────────┘
 ```
 
@@ -383,7 +384,7 @@ pnpm --filter @ssoo/database build
 | 앱 | 빌드 결과 | 배포 대상 |
 |-----|----------|----------|
 | server | Docker Image | Cloud Run, ECS, EC2 |
-| web | Static/SSR | Vercel, Netlify, S3+CloudFront |
+| web-pms | Static/SSR | Vercel, Netlify, S3+CloudFront |
 | mobile (예정) | APK/IPA | App Store, Play Store |
 | desktop (예정) | .exe/.dmg | GitHub Releases |
 

@@ -232,8 +232,8 @@ REST API 명세서를 체계적으로 문서화했습니다.
 - `packages/database/prisma/schema.prisma` - 스키마 변경
 - `apps/server/src/menu/menu.service.ts` - 역할 기반 + 관리자 메뉴 분리
 - `apps/server/src/auth/*` - isAdmin 토큰 포함
-- `apps/web/src/stores/menu.store.ts` - generalMenus/adminMenus 분리
-- `apps/web/src/components/layout/sidebar/*` - 관리자 섹션 UI
+- `apps/web-pms/src/stores/menu.store.ts` - generalMenus/adminMenus 분리
+- `apps/web-pms/src/components/layout/sidebar/*` - 관리자 섹션 UI
 
 ---
 
@@ -443,7 +443,7 @@ const { hasRole, isAdmin } = useAuth();
 - `request-context.interceptor.ts`: `Observable<unknown>` 반환 확인 (이미 수정됨)
 
 **TYPE-05: 메뉴 타입 통합 검토**
-- 중복 없음 확인: `packages/types`(공통 엔티티) vs `apps/web/src/types`(프론트엔드 전용 UI)
+- 중복 없음 확인: `packages/types`(공통 엔티티) vs `apps/web-pms/src/types`(프론트엔드 전용 UI)
 - 현 구조 유지 결정
 
 ---
@@ -495,7 +495,7 @@ const { hasRole, isAdmin } = useAuth();
 ### 🔧 개선: 하드코딩 URL 제거 (IMM-02)
 
 **변경:**
-- `apps/web/src/stores/menu.store.ts`
+- `apps/web-pms/src/stores/menu.store.ts`
 - `fetch('http://localhost:4000/api/menus/my')` → `apiClient.get('/menus/my')`
 
 **추가 개선:**

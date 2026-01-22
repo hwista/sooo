@@ -1,4 +1,4 @@
-# Phase 1.5: apps/web 분석
+# Phase 1.5: apps/web-pms 분석
 
 > 분석일: 2026-01-20  
 > 상태: 완료
@@ -26,7 +26,7 @@
 ### 디렉터리 구조
 
 ```
-apps/web/src/
+apps/web-pms/src/
 ├── app/                           # Next.js App Router
 │   ├── (auth)/                    # 인증 라우트 그룹
 │   │   ├── layout.tsx
@@ -429,7 +429,7 @@ app/
 ## 6. 전체 구조 다이어그램
 
 ```
-apps/web/
+apps/web-pms/
 ├── package.json             ✅ Next.js 15 + React 19
 ├── tsconfig.json            ✅ Bundler resolution
 │

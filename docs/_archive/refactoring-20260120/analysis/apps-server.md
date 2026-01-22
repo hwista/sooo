@@ -396,7 +396,7 @@ apps/server/
 
 ## 📎 다음 단계
 
-→ [Phase 1.5: apps/web 분석](apps-web.md)
+→ [Phase 1.5: apps/web-pms 분석](apps-web.md)
 
 ---
 

@@ -7,6 +7,8 @@ SSOO 백엔드 서버의 REST API 명세 문서입니다.
 - **Base URL**: `/api`
 - **Content-Type**: `application/json`
 - **인증 방식**: JWT Bearer Token
+- **OpenAPI JSON**: `/api/openapi.json`
+- **API Reference UI**: `/docs/api-reference` (ReDoc)
 
 ## 응답 형식
 
@@ -141,6 +143,7 @@ Authorization: Bearer <access_token>
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | ReDoc 기반 API Reference 경로 추가 |
 | 2026-01-21 | Project/User/Menu API 명세 정합화 |
 | 2026-01-21 | Health API 문서 추가 |
 | 2026-01-21 | API 명세서 최초 작성 (auth, menu, user, project) |
