@@ -166,8 +166,8 @@
 | 4 | **트리거 SQL 작성** | `prisma/triggers/{nn}_{entity}_h_trigger.sql` | ✅ |
 | 5 | **apply-triggers.ts 업데이트** | `scripts/apply-triggers.ts` 파일 목록에 추가 | ✅ |
 | 6 | **트리거 설치** | `npx ts-node scripts/apply-triggers.ts` 실행 | ✅ |
-| 7 | **테이블 정의서 문서화** | `docs/database/tables/{entity}.md` | ✅ |
-| 8 | **README 테이블 목록 업데이트** | `docs/database/README.md` 테이블 목록 반영 | ✅ |
+| 7 | **테이블 정의서 문서화** | `docs/pms/database/tables/{entity}.md` | ✅ |
+| 8 | **README 테이블 목록 업데이트** | `docs/pms/database/README.md` 테이블 목록 반영 | ✅ |
 
 ### 6.2 작업 순서 (권장)
 
@@ -187,7 +187,7 @@
    ↓
 6. 트리거 설치 스크립트 실행
    ↓
-7. 테이블 정의서 작성 (docs/database/tables/)
+7. 테이블 정의서 작성 (docs/pms/database/tables/)
    ↓
 8. README.md 테이블 목록 업데이트
 ```

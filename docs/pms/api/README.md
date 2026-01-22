@@ -130,7 +130,7 @@ Authorization: Bearer <access_token>
 
 | ID | 항목 | 우선순위 | 상태 |
 |----|------|----------|------|
-| API-01 | Health Check API 문서화 | P3 | 🔲 대기 |
+| API-01 | Health Check API 문서화 | P3 | ✅ 완료 |
 | API-02 | 에러 응답 상세 코드 정의 | P2 | 🔲 대기 |
 | API-03 | API 버전 관리 정책 수립 | P4 | 🔲 대기 |
 

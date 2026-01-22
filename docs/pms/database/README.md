@@ -128,10 +128,10 @@ node ./node_modules/prisma/build/index.js migrate dev --name <migration_name>
 > - DDL 파일은 참조용 문서로 유지
 
 ### DDL 파일 위치 (참조용)
-- `docs/database/tables/ddl/`
+- `docs/pms/database/tables/ddl/`
 
 ### Seed 데이터 위치
-- `docs/database/tables/seeds/`
+- `docs/pms/database/tables/seeds/`
   - `user_code.sql` - 사용자 관련 코드 (USER_TYPE, USER_STATUS, USER_ROLE 등)
   - `user_initial_admin.sql` - 초기 관리자 계정
   - `project_stauts_code.sql` - 프로젝트 상태 코드
@@ -225,7 +225,7 @@ npx ts-node scripts/apply-triggers.ts
 ```powershell
 cd packages/database
 # 파일 실행
-npx ts-node scripts/run-sql.ts --file ../../docs/database/tables/seeds/menu_data.sql
+npx ts-node scripts/run-sql.ts --file ../../docs/pms/database/tables/seeds/menu_data.sql
 
 # 쿼리 실행
 npx ts-node scripts/run-sql.ts --query "SELECT * FROM cm_menu_m"
@@ -255,7 +255,17 @@ npx ts-node scripts/run-sql.ts --query "SELECT * FROM cm_menu_m"
 
 ---
 
-## 8) 참고 문서
+## 8) 확장 예정 테이블
+
+> 현재 Prisma 스키마에는 포함되지 않으며, 필요 시 도입한다.
+
+| 테이블 | 설명 | 정의서 |
+|--------|------|--------|
+| `cm_dept_menu_r` | 부서별 메뉴 권한 (확장용) | [cm_dept_menu.md](./tables/cm_dept_menu.md) |
+
+---
+
+## 9) 참고 문서
 - [Database Design Rules](./rules.md)
 - [History Management Guide](./history-management.md)
 - [Prisma Schema](../../../packages/database/prisma/schema.prisma)

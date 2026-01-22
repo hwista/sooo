@@ -125,10 +125,10 @@ cd apps/server
 pnpm run seed
 
 # 메뉴 데이터 입력 (SQL)
-psql -U postgres -d ssoo -f ../../docs/database/tables/seeds/menu_data.sql
-psql -U postgres -d ssoo -f ../../docs/database/tables/seeds/role_menu_permission.sql
-psql -U postgres -d ssoo -f ../../docs/database/tables/seeds/user_code.sql
-psql -U postgres -d ssoo -f ../../docs/database/tables/seeds/user_initial_admin.sql
+psql -U postgres -d ssoo -f ../../docs/pms/database/tables/seeds/menu_data.sql
+psql -U postgres -d ssoo -f ../../docs/pms/database/tables/seeds/role_menu_permission.sql
+psql -U postgres -d ssoo -f ../../docs/pms/database/tables/seeds/user_code.sql
+psql -U postgres -d ssoo -f ../../docs/pms/database/tables/seeds/user_initial_admin.sql
 ```
 
 **기본 관리자 계정:**

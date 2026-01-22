@@ -66,7 +66,7 @@ docs/
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/database/*` | `docs/pms/database/*` | PMS |
+| `docs/pms/database/*` | `docs/pms/database/*` | PMS |
 
 ### UI/테스트
 
