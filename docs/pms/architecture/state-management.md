@@ -271,7 +271,7 @@ interface SidebarState {
   expandedMenuIds: string[];          // 펼쳐진 메뉴 ID 목록
 }
 
-type SidebarSection = 'favorites' | 'openTabs' | 'menuTree' | 'admin';
+type SidebarSection = 'search' | 'favorites' | 'openTabs' | 'menuTree' | 'admin';
 ```
 
 ### Actions
@@ -297,7 +297,7 @@ type SidebarSection = 'favorites' | 'openTabs' | 'menuTree' | 'admin';
 ┌────────────────────┐
 │  Header (로고)      │
 ├────────────────────┤
-│  Search (검색)      │  ← 고정
+│  Search (검색)      │  ← 고정 (섹션 포함)
 ├────────────────────┤
 │  ┌ 즐겨찾기         │  ↕
 │  ├ 현재 열린 페이지  │  스
@@ -405,6 +405,7 @@ window.addEventListener('resize', () => {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-22 | Sidebar 섹션 타입에 search 추가 정합화 |
 | 2026-01-21 | 메뉴 응답 필드명 정합화 (menuId/icon/menuLevel/parentMenuId) |
 | 2026-01-21 | 즐겨찾기 순서 변경 항목 제거 (API 미지원) |
 | 2026-01-21 | 상태 관리 문서 최초 작성 |

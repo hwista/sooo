@@ -11,7 +11,7 @@ SSOO 프론트엔드의 레이아웃 구조 및 컴포넌트 문서입니다.
 │             │                Header (60px)               │
 │             ├────────────────────────────────────────────┤
 │   Sidebar   │              TabBar (53px)                 │
-│  (60/240px) ├────────────────────────────────────────────┤
+│  (56/340px) ├────────────────────────────────────────────┤
 │             │                                            │
 │             │             ContentArea                     │
 │             │                                            │
@@ -21,17 +21,21 @@ SSOO 프론트엔드의 레이아웃 구조 및 컴포넌트 문서입니다.
 
 ## 주요 치수
 
+- TabBar 컨테이너 높이: 53px
+
 ```typescript
 const LAYOUT_SIZES = {
   sidebar: {
-    expandedWidth: 240,   // 펼친 사이드바
-    collapsedWidth: 60,   // 접은 사이드바
+    expandedWidth: 340,   // 펼친 사이드바
+    collapsedWidth: 56,   // 접은 사이드바
   },
   header: {
     height: 60,           // 상단 헤더
   },
   tabBar: {
-    height: 53,           // 탭바
+    height: 36,           // 탭 컨트롤 높이 (컨테이너는 53px)
+    tabMinWidth: 120,
+    tabMaxWidth: 200,
   },
 };
 ```
@@ -112,7 +116,7 @@ MainSidebar/
 
 ### 상태별 구조
 
-#### 펼친 상태 (240px)
+#### 펼친 상태 (340px)
 
 ```
 ┌─────────────────────┐
@@ -139,7 +143,7 @@ MainSidebar/
 └─────────────────────┘
 ```
 
-#### 접힌 상태 (60px)
+#### 접힌 상태 (56px)
 
 ```
 ┌────┐
@@ -160,9 +164,9 @@ MainSidebar/
 
 ```typescript
 const FLOAT_PANEL_CONFIG = {
-  width: 280,
-  openDelay: 200,   // hover 후 200ms 후 열림
-  closeDelay: 150,  // leave 후 150ms 후 닫힘
+  width: 288,      // w-72 기준
+  openDelay: 100,  // hover 후 100ms 후 열림
+  closeDelay: 300, // leave 후 300ms 후 닫힘
 };
 ```
 
@@ -308,7 +312,7 @@ const pageComponents = {
 
 ### 타입 정의
 
-- `apps/web-pms/src/types/layout.types.ts`
+- `apps/web-pms/src/types/layout.ts`
 
 ## 관련 문서
 
@@ -336,6 +340,7 @@ const pageComponents = {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-22 | 사이드바/탭바 치수 및 플로팅 패널 설정 정합화 |
 | 2026-01-21 | 레이아웃 시스템 문서 최초 작성 |
 | 2026-01-21 | 사이드바 스크롤 영역 검색란 아래로 한정 |
 | 2026-01-21 | 사이드바 하단 카피라이트 영역 추가 |
