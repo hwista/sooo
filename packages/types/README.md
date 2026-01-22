@@ -21,7 +21,7 @@
 │   └── src/project.ts
 ├── server → import from '@ssoo/types'
 └── web → import from '@ssoo/types'
-    └── 장점: 타입 100% 동기화, 컴파일 타임 검증
+    └── 장점: 공유 기준 통일, 컴파일 타임 검증
 ```
 
 ---
@@ -135,6 +135,21 @@ interface Project {
 interface CreateProjectDto { ... }
 interface UpdateProjectDto { ... }
 ```
+
+---
+
+## ✅ 타입 커버리지 기준
+
+`@ssoo/types`는 **API 계약/DTO/뷰 모델**에 초점을 둡니다.  
+DB 스키마와 1:1 매핑이 아닌 경우가 있으므로, 아래 표로 범위를 관리합니다.
+
+| 타입 | 대상 | 상태 | 비고 |
+|------|------|------|------|
+| `User` | Prisma `User` (cm_user_m) | partial | 인증/프로필 핵심 필드만 노출 |
+| `Project` | Prisma `Project` (pr_project_m) | partial | 핵심 상태/소유자 중심 |
+| `Customer` | - | planned | DB 모델 미정(계획 단계) |
+
+> DB 필드와 1:1 매핑이 필요한 타입은 상태를 `aligned`로 명시합니다.
 
 ---
 

@@ -275,12 +275,17 @@ export type ProjectStageCode = 'waiting' | 'in_progress' | 'done';
 ### 3. 타입 동기화 원칙
 
 ```
-⚠️ 중요: DB 스키마와 @ssoo/types는 항상 동기화 필수
+⚠️ 중요: @ssoo/types는 "API 계약/DTO/뷰 모델" 중심이다.
 
-1. Prisma 스키마 변경 시 → @ssoo/types 확인
-2. @ssoo/types 변경 시 → Prisma 스키마 확인
+1. DB와 1:1 매핑 타입 → 반드시 Prisma와 동기화
+2. 부분 노출 타입 → packages/types/README.md에 커버리지 상태 명시
 3. 코드 값(리터럴)은 한 곳에서 정의 (Single Source of Truth)
 ```
+
+**커버리지 관리 기준**
+- `aligned`: DB 스키마와 필드가 동일
+- `partial`: API에 필요한 부분만 노출
+- `planned`: 스키마/도메인 확정 전
 
 ---
 
