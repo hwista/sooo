@@ -214,6 +214,10 @@ PR 생성 전 자체 점검:
 pnpm run lint
 ```
 
+> WSL에서 Windows Node를 사용하는 경우 `.husky/_/node` shim을 통해 `node`를 해석합니다.
+> pnpm이 Windows 경로(`/mnt/c/*`)일 경우 Windows 경로(`C:\\nvm4w\\nodejs\\node_modules\\pnpm\\bin\\pnpm.cjs`)로 대체 실행합니다.
+> commitlint는 필요 시 `wslpath -w`로 변환한 경로를 사용합니다.
+
 ```json
 // lint-staged.config.js
 {
@@ -259,6 +263,10 @@ npx --no -- commitlint --edit "$1"
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | Husky hook에서 Windows 경로 변환 처리 추가 |
+| 2026-01-21 | Husky hook에서 Windows pnpm/npx 경로 우회 처리 |
+| 2026-01-21 | Husky hook pnpm fallback 경로 추가 |
+| 2026-01-21 | Husky hook에 WSL Node shim 경로 추가 |
 | 2026-01-21 | Husky hook Node/pnpm 가드 추가 및 예시 업데이트 |
 | 2026-01-21 | 작업 프로세스 가이드 최초 작성 |
 | 2026-01-21 | 분산형 문서 관리 체계 도입 |
