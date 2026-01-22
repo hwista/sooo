@@ -1,5 +1,13 @@
 # Action — 사용자 로그인 (User Login)
 
+## 구현 상태
+
+- 상태: 부분 구현
+- 현재 기준:
+  - AuthController/Service 기준 로그인, 토큰 갱신/로그아웃 구현됨.
+  - 문서 내 정책(계정 잠금 등)은 코드 반영 여부 미확인.
+
+
 ## 1. 개요
 
 시스템 사용자(`status_code = 'active'`)가 로그인하여 JWT 토큰을 발급받는 플로우입니다.
@@ -380,7 +388,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 
 ## 11. 테스트 케이스 (Quick Check)
 
-> 상세 테스트 시나리오: [login.test.md](../../tests/auth/login.test.md)
+> 상세 테스트 시나리오: [login.test.md](../../tests/auth/login.md)
 
 | ID | 테스트 케이스 | 우선순위 | 상태 |
 |----|--------------|---------|------|
@@ -402,4 +410,4 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 - [사용자 인증 워크플로우](../workflows/user_authentication.md)
 - [cm_user 테이블 정의서](../../database/tables/cm_user.md)
 - [사용자 초대 플로우](./user_invitation.md)
-- [로그인 테스트 상세](../../tests/auth/login.test.md)
+- [로그인 테스트 상세](../../tests/auth/login.md)

@@ -258,9 +258,9 @@ npx ts-node scripts/run-sql.ts --query "SELECT * FROM cm_menu_m"
 ## 8) 참고 문서
 - [Database Design Rules](./rules.md)
 - [History Management Guide](./history-management.md)
-- [Prisma Schema](../../packages/database/prisma/schema.prisma)
-- [User Invitation Flow](../service/actions/user_invitation.md)
-- [User Login Flow](../service/actions/user_login.md)
+- [Prisma Schema](../../../packages/database/prisma/schema.prisma)
+- [User Invitation Flow](../domain/actions/user_invitation.md)
+- [User Login Flow](../domain/actions/user_login.md)
 
 ---
 

@@ -2,7 +2,7 @@
 
 > 작성일: 2026-01-21  
 > 상태: 적용 완료  
-> 목적: PMS/DMS 통합 전 문서 구조를 표준화하고 이관 기준을 확정
+> 목적: PMS 문서를 기준으로 구조를 정리하고 이관 기준을 확정
 
 ---
 
@@ -10,24 +10,21 @@
 
 ```
 docs/
-  common/            # 공통 규칙/프로세스/표준
   pms/               # 프로젝트 관리 시스템 문서
-  dms/               # 도큐먼트 관리 시스템 문서
-  api/               # 공용 API 문서
-  architecture/      # 공통 아키텍처
-  database/          # DB 설계/스키마
-  _archive/          # 아카이브
+  pms/common/        # PMS 공통 가이드/프로세스/운영
+  pms/api/           # PMS API 문서
+  pms/architecture/  # PMS 아키텍처
+  pms/database/      # PMS DB 설계/스키마
+  pms/_archive/      # PMS 아카이브
 ```
 
 ---
 
 ## 이관 원칙
 
-1. **공통 문서는 common**으로 이동
-2. **PMS 전용 문서는 pms**로 이동
-3. **DMS 문서는 dms**에 신규 작성
-4. **API/DB/Architecture는 루트 유지**, PMS UI/테스트 문서는 pms로 이동
-5. 이관은 **문서 단위로 체크포인트 커밋**
+1. **현재 문서는 PMS 기준으로 정리**하고 `docs/pms`에 수렴
+2. **공통 분리는 보류**하고 필요 시 동일 문서를 복제 유지
+3. 이관은 **문서 단위로 체크포인트 커밋**
 
 ---
 
@@ -37,11 +34,11 @@ docs/
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/README.md` | `docs/common/README.md` | 공통 허브(기존) |
-| `docs/SETUP.md` | `docs/common/setup.md` | 공통 가이드 |
-| `docs/ROADMAP.md` | `docs/common/roadmap.md` | 공통 로드맵 |
-| `docs/BACKLOG.md` | `docs/common/backlog.md` | 공통 백로그 |
-| `docs/CHANGELOG.md` | `docs/common/changelog.md` | 공통 변경 이력 |
+| `docs/README.md` | `docs/README.md` | 허브 유지 |
+| `docs/SETUP.md` | `docs/pms/common/setup.md` | PMS 공통 |
+| `docs/ROADMAP.md` | `docs/pms/common/roadmap.md` | PMS 공통 |
+| `docs/BACKLOG.md` | `docs/pms/common/backlog.md` | PMS 공통 |
+| `docs/CHANGELOG.md` | `docs/pms/common/changelog.md` | PMS 공통 |
 
 ### 도메인
 
@@ -57,19 +54,19 @@ docs/
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/architecture/*` | `docs/architecture/*` | 공통 유지 |
+| `docs/architecture/*` | `docs/pms/architecture/*` | PMS |
 
 ### API
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/api/*` | `docs/api/*` | 공통 유지 |
+| `docs/api/*` | `docs/pms/api/*` | PMS |
 
 ### DB
 
 | 현재 경로 | 대상 경로 | 구분 |
 |---|---|---|
-| `docs/database/*` | `docs/database/*` | 공통 유지 |
+| `docs/database/*` | `docs/pms/database/*` | PMS |
 
 ### UI/테스트
 
@@ -83,7 +80,7 @@ docs/
 ## 실행 단계
 
 1. **이관 매핑 확정** (이 문서 기준)
-2. **폴더 생성**: `docs/common`, `docs/pms`, `docs/dms`
+2. **폴더 정리**: `docs/pms`로 구조 수렴
 3. **문서 이동** + 링크/인덱스 갱신
 4. **CHANGELOG/README 업데이트**
 5. **체크포인트 커밋**
@@ -94,17 +91,17 @@ docs/
 
 | 날짜 | 내용 | 상태 |
 |------|------|------|
-| 2026-01-21 | common/pms/dms 폴더 생성 및 문서 이동 | ✅ |
-| 2026-01-21 | 인덱스/링크/CHANGELOG 정리 | ✅ |
+| 2026-01-21 | PMS 기준 구조로 문서 이동 | ✅ |
+| 2026-01-21 | 인덱스/링크 정리 | ✅ |
 
 ---
 
 ## 적용 결과 요약
 
 - `docs/tests`, `docs/ui-design`은 `docs/pms`로 이동
-- 루트 문서는 `docs/common`으로 이동
-- `docs/api`, `docs/architecture`, `docs/database`는 루트 유지
-- 새 `docs/README.md`는 구조 허브로 재작성
+- `docs/api`, `docs/architecture`, `docs/database`, `docs/_archive`는 `docs/pms`로 이동
+- PMS 공통 문서는 `docs/pms/common`에 정리
+- `docs/README.md`는 구조 허브로 재작성
 
 ---
 
@@ -113,9 +110,9 @@ docs/
 | ID | 항목 | 우선순위 | 상태 |
 |----|------|----------|------|
 | DOCS-01 | 문서 구조 이관 매핑 확정 | P1 | ✅ 완료 |
-| DOCS-02 | common/pms/dms 폴더 생성 | P1 | ✅ 완료 |
+| DOCS-02 | PMS 기준 구조 수렴 | P1 | ✅ 완료 |
 | DOCS-03 | 문서 이동 및 링크 정리 | P1 | ✅ 완료 |
-| DOCS-04 | 문서 인덱스/CHANGELOG 갱신 | P1 | ✅ 완료 |
+| DOCS-04 | 문서 인덱스 갱신 | P1 | ✅ 완료 |
 
 ---
 

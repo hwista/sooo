@@ -1,5 +1,13 @@
 # Workflow — 사용자 인증 (User Authentication)
 
+## 구현 상태
+
+- 상태: 부분 구현
+- 현재 기준:
+  - AuthController 기준 로그인/토큰/로그아웃 구현됨.
+  - 문서 내 일부 정책/리다이렉트 규칙은 UI 확인 필요.
+
+
 ## 1. 개요
 
 사용자 인증 워크플로우는 로그인, 토큰 갱신, 로그아웃을 포함합니다.
@@ -58,22 +66,22 @@
 
 | 파일 | 역할 |
 |------|------|
-| [apps/web-pms/src/app/login/page.tsx](../../../apps/web-pms/src/app/login/page.tsx) | 로그인 페이지 UI |
-| [apps/web-pms/src/app/dashboard/page.tsx](../../../apps/web-pms/src/app/dashboard/page.tsx) | 로그인 후 메인 페이지 |
-| [apps/web-pms/src/stores/auth.store.ts](../../../apps/web-pms/src/stores/auth.store.ts) | Zustand 인증 상태 관리 |
-| [apps/web-pms/src/lib/api/client.ts](../../../apps/web-pms/src/lib/api/client.ts) | Axios 클라이언트 (자동 토큰 갱신) |
-| [apps/web-pms/src/lib/api/auth.ts](../../../apps/web-pms/src/lib/api/auth.ts) | 인증 API 호출 함수 |
+| [apps/web-pms/src/app/(auth)/login/page.tsx][pms-login-page] | 로그인 페이지 UI |
+| [apps/web-pms/src/app/(main)/page.tsx][pms-main-page] | 로그인 후 메인 페이지 |
+| [apps/web-pms/src/stores/auth.store.ts](../../../../apps/web-pms/src/stores/auth.store.ts) | Zustand 인증 상태 관리 |
+| [apps/web-pms/src/lib/api/client.ts](../../../../apps/web-pms/src/lib/api/client.ts) | Axios 클라이언트 (자동 토큰 갱신) |
+| [apps/web-pms/src/lib/api/auth.ts](../../../../apps/web-pms/src/lib/api/auth.ts) | 인증 API 호출 함수 |
 
 ### 3.2 Backend (NestJS)
 
 | 파일 | 역할 |
 |------|------|
-| [apps/server/src/auth/auth.module.ts](../../../apps/server/src/auth/auth.module.ts) | 인증 모듈 정의 |
-| [apps/server/src/auth/auth.service.ts](../../../apps/server/src/auth/auth.service.ts) | 로그인/토큰 갱신/로그아웃 로직 |
-| [apps/server/src/auth/auth.controller.ts](../../../apps/server/src/auth/auth.controller.ts) | API 엔드포인트 |
-| [apps/server/src/auth/strategies/jwt.strategy.ts](../../../apps/server/src/auth/strategies/jwt.strategy.ts) | JWT 검증 전략 |
-| [apps/server/src/auth/guards/jwt-auth.guard.ts](../../../apps/server/src/auth/guards/jwt-auth.guard.ts) | 인증 가드 |
-| [apps/server/src/user/user.service.ts](../../../apps/server/src/user/user.service.ts) | 사용자 조회/업데이트 |
+| [apps/server/src/auth/auth.module.ts](../../../../apps/server/src/auth/auth.module.ts) | 인증 모듈 정의 |
+| [apps/server/src/auth/auth.service.ts](../../../../apps/server/src/auth/auth.service.ts) | 로그인/토큰 갱신/로그아웃 로직 |
+| [apps/server/src/auth/auth.controller.ts](../../../../apps/server/src/auth/auth.controller.ts) | API 엔드포인트 |
+| [apps/server/src/auth/strategies/jwt.strategy.ts](../../../../apps/server/src/auth/strategies/jwt.strategy.ts) | JWT 검증 전략 |
+| [apps/server/src/auth/guards/jwt-auth.guard.ts](../../../../apps/server/src/auth/guards/jwt-auth.guard.ts) | 인증 가드 |
+| [apps/server/src/user/user.service.ts](../../../../apps/server/src/user/user.service.ts) | 사용자 조회/업데이트 |
 
 ### 3.3 BigInt 처리 주의사항
 
@@ -206,6 +214,9 @@ interface AuthState {
   clearAuth: () => void;
 }
 ```
+
+[pms-login-page]: ../../../../apps/web-pms/src/app/(auth)/login/page.tsx
+[pms-main-page]: ../../../../apps/web-pms/src/app/(main)/page.tsx
 
 ### 로컬 스토리지 영속화
 - 키: `ssoo-auth`

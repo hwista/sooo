@@ -2,4 +2,7 @@
 
 도큐먼트 관리 시스템(DMS) 관련 문서를 관리합니다.
 
-> 초기 통합 준비 단계로, 문서는 도입 이후 작성합니다.
+## 목록
+
+- [common/](common/) - DMS 공통 문서
+- [architecture/](architecture/) - DMS 아키텍처/통합 계획

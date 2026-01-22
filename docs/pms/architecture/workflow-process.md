@@ -28,13 +28,13 @@ SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 
 | 작업 유형 | 업데이트 대상 문서 |
 |----------|-------------------|
-| API 변경 | `docs/api/README.md` |
-| 레이아웃/UI 변경 | `docs/architecture/layout-system.md` |
-| Store 변경 | `docs/architecture/state-management.md` |
-| 컴포넌트 변경 | `docs/architecture/ui-components.md` |
-| 유틸리티 변경 | `docs/architecture/utilities.md` |
-| 인증 변경 | `docs/architecture/auth-system.md` |
-| DB 변경 | `docs/database/README.md` |
+| API 변경 | `docs/pms/api/README.md` |
+| 레이아웃/UI 변경 | `docs/pms/architecture/layout-system.md` |
+| Store 변경 | `docs/pms/architecture/state-management.md` |
+| 컴포넌트 변경 | `docs/pms/architecture/ui-components.md` |
+| 유틸리티 변경 | `docs/pms/architecture/utilities.md` |
+| 인증 변경 | `docs/pms/architecture/auth-system.md` |
+| DB 변경 | `docs/pms/database/README.md` |
 
 ### 3단계: Git 커밋
 
@@ -78,12 +78,12 @@ SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 
 | 파일 | 역할 |
 |------|------|
-| `docs/common/changelog.md` | 최근 변경 요약 + 영역별 링크 |
-| `docs/common/backlog.md` | 우선순위 높은 항목 요약 + 영역별 링크 |
+| `docs/pms/common/changelog.md` | 최근 변경 요약 + 영역별 링크 |
+| `docs/pms/common/backlog.md` | 우선순위 높은 항목 요약 + 영역별 링크 |
 
 ### 아카이브 정책
 
-- 30일 이상 지난 변경 이력 → `docs/_archive/`로 이동
+- 30일 이상 지난 변경 이력 → `docs/pms/_archive/`로 이동
 - 완료된 백로그 중 30일 지난 항목 → 아카이브로 이동
 
 ---

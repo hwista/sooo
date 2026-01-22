@@ -1,5 +1,12 @@
 # Workflow Spec — Close Condition Workflow
 
+## 구현 상태
+
+- 상태: 미구현
+- 현재 기준:
+  - 관련 API/화면/서비스 미구현으로 문서가 스펙 상태입니다.
+
+
 ## 1. 범위
 - pr_project_close_condition_r_m: 종료 조건 체크리스트(프로젝트+status별)
 - pr_close_condition_group_m + pr_close_condition_group_item_r_m: 종료조건 템플릿 그룹

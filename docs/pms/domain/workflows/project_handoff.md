@@ -1,5 +1,12 @@
 # Workflow Spec — Project Lifecycle (Request/Proposal ↔ Execution/Transition)
 
+## 구현 상태
+
+- 상태: 미구현
+- 현재 기준:
+  - 관련 API/화면/서비스 미구현으로 문서가 스펙 상태입니다.
+
+
 ## 1. 범위
 - 대상 테이블
   - pr_project_m / pr_project_h

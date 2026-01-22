@@ -1,6 +1,6 @@
 # 테스트 케이스 — 로그인 (Login)
 
-**관련 액션**: [user_login.md](../../service/actions/user_login.md)  
+**관련 액션**: [user_login.md](../../domain/actions/user_login.md)  
 **마지막 업데이트**: 2026-01-17  
 **테스트 상태**: ✅ 수동 테스트 완료
 
