@@ -239,7 +239,7 @@ npx --no -- commitlint --edit "$1"
 
 ## 관련 문서
 
-- [개발 표준](../refactoring/DEVELOPMENT_STANDARDS.md)
+- [개발 표준](./development-standards.md)
 - [프론트엔드 표준](./frontend-standards.md)
 - [DB 규칙](../database/rules.md)
 
@@ -263,6 +263,7 @@ npx --no -- commitlint --edit "$1"
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-21 | 개발 표준 문서 위치를 architecture로 이동 |
 | 2026-01-21 | Husky hook에서 Windows 경로 변환 처리 추가 |
 | 2026-01-21 | Husky hook에서 Windows pnpm/npx 경로 우회 처리 |
 | 2026-01-21 | Husky hook pnpm fallback 경로 추가 |

@@ -239,8 +239,8 @@
 ## 📊 품질 현황
 
 > 현재 평균 점수: **9.48/10** (Phase 3 완료)  
-> 상세 분석: [refactoring/analysis/code-quality.md](refactoring/analysis/code-quality.md)  
-> 최종 보고서: [refactoring/results/FINAL_REPORT.md](refactoring/results/FINAL_REPORT.md)
+> 상세 분석: [refactoring-20260120/analysis/code-quality.md](refactoring-20260120/analysis/code-quality.md)  
+> 최종 보고서: [refactoring-20260120/results/FINAL_REPORT.md](refactoring-20260120/results/FINAL_REPORT.md)
 
 ---
 
@@ -263,4 +263,4 @@
 - [ROADMAP.md](ROADMAP.md) - 제품 로드맵
 - [CHANGELOG.md](CHANGELOG.md) - 변경 이력
 - [architecture/security-standards.md](architecture/security-standards.md) - 보안 표준
-- [refactoring/REFACTORING_MASTER_PLAN.md](refactoring/REFACTORING_MASTER_PLAN.md) - 리팩토링 마스터 플랜
+- [refactoring-20260120/REFACTORING_MASTER_PLAN.md](refactoring-20260120/REFACTORING_MASTER_PLAN.md) - 리팩토링 마스터 플랜
