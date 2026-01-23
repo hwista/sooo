@@ -16,10 +16,10 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
       envFilePath: ['.env.local', '.env'],
       validationSchema: configValidationSchema,
     }),
-    ThrottlerModule.forRoot({
-      ttl: 60,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
       limit: 100,
-    }),
+    }]),
     DatabaseModule,
     CommonModule,
     PmsModule,

@@ -8,6 +8,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "default": "./dist/common/index.js"
+    },
+    "./pms": {
+      "types": "./dist/pms/index.d.ts",
+      "default": "./dist/pms/index.js"
     }
   },
   "scripts": {

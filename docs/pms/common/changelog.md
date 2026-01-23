@@ -31,8 +31,10 @@
 
 | 시간 | 커밋 | 영역 | 변경 내용 |
 |------|------|------|----------|
+| - | - | 구조 | @ssoo/types 패키지를 subpath exports 구조로 재편 (`@ssoo/types/common`, `@ssoo/types/pms`) |
+| - | - | 구조 | @ssoo/types-pms 패키지 삭제 (types/pms로 통합) |
 | - | - | 구조 | 프론트엔드 디렉토리 구조 재편 (apps/web-pms → apps/web/pms, apps/web-dms → apps/web/dms) |
-| - | - | 구조 | @ssoo/types-pms 패키지 생성 (PMS 도메인 타입 분리) |
+| - | - | 수정 | @nestjs/throttler v6 API 호환성 수정 (@Throttle 데코레이터) |
 | - | - | 설정 | pnpm-workspace.yaml 경로 패턴 수정 (apps/server, apps/web/*) |
 
 ### 2026-01-22

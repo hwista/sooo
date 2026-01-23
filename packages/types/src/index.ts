@@ -1,8 +1,15 @@
+/**
+ * @ssoo/types - 공유 타입 패키지
+ *
+ * 사용법:
+ * - import { ApiResponse, User } from '@ssoo/types/common';
+ * - import { Project, Customer } from '@ssoo/types/pms';
+ *
+ * 하위 호환성을 위해 루트에서도 모든 타입을 re-export합니다.
+ */
+
 // Common Types
 export * from './common';
-export * from './user';
 
-// PMS Types (re-export for backward compatibility)
-// TODO: 점진적으로 @ssoo/types-pms로 마이그레이션 후 제거
-export * from './customer';
-export * from './project';
+// PMS Types
+export * from './pms';
