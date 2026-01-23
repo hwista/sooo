@@ -1,4 +1,4 @@
-# API 명세서
+﻿# API 명세서
 
 SSOO 백엔드 서버의 REST API 명세 문서입니다.
 
@@ -146,3 +146,37 @@ Authorization: Bearer <access_token>
 | 2026-01-21 | Health API 문서 추가 |
 | 2026-01-21 | API 명세서 최초 작성 (auth, menu, user, project) |
 | 2026-01-21 | 즐겨찾기 API 추가 (POST/DELETE /menus/favorites) |
+
+### Error response examples
+```json
+{
+  "success": false,
+  "error": { "code": "UNAUTHORIZED", "message": "Missing or invalid credentials." },
+  "timestamp": "2026-01-23T08:00:00.000Z"
+}
+```
+```json
+{
+  "success": false,
+  "error": { "code": "FORBIDDEN", "message": "You do not have permission." }
+}
+```
+```json
+{
+  "success": false,
+  "error": { "code": "NOT_FOUND", "message": "Resource not found.", "path": "/api/projects/123" }
+}
+```
+```json
+{
+  "success": false,
+  "error": { "code": "TOO_MANY_REQUESTS", "message": "Rate limit exceeded." }
+}
+```
+```json
+{
+  "success": false,
+  "error": { "code": "INTERNAL_ERROR", "message": "Internal server error" },
+  "timestamp": "2026-01-23T08:00:00.000Z"
+}
+```
