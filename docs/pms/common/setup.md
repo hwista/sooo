@@ -77,7 +77,7 @@ JWT_REFRESH_EXPIRES_IN="7d"
 
 ### 2. 웹 애플리케이션 환경 변수
 
-`apps/web-pms/.env.local` 생성:
+`apps/web/pms/.env.local` 생성:
 
 ```env
 # API 엔드포인트
@@ -149,7 +149,7 @@ pnpm install
 ```
 
 이 명령어는 모든 workspace의 의존성을 자동으로 설치합니다:
-- `apps/web-pms` (Next.js)
+- `apps/web/pms` (Next.js)
 - `apps/server` (NestJS)
 - `packages/database` (Prisma)
 - `packages/types` (TypeScript Types)
@@ -186,7 +186,7 @@ pnpm dev
 #### 프론트엔드 서버
 
 ```bash
-cd apps/web-pms
+cd apps/web/pms
 pnpm dev
 ```
 

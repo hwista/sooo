@@ -36,8 +36,9 @@
 ```
 apps/
   server/   # 공용 백엔드 (4000)
-  web-pms/  # 프로젝트 관리 (3000)
-  web-dms/  # 도큐먼트 관리 시스템 (3001)
+  web/
+    pms/    # 프로젝트 관리 (3000)
+    dms/    # 도큐먼트 관리 시스템 (3001)
 packages/
   types/
   ui/
@@ -129,10 +130,10 @@ apps/server/src/
 
 - `apps/server`: TypeDoc 설정 분리 (`typedoc.common.json`, `typedoc.pms.json`, `docs:typedoc`)
   - TypeDoc 출력(공용): `docs/common/reference/typedoc/server`
-  - TypeDoc 출력(PMS): `docs/pms/reference/typedoc/server`
-- `apps/web-pms`: TypeDoc/Storybook 설정 추가
-  - TypeDoc 출력: `docs/pms/reference/typedoc/web-pms`
+  - TypeDoc/pms`: TypeDoc/Storybook 설정 추가
+  - TypeDoc 출력: `docs/pms/reference/typedoc/web/pms`
   - Storybook 실행: `pnpm --filter web-pms storybook` (기본 포트 6006)
+  - Storybook 빌드 출력: `docs/pms/reference/storybook/web/ 포트 6006)
   - Storybook 빌드 출력: `docs/pms/reference/storybook/web-pms`
 - DMS는 생성된 결과물을 수집/렌더링하는 역할로 유지한다.
 - 서버 공용 설정: Joi 기반 환경변수 검증 적용 (JWT/DB 필수, 미설정 시 부팅 실패)
@@ -141,8 +142,8 @@ apps/server/src/
 
  - 공용 서버 레퍼런스(TypeDoc): `docs/common/reference/typedoc/server`
  - PMS 서버 레퍼런스(TypeDoc): `docs/pms/reference/typedoc/server`
- - PMS 웹 레퍼런스(TypeDoc): `docs/pms/reference/typedoc/web-pms`
- - PMS 레퍼런스(Storybook): `docs/pms/reference/storybook/web-pms`
+ - PMS 웹 레퍼런스(TypeDoc): `docs/pms/reference/typedoc/web/pms`
+ - PMS 레퍼런스(Storybook): `docs/pms/reference/storybook/web/pms`
 - 생성 결과는 **빌드 시점에 복제/수집**하여 DMS가 접근하도록 정리한다.
 
 ---

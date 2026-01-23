@@ -283,10 +283,10 @@ location.reload();
 - `apps/server/src/modules/common/auth/strategies/jwt.strategy.ts` - JWT 검증 전략
 
 ### 클라이언트
-- `apps/web-pms/src/stores/auth.store.ts` - 인증 상태 관리
-- `apps/web-pms/src/lib/api/auth.ts` - 인증 API 클라이언트
-- `apps/web-pms/src/lib/api/client.ts` - Axios 인터셉터 (자동 토큰 갱신)
-- `apps/web-pms/src/app/(main)/layout.tsx` - 인증 체크 및 라우팅
+- `apps/web/pms/src/stores/auth.store.ts` - 인증 상태 관리
+- `apps/web/pms/src/lib/api/auth.ts` - 인증 API 클라이언트
+- `apps/web/pms/src/lib/api/client.ts` - Axios 인터셉터 (자동 토큰 갱신)
+- `apps/web/pms/src/app/(main)/layout.tsx` - 인증 체크 및 라우팅
 
 ---
 
