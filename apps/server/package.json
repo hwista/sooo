@@ -27,7 +27,6 @@
     "@nestjs/websockets": "^10.4.0",
     "@ssoo/database": "workspace:*",
     "@ssoo/types": "workspace:*",
-    "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.0",
     "class-validator": "^0.14.0",
     "dayjs": "^1.11.0",
