@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { HealthController } from './modules/common/health/health.controller';
 import { ProjectModule } from './modules/pms/project/project.module';
 import { DatabaseModule } from './database/database.module';
@@ -9,6 +9,7 @@ import { UserModule } from './modules/common/user/user.module';
 import { MenuModule } from './modules/pms/menu/menu.module';
 import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
 import { configValidationSchema } from './config/config.validation';
+import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
 
 @Module({
   imports: [
@@ -29,6 +30,10 @@ import { configValidationSchema } from './config/config.validation';
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestContextInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalHttpExceptionFilter,
     },
   ],
 })

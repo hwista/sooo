@@ -1,10 +1,10 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { TokenPayload } from '../auth/interfaces/auth.interface';
-import { success, notFound } from '../../../common';
+import { success } from '../../../common';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -20,7 +20,7 @@ export class UserController {
     const user = await this.userService.findById(BigInt(currentUser.userId));
 
     if (!user) {
-      return notFound('사용자');
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
     }
 
     return success({

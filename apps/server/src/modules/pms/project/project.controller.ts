@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, NotFoundException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/auth/guards/roles.guard';
 import { ProjectService } from './project.service';
-import { success, paginated, notFound, deleted } from '../../../common';
+import { success, paginated, deleted } from '../../../common';
 import type {
   CreateProjectDto,
   UpdateProjectDto,
@@ -24,7 +24,7 @@ export class ProjectController {
   async findOne(@Param('id') id: string) {
     const project = await this.projectService.findOne(BigInt(id));
     if (!project) {
-      return notFound('프로젝트');
+      throw new NotFoundException('프로젝트를 찾을 수 없습니다.');
     }
     return success(project);
   }
@@ -42,7 +42,7 @@ export class ProjectController {
   ) {
     const project = await this.projectService.update(BigInt(id), dto);
     if (!project) {
-      return notFound('프로젝트');
+      throw new NotFoundException('프로젝트를 찾을 수 없습니다.');
     }
     return success(project);
   }
