@@ -2,7 +2,7 @@
   "entryPoints": ["src"],
   "entryPointStrategy": "expand",
   "tsconfig": "tsconfig.json",
-  "out": "../../docs/pms/reference/typedoc/web-pms",
+  "out": "../../../docs/pms/reference/typedoc/web",
   "excludePrivate": true,
   "excludeProtected": true,
   "excludeExternals": true
