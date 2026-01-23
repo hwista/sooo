@@ -335,6 +335,11 @@ const userId = user.id.toString();
 
 ### 1. 백엔드 에러 처리
 
+#### 1.0 전역 예외 필터
+- Nest `APP_FILTER`에 등록된 `GlobalHttpExceptionFilter`가 모든 예외를 `{ success: false, error: { code, message, path }, timestamp }` 포맷으로 응답한다.
+- 컨트롤러는 200 응답 객체를 직접 반환하지 말고 Nest 예외(`NotFoundException`, `UnauthorizedException` 등)를 `throw` 한다.
+- 성공 응답만 `success / paginated / deleted` 헬퍼를 사용한다.
+
 ```typescript
 // ✅ Good: NestJS 표준 예외 사용
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
