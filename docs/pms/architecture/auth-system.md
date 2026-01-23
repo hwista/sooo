@@ -319,3 +319,19 @@ location.reload();
 - JWT_SECRET, JWT_REFRESH_SECRET 필수 (ConfigModule Joi 검증)
 - JWT_ACCESS_EXPIRES_IN 기본 15m, JWT_REFRESH_EXPIRES_IN 기본 7d
 - PORT 기본 4000, CORS_ORIGIN 기본 http://localhost:3000
+
+---
+
+## Current policies snapshot (2026-01-23)
+- Token TTLs: access 15m, refresh 7d; stored refresh hash invalidated on logout.
+- Throttling: login 5/min, refresh 10/min; default 100/min.
+- Password & lockout: >=8 chars incl. upper/lower/number/special; 5 failed logins -> 30m lock.
+- Error contract: GlobalHttpExceptionFilter + ApiError/ApiSuccess; Swagger documents 401/403/404/429/500 with examples.
+- Module boundary: auth/user live in common module; no direct dependency from domain modules to each other.
+- BigInt handling: IDs remain bigint in DB; API outputs stringified IDs.
+
+## Docs maintenance
+- Keep this snapshot aligned after any auth/security change.
+- Update Swagger examples when error codes/messages change.
+- Reflect boundary/rate policies in lint/ruleset if modified.
+

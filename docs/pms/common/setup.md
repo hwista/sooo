@@ -322,3 +322,21 @@ pnpm --filter server build
 문제가 계속되면:
 - GitHub Issues: https://github.com/hwista/sooo/issues
 - 내부 문의: 개발팀
+
+---
+
+## Current backend snapshot (2026-01-23)
+
+- Module boundaries: common only for cross-domain sharing; pms domain isolated; cross-domain imports are forbidden (code review/lint).
+- Env validation: Joi requires DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET, JWT_ACCESS_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN.
+- Global error policy: GlobalHttpExceptionFilter + ApiError/ApiSuccess envelope; Swagger documents 401/403/404/429/500 for auth/user/menu/project/health.
+- Throttling: default 100/min; auth login 5/min; refresh 10/min (Throttler v6).
+- Auth policy: password >=8 chars incl. upper/lower/number/special; 5 failed logins -> 30m lock; refresh-token hash stored/invalidated on logout.
+- BigInt: DB keeps bigint; API responses stringify; use common/utils/bigint.util.ts; Prisma client typed bigint.
+- Seed default: admin/admin123! (change for non-dev).
+
+## To keep docs in sync
+1) After backend changes, update this snapshot section with new policy values.
+2) Run pnpm --filter server lint and Swagger build to ensure docs/examples match code.
+3) Record history in changelog; keep this file as current-state snapshot.
+
