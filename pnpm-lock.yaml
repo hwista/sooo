@@ -366,6 +366,15 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  packages/types-pms:
+    devDependencies:
+      rimraf:
+        specifier: ^6.0.0
+        version: 6.1.2
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
 packages:
 
   '@adobe/css-tools@4.4.4':
