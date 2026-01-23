@@ -430,3 +430,11 @@ useQuery({
 - [React TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app/)
 - [NestJS Best Practices](https://docs.nestjs.com/faq/common-errors)
 - [Prisma Best Practices](https://www.prisma.io/docs/guides/performance-and-optimization)
+
+
+## DB 접근 & BigInt 처리
+
+- Prisma 접근은 새 코드에서 db.client.<model> 사용을 권장합니다. 기존 db.user 등 getter는 호환용입니다.
+- ID는 BigInt로 저장하고, API 응답에서는 문자열로 직렬화합니다.
+- 헬퍼: pps/server/src/common/utils/bigint.util.ts (	oBigInt, 	oIdString, serializeBigIntShallow).
+- DTO/응답 타입은 @ssoo/types에 정의한 후 컨트롤러에서 직렬화해 반환합니다.
