@@ -23,6 +23,7 @@
     "@nestjs/platform-socket.io": "^10.4.0",
     "@nestjs/swagger": "^8.1.0",
     "@nestjs/terminus": "^10.2.0",
+    "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^10.4.0",
     "@ssoo/database": "workspace:*",
     "@ssoo/types": "workspace:*",

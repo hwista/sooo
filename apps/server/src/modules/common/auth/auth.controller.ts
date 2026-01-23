@@ -5,67 +5,73 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { TokenPayload } from './interfaces/auth.interface';
-import { success } from '../../../common';
+} from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { AuthService } from "./auth.service";
+import { LoginDto } from "./dto/login.dto";
+import { RefreshTokenDto } from "./dto/refresh-token.dto";
+import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { CurrentUser } from "./decorators/current-user.decorator";
+import { TokenPayload } from "./interfaces/auth.interface";
+import { success } from "../../../common";
 
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
-   * ë¡œê·¸ì¸
+   * ·Î±×ÀÎ
    * POST /api/auth/login
    */
-  @Post('login')
+  @Post("login")
   @HttpCode(HttpStatus.OK)
+  @Throttle(5, 60)
   async login(@Body() loginDto: LoginDto) {
     const tokens = await this.authService.login(loginDto);
-    return success(tokens, 'ë¡œê·¸ì¸ ì„±ê³µ');
+    return success(tokens, "·Î±×ÀÎ¿¡ ¼º°øÇß½À´Ï´Ù");
   }
 
   /**
-   * í† í° ê°±ì‹ 
+   * ÅäÅ« °»½Å
    * POST /api/auth/refresh
    */
-  @Post('refresh')
+  @Post("refresh")
   @HttpCode(HttpStatus.OK)
+  @Throttle(10, 60)
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     const tokens = await this.authService.refreshTokens(refreshTokenDto.refreshToken);
-    return success(tokens, 'í† í° ê°±ì‹  ì„±ê³µ');
+    return success(tokens, "ÅäÅ« °»½Å ¼º°ø");
   }
 
   /**
-   * ë¡œê·¸ì•„ì›ƒ
+   * ·Î±×¾Æ¿ô
    * POST /api/auth/logout
    */
-  @Post('logout')
+  @Post("logout")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async logout(@CurrentUser() user: TokenPayload) {
     await this.authService.logout(BigInt(user.userId));
-    return success(null, 'ë¡œê·¸ì•„ì›ƒ ì„±ê³µ');
+    return success(null, "·Î±×¾Æ¿ô ¼º°ø");
   }
 
   /**
-   * í˜„ì¬ ì‚¬ìš©ì ì •ë³´
+   * ÇöÀç »ç¿ëÀÚ Á¤º¸
    * POST /api/auth/me
    */
-  @Post('me')
+  @Post("me")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async me(@CurrentUser() user: TokenPayload) {
-    return success({
-      userId: user.userId,
-      loginId: user.loginId,
-      roleCode: user.roleCode,
-      userTypeCode: user.userTypeCode,
-      isAdmin: user.isAdmin,
-    }, 'ì‚¬ìš©ì ì •ë³´ ì¡°íšŒ ì„±ê³µ');
+    return success(
+      {
+        userId: user.userId,
+        loginId: user.loginId,
+        roleCode: user.roleCode,
+        userTypeCode: user.userTypeCode,
+        isAdmin: user.isAdmin,
+      },
+      "»ç¿ëÀÚ Á¤º¸ Á¶È¸ ¼º°ø",
+    );
   }
 }

@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { DatabaseModule } from './database/database.module';
 import { CommonModule } from './modules/common/common.module';
 import { PmsModule } from './modules/pms/pms.module';
 import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
 import { configValidationSchema } from './config/config.validation';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -14,6 +15,10 @@ import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filte
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
       validationSchema: configValidationSchema,
+    }),
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 100,
     }),
     DatabaseModule,
     CommonModule,
@@ -29,6 +34,10 @@ import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filte
     {
       provide: APP_FILTER,
       useClass: GlobalHttpExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
