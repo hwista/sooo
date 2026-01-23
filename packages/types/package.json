@@ -21,9 +21,11 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "docs:typedoc": "typedoc --options typedoc.json"
   },
   "devDependencies": {
+    "typedoc": "^0.28.0",
     "typescript": "^5.7.0",
     "rimraf": "^6.0.0"
   }
