@@ -7,7 +7,34 @@
 
 ---
 
-## 2) Connection Info
+## 2) PostgreSQL Schema 구조
+
+### 스키마 분리 (Multi-Schema)
+도메인별 테이블 분리를 위해 PostgreSQL 스키마를 사용합니다.
+
+| 스키마 | 접두사 | 설명 | 테이블 수 |
+|--------|--------|------|-----------|
+| `common` | `cm_` | 공통 기능 (코드, 사용자, 메뉴) | 11개 |
+| `pms` | `pr_` | 프로젝트 관리 시스템 | 18개 |
+| `dms` | `dm_` | 문서 관리 시스템 (미래 확장) | 0개 |
+
+### Prisma multiSchema 설정
+```prisma
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["common", "pms", "dms"]
+}
+```
+
+---
+
+## 3) Connection Info
 
 ### 개발 환경 (Local)
 | 항목 | 값 |
@@ -17,16 +44,16 @@
 | Database | `appdb` |
 | User | `appuser` |
 | Password | `app_pw` |
-| Schema | `public` |
+| Schemas | `common`, `pms`, `dms` |
 
 ### Connection String
 ```
-postgresql://appuser:app_pw@localhost:5432/appdb?schema=public
+postgresql://appuser:app_pw@localhost:5432/appdb?schema=common
 ```
 
 ---
 
-## 3) Roles / Users
+## 4) Roles / Users
 - **Application DB User**: `appuser`
 - **Purpose**: 애플리케이션이 DB에 접속해 CRUD 수행, 테이블/스키마 운영
 
@@ -47,22 +74,31 @@ GRANT ALL PRIVILEGES ON DATABASE appdb TO appuser;
 ```
 
 ### Schema 권한 부여 (중요!)
-> 기존 테이블이 다른 사용자(예: postgres)로 생성된 경우, appuser에게 권한 부여 필요
+> 다중 스키마 환경에서 appuser에게 모든 스키마 권한 부여
 
 ```sql
--- appuser에게 public 스키마 및 모든 테이블 권한 부여
-GRANT ALL ON SCHEMA public TO appuser;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO appuser;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO appuser;
+-- 스키마 생성 및 권한 부여
+CREATE SCHEMA IF NOT EXISTS common;
+CREATE SCHEMA IF NOT EXISTS pms;
+CREATE SCHEMA IF NOT EXISTS dms;
 
--- 향후 생성되는 객체에도 자동 권한 부여
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO appuser;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO appuser;
+GRANT ALL ON SCHEMA common TO appuser;
+GRANT ALL ON SCHEMA pms TO appuser;
+GRANT ALL ON SCHEMA dms TO appuser;
+
+-- 각 스키마 내 객체 권한
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA common TO appuser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA common TO appuser;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA pms TO appuser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA pms TO appuser;
+
+-- search_path 설정
+ALTER DATABASE appdb SET search_path TO common, pms, dms, public;
 ```
 
 ---
 
-## 4) Prisma 설정
+## 5) Prisma 설정
 
 ### .env 파일 위치
 - 루트: `/.env`
@@ -70,7 +106,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO appuser;
 
 ### .env 내용
 ```dotenv
-DATABASE_URL="postgresql://appuser:app_pw@localhost:5432/appdb?schema=public"
+DATABASE_URL="postgresql://appuser:app_pw@localhost:5432/appdb"
 ```
 
 ### Prisma 명령어 (보안 환경)
@@ -91,11 +127,11 @@ node ./node_modules/prisma/build/index.js migrate dev --name <migration_name>
 
 ---
 
-## 5) 테이블 목록
+## 6) 테이블 목록
 
 ### 현재 테이블 (Prisma 관리)
 
-#### 공통(CM) 테이블
+#### 공통(CM) 테이블 - `common` 스키마
 | Prisma Model | 테이블명 | 설명 | 정의서 |
 |--------------|----------|------|--------|
 | `CmCode` | `cm_code_m` | 공통 코드 마스터 | [cm_code.md](./tables/cm_code.md) |
@@ -109,7 +145,7 @@ node ./node_modules/prisma/build/index.js migrate dev --name <migration_name>
 | `UserMenuHistory` | `cm_user_menu_h` | 사용자별 메뉴 권한 히스토리 | - |
 | `UserFavorite` | `cm_user_favorite_r` | 사용자 즐겨찾기 메뉴 | [cm_user_favorite.md](./tables/cm_user_favorite.md) |
 
-#### 프로젝트(PR) 테이블
+#### 프로젝트(PR) 테이블 - `pms` 스키마
 | Prisma Model | 테이블명 | 설명 | 정의서 |
 |--------------|----------|------|--------|
 | `Project` | `pr_project_m` | 프로젝트 마스터 | [pr_project.md](./tables/pr_project.md) |

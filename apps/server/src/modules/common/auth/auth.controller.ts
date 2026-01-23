@@ -24,57 +24,57 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
-   * ·Î±×ÀÎ
+   * ï¿½Î±ï¿½ï¿½ï¿½
    * POST /api/auth/login
    */
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  @Throttle(5, 60)
-  @ApiOperation({ summary: "·Î±×ÀÎ", description: "JWT Access/Refresh ÅäÅ« ¹ß±Ş" })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({ summary: "ë¡œê·¸ì¸", description: "JWT Access/Refresh í† í° ë°œê¸‰" })
   @ApiOkResponse({ type: ApiSuccess })
   async login(@Body() loginDto: LoginDto) {
     const tokens = await this.authService.login(loginDto);
-    return success(tokens, "·Î±×ÀÎ¿¡ ¼º°øÇß½À´Ï´Ù");
+    return success(tokens, "ï¿½Î±ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½");
   }
 
   /**
-   * ÅäÅ« °»½Å
+   * ï¿½ï¿½Å« ï¿½ï¿½ï¿½ï¿½
    * POST /api/auth/refresh
    */
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
-  @Throttle(10, 60)
-  @ApiOperation({ summary: "Refresh ÅäÅ«À¸·Î Àç¹ß±Ş" })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: "Refresh í† í°ìœ¼ë¡œ ì¬ë°œê¸‰" })
   @ApiOkResponse({ type: ApiSuccess })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     const tokens = await this.authService.refreshTokens(refreshTokenDto.refreshToken);
-    return success(tokens, "ÅäÅ« °»½Å ¼º°ø");
+    return success(tokens, "ï¿½ï¿½Å« ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½");
   }
 
   /**
-   * ·Î±×¾Æ¿ô
+   * ï¿½Î±×¾Æ¿ï¿½
    * POST /api/auth/logout
    */
   @Post("logout")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "·Î±×¾Æ¿ô", description: "¼­¹ö¿¡ ÀúÀåµÈ Refresh Token ¹«È¿È­" })
+  @ApiOperation({ summary: "ï¿½Î±×¾Æ¿ï¿½", description: "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Refresh Token ï¿½ï¿½È¿È­" })
   @ApiOkResponse({ type: ApiSuccess })
   async logout(@CurrentUser() user: TokenPayload) {
     await this.authService.logout(BigInt(user.userId));
-    return success(null, "·Î±×¾Æ¿ô ¼º°ø");
+    return success(null, "ï¿½Î±×¾Æ¿ï¿½ ï¿½ï¿½ï¿½ï¿½");
   }
 
   /**
-   * ÇöÀç »ç¿ëÀÚ Á¤º¸
+   * ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
    * POST /api/auth/me
    */
   @Post("me")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "³» Á¤º¸ Á¶È¸" })
+  @ApiOperation({ summary: "ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸" })
   @ApiOkResponse({ type: ApiSuccess })
   async me(@CurrentUser() user: TokenPayload) {
     return success(
@@ -85,7 +85,7 @@ export class AuthController {
         userTypeCode: user.userTypeCode,
         isAdmin: user.isAdmin,
       },
-      "»ç¿ëÀÚ Á¤º¸ Á¶È¸ ¼º°ø",
+      "ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½",
     );
   }
 }

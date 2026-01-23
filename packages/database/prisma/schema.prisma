@@ -1,5 +1,6 @@
 // Prisma Schema for SSOO
 // 참조: docs/database/rules.md
+// PostgreSQL 멀티스키마: common (cm_), pms (pr_), dms (dm_)
 
 generator client {
   provider = "prisma-client-js"
@@ -8,6 +9,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["common", "pms", "dms"]
 }
 
 // ============================================
@@ -40,6 +42,7 @@ model CmCode {
   @@index([codeGroup], name: "ix_cm_code_m_group")
   @@index([isActive], name: "ix_cm_code_m_active")
   @@map("cm_code_m")
+  @@schema("common")
 }
 
 // ============================================
@@ -74,6 +77,7 @@ model CmCodeHistory {
   @@index([eventAt], name: "ix_cm_code_h_event_at")
   @@index([transactionId], name: "ix_cm_code_h_tx")
   @@map("cm_code_h")
+  @@schema("common")
 }
 
 // ============================================
@@ -124,6 +128,7 @@ model Menu {
   @@index([menuLevel, sortOrder], name: "ix_cm_menu_m_level_order")
   @@index([isActive], name: "ix_cm_menu_m_active")
   @@map("cm_menu_m")
+  @@schema("common")
 }
 
 // ============================================
@@ -165,6 +170,7 @@ model MenuHistory {
   @@index([eventAt], name: "ix_cm_menu_h_event_at")
   @@index([transactionId], name: "ix_cm_menu_h_tx")
   @@map("cm_menu_h")
+  @@schema("common")
 }
 
 // ============================================
@@ -195,6 +201,7 @@ model RoleMenu {
   @@index([menuId], name: "ix_cm_role_menu_r_menu")
   @@index([roleCode], name: "ix_cm_role_menu_r_role")
   @@map("cm_role_menu_r")
+  @@schema("common")
 }
 
 // ============================================
@@ -225,6 +232,7 @@ model RoleMenuHistory {
   @@index([eventAt], name: "ix_cm_role_menu_h_event_at")
   @@index([transactionId], name: "ix_cm_role_menu_h_tx")
   @@map("cm_role_menu_h")
+  @@schema("common")
 }
 
 // ============================================
@@ -262,6 +270,7 @@ model UserMenu {
   @@index([userId], name: "ix_cm_user_menu_r_user")
   @@index([expiresAt], name: "ix_cm_user_menu_r_expires")
   @@map("cm_user_menu_r")
+  @@schema("common")
 }
 
 // ============================================
@@ -297,6 +306,7 @@ model UserMenuHistory {
   @@index([eventAt], name: "ix_cm_user_menu_h_event_at")
   @@index([transactionId], name: "ix_cm_user_menu_h_tx")
   @@map("cm_user_menu_h")
+  @@schema("common")
 }
 
 // ============================================
@@ -320,6 +330,7 @@ model UserFavorite {
   @@unique([userId, menuId], name: "ux_cm_user_favorite_r_user_menu")
   @@index([userId], name: "ix_cm_user_favorite_r_user")
   @@map("cm_user_favorite_r")
+  @@schema("common")
 }
 
 // ============================================
@@ -400,6 +411,7 @@ model User {
   userFavorites   UserFavorite[]
 
   @@map("cm_user_m")
+  @@schema("common")
 }
 
 // ============================================
@@ -453,6 +465,7 @@ model Project {
   @@index([handoffStatusCode], name: "ix_pr_project_m_handoff")
   @@index([updatedAt], name: "ix_pr_project_m_updated_at")
   @@map("pr_project_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -493,6 +506,7 @@ model ProjectStatus {
   @@index([expectedStartAt, expectedEndAt], name: "ix_pr_project_status_m_dates")
   @@index([updatedAt], name: "ix_pr_project_status_m_updated_at")
   @@map("pr_project_status_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -524,6 +538,7 @@ model Deliverable {
   @@index([isActive], name: "ix_pr_deliverable_m_active")
   @@index([sortOrder], name: "ix_pr_deliverable_m_sort")
   @@map("pr_deliverable_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -554,6 +569,7 @@ model DeliverableGroup {
   @@index([isActive], name: "ix_pr_deliverable_group_m_active")
   @@index([sortOrder], name: "ix_pr_deliverable_group_m_sort")
   @@map("pr_deliverable_group_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -586,6 +602,7 @@ model DeliverableGroupItem {
   @@index([deliverableCode], name: "ix_pr_deliverable_group_item_r_m_deliverable")
   @@index([groupCode, sortOrder], name: "ix_pr_deliverable_group_item_r_m_sort")
   @@map("pr_deliverable_group_item_r_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -616,6 +633,7 @@ model CloseConditionGroup {
   @@index([isActive], name: "ix_pr_close_condition_group_m_active")
   @@index([sortOrder], name: "ix_pr_close_condition_group_m_sort")
   @@map("pr_close_condition_group_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -647,6 +665,7 @@ model CloseConditionGroupItem {
   @@index([conditionCode], name: "ix_pr_close_condition_group_item_r_m_condition")
   @@index([groupCode, sortOrder], name: "ix_pr_close_condition_group_item_r_m_sort")
   @@map("pr_close_condition_group_item_r_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -689,6 +708,7 @@ model ProjectDeliverable {
   @@index([deliverableCode], name: "ix_pr_project_deliverable_r_m_deliverable")
   @@index([updatedAt], name: "ix_pr_project_deliverable_r_m_updated_at")
   @@map("pr_project_deliverable_r_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -727,6 +747,7 @@ model ProjectCloseCondition {
   @@index([conditionCode], name: "ix_pr_project_close_condition_r_m_condition")
   @@index([updatedAt], name: "ix_pr_project_close_condition_r_m_updated_at")
   @@map("pr_project_close_condition_r_m")
+  @@schema("pms")
 }
 
 // ============================================
@@ -786,6 +807,7 @@ model UserHistory {
   @@index([eventAt], name: "ix_cm_user_h_event_at")
   @@index([transactionId], name: "ix_cm_user_h_tx")
   @@map("cm_user_h")
+  @@schema("common")
 }
 
 // ============================================
@@ -826,6 +848,7 @@ model ProjectHistory {
   @@index([eventAt], name: "ix_pr_project_h_event_at")
   @@index([transactionId], name: "ix_pr_project_h_tx")
   @@map("pr_project_h")
+  @@schema("pms")
 }
 
 // ============================================
@@ -861,6 +884,7 @@ model ProjectStatusHistory {
   @@index([eventAt], name: "ix_pr_project_status_h_event_at")
   @@index([transactionId], name: "ix_pr_project_status_h_tx")
   @@map("pr_project_status_h")
+  @@schema("pms")
 }
 
 // ============================================
@@ -892,6 +916,7 @@ model DeliverableHistory {
   @@index([eventAt], name: "ix_pr_deliverable_h_event_at")
   @@index([transactionId], name: "ix_pr_deliverable_h_tx")
   @@map("pr_deliverable_h")
+  @@schema("pms")
 }
 
 // ============================================
@@ -923,6 +948,7 @@ model DeliverableGroupHistory {
   @@index([eventAt], name: "ix_pr_deliverable_group_h_event_at")
   @@index([transactionId], name: "ix_pr_deliverable_group_h_tx")
   @@map("pr_deliverable_group_h")
+  @@schema("pms")
 }
 
 // ============================================
@@ -952,6 +978,7 @@ model DeliverableGroupItemHistory {
   @@index([eventAt], name: "ix_pr_deliverable_group_item_r_h_event_at")
   @@index([transactionId], name: "ix_pr_deliverable_group_item_r_h_tx")
   @@map("pr_deliverable_group_item_r_h")
+  @@schema("pms")
 }
 
 // ============================================
@@ -983,6 +1010,7 @@ model CloseConditionGroupHistory {
   @@index([eventAt], name: "ix_pr_close_condition_group_h_event_at")
   @@index([transactionId], name: "ix_pr_close_condition_group_h_tx")
   @@map("pr_close_condition_group_h")
+  @@schema("pms")
 }
 
 // ============================================
@@ -1012,6 +1040,7 @@ model CloseConditionGroupItemHistory {
   @@index([eventAt], name: "ix_pr_close_condition_group_item_r_h_event_at")
   @@index([transactionId], name: "ix_pr_close_condition_group_item_r_h_tx")
   @@map("pr_close_condition_group_item_r_h")
+  @@schema("pms")
 }
 
 // ============================================
@@ -1048,6 +1077,7 @@ model ProjectDeliverableHistory {
   @@index([eventAt], name: "ix_pr_project_deliverable_r_h_event_at")
   @@index([transactionId], name: "ix_pr_project_deliverable_r_h_tx")
   @@map("pr_project_deliverable_r_h")
+  @@schema("pms")
 }
 
 // ============================================
@@ -1082,4 +1112,5 @@ model ProjectCloseConditionHistory {
   @@index([eventAt], name: "ix_pr_project_close_condition_r_h_event_at")
   @@index([transactionId], name: "ix_pr_project_close_condition_r_h_tx")
   @@map("pr_project_close_condition_r_h")
+  @@schema("pms")
 }
