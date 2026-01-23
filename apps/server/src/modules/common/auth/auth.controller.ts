@@ -1,6 +1,5 @@
-import {
+﻿import {
   Controller,
-  
   Post,
   Body,
   UseGuards,
@@ -8,7 +7,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
@@ -16,7 +15,7 @@ import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { TokenPayload } from "./interfaces/auth.interface";
 import { success } from "../../../common";
-import { ApiSuccess } from "../../../common/swagger/api-response.dto";
+import { ApiSuccess, ApiError } from "../../../common/swagger/api-response.dto";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -24,58 +23,64 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
-   * �α���
+   * 로그인
    * POST /api/auth/login
    */
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle(5, 60)
   @ApiOperation({ summary: "로그인", description: "JWT Access/Refresh 토큰 발급" })
   @ApiOkResponse({ type: ApiSuccess })
+  @ApiUnauthorizedResponse({ type: ApiError, description: "잘못된 자격 증명" })
+  @ApiTooManyRequestsResponse({ type: ApiError, description: "로그인 레이트리밋 초과" })
   async login(@Body() loginDto: LoginDto) {
     const tokens = await this.authService.login(loginDto);
-    return success(tokens, "�α��ο� �����߽��ϴ�");
+    return success(tokens, "로그인에 성공했습니다");
   }
 
   /**
-   * ��ū ����
+   * 토큰 갱신
    * POST /api/auth/refresh
    */
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle(10, 60)
   @ApiOperation({ summary: "Refresh 토큰으로 재발급" })
   @ApiOkResponse({ type: ApiSuccess })
+  @ApiUnauthorizedResponse({ type: ApiError, description: "토큰 무효/만료" })
+  @ApiTooManyRequestsResponse({ type: ApiError, description: "갱신 레이트리밋 초과" })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     const tokens = await this.authService.refreshTokens(refreshTokenDto.refreshToken);
-    return success(tokens, "��ū ���� ����");
+    return success(tokens, "토큰 갱신 성공");
   }
 
   /**
-   * �α׾ƿ�
+   * 로그아웃
    * POST /api/auth/logout
    */
   @Post("logout")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "�α׾ƿ�", description: "������ ����� Refresh Token ��ȿȭ" })
+  @ApiOperation({ summary: "로그아웃", description: "서버에 저장된 Refresh Token 무효화" })
   @ApiOkResponse({ type: ApiSuccess })
+  @ApiUnauthorizedResponse({ type: ApiError })
   async logout(@CurrentUser() user: TokenPayload) {
     await this.authService.logout(BigInt(user.userId));
-    return success(null, "�α׾ƿ� ����");
+    return success(null, "로그아웃 성공");
   }
 
   /**
-   * ���� ����� ����
+   * 현재 사용자 정보
    * POST /api/auth/me
    */
   @Post("me")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "�� ���� ��ȸ" })
+  @ApiOperation({ summary: "내 정보 조회" })
   @ApiOkResponse({ type: ApiSuccess })
+  @ApiUnauthorizedResponse({ type: ApiError })
   async me(@CurrentUser() user: TokenPayload) {
     return success(
       {
@@ -85,7 +90,7 @@ export class AuthController {
         userTypeCode: user.userTypeCode,
         isAdmin: user.isAdmin,
       },
-      "����� ���� ��ȸ ����",
+      "사용자 정보 조회 성공",
     );
   }
 }

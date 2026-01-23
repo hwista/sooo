@@ -1,5 +1,5 @@
 ﻿import { Controller, Get, Post, Delete, Body, Param, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { MenuService } from "./menu.service";
 import { JwtAuthGuard } from "../../common/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/auth/guards/roles.guard";
@@ -7,6 +7,7 @@ import { CurrentUser } from "../../common/auth/decorators/current-user.decorator
 import { TokenPayload } from "../../common/auth/interfaces/auth.interface";
 import { success } from "../../../common";
 import { MenuResponseDto } from "./dto/menu-tree.dto";
+import { ApiError } from "../../../common/swagger/api-response.dto";
 
 @ApiTags("menus")
 @ApiBearerAuth()
@@ -22,6 +23,8 @@ export class MenuController {
   @Get("my")
   @ApiOperation({ summary: "내 메뉴 조회", description: "역할/권한 기반 메뉴 트리 + 즐겨찾기" })
   @ApiOkResponse({ type: MenuResponseDto })
+  @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiForbiddenResponse({ type: ApiError })
   async getMyMenu(@CurrentUser() currentUser: TokenPayload) {
     const userId = BigInt(currentUser.userId);
 
@@ -44,6 +47,8 @@ export class MenuController {
   @Post("favorites")
   @ApiOperation({ summary: "즐겨찾기 추가" })
   @ApiOkResponse({ description: "즐겨찾기 생성" })
+  @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiForbiddenResponse({ type: ApiError })
   async addFavorite(
     @CurrentUser() currentUser: TokenPayload,
     @Body() body: { menuId: string },
@@ -62,6 +67,8 @@ export class MenuController {
   @Delete("favorites/:menuId")
   @ApiOperation({ summary: "즐겨찾기 삭제" })
   @ApiOkResponse({ description: "즐겨찾기 삭제" })
+  @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiForbiddenResponse({ type: ApiError })
   async removeFavorite(
     @CurrentUser() currentUser: TokenPayload,
     @Param("menuId") menuId: string,
