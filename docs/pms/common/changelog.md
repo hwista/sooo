@@ -31,10 +31,11 @@
 
 | 시간 | 커밋 | 영역 | 변경 내용 |
 |------|------|------|----------|
-| - | - | DB | **Phase 2-B: PostgreSQL 스키마 분리** - common/pms/dms 멀티스키마 구조 적용 |
-| - | - | DB | Prisma multiSchema 설정 추가 (`previewFeatures = ["multiSchema"]`) |
-| - | - | DB | 29개 모델에 `@@schema()` directive 추가 (common: 11개, pms: 18개) |
-| - | - | DB | 마이그레이션 스크립트 작성 (01_create_schemas.sql, 02_migrate_tables.sql, 03_update_triggers.sql) |
+| - | - | DB | **Phase 2-B 완료: PostgreSQL 멀티스키마 분리** |
+| - | - | DB | 스키마 분리 보완 - common: User/UserHistory만 (2개), pms: 나머지 (27개) |
+| - | - | DB | 04_refine_schema_separation.sql 작성 및 실행 (cm_* 테이블 common→pms 이동) |
+| - | - | DB | Prisma 6.x multiSchema stable 반영 (previewFeatures 제거) |
+| - | - | 문서 | DB README.md 스키마 분리 내용 업데이트 |
 
 ### 2026-01-23
 

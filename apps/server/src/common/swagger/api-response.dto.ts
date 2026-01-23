@@ -6,6 +6,17 @@ export class ApiError {
     path?: string;
   };
   timestamp?: string;
+
+  // ¿¹½Ã (Swagger example)
+  static example: ApiError = {
+    success: false,
+    error: {
+      code: 'INTERNAL_ERROR',
+      message: 'Internal server error',
+      path: '/api/example',
+    },
+    timestamp: new Date().toISOString(),
+  };
 }
 
 export class ApiSuccess<T> {

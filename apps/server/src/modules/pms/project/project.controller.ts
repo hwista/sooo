@@ -1,5 +1,5 @@
 ﻿import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, NotFoundException } from "@nestjs/common";
-import { ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../common/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/auth/guards/roles.guard";
 import { ProjectService } from "./project.service";
@@ -24,6 +24,7 @@ export class ProjectController {
   @ApiOkResponse({ type: ProjectListDto })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async findAll(@Query() params: PaginationParams) {
     const { data, total } = await this.projectService.findAll(params);
     return paginated(data, params.page || 1, params.limit || 10, total);
@@ -35,6 +36,7 @@ export class ProjectController {
   @ApiNotFoundResponse({ type: ApiError })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async findOne(@Param("id") id: string) {
     const project = await this.projectService.findOne(BigInt(id));
     if (!project) {
@@ -48,6 +50,7 @@ export class ProjectController {
   @ApiOkResponse({ type: ProjectDto })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async create(@Body() dto: CreateProjectDto) {
     const project = await this.projectService.create(dto);
     return success(project);
@@ -59,6 +62,7 @@ export class ProjectController {
   @ApiNotFoundResponse({ type: ApiError })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async update(
     @Param("id") id: string,
     @Body() dto: UpdateProjectDto,
@@ -75,6 +79,7 @@ export class ProjectController {
   @ApiOkResponse({ description: "프로젝트 삭제" })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async remove(@Param("id") id: string) {
     const result = await this.projectService.remove(BigInt(id));
     return deleted(result);

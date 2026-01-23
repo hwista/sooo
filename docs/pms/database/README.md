@@ -14,15 +14,14 @@
 
 | 스키마 | 접두사 | 설명 | 테이블 수 |
 |--------|--------|------|-----------|
-| `common` | `cm_` | 공통 기능 (코드, 사용자, 메뉴) | 11개 |
-| `pms` | `pr_` | 프로젝트 관리 시스템 | 18개 |
+| `common` | `cm_` | 공통 사용자 (모든 시스템 공유) | 2개 |
+| `pms` | `cm_`, `pr_` | PMS 전용 (코드, 메뉴, 프로젝트) | 27개 |
 | `dms` | `dm_` | 문서 관리 시스템 (미래 확장) | 0개 |
 
 ### Prisma multiSchema 설정
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -31,6 +30,8 @@ datasource db {
   schemas  = ["common", "pms", "dms"]
 }
 ```
+
+> **Note**: Prisma 6.x부터 `multiSchema`가 stable 기능으로 전환되어 `previewFeatures` 설정이 필요 없습니다.
 
 ---
 
@@ -131,12 +132,26 @@ node ./node_modules/prisma/build/index.js migrate dev --name <migration_name>
 
 ### 현재 테이블 (Prisma 관리)
 
-#### 공통(CM) 테이블 - `common` 스키마
+#### 공통 사용자 테이블 - `common` 스키마
+> 모든 시스템(PMS, DMS)에서 공유하는 사용자 정보
+
+| Prisma Model | 테이블명 | 설명 | 정의서 |
+|--------------|----------|------|--------|
+| `User` | `cm_user_m` | 사용자 마스터 | [cm_user.md](./tables/cm_user.md) |
+| `UserHistory` | `cm_user_h` | 사용자 히스토리 | - |
+
+#### PMS 전용 테이블 - `pms` 스키마
+> PMS에서만 사용하는 테이블 (DMS는 별도 코드/메뉴 테이블 사용 예정)
+
+**공통 코드 (CM)**
 | Prisma Model | 테이블명 | 설명 | 정의서 |
 |--------------|----------|------|--------|
 | `CmCode` | `cm_code_m` | 공통 코드 마스터 | [cm_code.md](./tables/cm_code.md) |
 | `CmCodeHistory` | `cm_code_h` | 공통 코드 히스토리 | - |
-| `User` | `cm_user_m` | 사용자 마스터 | [cm_user.md](./tables/cm_user.md) |
+
+**메뉴 (CM)**
+| Prisma Model | 테이블명 | 설명 | 정의서 |
+|--------------|----------|------|--------|
 | `Menu` | `cm_menu_m` | 메뉴 마스터 | [cm_menu.md](./tables/cm_menu.md) |
 | `MenuHistory` | `cm_menu_h` | 메뉴 히스토리 | - |
 | `RoleMenu` | `cm_role_menu_r` | 역할별 메뉴 권한 | [cm_role_menu.md](./tables/cm_role_menu.md) |
@@ -145,7 +160,7 @@ node ./node_modules/prisma/build/index.js migrate dev --name <migration_name>
 | `UserMenuHistory` | `cm_user_menu_h` | 사용자별 메뉴 권한 히스토리 | - |
 | `UserFavorite` | `cm_user_favorite_r` | 사용자 즐겨찾기 메뉴 | [cm_user_favorite.md](./tables/cm_user_favorite.md) |
 
-#### 프로젝트(PR) 테이블 - `pms` 스키마
+**프로젝트 (PR)**
 | Prisma Model | 테이블명 | 설명 | 정의서 |
 |--------------|----------|------|--------|
 | `Project` | `pr_project_m` | 프로젝트 마스터 | [pr_project.md](./tables/pr_project.md) |

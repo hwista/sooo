@@ -1,5 +1,5 @@
 ﻿import { Controller, Get, Post, Delete, Body, Param, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { MenuService } from "./menu.service";
 import { JwtAuthGuard } from "../../common/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/auth/guards/roles.guard";
@@ -25,6 +25,7 @@ export class MenuController {
   @ApiOkResponse({ type: MenuResponseDto })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async getMyMenu(@CurrentUser() currentUser: TokenPayload) {
     const userId = BigInt(currentUser.userId);
 
@@ -49,6 +50,7 @@ export class MenuController {
   @ApiOkResponse({ description: "즐겨찾기 생성" })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async addFavorite(
     @CurrentUser() currentUser: TokenPayload,
     @Body() body: { menuId: string },
@@ -69,6 +71,7 @@ export class MenuController {
   @ApiOkResponse({ description: "즐겨찾기 삭제" })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async removeFavorite(
     @CurrentUser() currentUser: TokenPayload,
     @Param("menuId") menuId: string,

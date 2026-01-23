@@ -1,5 +1,5 @@
 ﻿import { Controller, Get, UseGuards, NotFoundException } from "@nestjs/common";
-import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { UserService } from "./user.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
@@ -24,6 +24,9 @@ export class UserController {
   @ApiOperation({ summary: "내 프로필" })
   @ApiOkResponse({ type: UserProfileDto })
   @ApiNotFoundResponse({ type: ApiError })
+  @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async getProfile(@CurrentUser() currentUser: TokenPayload) {
     const user = await this.userService.findById(BigInt(currentUser.userId));
 

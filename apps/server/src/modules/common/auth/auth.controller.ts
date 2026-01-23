@@ -7,7 +7,7 @@
   HttpStatus,
 } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
@@ -28,11 +28,12 @@ export class AuthController {
    */
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  @Throttle(5, 60)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: "로그인", description: "JWT Access/Refresh 토큰 발급" })
   @ApiOkResponse({ type: ApiSuccess })
   @ApiUnauthorizedResponse({ type: ApiError, description: "잘못된 자격 증명" })
   @ApiTooManyRequestsResponse({ type: ApiError, description: "로그인 레이트리밋 초과" })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async login(@Body() loginDto: LoginDto) {
     const tokens = await this.authService.login(loginDto);
     return success(tokens, "로그인에 성공했습니다");
@@ -44,11 +45,12 @@ export class AuthController {
    */
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
-  @Throttle(10, 60)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: "Refresh 토큰으로 재발급" })
   @ApiOkResponse({ type: ApiSuccess })
   @ApiUnauthorizedResponse({ type: ApiError, description: "토큰 무효/만료" })
   @ApiTooManyRequestsResponse({ type: ApiError, description: "갱신 레이트리밋 초과" })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     const tokens = await this.authService.refreshTokens(refreshTokenDto.refreshToken);
     return success(tokens, "토큰 갱신 성공");
@@ -65,6 +67,7 @@ export class AuthController {
   @ApiOperation({ summary: "로그아웃", description: "서버에 저장된 Refresh Token 무효화" })
   @ApiOkResponse({ type: ApiSuccess })
   @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async logout(@CurrentUser() user: TokenPayload) {
     await this.authService.logout(BigInt(user.userId));
     return success(null, "로그아웃 성공");
@@ -81,6 +84,7 @@ export class AuthController {
   @ApiOperation({ summary: "내 정보 조회" })
   @ApiOkResponse({ type: ApiSuccess })
   @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async me(@CurrentUser() user: TokenPayload) {
     return success(
       {
