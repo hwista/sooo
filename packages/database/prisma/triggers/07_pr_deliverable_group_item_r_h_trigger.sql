@@ -1,5 +1,6 @@
 -- =========================================================
--- History Trigger: pr_deliverable_group_item_r_m -> pr_deliverable_group_item_r_h
+-- History Trigger: pms.pr_deliverable_group_item_r_m -> pms.pr_deliverable_group_item_r_h
+-- Schema: pms
 -- PK: (group_code, deliverable_code)
 -- =========================================================
 
@@ -25,12 +26,12 @@ BEGIN
   -- history_seq 계산 (복합 PK 범위)
   SELECT COALESCE(MAX(history_seq), 0) + 1
   INTO v_history_seq
-  FROM pr_deliverable_group_item_r_h
+  FROM pms.pr_deliverable_group_item_r_h
   WHERE group_code = v_record.group_code
     AND deliverable_code = v_record.deliverable_code;
 
   -- 히스토리 테이블에 삽입
-  INSERT INTO pr_deliverable_group_item_r_h (
+  INSERT INTO pms.pr_deliverable_group_item_r_h (
     group_code, deliverable_code, history_seq, event_type, event_at,
     sort_order,
     is_active, memo, created_by, created_at, updated_by, updated_at,
@@ -51,10 +52,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 기존 트리거 삭제 후 재생성
-DROP TRIGGER IF EXISTS trg_pr_deliverable_group_item_r_h ON pr_deliverable_group_item_r_m;
+DROP TRIGGER IF EXISTS trg_pr_deliverable_group_item_r_h ON pms.pr_deliverable_group_item_r_m;
 
 CREATE TRIGGER trg_pr_deliverable_group_item_r_h
-AFTER INSERT OR UPDATE OR DELETE ON pr_deliverable_group_item_r_m
+AFTER INSERT OR UPDATE OR DELETE ON pms.pr_deliverable_group_item_r_m
 FOR EACH ROW EXECUTE FUNCTION fn_pr_deliverable_group_item_r_h_trigger();
 
 COMMENT ON FUNCTION fn_pr_deliverable_group_item_r_h_trigger() IS '산출물 그룹 항목 히스토리 트리거 함수';

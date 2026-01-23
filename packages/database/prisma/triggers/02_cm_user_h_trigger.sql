@@ -1,5 +1,6 @@
 -- =========================================================
--- History Trigger: cm_user_m -> cm_user_h
+-- History Trigger: common.cm_user_m -> common.cm_user_h
+-- Schema: common
 -- =========================================================
 
 CREATE OR REPLACE FUNCTION fn_cm_user_h_trigger()
@@ -24,11 +25,11 @@ BEGIN
   -- history_seq 계산
   SELECT COALESCE(MAX(history_seq), 0) + 1
   INTO v_history_seq
-  FROM cm_user_h
+  FROM common.cm_user_h
   WHERE user_id = v_record.user_id;
 
   -- 히스토리 테이블에 삽입
-  INSERT INTO cm_user_h (
+  INSERT INTO common.cm_user_h (
     user_id, history_seq, event_type, event_at,
     is_system_user, is_admin, user_type_code, login_id, password_hash, password_salt,
     user_name, display_name, email, phone, avatar_url,
@@ -63,10 +64,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 기존 트리거 삭제 후 재생성
-DROP TRIGGER IF EXISTS trg_cm_user_h ON cm_user_m;
+DROP TRIGGER IF EXISTS trg_cm_user_h ON common.cm_user_m;
 
 CREATE TRIGGER trg_cm_user_h
-AFTER INSERT OR UPDATE OR DELETE ON cm_user_m
+AFTER INSERT OR UPDATE OR DELETE ON common.cm_user_m
 FOR EACH ROW EXECUTE FUNCTION fn_cm_user_h_trigger();
 
 COMMENT ON FUNCTION fn_cm_user_h_trigger() IS '사용자 마스터 히스토리 트리거 함수';

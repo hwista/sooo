@@ -1,5 +1,6 @@
 -- =========================================================
--- History Trigger: pr_deliverable_m -> pr_deliverable_h
+-- History Trigger: pms.pr_deliverable_m -> pms.pr_deliverable_h
+-- Schema: pms
 -- =========================================================
 
 CREATE OR REPLACE FUNCTION fn_pr_deliverable_h_trigger()
@@ -24,11 +25,11 @@ BEGIN
   -- history_seq 계산
   SELECT COALESCE(MAX(history_seq), 0) + 1
   INTO v_history_seq
-  FROM pr_deliverable_h
+  FROM pms.pr_deliverable_h
   WHERE deliverable_id = v_record.deliverable_id;
 
   -- 히스토리 테이블에 삽입
-  INSERT INTO pr_deliverable_h (
+  INSERT INTO pms.pr_deliverable_h (
     deliverable_id, history_seq, event_type, event_at,
     deliverable_code, deliverable_name, description, sort_order,
     is_active, memo, created_by, created_at, updated_by, updated_at,
@@ -49,10 +50,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 기존 트리거 삭제 후 재생성
-DROP TRIGGER IF EXISTS trg_pr_deliverable_h ON pr_deliverable_m;
+DROP TRIGGER IF EXISTS trg_pr_deliverable_h ON pms.pr_deliverable_m;
 
 CREATE TRIGGER trg_pr_deliverable_h
-AFTER INSERT OR UPDATE OR DELETE ON pr_deliverable_m
+AFTER INSERT OR UPDATE OR DELETE ON pms.pr_deliverable_m
 FOR EACH ROW EXECUTE FUNCTION fn_pr_deliverable_h_trigger();
 
 COMMENT ON FUNCTION fn_pr_deliverable_h_trigger() IS '산출물 마스터 히스토리 트리거 함수';

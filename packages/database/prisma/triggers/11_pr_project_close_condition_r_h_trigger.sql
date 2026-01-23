@@ -1,5 +1,6 @@
 -- =========================================================
--- History Trigger: pr_project_close_condition_r_m -> pr_project_close_condition_r_h
+-- History Trigger: pms.pr_project_close_condition_r_m -> pms.pr_project_close_condition_r_h
+-- Schema: pms
 -- PK: (project_id, status_code, condition_code)
 -- =========================================================
 
@@ -25,13 +26,13 @@ BEGIN
   -- history_seq 계산 (복합 PK 범위)
   SELECT COALESCE(MAX(history_seq), 0) + 1
   INTO v_history_seq
-  FROM pr_project_close_condition_r_h
+  FROM pms.pr_project_close_condition_r_h
   WHERE project_id = v_record.project_id
     AND status_code = v_record.status_code
     AND condition_code = v_record.condition_code;
 
   -- 히스토리 테이블에 삽입
-  INSERT INTO pr_project_close_condition_r_h (
+  INSERT INTO pms.pr_project_close_condition_r_h (
     project_id, status_code, condition_code, history_seq, event_type, event_at,
     requires_deliverable, is_checked, checked_at, checked_by, sort_order,
     is_active, memo, created_by, created_at, updated_by, updated_at,
@@ -52,10 +53,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 기존 트리거 삭제 후 재생성
-DROP TRIGGER IF EXISTS trg_pr_project_close_condition_r_h ON pr_project_close_condition_r_m;
+DROP TRIGGER IF EXISTS trg_pr_project_close_condition_r_h ON pms.pr_project_close_condition_r_m;
 
 CREATE TRIGGER trg_pr_project_close_condition_r_h
-AFTER INSERT OR UPDATE OR DELETE ON pr_project_close_condition_r_m
+AFTER INSERT OR UPDATE OR DELETE ON pms.pr_project_close_condition_r_m
 FOR EACH ROW EXECUTE FUNCTION fn_pr_project_close_condition_r_h_trigger();
 
 COMMENT ON FUNCTION fn_pr_project_close_condition_r_h_trigger() IS '프로젝트 종료조건 매핑 히스토리 트리거 함수';

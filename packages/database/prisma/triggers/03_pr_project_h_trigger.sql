@@ -1,5 +1,6 @@
 -- =========================================================
--- History Trigger: pr_project_m -> pr_project_h
+-- History Trigger: pms.pr_project_m -> pms.pr_project_h
+-- Schema: pms
 -- =========================================================
 
 CREATE OR REPLACE FUNCTION fn_pr_project_h_trigger()
@@ -24,11 +25,11 @@ BEGIN
   -- history_seq 계산
   SELECT COALESCE(MAX(history_seq), 0) + 1
   INTO v_history_seq
-  FROM pr_project_h
+  FROM pms.pr_project_h
   WHERE project_id = v_record.project_id;
 
   -- 히스토리 테이블에 삽입
-  INSERT INTO pr_project_h (
+  INSERT INTO pms.pr_project_h (
     project_id, history_seq, event_type, event_at,
     project_name, status_code, stage_code, done_result_code,
     current_owner_user_id,
@@ -55,10 +56,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 기존 트리거 삭제 후 재생성
-DROP TRIGGER IF EXISTS trg_pr_project_h ON pr_project_m;
+DROP TRIGGER IF EXISTS trg_pr_project_h ON pms.pr_project_m;
 
 CREATE TRIGGER trg_pr_project_h
-AFTER INSERT OR UPDATE OR DELETE ON pr_project_m
+AFTER INSERT OR UPDATE OR DELETE ON pms.pr_project_m
 FOR EACH ROW EXECUTE FUNCTION fn_pr_project_h_trigger();
 
 COMMENT ON FUNCTION fn_pr_project_h_trigger() IS '프로젝트 마스터 히스토리 트리거 함수';
