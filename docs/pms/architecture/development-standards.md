@@ -438,3 +438,11 @@ useQuery({
 - ID는 BigInt로 저장하고, API 응답에서는 문자열로 직렬화합니다.
 - 헬퍼: pps/server/src/common/utils/bigint.util.ts (	oBigInt, 	oIdString, serializeBigIntShallow).
 - DTO/응답 타입은 @ssoo/types에 정의한 후 컨트롤러에서 직렬화해 반환합니다.
+
+
+## 모듈 경계 강제 (ESLint)
+
+- 규칙: pms 모듈이 common을 참조하는 것만 허용, common → pms 참조 금지.
+- 도구: eslint-plugin-import의 import/no-restricted-paths로 계층 위반 시 lint 오류.
+- 위치: pps/server/eslint.config.mjs (zones 설정).
+- CI/프리커밋: pnpm --filter server lint에서 위반 시 실패.

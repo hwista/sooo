@@ -49,6 +49,7 @@
 | - | - | 백엔드 | 글로벌 HTTP 예외 필터 도입, NotFound 응답을 예외 처리로 전환해 상태코드 정합성 확보 |
 | - | - | 백엔드 | 로그인/토큰 갱신 레이트 리밋 적용(5/10 req per min), 비밀번호 정책 강화(8자, 영문+숫자+특수문자) |
 | - | - | 백엔드 | Prisma `db.client.<model>` 접근 가이드 및 BigInt 직렬화 유틸 문서화 |
+| - | - | 백엔드 | ESLint 모듈 경계 규칙(import/no-restricted-paths)으로 common↔pms 역참조 차단 |
 
 ### 2026-01-21
 
