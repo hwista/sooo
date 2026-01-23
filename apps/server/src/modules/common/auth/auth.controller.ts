@@ -7,7 +7,7 @@
   HttpStatus,
 } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
@@ -27,8 +27,25 @@ export class AuthController {
    */
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  @Throttle(5, 60)
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @ApiOperation({ summary: "로그인", description: "JWT Access/Refresh 토큰 발급" })
+  @ApiOkResponse({
+    description: "로그인 성공",
+    schema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        data: {
+          type: "object",
+          properties: {
+            accessToken: { type: "string" },
+            refreshToken: { type: "string" },
+          },
+        },
+        message: { type: "string" },
+      },
+    },
+  })
   async login(@Body() loginDto: LoginDto) {
     const tokens = await this.authService.login(loginDto);
     return success(tokens, "로그인에 성공했습니다");
@@ -40,8 +57,25 @@ export class AuthController {
    */
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
-  @Throttle(10, 60)
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @ApiOperation({ summary: "Refresh 토큰으로 재발급" })
+  @ApiOkResponse({
+    description: "재발급 성공",
+    schema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        data: {
+          type: "object",
+          properties: {
+            accessToken: { type: "string" },
+            refreshToken: { type: "string" },
+          },
+        },
+        message: { type: "string" },
+      },
+    },
+  })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     const tokens = await this.authService.refreshTokens(refreshTokenDto.refreshToken);
     return success(tokens, "토큰 갱신 성공");
@@ -56,6 +90,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: "로그아웃", description: "서버에 저장된 Refresh Token 무효화" })
+  @ApiOkResponse({ description: "로그아웃 성공" })
   async logout(@CurrentUser() user: TokenPayload) {
     await this.authService.logout(BigInt(user.userId));
     return success(null, "로그아웃 성공");
@@ -70,6 +105,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: "내 정보 조회" })
+  @ApiOkResponse({ description: "사용자 정보", schema: { type: "object" } })
   async me(@CurrentUser() user: TokenPayload) {
     return success(
       {

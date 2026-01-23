@@ -1,5 +1,5 @@
 ﻿import { Controller, Get, Post, Delete, Body, Param, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { MenuService } from "./menu.service";
 import { JwtAuthGuard } from "../../common/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/auth/guards/roles.guard";
@@ -20,6 +20,7 @@ export class MenuController {
    */
   @Get("my")
   @ApiOperation({ summary: "내 메뉴 조회", description: "역할/권한 기반 메뉴 트리 + 즐겨찾기" })
+  @ApiOkResponse({ description: "메뉴 트리" })
   async getMyMenu(@CurrentUser() currentUser: TokenPayload) {
     const userId = BigInt(currentUser.userId);
 
@@ -41,6 +42,7 @@ export class MenuController {
    */
   @Post("favorites")
   @ApiOperation({ summary: "즐겨찾기 추가" })
+  @ApiOkResponse({ description: "즐겨찾기 생성" })
   async addFavorite(
     @CurrentUser() currentUser: TokenPayload,
     @Body() body: { menuId: string },
@@ -58,6 +60,7 @@ export class MenuController {
    */
   @Delete("favorites/:menuId")
   @ApiOperation({ summary: "즐겨찾기 삭제" })
+  @ApiOkResponse({ description: "즐겨찾기 삭제" })
   async removeFavorite(
     @CurrentUser() currentUser: TokenPayload,
     @Param("menuId") menuId: string,
