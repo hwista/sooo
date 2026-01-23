@@ -1,5 +1,9 @@
 # Migration Scripts Archive (2026-01-23)
 
+> 📍 원본 위치: `packages/database/scripts/migration/`  
+> 📍 아카이브 일자: 2026-01-23  
+> 📍 아카이브 사유: 멀티스키마 분리 완료 후 이력 보존
+
 이 폴더는 **PostgreSQL 멀티 스키마 분리 마이그레이션** 과정에서 사용된 스크립트들의 아카이브입니다.
 
 ## 아카이브 사유
