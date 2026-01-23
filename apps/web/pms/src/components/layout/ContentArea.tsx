@@ -34,7 +34,7 @@ export function ContentArea({ children }: ContentAreaProps) {
       return (
         <div className="flex-1 overflow-auto bg-white">
           <Suspense fallback={
-            <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                 <p className="text-gray-500">페이지 로딩 중...</p>
@@ -53,7 +53,7 @@ export function ContentArea({ children }: ContentAreaProps) {
     return (
       <div className="flex-1 overflow-auto bg-white">
         <Suspense fallback={
-          <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p className="text-gray-500">페이지 로딩 중...</p>
