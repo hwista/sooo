@@ -9,6 +9,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "clean": "turbo clean && rimraf node_modules",
+    "docs:verify": "node scripts/docs-verify.js",
     "dev:server": "turbo dev --filter=server",
     "dev:web-pms": "turbo dev --filter=web-pms",
     "build:server": "turbo build --filter=server",

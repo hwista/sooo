@@ -1,17 +1,17 @@
-import { IsString, IsNotEmpty, MinLength, MaxLength, Matches } from "class-validator";
+ï»¿import { IsString, IsNotEmpty, MinLength, MaxLength, Matches } from "class-validator";
 
 export class LoginDto {
   @IsString()
-  @IsNotEmpty({ message: "·Î±×ÀÎÀ» ÀÔ·ÂÇØÁÖ¼¼¿ä" })
-  @MaxLength(50, { message: "·Î±×ÀÎÀº 50ÀÚ ÀÌÇÏ¿©¾ß ÇÕ´Ï´Ù" })
+  @IsNotEmpty({ message: "ë¡œê·¸ì¸ì„ ì…ë ¥í•´ì£¼ì„¸ìš”" })
+  @MaxLength(50, { message: "ë¡œê·¸ì¸ì€ 50ì ì´í•˜ì—¬ì•¼ í•©ë‹ˆë‹¤" })
   loginId!: string;
 
   @IsString()
-  @IsNotEmpty({ message: "ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä" })
-  @MinLength(8, { message: "ºñ¹Ğ¹øÈ£´Â 8ÀÚ ÀÌ»óÀÌ¾î¾ß ÇÕ´Ï´Ù" })
-  @MaxLength(100, { message: "ºñ¹Ğ¹øÈ£´Â 100ÀÚ ÀÌÇÏ¿©¾ß ÇÕ´Ï´Ù" })
+  @IsNotEmpty({ message: "ë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”" })
+  @MinLength(8, { message: "ë¹„ë°€ë²ˆí˜¸ëŠ” 8ì ì´ìƒì´ì–´ì•¼ í•©ë‹ˆë‹¤" })
+  @MaxLength(100, { message: "ë¹„ë°€ë²ˆí˜¸ëŠ” 100ì ì´í•˜ì—¬ì•¼ í•©ë‹ˆë‹¤" })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).+$/, {
-    message: "ºñ¹Ğ¹øÈ£´Â ¿µ¹®, ¼ıÀÚ, Æ¯¼ö¹®ÀÚ¸¦ °¢°¢ 1ÀÚ ÀÌ»ó Æ÷ÇÔÇØ¾ß ÇÕ´Ï´Ù",
+    message: "ë¹„ë°€ë²ˆí˜¸ëŠ” ì˜ë¬¸, ìˆ«ì, íŠ¹ìˆ˜ë¬¸ìë¥¼ ê°ê° 1ì ì´ìƒ í¬í•¨í•´ì•¼ í•©ë‹ˆë‹¤",
   })
   password!: string;
 }

@@ -1,4 +1,4 @@
-import {
+ï»¿import {
   Controller,
   Post,
   Body,
@@ -7,6 +7,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
@@ -15,53 +16,60 @@ import { CurrentUser } from "./decorators/current-user.decorator";
 import { TokenPayload } from "./interfaces/auth.interface";
 import { success } from "../../../common";
 
+@ApiTags("auth")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
-   * ·Î±×ÀÎ
+   * ë¡œê·¸ì¸
    * POST /api/auth/login
    */
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @Throttle(5, 60)
+  @ApiOperation({ summary: "ë¡œê·¸ì¸", description: "JWT Access/Refresh í† í° ë°œê¸‰" })
   async login(@Body() loginDto: LoginDto) {
     const tokens = await this.authService.login(loginDto);
-    return success(tokens, "·Î±×ÀÎ¿¡ ¼º°øÇß½À´Ï´Ù");
+    return success(tokens, "ë¡œê·¸ì¸ì— ì„±ê³µí–ˆìŠµë‹ˆë‹¤");
   }
 
   /**
-   * ÅäÅ« °»½Å
+   * í† í° ê°±ì‹ 
    * POST /api/auth/refresh
    */
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
   @Throttle(10, 60)
+  @ApiOperation({ summary: "Refresh í† í°ìœ¼ë¡œ ì¬ë°œê¸‰" })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     const tokens = await this.authService.refreshTokens(refreshTokenDto.refreshToken);
-    return success(tokens, "ÅäÅ« °»½Å ¼º°ø");
+    return success(tokens, "í† í° ê°±ì‹  ì„±ê³µ");
   }
 
   /**
-   * ·Î±×¾Æ¿ô
+   * ë¡œê·¸ì•„ì›ƒ
    * POST /api/auth/logout
    */
   @Post("logout")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "ë¡œê·¸ì•„ì›ƒ", description: "ì„œë²„ì— ì €ì¥ëœ Refresh Token ë¬´íš¨í™”" })
   async logout(@CurrentUser() user: TokenPayload) {
     await this.authService.logout(BigInt(user.userId));
-    return success(null, "·Î±×¾Æ¿ô ¼º°ø");
+    return success(null, "ë¡œê·¸ì•„ì›ƒ ì„±ê³µ");
   }
 
   /**
-   * ÇöÀç »ç¿ëÀÚ Á¤º¸
+   * í˜„ì¬ ì‚¬ìš©ì ì •ë³´
    * POST /api/auth/me
    */
   @Post("me")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "ë‚´ ì •ë³´ ì¡°íšŒ" })
   async me(@CurrentUser() user: TokenPayload) {
     return success(
       {
@@ -71,7 +79,7 @@ export class AuthController {
         userTypeCode: user.userTypeCode,
         isAdmin: user.isAdmin,
       },
-      "»ç¿ëÀÚ Á¤º¸ Á¶È¸ ¼º°ø",
+      "ì‚¬ìš©ì ì •ë³´ ì¡°íšŒ ì„±ê³µ",
     );
   }
 }

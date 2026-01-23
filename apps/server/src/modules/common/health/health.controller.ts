@@ -1,5 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
-import type { ApiResponse } from '@ssoo/types';
+﻿import { Controller, Get } from "@nestjs/common";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import type { ApiResponse } from "@ssoo/types";
 
 interface HealthStatus {
   status: string;
@@ -8,17 +9,19 @@ interface HealthStatus {
   version: string;
 }
 
-@Controller('health')
+@ApiTags("health")
+@Controller("health")
 export class HealthController {
   @Get()
+  @ApiOperation({ summary: "헬스 체크" })
   check(): ApiResponse<HealthStatus> {
     return {
       success: true,
       data: {
-        status: 'ok',
+        status: "ok",
         timestamp: new Date().toISOString(),
-        service: 'ssoo-server',
-        version: '0.0.1',
+        service: "ssoo-server",
+        version: "0.0.1",
       },
     };
   }

@@ -1,22 +1,25 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { MenuService } from './menu.service';
-import { JwtAuthGuard } from '../../common/auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/auth/guards/roles.guard';
-import { CurrentUser } from '../../common/auth/decorators/current-user.decorator';
-import { TokenPayload } from '../../common/auth/interfaces/auth.interface';
-import { success } from '../../../common';
+﻿import { Controller, Get, Post, Delete, Body, Param, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { MenuService } from "./menu.service";
+import { JwtAuthGuard } from "../../common/auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/auth/guards/roles.guard";
+import { CurrentUser } from "../../common/auth/decorators/current-user.decorator";
+import { TokenPayload } from "../../common/auth/interfaces/auth.interface";
+import { success } from "../../../common";
 
-@Controller('menus')
+@ApiTags("menus")
+@ApiBearerAuth()
+@Controller("menus")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   /**
-   * 현재 사용자의 메뉴 트리 조회
+   * 내 메뉴 트리 조회
    * GET /api/menus/my
-   * 응답: { generalMenus: [], adminMenus: [], favorites: [] }
    */
-  @Get('my')
+  @Get("my")
+  @ApiOperation({ summary: "내 메뉴 조회", description: "역할/권한 기반 메뉴 트리 + 즐겨찾기" })
   async getMyMenu(@CurrentUser() currentUser: TokenPayload) {
     const userId = BigInt(currentUser.userId);
 
@@ -36,10 +39,11 @@ export class MenuController {
    * 즐겨찾기 추가
    * POST /api/menus/favorites
    */
-  @Post('favorites')
+  @Post("favorites")
+  @ApiOperation({ summary: "즐겨찾기 추가" })
   async addFavorite(
     @CurrentUser() currentUser: TokenPayload,
-    @Body() body: { menuId: string }
+    @Body() body: { menuId: string },
   ) {
     const userId = BigInt(currentUser.userId);
     const menuId = BigInt(body.menuId);
@@ -52,10 +56,11 @@ export class MenuController {
    * 즐겨찾기 삭제
    * DELETE /api/menus/favorites/:menuId
    */
-  @Delete('favorites/:menuId')
+  @Delete("favorites/:menuId")
+  @ApiOperation({ summary: "즐겨찾기 삭제" })
   async removeFavorite(
     @CurrentUser() currentUser: TokenPayload,
-    @Param('menuId') menuId: string
+    @Param("menuId") menuId: string,
   ) {
     const userId = BigInt(currentUser.userId);
     await this.menuService.removeFavorite(userId, BigInt(menuId));
