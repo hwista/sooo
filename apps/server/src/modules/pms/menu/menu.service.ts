@@ -79,8 +79,8 @@ export class MenuService {
         m.is_admin_menu,
         m.description,
         rm.access_type
-      FROM cm_menu_m m
-      INNER JOIN cm_role_menu_r rm ON m.menu_id = rm.menu_id
+      FROM pms.cm_menu_m m
+      INNER JOIN pms.cm_role_menu_r rm ON m.menu_id = rm.menu_id
       WHERE rm.role_code = ${user.roleCode}
         AND rm.is_active = true
         AND m.is_active = true
@@ -122,8 +122,8 @@ export class MenuService {
         m.is_admin_menu,
         m.description,
         um.access_type
-      FROM cm_menu_m m
-      INNER JOIN cm_user_menu_r um ON m.menu_id = um.menu_id
+      FROM pms.cm_menu_m m
+      INNER JOIN pms.cm_user_menu_r um ON m.menu_id = um.menu_id
       WHERE um.user_id = ${userId}
         AND um.is_active = true
         AND um.override_type = 'grant'
@@ -179,7 +179,7 @@ export class MenuService {
           m.is_visible,
           m.is_admin_menu,
           m.description
-        FROM cm_menu_m m
+        FROM pms.cm_menu_m m
         WHERE m.is_active = true
           AND m.is_admin_menu = true
         ORDER BY m.menu_level, m.sort_order
@@ -303,8 +303,8 @@ export class MenuService {
         m.menu_path,
         m.icon,
         f.sort_order
-      FROM cm_user_favorite_r f
-      INNER JOIN cm_menu_m m ON f.menu_id = m.menu_id
+      FROM pms.cm_user_favorite_r f
+      INNER JOIN pms.cm_menu_m m ON f.menu_id = m.menu_id
       WHERE f.user_id = ${userId}
         AND f.is_active = true
         AND m.is_active = true
