@@ -76,12 +76,12 @@
 
 | 파일 | 역할 |
 |------|------|
-| [apps/server/src/auth/auth.module.ts](../../../../apps/server/src/auth/auth.module.ts) | 인증 모듈 정의 |
-| [apps/server/src/auth/auth.service.ts](../../../../apps/server/src/auth/auth.service.ts) | 로그인/토큰 갱신/로그아웃 로직 |
-| [apps/server/src/auth/auth.controller.ts](../../../../apps/server/src/auth/auth.controller.ts) | API 엔드포인트 |
-| [apps/server/src/auth/strategies/jwt.strategy.ts](../../../../apps/server/src/auth/strategies/jwt.strategy.ts) | JWT 검증 전략 |
-| [apps/server/src/auth/guards/jwt-auth.guard.ts](../../../../apps/server/src/auth/guards/jwt-auth.guard.ts) | 인증 가드 |
-| [apps/server/src/user/user.service.ts](../../../../apps/server/src/user/user.service.ts) | 사용자 조회/업데이트 |
+| [apps/server/src/modules/common/auth/auth.module.ts](../../../../apps/server/src/modules/common/auth/auth.module.ts) | 인증 모듈 정의 |
+| [apps/server/src/modules/common/auth/auth.service.ts](../../../../apps/server/src/modules/common/auth/auth.service.ts) | 로그인/토큰 갱신/로그아웃 로직 |
+| [apps/server/src/modules/common/auth/auth.controller.ts](../../../../apps/server/src/modules/common/auth/auth.controller.ts) | API 엔드포인트 |
+| [apps/server/src/modules/common/auth/strategies/jwt.strategy.ts](../../../../apps/server/src/modules/common/auth/strategies/jwt.strategy.ts) | JWT 검증 전략 |
+| [apps/server/src/modules/common/auth/guards/jwt-auth.guard.ts](../../../../apps/server/src/modules/common/auth/guards/jwt-auth.guard.ts) | 인증 가드 |
+| [apps/server/src/modules/common/user/user.service.ts](../../../../apps/server/src/modules/common/user/user.service.ts) | 사용자 조회/업데이트 |
 
 ### 3.3 BigInt 처리 주의사항
 

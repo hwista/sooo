@@ -244,8 +244,8 @@ created_at       TIMESTAMP
 
 ## 구현 파일
 
-- Controller: `apps/server/src/menu/menu.controller.ts`
-- Service: `apps/server/src/menu/menu.service.ts`
+- Controller: `apps/server/src/modules/pms/menu/menu.controller.ts`
+- Service: `apps/server/src/modules/pms/menu/menu.service.ts`
 - DatabaseService: `apps/server/src/database/database.service.ts`
 
 ## 관련 문서

@@ -292,8 +292,8 @@ updated_at             TIMESTAMP
 
 ## 구현 파일
 
-- Controller: `apps/server/src/project/project.controller.ts`
-- Service: `apps/server/src/project/project.service.ts`
+- Controller: `apps/server/src/modules/pms/project/project.controller.ts`
+- Service: `apps/server/src/modules/pms/project/project.service.ts`
 - DTO: `packages/types/src/project.ts`
 
 ## 관련 문서

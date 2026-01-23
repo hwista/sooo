@@ -127,8 +127,8 @@ updated_at       TIMESTAMP
 
 ## 구현 파일
 
-- Controller: `apps/server/src/user/user.controller.ts`
-- Service: `apps/server/src/user/user.service.ts`
+- Controller: `apps/server/src/modules/common/user/user.controller.ts`
+- Service: `apps/server/src/modules/common/user/user.service.ts`
 
 ## 관련 문서
 

@@ -66,13 +66,13 @@
 
 | 파일 | 역할 |
 |------|------|
-| `apps/server/src/auth/auth.module.ts` | 인증 모듈 정의 |
-| `apps/server/src/auth/auth.service.ts` | 로그인/토큰 갱신/로그아웃 로직 |
-| `apps/server/src/auth/auth.controller.ts` | API 엔드포인트 |
-| `apps/server/src/auth/strategies/jwt.strategy.ts` | JWT 검증 전략 |
-| `apps/server/src/auth/guards/jwt-auth.guard.ts` | 인증 가드 |
-| `apps/server/src/auth/dto/login.dto.ts` | 로그인 DTO |
-| `apps/server/src/user/user.service.ts` | 사용자 조회/업데이트 |
+| `apps/server/src/modules/common/auth/auth.module.ts` | 인증 모듈 정의 |
+| `apps/server/src/modules/common/auth/auth.service.ts` | 로그인/토큰 갱신/로그아웃 로직 |
+| `apps/server/src/modules/common/auth/auth.controller.ts` | API 엔드포인트 |
+| `apps/server/src/modules/common/auth/strategies/jwt.strategy.ts` | JWT 검증 전략 |
+| `apps/server/src/modules/common/auth/guards/jwt-auth.guard.ts` | 인증 가드 |
+| `apps/server/src/modules/common/auth/dto/login.dto.ts` | 로그인 DTO |
+| `apps/server/src/modules/common/user/user.service.ts` | 사용자 조회/업데이트 |
 
 ---
 
@@ -179,7 +179,7 @@
 ### 6.1 AuthService.login() (핵심 로직)
 
 ```typescript
-// apps/server/src/auth/auth.service.ts
+// apps/server/src/modules/common/auth/auth.service.ts
 async login(loginDto: LoginDto): Promise<TokenResponse> {
   const { loginId, password } = loginDto;
   
@@ -338,7 +338,7 @@ const user = await this.userService.findById(BigInt(payload.userId));  // string
 
 **TokenPayload 인터페이스:**
 ```typescript
-// apps/server/src/auth/interfaces/auth.interface.ts
+// apps/server/src/modules/common/auth/interfaces/auth.interface.ts
 export interface TokenPayload {
   userId: string;  // BigInt를 JSON 직렬화할 수 없어 string으로 저장
   loginId: string;

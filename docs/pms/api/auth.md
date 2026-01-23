@@ -202,10 +202,10 @@ interface TokenPayload {
 
 ## 구현 파일
 
-- Controller: `apps/server/src/auth/auth.controller.ts`
-- Service: `apps/server/src/auth/auth.service.ts`
-- DTO: `apps/server/src/auth/dto/login.dto.ts`
-- Guard: `apps/server/src/auth/guards/jwt-auth.guard.ts`
+- Controller: `apps/server/src/modules/common/auth/auth.controller.ts`
+- Service: `apps/server/src/modules/common/auth/auth.service.ts`
+- DTO: `apps/server/src/modules/common/auth/dto/login.dto.ts`
+- Guard: `apps/server/src/modules/common/auth/guards/jwt-auth.guard.ts`
 
 ## 관련 문서
 

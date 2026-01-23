@@ -6,6 +6,9 @@
     "build": "nest build",
     "clean": "rimraf dist",
     "dev": "nest start --watch",
+    "docs:typedoc:common": "typedoc --options typedoc.common.json",
+    "docs:typedoc:pms": "typedoc --options typedoc.pms.json",
+    "docs:typedoc": "pnpm run docs:typedoc:common && pnpm run docs:typedoc:pms",
     "start": "nest start",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix"
@@ -28,6 +31,7 @@
     "class-validator": "^0.14.0",
     "dayjs": "^1.11.0",
     "helmet": "^8.0.0",
+    "joi": "^18.0.2",
     "nestjs-pino": "^4.1.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.0",
@@ -55,6 +59,7 @@
     "globals": "^17.0.0",
     "pino-pretty": "^13.0.0",
     "rimraf": "^6.0.0",
+    "typedoc": "^0.28.16",
     "typescript": "^5.7.0"
   }
 }

@@ -62,15 +62,17 @@ nvm use
 cp .env.example .env
 ```
 
-**필수 환경 변수:**
+**필수 환경 변수:** (미설정 시 서버 부팅 실패 - Joi 검증 적용)
 
 ```env
 # Database (PostgreSQL)
 DATABASE_URL="postgresql://user:password@localhost:5432/ssoo"
 
-# JWT Secret
-JWT_ACCESS_SECRET="your-access-secret-key-change-in-production"
-JWT_REFRESH_SECRET="your-refresh-secret-key-change-in-production"
+# JWT (필수)
+JWT_SECRET="your-jwt-secret-key"
+JWT_REFRESH_SECRET="your-jwt-refresh-secret"
+JWT_ACCESS_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
 ```
 
 ### 2. 웹 애플리케이션 환경 변수

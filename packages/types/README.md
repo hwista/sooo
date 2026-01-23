@@ -147,7 +147,7 @@ DB 스키마와 1:1 매핑이 아닌 경우가 있으므로, 아래 표로 범�
 |------|------|------|------|
 | `User` | Prisma `User` (cm_user_m) | partial | 인증/프로필 핵심 필드만 노출 |
 | `Project` | Prisma `Project` (pr_project_m) | partial | 핵심 상태/소유자 중심 |
-| `Customer` | - | planned | DB 모델 미정(계획 단계) |
+| `Customer` | - | planned | DB 모델 미정(삭제/통합 가능) |
 
 > DB 필드와 1:1 매핑이 필요한 타입은 상태를 `aligned`로 명시합니다.
 

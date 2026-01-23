@@ -48,6 +48,35 @@ packages/
 - 각 앱은 독립 빌드/배포
 - 공용 백엔드는 모듈러 모노리스 구조로 확장
 
+### 모듈러 모노리스 구조 (초안)
+
+```
+apps/server/src/
+  common/            # 공용 유틸/응답/가드
+  database/          # Prisma/DB 접근 계층
+  modules/
+    common/
+      auth/          # 인증/토큰
+      user/          # 사용자/조직
+      health/        # 헬스체크
+    pms/
+      menu/          # 메뉴/권한
+      project/       # 프로젝트 도메인
+    docs/            # 문서/산출물(추후)
+  app.module.ts
+  main.ts
+```
+
+- 모듈 경계 기준은 **도메인/권한/데이터 소유권**으로 분리
+- 공용 레이어는 `common/`, 데이터 접근은 `database/`로 고정
+- 각 모듈은 `controller/service/dto` 기본 구조를 유지
+
+### 프론트 포함 모듈러 구조에 대한 판단
+
+- `apps/`는 실행 단위(서버/웹앱)이고, 모듈은 실행 단위 내부로 두는 것이 기본이다.
+- 프론트까지 공유해야 하는 도메인 로직이 있다면 `packages/`로 분리한다.
+- 따라서 **서버 모듈은 `apps/server/src/modules`**, 공용 도메인 로직은 **`packages/`**로 정리한다.
+
 ### 권한 모델
 
 - 프로젝트 시스템: 기능 접근 권한
@@ -95,6 +124,26 @@ packages/
 - **Storybook**: UI 컴포넌트의 예제/Props/상호작용을 문서로 제공해 “디자인 시스템/컴포넌트 매뉴얼” 역할을 한다.
 
 > 두 도구는 DMS에서 통합 제공하는 것이 구조적으로 적합하다.
+
+### 현재 적용 상태
+
+- `apps/server`: TypeDoc 설정 분리 (`typedoc.common.json`, `typedoc.pms.json`, `docs:typedoc`)
+  - TypeDoc 출력(공용): `docs/common/reference/typedoc/server`
+  - TypeDoc 출력(PMS): `docs/pms/reference/typedoc/server`
+- `apps/web-pms`: TypeDoc/Storybook 설정 추가
+  - TypeDoc 출력: `docs/pms/reference/typedoc/web-pms`
+  - Storybook 실행: `pnpm --filter web-pms storybook` (기본 포트 6006)
+  - Storybook 빌드 출력: `docs/pms/reference/storybook/web-pms`
+- DMS는 생성된 결과물을 수집/렌더링하는 역할로 유지한다.
+- 서버 공용 설정: Joi 기반 환경변수 검증 적용 (JWT/DB 필수, 미설정 시 부팅 실패)
+
+### 문서 출력 경로 정책 (목표)
+
+ - 공용 서버 레퍼런스(TypeDoc): `docs/common/reference/typedoc/server`
+ - PMS 서버 레퍼런스(TypeDoc): `docs/pms/reference/typedoc/server`
+ - PMS 웹 레퍼런스(TypeDoc): `docs/pms/reference/typedoc/web-pms`
+ - PMS 레퍼런스(Storybook): `docs/pms/reference/storybook/web-pms`
+- 생성 결과는 **빌드 시점에 복제/수집**하여 DMS가 접근하도록 정리한다.
 
 ---
 

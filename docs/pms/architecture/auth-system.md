@@ -278,9 +278,9 @@ location.reload();
 ## 7. 관련 파일
 
 ### 서버
-- `apps/server/src/auth/auth.service.ts` - 인증 서비스
-- `apps/server/src/auth/auth.controller.ts` - 인증 컨트롤러
-- `apps/server/src/auth/strategies/jwt.strategy.ts` - JWT 검증 전략
+- `apps/server/src/modules/common/auth/auth.service.ts` - 인증 서비스
+- `apps/server/src/modules/common/auth/auth.controller.ts` - 인증 컨트롤러
+- `apps/server/src/modules/common/auth/strategies/jwt.strategy.ts` - JWT 검증 전략
 
 ### 클라이언트
 - `apps/web-pms/src/stores/auth.store.ts` - 인증 상태 관리
@@ -311,3 +311,10 @@ location.reload();
 | 2026-01-20 | 인증 시스템 문서 최초 작성 |
 | 2026-01-20 | 인증 가드 any 타입 제거 (IMM-03) |
 | 2026-01-20 | apiClient 자동 토큰 갱신 구현 |
+
+
+## 환경 변수
+
+- JWT_SECRET, JWT_REFRESH_SECRET 필수 (ConfigModule Joi 검증)
+- JWT_ACCESS_EXPIRES_IN 기본 15m, JWT_REFRESH_EXPIRES_IN 기본 7d
+- PORT 기본 4000, CORS_ORIGIN 기본 http://localhost:3000
