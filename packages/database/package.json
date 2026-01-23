@@ -19,8 +19,11 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "docs:db:dbml": "prisma generate --schema prisma/schema.prisma",
-    "docs:db:build": "dbdocs build --project ssoo --input prisma/dbml --output ../../docs/pms/reference/db",
-    "docs:db": "pnpm run docs:db:dbml && pnpm run docs:db:build"
+    "docs:db:split": "node scripts/split-dbml.js",
+    "docs:db:common": "dbdocs build --project ssoo-common --input dbml/common.dbml --output ../../docs/common/reference/db",
+    "docs:db:pms": "dbdocs build --project ssoo-pms --input dbml/pms.dbml --output ../../docs/pms/reference/db",
+    "docs:db:dms": "dbdocs build --project ssoo-dms --input dbml/dms.dbml --output ../../docs/dms/reference/db",
+    "docs:db": "pnpm run docs:db:dbml && pnpm run docs:db:split && pnpm run docs:db:common && pnpm run docs:db:pms && pnpm run docs:db:dms"
   },
   "dependencies": {
     "@prisma/client": "^6.2.0"
