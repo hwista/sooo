@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 export interface LoadingStateProps {
   /** 로딩 메시지 */
   message?: string;
+  /** 전체 높이 사용 (화면 중앙 배치) */
+  fullHeight?: boolean;
   /** 추가 className */
   className?: string;
 }
@@ -20,10 +22,15 @@ export interface LoadingStateProps {
  */
 export function LoadingState({
   message = '데이터를 불러오는 중...',
+  fullHeight = false,
   className,
 }: LoadingStateProps) {
   return (
-    <div className={cn('flex flex-col items-center justify-center py-12', className)}>
+    <div className={cn(
+      'flex flex-col items-center justify-center',
+      fullHeight ? 'min-h-[calc(100vh-200px)]' : 'py-12',
+      className
+    )}>
       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       <p className="mt-4 text-sm text-muted-foreground">{message}</p>
     </div>

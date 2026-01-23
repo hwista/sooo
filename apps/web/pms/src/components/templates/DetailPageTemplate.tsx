@@ -103,7 +103,7 @@ export function DetailPageTemplate({
     return (
       <div className={cn('space-y-6', className)}>
         <PageHeader {...header} />
-        <LoadingState message="데이터를 불러오는 중..." />
+        <LoadingState message="데이터를 불러오는 중..." fullHeight />
       </div>
     );
   }
