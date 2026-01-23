@@ -41,6 +41,12 @@
 
 | 시간 | 커밋 | 영역 | 변경 내용 |
 |------|------|------|----------|
+| - | `cbfa70b` | DB | 트리거/시드 파일에 명시적 스키마 prefix(pms./common.) 적용 |
+| - | `f214e92` | 문서 | 문서 경로 수정 (web-pms → web/pms) 및 레거시 스크립트 아카이브 |
+| - | `be91fe2` | 구조 | 스크립트 아카이브를 docs/pms/_archive/로 통합 |
+| - | `8930b75` | 문서 | **모듈러 모놀리스 아키텍처 문서** 추가 (modular-monolith.md) |
+| - | `8cc8d9a` | 문서 | **프론트엔드 패키지 전략 문서** 추가 (frontend-package-strategy.md) |
+| - | - | 결정 | PMS/DMS 독립 개발 후 통합 방침 결정 (별도 조직, 런칭 임박) |
 | - | - | 구조 | @ssoo/types 패키지를 subpath exports 구조로 재편 (`@ssoo/types/common`, `@ssoo/types/pms`) |
 | - | - | 구조 | @ssoo/types-pms 패키지 삭제 (types/pms로 통합) |
 | - | - | 구조 | 프론트엔드 디렉토리 구조 재편 (apps/web-pms → apps/web/pms, apps/web-dms → apps/web/dms) |

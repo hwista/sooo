@@ -19,7 +19,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "docs:db:dbml": "prisma generate --schema prisma/schema.prisma",
-    "docs:db:build": "dbdocs build --project ssoo --input prisma/dbml --output ../../docs/common/reference/db",
+    "docs:db:build": "dbdocs build --project ssoo --input prisma/dbml --output ../../docs/pms/reference/db",
     "docs:db": "pnpm run docs:db:dbml && pnpm run docs:db:build"
   },
   "dependencies": {
