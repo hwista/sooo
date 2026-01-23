@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { HealthController } from './modules/common/health/health.controller';
-import { ProjectModule } from './modules/pms/project/project.module';
 import { DatabaseModule } from './database/database.module';
-import { AuthModule } from './modules/common/auth/auth.module';
-import { UserModule } from './modules/common/user/user.module';
-import { MenuModule } from './modules/pms/menu/menu.module';
+import { CommonModule } from './modules/common/common.module';
+import { PmsModule } from './modules/pms/pms.module';
 import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
 import { configValidationSchema } from './config/config.validation';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -19,12 +16,10 @@ import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filte
       validationSchema: configValidationSchema,
     }),
     DatabaseModule,
-    AuthModule,
-    UserModule,
-    MenuModule,
-    ProjectModule,
+    CommonModule,
+    PmsModule,
   ],
-  controllers: [HealthController],
+  controllers: [],
   providers: [
     // 전역 인터셉터: 요청 컨텍스트 설정 (히스토리 관리용)
     {
