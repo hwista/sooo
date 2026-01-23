@@ -20,10 +20,8 @@
     "db:studio": "prisma studio",
     "docs:db:dbml": "prisma generate --schema prisma/schema.prisma",
     "docs:db:split": "node scripts/split-dbml.js",
-    "docs:db:common": "dbdocs build --project ssoo-common --input dbml/common.dbml --output ../../docs/common/reference/db",
-    "docs:db:pms": "dbdocs build --project ssoo-pms --input dbml/pms.dbml --output ../../docs/pms/reference/db",
-    "docs:db:dms": "dbdocs build --project ssoo-dms --input dbml/dms.dbml --output ../../docs/dms/reference/db",
-    "docs:db": "pnpm run docs:db:dbml && pnpm run docs:db:split && pnpm run docs:db:common && pnpm run docs:db:pms && pnpm run docs:db:dms"
+    "docs:db:export": "node scripts/export-dbml.js",
+    "docs:db": "pnpm run docs:db:dbml && pnpm run docs:db:split && pnpm run docs:db:export"
   },
   "dependencies": {
     "@prisma/client": "^6.2.0"
@@ -35,7 +33,6 @@
     "pg": "^8.17.1",
     "prisma": "^6.2.0",
     "prisma-dbml-generator": "^0.12.0",
-    "dbdocs": "^0.8.5",
     "rimraf": "^6.0.0",
     "typescript": "^5.7.0"
   }
