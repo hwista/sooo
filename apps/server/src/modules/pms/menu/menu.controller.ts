@@ -6,6 +6,7 @@ import { RolesGuard } from "../../common/auth/guards/roles.guard";
 import { CurrentUser } from "../../common/auth/decorators/current-user.decorator";
 import { TokenPayload } from "../../common/auth/interfaces/auth.interface";
 import { success } from "../../../common";
+import { MenuResponseDto } from "./dto/menu-tree.dto";
 
 @ApiTags("menus")
 @ApiBearerAuth()
@@ -20,7 +21,7 @@ export class MenuController {
    */
   @Get("my")
   @ApiOperation({ summary: "내 메뉴 조회", description: "역할/권한 기반 메뉴 트리 + 즐겨찾기" })
-  @ApiOkResponse({ description: "메뉴 트리" })
+  @ApiOkResponse({ type: MenuResponseDto })
   async getMyMenu(@CurrentUser() currentUser: TokenPayload) {
     const userId = BigInt(currentUser.userId);
 

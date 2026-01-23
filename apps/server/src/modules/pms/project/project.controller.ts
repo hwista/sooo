@@ -1,5 +1,5 @@
 ﻿import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, NotFoundException } from "@nestjs/common";
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../common/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/auth/guards/roles.guard";
 import { ProjectService } from "./project.service";
@@ -9,6 +9,8 @@ import type {
   UpdateProjectDto,
   PaginationParams,
 } from "@ssoo/types";
+import { ProjectDto, ProjectListDto } from "./dto/project.dto";
+import { ApiError } from "../../../common/swagger/api-response.dto";
 
 @ApiTags("projects")
 @ApiBearerAuth()
@@ -19,7 +21,7 @@ export class ProjectController {
 
   @Get()
   @ApiOperation({ summary: "프로젝트 목록" })
-  @ApiOkResponse({ description: "프로젝트 목록" })
+  @ApiOkResponse({ type: ProjectListDto })
   async findAll(@Query() params: PaginationParams) {
     const { data, total } = await this.projectService.findAll(params);
     return paginated(data, params.page || 1, params.limit || 10, total);
@@ -27,7 +29,8 @@ export class ProjectController {
 
   @Get(":id")
   @ApiOperation({ summary: "프로젝트 상세" })
-  @ApiOkResponse({ description: "프로젝트 상세" })
+  @ApiOkResponse({ type: ProjectDto })
+  @ApiNotFoundResponse({ type: ApiError })
   async findOne(@Param("id") id: string) {
     const project = await this.projectService.findOne(BigInt(id));
     if (!project) {
@@ -38,7 +41,7 @@ export class ProjectController {
 
   @Post()
   @ApiOperation({ summary: "프로젝트 생성" })
-  @ApiOkResponse({ description: "프로젝트 생성" })
+  @ApiOkResponse({ type: ProjectDto })
   async create(@Body() dto: CreateProjectDto) {
     const project = await this.projectService.create(dto);
     return success(project);
@@ -46,7 +49,8 @@ export class ProjectController {
 
   @Put(":id")
   @ApiOperation({ summary: "프로젝트 수정" })
-  @ApiOkResponse({ description: "프로젝트 수정" })
+  @ApiOkResponse({ type: ProjectDto })
+  @ApiNotFoundResponse({ type: ApiError })
   async update(
     @Param("id") id: string,
     @Body() dto: UpdateProjectDto,

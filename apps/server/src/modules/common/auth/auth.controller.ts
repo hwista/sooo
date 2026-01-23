@@ -1,5 +1,6 @@
-ï»¿import {
+import {
   Controller,
+  
   Post,
   Body,
   UseGuards,
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { TokenPayload } from "./interfaces/auth.interface";
 import { success } from "../../../common";
+import { ApiSuccess } from "../../../common/swagger/api-response.dto";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -22,90 +24,58 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
-   * ë¡œê·¸ì¸
+   * ·Î±×ÀÎ
    * POST /api/auth/login
    */
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { ttl: 60000, limit: 5 } })
-  @ApiOperation({ summary: "ë¡œê·¸ì¸", description: "JWT Access/Refresh í† í° ë°œê¸‰" })
-  @ApiOkResponse({
-    description: "ë¡œê·¸ì¸ ì„±ê³µ",
-    schema: {
-      type: "object",
-      properties: {
-        success: { type: "boolean" },
-        data: {
-          type: "object",
-          properties: {
-            accessToken: { type: "string" },
-            refreshToken: { type: "string" },
-          },
-        },
-        message: { type: "string" },
-      },
-    },
-  })
+  @Throttle(5, 60)
+  @ApiOperation({ summary: "·Î±×ÀÎ", description: "JWT Access/Refresh ÅäÅ« ¹ß±Ş" })
+  @ApiOkResponse({ type: ApiSuccess })
   async login(@Body() loginDto: LoginDto) {
     const tokens = await this.authService.login(loginDto);
-    return success(tokens, "ë¡œê·¸ì¸ì— ì„±ê³µí–ˆìŠµë‹ˆë‹¤");
+    return success(tokens, "·Î±×ÀÎ¿¡ ¼º°øÇß½À´Ï´Ù");
   }
 
   /**
-   * í† í° ê°±ì‹ 
+   * ÅäÅ« °»½Å
    * POST /api/auth/refresh
    */
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { ttl: 60000, limit: 10 } })
-  @ApiOperation({ summary: "Refresh í† í°ìœ¼ë¡œ ì¬ë°œê¸‰" })
-  @ApiOkResponse({
-    description: "ì¬ë°œê¸‰ ì„±ê³µ",
-    schema: {
-      type: "object",
-      properties: {
-        success: { type: "boolean" },
-        data: {
-          type: "object",
-          properties: {
-            accessToken: { type: "string" },
-            refreshToken: { type: "string" },
-          },
-        },
-        message: { type: "string" },
-      },
-    },
-  })
+  @Throttle(10, 60)
+  @ApiOperation({ summary: "Refresh ÅäÅ«À¸·Î Àç¹ß±Ş" })
+  @ApiOkResponse({ type: ApiSuccess })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     const tokens = await this.authService.refreshTokens(refreshTokenDto.refreshToken);
-    return success(tokens, "í† í° ê°±ì‹  ì„±ê³µ");
+    return success(tokens, "ÅäÅ« °»½Å ¼º°ø");
   }
 
   /**
-   * ë¡œê·¸ì•„ì›ƒ
+   * ·Î±×¾Æ¿ô
    * POST /api/auth/logout
    */
   @Post("logout")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "ë¡œê·¸ì•„ì›ƒ", description: "ì„œë²„ì— ì €ì¥ëœ Refresh Token ë¬´íš¨í™”" })
-  @ApiOkResponse({ description: "ë¡œê·¸ì•„ì›ƒ ì„±ê³µ" })
+  @ApiOperation({ summary: "·Î±×¾Æ¿ô", description: "¼­¹ö¿¡ ÀúÀåµÈ Refresh Token ¹«È¿È­" })
+  @ApiOkResponse({ type: ApiSuccess })
   async logout(@CurrentUser() user: TokenPayload) {
     await this.authService.logout(BigInt(user.userId));
-    return success(null, "ë¡œê·¸ì•„ì›ƒ ì„±ê³µ");
+    return success(null, "·Î±×¾Æ¿ô ¼º°ø");
   }
 
   /**
-   * í˜„ì¬ ì‚¬ìš©ì ì •ë³´
+   * ÇöÀç »ç¿ëÀÚ Á¤º¸
    * POST /api/auth/me
    */
   @Post("me")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "ë‚´ ì •ë³´ ì¡°íšŒ" })
-  @ApiOkResponse({ description: "ì‚¬ìš©ì ì •ë³´", schema: { type: "object" } })
+  @ApiOperation({ summary: "³» Á¤º¸ Á¶È¸" })
+  @ApiOkResponse({ type: ApiSuccess })
   async me(@CurrentUser() user: TokenPayload) {
     return success(
       {
@@ -115,7 +85,7 @@ export class AuthController {
         userTypeCode: user.userTypeCode,
         isAdmin: user.isAdmin,
       },
-      "ì‚¬ìš©ì ì •ë³´ ì¡°íšŒ ì„±ê³µ",
+      "»ç¿ëÀÚ Á¤º¸ Á¶È¸ ¼º°ø",
     );
   }
 }

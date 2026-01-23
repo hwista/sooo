@@ -1,20 +1,15 @@
 ﻿import { Controller, Get } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { ApiResponse } from "@ssoo/types";
-
-interface HealthStatus {
-  status: string;
-  timestamp: string;
-  service: string;
-  version: string;
-}
+import { HealthStatusDto } from "../../common/swagger/health.dto";
 
 @ApiTags("health")
 @Controller("health")
 export class HealthController {
   @Get()
   @ApiOperation({ summary: "헬스 체크" })
-  check(): ApiResponse<HealthStatus> {
+  @ApiOkResponse({ type: HealthStatusDto })
+  check(): ApiResponse<HealthStatusDto> {
     return {
       success: true,
       data: {
