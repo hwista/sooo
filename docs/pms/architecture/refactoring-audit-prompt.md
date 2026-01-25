@@ -76,17 +76,20 @@ docs/
 │   └── reference/                  # 자동 생성 전용
 │
 ├── pms/                            # PMS 도메인
+│   ├── getting-started.md          # 빠른 시작 가이드
 │   ├── architecture/               # 아키텍처/표준 (수동)
-│   ├── domain/                     # 비즈니스 개념 (수동)
 │   ├── design/                     # UI/UX 설계 (수동)
+│   ├── domain/                     # 비즈니스 개념 (수동)
 │   ├── guides/                     # 가이드라인 (하이브리드)
 │   ├── planning/                   # 프로젝트 관리 (수동)
 │   ├── tests/                      # 테스트 시나리오 (수동)
 │   ├── reference/                  # 자동 생성 전용
 │   └── _archive/                   # 레거시 문서/스크립트
 │
-└── dms/                            # DMS 도메인 (미래)
-    └── reference/
+└── dms/                            # DMS 도메인
+    ├── architecture/               # 아키텍처 (docs-structure-plan, tech-stack 등)
+    ├── common/                     # 공통 (changelog, README)
+    └── reference/                  # 자동 생성 전용
 ```
 
 ### 6. 문서 관리 전략
@@ -247,6 +250,8 @@ docs/
 #### (F3) Storybook
 - 실제 사용 컴포넌트가 스토리로 커버되는지
 - 깨진 스토리/불일치
+- **현재 9개 컴포넌트 스토리 작성됨** (button, input, badge, card, checkbox, select, textarea, label, table)
+- **미작성 컴포넌트**: dialog, sheet, dropdown-menu, breadcrumb, skeleton, separator, tooltip, scroll-area
 
 #### (F4) DB 문서
 - `schema.prisma` ↔ DBML ↔ ERD(SVG) 최신화 여부
@@ -366,3 +371,5 @@ pnpm docs:all && pnpm docs:verify
 |------|----------|
 | 2026-01-25 | 최초 작성 - 실제 워크스페이스 구조 반영 |
 | 2026-01-25 | 미래 공용 패키지 계획 추가 (@ssoo/ui, hooks, utils) |
+| 2026-01-25 | docs/ 구조 최신화: getting-started.md 추가, dms/ 폴더 구조 반영 |
+| 2026-01-25 | Storybook 커버리지 현황 추가 (9개 작성, 8개 미작성) |
