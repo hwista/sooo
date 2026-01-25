@@ -28,7 +28,7 @@ PMS 내부에 임시로 붙였던 문서 시스템 시도를 롤백하고, DMS �
 - **ReDoc 기반 API Reference UI**: web-pms에 적용됨
 - **Markdown 렌더링(파일 기반)**: web-pms에 적용됨
 - **OpenAPI JSON 제공**: server에 `/api/openapi.json` 추가
-- **TypeDoc/Storybook**: 미적용
+- **TypeDoc/Storybook**: 적용됨 (정적 레퍼런스 산출)
 
 ### 구성 요소 역할
 
@@ -42,7 +42,7 @@ PMS 내부에 임시로 붙였던 문서 시스템 시도를 롤백하고, DMS �
 
 - **web-pms 내부 문서 UI/렌더링**은 롤백 대상
 - **서버 OpenAPI JSON 제공**은 유지
-- **TypeDoc/Storybook**은 DMS 도입 시점에 적용
+- **TypeDoc/Storybook**은 DMS 수집 대상(정적 산출물)
 
 ### 문서 전환 원칙
 

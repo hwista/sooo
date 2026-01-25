@@ -6,8 +6,15 @@
 
 ---
 
-## 📍 영역별 Changelog 위치
+## 📍 Changelog 하이브리드 구조
 
+### 자동 생성 (릴리스 노트)
+- **위치**: [/CHANGELOG.md](/CHANGELOG.md)
+- **도구**: `conventional-changelog`
+- **용도**: 버전별 릴리스 노트 (Git 커밋 메시지 기반 자동 생성)
+- **명령어**: `pnpm changelog` (증분) / `pnpm changelog:init` (전체 재생성)
+
+### 수동 관리 (영역별 상세)
 각 문서 하단에 해당 영역의 상세 변경 이력이 있습니다.
 
 | 영역 | 문서 위치 | 설명 |
@@ -33,6 +40,7 @@
 |------|------|------|----------|
 | - | `50e84d0` | 문서 | **API 문서 HTML 생성**: @redocly/cli 도입, OpenAPI JSON → Redoc HTML 자동 변환 |
 | - | - | 문서 | 문서 자동화 출력 패턴 통일: 모든 도구가 정적 HTML/SVG 산출물 생성 |
+| - | - | 문서 | **Changelog 하이브리드 도입**: conventional-changelog 자동 + 영역별 수동 병행 |
 | - | - | 문서 | docs-verify.js 검증 항목 14개로 확장 (API index.html 추가) |
 | - | - | 문서 | 아키텍처 다이어그램 폴더 구조 준비 (diagrams-src, diagrams/.gitkeep) |
 | - | - | 결정 | Changelog 자동화 검토 → 현행 하이브리드 방식 유지 (영역별 분산 + 인덱스) |

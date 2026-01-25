@@ -15,10 +15,6 @@ const paths = [
   'docs/pms/reference/db/erd.svg',
   // Storybook
   'docs/pms/reference/storybook',
-  // Architecture Diagrams
-  'docs/common/reference/architecture/diagrams',
-  'docs/pms/reference/architecture/diagrams',
-  'docs/dms/reference/architecture/diagrams',
 ];
 const missing = paths.filter((p) => !fs.existsSync(p));
 if (missing.length) {
