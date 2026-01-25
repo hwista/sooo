@@ -119,6 +119,4 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 
 ## 관련 문서
 
-- [../common/setup.md](../common/setup.md) - 개발 환경 설정
-- [frontend-standards.md](frontend-standards.md) - 프론트엔드 표준
-- [tech-decisions.md](tech-decisions.md) - 기술 결정 사항
+- [getting-started.md](../getting-started.md) - 개발 환경 설정
