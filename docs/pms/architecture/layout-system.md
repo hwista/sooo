@@ -1,4 +1,4 @@
-# 레이아웃 시스템 (Layout System)
+﻿# 레이아웃 시스템 (Layout System)
 
 SSOO 프론트엔드의 레이아웃 구조 및 컴포넌트 문서입니다.
 
@@ -72,7 +72,7 @@ AppLayout
 
 ### 파일 위치
 
-`apps/web-pms/src/components/layout/AppLayout.tsx`
+`apps/web/pms/src/components/layout/AppLayout.tsx`
 
 ### 구조
 
@@ -103,7 +103,7 @@ AppLayout
 
 ### 파일 위치
 
-`apps/web-pms/src/components/layout/MainSidebar/`
+`apps/web/pms/src/components/layout/MainSidebar/`
 
 ```
 MainSidebar/
@@ -187,7 +187,7 @@ const FLOAT_PANEL_CONFIG = {
 
 ### 파일 위치
 
-`apps/web-pms/src/components/layout/Header.tsx`
+`apps/web/pms/src/components/layout/Header.tsx`
 
 ### 구성 요소
 
@@ -209,7 +209,7 @@ MDI(Multiple Document Interface) 탭바 컴포넌트입니다.
 
 ### 파일 위치
 
-`apps/web-pms/src/components/layout/TabBar.tsx`
+`apps/web/pms/src/components/layout/TabBar.tsx`
 
 ### 구성 요소
 
@@ -234,7 +234,7 @@ MDI(Multiple Document Interface) 탭바 컴포넌트입니다.
 
 ### 파일 위치
 
-`apps/web-pms/src/components/layout/ContentArea.tsx`
+`apps/web/pms/src/components/layout/ContentArea.tsx`
 
 ### 동작 방식
 
@@ -298,21 +298,21 @@ const pageComponents = {
 
 ### 컴포넌트
 
-- `apps/web-pms/src/components/layout/AppLayout.tsx`
-- `apps/web-pms/src/components/layout/MainSidebar/`
-- `apps/web-pms/src/components/layout/Header.tsx`
-- `apps/web-pms/src/components/layout/TabBar.tsx`
-- `apps/web-pms/src/components/layout/ContentArea.tsx`
+- `apps/web/pms/src/components/layout/AppLayout.tsx`
+- `apps/web/pms/src/components/layout/MainSidebar/`
+- `apps/web/pms/src/components/layout/Header.tsx`
+- `apps/web/pms/src/components/layout/TabBar.tsx`
+- `apps/web/pms/src/components/layout/ContentArea.tsx`
 
 ### Store
 
-- `apps/web-pms/src/stores/sidebar.store.ts`
-- `apps/web-pms/src/stores/layout.store.ts`
-- `apps/web-pms/src/stores/tab.store.ts`
+- `apps/web/pms/src/stores/sidebar.store.ts`
+- `apps/web/pms/src/stores/layout.store.ts`
+- `apps/web/pms/src/stores/tab.store.ts`
 
 ### 타입 정의
 
-- `apps/web-pms/src/types/layout.ts`
+- `apps/web/pms/src/types/layout.ts`
 
 ## 관련 문서
 

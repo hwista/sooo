@@ -1,4 +1,4 @@
-# UI 컴포넌트 (UI Components)
+﻿# UI 컴포넌트 (UI Components)
 
 SSOO 프론트엔드의 공통 UI 컴포넌트 문서입니다.
 
@@ -16,7 +16,7 @@ Radix UI Primitives + shadcn/ui 기반의 커스텀 컴포넌트입니다.
 ### 파일 위치
 
 ```
-apps/web-pms/src/components/ui/
+apps/web/pms/src/components/ui/
 ├── badge.tsx
 ├── breadcrumb.tsx
 ├── button.tsx
@@ -450,8 +450,8 @@ SSOO 디자인 시스템 색상입니다.
 
 ## 구현 파일
 
-- `apps/web-pms/src/components/ui/*.tsx`
-- `apps/web-pms/src/lib/utils/index.ts` (`cn` 유틸리티)
+- `apps/web/pms/src/components/ui/*.tsx`
+- `apps/web/pms/src/lib/utils/index.ts` (`cn` 유틸리티)
 
 ## 관련 문서
 

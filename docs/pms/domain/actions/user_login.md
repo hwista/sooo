@@ -1,4 +1,4 @@
-# Action — 사용자 로그인 (User Login)
+﻿# Action — 사용자 로그인 (User Login)
 
 ## 구현 상태
 
@@ -56,11 +56,11 @@
 
 | 파일 | 역할 |
 |------|------|
-| `apps/web-pms/src/app/(main)/layout.tsx` | 로그인 폼 UI (react-hook-form + zod) |
-| `apps/web-pms/src/app/(main)/page.tsx` | 로그인 후 홈 |
-| `apps/web-pms/src/stores/auth.store.ts` | Zustand 인증 상태 관리 |
-| `apps/web-pms/src/lib/api/client.ts` | Axios 클라이언트 (자동 토큰 갱신) |
-| `apps/web-pms/src/lib/api/auth.ts` | 인증 API 호출 함수 |
+| `apps/web/pms/src/app/(main)/layout.tsx` | 로그인 폼 UI (react-hook-form + zod) |
+| `apps/web/pms/src/app/(main)/page.tsx` | 로그인 후 홈 |
+| `apps/web/pms/src/stores/auth.store.ts` | Zustand 인증 상태 관리 |
+| `apps/web/pms/src/lib/api/client.ts` | Axios 클라이언트 (자동 토큰 갱신) |
+| `apps/web/pms/src/lib/api/auth.ts` | 인증 API 호출 함수 |
 
 ### 4.2 Backend (NestJS)
 
@@ -222,7 +222,7 @@ async login(loginDto: LoginDto): Promise<TokenResponse> {
 ### 6.2 Zustand login 액션
 
 ```typescript
-// apps/web-pms/src/stores/auth.store.ts
+// apps/web/pms/src/stores/auth.store.ts
 login: async (loginId: string, password: string) => {
   set({ isLoading: true });
   try {

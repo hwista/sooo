@@ -1,4 +1,4 @@
-# 테스트 문서
+﻿# 테스트 문서
 
 ## 1. 개요
 
@@ -87,7 +87,7 @@ pnpm test:e2e
 ### Phase 2: E2E 테스트 (Playwright)
 ```bash
 # 웹 E2E 테스트
-cd apps/web-pms
+cd apps/web/pms
 pnpm test:e2e
 ```
 

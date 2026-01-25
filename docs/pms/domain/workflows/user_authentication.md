@@ -1,4 +1,4 @@
-# Workflow — 사용자 인증 (User Authentication)
+﻿# Workflow — 사용자 인증 (User Authentication)
 
 ## 구현 상태
 
@@ -66,11 +66,11 @@
 
 | 파일 | 역할 |
 |------|------|
-| [apps/web-pms/src/app/(main)/layout.tsx][pms-main-layout] | 미인증 로그인 폼 |
-| [apps/web-pms/src/app/(main)/page.tsx][pms-main-page] | 로그인 후 메인 페이지 |
-| [apps/web-pms/src/stores/auth.store.ts](../../../../apps/web-pms/src/stores/auth.store.ts) | Zustand 인증 상태 관리 |
-| [apps/web-pms/src/lib/api/client.ts](../../../../apps/web-pms/src/lib/api/client.ts) | Axios 클라이언트 (자동 토큰 갱신) |
-| [apps/web-pms/src/lib/api/auth.ts](../../../../apps/web-pms/src/lib/api/auth.ts) | 인증 API 호출 함수 |
+| [apps/web/pms/src/app/(main)/layout.tsx][pms-main-layout] | 미인증 로그인 폼 |
+| [apps/web/pms/src/app/(main)/page.tsx][pms-main-page] | 로그인 후 메인 페이지 |
+| [apps/web/pms/src/stores/auth.store.ts](../../../../apps/web/pms/src/stores/auth.store.ts) | Zustand 인증 상태 관리 |
+| [apps/web/pms/src/lib/api/client.ts](../../../../apps/web/pms/src/lib/api/client.ts) | Axios 클라이언트 (자동 토큰 갱신) |
+| [apps/web/pms/src/lib/api/auth.ts](../../../../apps/web/pms/src/lib/api/auth.ts) | 인증 API 호출 함수 |
 
 ### 3.2 Backend (NestJS)
 
@@ -215,8 +215,8 @@ interface AuthState {
 }
 ```
 
-[pms-main-layout]: ../../../../apps/web-pms/src/app/(main)/layout.tsx
-[pms-main-page]: ../../../../apps/web-pms/src/app/(main)/page.tsx
+[pms-main-layout]: ../../../../apps/web/pms/src/app/(main)/layout.tsx
+[pms-main-page]: ../../../../apps/web/pms/src/app/(main)/page.tsx
 
 ### 로컬 스토리지 영속화
 - 키: `ssoo-auth`

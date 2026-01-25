@@ -1,4 +1,4 @@
-# 개발 표준 (Development Standards)
+﻿# 개발 표준 (Development Standards)
 
 > 최종 업데이트: 2026-01-20  
 > 상태: 초안 작성
@@ -172,8 +172,8 @@ export interface DataTableProps {
 ─────────────────────────────────────────
 전체 프로젝트 (types)   → packages/types/
 백엔드 전용             → apps/server/src/common/
-프론트엔드 전용         → apps/web-pms/src/lib/
-UI 컴포넌트             → apps/web-pms/src/components/common/
+프론트엔드 전용         → apps/web/pms/src/lib/
+UI 컴포넌트             → apps/web/pms/src/components/common/
 특정 도메인 내          → 해당 도메인 폴더 내
 ```
 

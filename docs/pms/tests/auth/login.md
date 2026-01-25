@@ -1,4 +1,4 @@
-# 테스트 케이스 — 로그인 (Login)
+﻿# 테스트 케이스 — 로그인 (Login)
 
 **관련 액션**: [user_login.md](../../domain/actions/user_login.md)  
 **마지막 업데이트**: 2026-01-17  
@@ -251,7 +251,7 @@ describe('POST /api/auth/login', () => {
 ### 4.2 Playwright (E2E)
 
 ```typescript
-// apps/web-pms/e2e/auth/login.spec.ts
+// apps/web/pms/e2e/auth/login.spec.ts
 test('TC-LOGIN-09: 대시보드 리다이렉트', async ({ page }) => {
   await page.goto('/');
   await page.fill('[name="loginId"]', 'admin');

@@ -1,4 +1,4 @@
-# SSOO 변경 이력 (Changelog) - 인덱스
+﻿# SSOO 변경 이력 (Changelog) - 인덱스
 
 > 전체 변경 이력 요약 및 영역별 문서 링크
 
@@ -67,7 +67,7 @@
 | - | - | 결정 | PMS/DMS 독립 개발 후 통합 방침 결정 (별도 조직, 런칭 임박) |
 | - | - | 구조 | @ssoo/types 패키지를 subpath exports 구조로 재편 (`@ssoo/types/common`, `@ssoo/types/pms`) |
 | - | - | 구조 | @ssoo/types-pms 패키지 삭제 (types/pms로 통합) |
-| - | - | 구조 | 프론트엔드 디렉토리 구조 재편 (apps/web-pms → apps/web/pms, apps/web-dms → apps/web/dms) |
+| - | - | 구조 | 프론트엔드 디렉토리 구조 재편 (apps/web/pms → apps/web/pms, apps/web-dms → apps/web/dms) |
 | - | - | 수정 | @nestjs/throttler v6 API 호환성 수정 (@Throttle 데코레이터) |
 | - | - | 설정 | pnpm-workspace.yaml 경로 패턴 수정 (apps/server, apps/web/*) |
 
@@ -97,7 +97,7 @@
 | - | - | 문서 | @ssoo/types 커버리지 기준 및 동기화 원칙 명시 |
 | - | - | 문서 | 서버 모듈 경로 변경에 따른 문서 경로 정합화 |
 | - | - | 문서 | docs 구조를 common/pms/dms로 분리 |
-| - | - | 문서 | apps/web → apps/web-pms 리네임 완료 |
+| - | - | 문서 | apps/web → apps/web/pms 리네임 완료 |
 | - | - | 문서 | apps/web-dms 디렉토리 슬롯 준비 |
 | - | - | 문서 | PMS 문서 UI/렌더링 롤백 진행 |
 | - | - | 문서 | PMS 문서 구조 정리 계획 문서 추가 |

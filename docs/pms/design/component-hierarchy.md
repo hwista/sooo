@@ -1,4 +1,4 @@
-# 컴포넌트 계층 구조
+﻿# 컴포넌트 계층 구조
 
 > 목적: UI 컴포넌트의 책임 경계를 명확히 하고 재사용과 유지보수 비용을 줄입니다.
 
@@ -50,7 +50,7 @@ Level 4: 도메인 페이지 (pages/)
 ## 3. 디렉토리 매핑 (PMS 기준)
 
 ```
-apps/web-pms/src/
+apps/web/pms/src/
   components/
     ui/            # Level 1
     common/        # Level 2
