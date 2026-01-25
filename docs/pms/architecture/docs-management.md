@@ -105,6 +105,27 @@ pnpm docs:verify     # 산출물 존재 확인
 - **[API 문서 (Redoc)](../reference/api/index.html)**
 ```
 
+### 4.3 Storybook 활용
+
+UI 컴포넌트의 **시각적 스펙**은 Storybook에서 확인하고, 수동 문서는 **설계 원칙/의사결정**만 기록합니다.
+
+| 수동 문서 (design/) | 역할 | Storybook 링크 |
+|-------------------|------|---------------|
+| `component-hierarchy.md` | 컴포넌트 계층/책임 구조 | → `reference/storybook/` |
+| `design-system.md` | 색상/타이포/간격 규칙 (Why) | → Storybook Design Tokens |
+| `page-layouts.md` | 레이아웃 다이어그램 | → Template 스토리 |
+
+**Storybook이 커버하는 영역:**
+- 컴포넌트 Props 및 API
+- Variants/States 시각화
+- 사용 예시 코드 (autodocs)
+- 인터랙티브 Controls
+
+**수동 문서가 커버하는 영역:**
+- "왜 이 계층 구조인가" (아키텍처 결정)
+- "왜 이 색상을 선택했는가" (브랜드 가이드)
+- 권한별 컴포넌트 노출 규칙 (보안 정책)
+
 ---
 
 ## 5. 폴더 구조
@@ -142,7 +163,52 @@ docs/
 
 ---
 
-## 6. 중복 방지 체크리스트
+## 6. DMS 연동 방식
+
+DMS(문서 허브)에서 자동 생성 문서를 렌더링하는 방식입니다.
+
+### 6.1 산출물 유형별 렌더링
+
+| 산출물 | 유형 | DMS 렌더링 방식 |
+|--------|------|----------------|
+| **Markdown** | 정적 텍스트 | Next.js MDX/Markdown 렌더링 |
+| **ERD (SVG)** | 이미지 | `<img>` 태그 직접 임베드 |
+| **Redoc HTML** | SPA | `<iframe>` 임베드 |
+| **Storybook** | SPA | `<iframe>` 임베드 |
+| **TypeDoc HTML** | 정적 HTML | `<iframe>` 임베드 |
+
+### 6.2 iframe 임베드 예시
+
+```tsx
+// DMS 컴포넌트 예시
+export function StorybookViewer() {
+  return (
+    <iframe
+      src="/reference/storybook/index.html"
+      className="w-full h-[80vh] border-0 rounded-lg"
+      title="Storybook - UI 컴포넌트 카탈로그"
+    />
+  );
+}
+```
+
+### 6.3 URL 구조 (계획)
+
+```
+DMS (apps/web/dms)
+├── /docs/architecture/*     → Markdown 렌더링
+├── /docs/domain/*           → Markdown 렌더링
+├── /docs/design/*           → Markdown 렌더링
+├── /docs/api                → Redoc HTML (iframe)
+├── /docs/db                 → ERD SVG (img) + DBML viewer
+├── /docs/storybook          → Storybook SPA (iframe)
+├── /docs/typedoc            → TypeDoc HTML (iframe)
+└── /docs/changelog          → Markdown 렌더링
+```
+
+---
+
+## 7. 중복 방지 체크리스트
 
 새 문서 작성 전 확인:
 
@@ -154,7 +220,7 @@ docs/
 
 ---
 
-## 7. 마이그레이션 (2026-01-25 적용)
+## 8. 마이그레이션 (2026-01-25 적용)
 
 ### 7.1 삭제된 문서 (자동 문서로 대체)
 
@@ -186,3 +252,4 @@ docs/
 | 날짜 | 변경 내용 |
 |------|----------|
 | 2026-01-25 | 최초 작성 - 문서 자동화 도입에 따른 관리 전략 수립 |
+| 2026-01-25 | Storybook 활용 가이드 추가, DMS 연동 방식 섹션 추가 |

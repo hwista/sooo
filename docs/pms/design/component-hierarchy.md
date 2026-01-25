@@ -2,6 +2,14 @@
 
 > 목적: UI 컴포넌트의 책임 경계를 명확히 하고 재사용과 유지보수 비용을 줄입니다.
 
+## 🔗 시각적 컴포넌트 확인
+
+> **컴포넌트의 실제 모습, Props, 사용 예시는 Storybook에서 확인하세요.**
+>
+> - **[Storybook - UI 컴포넌트 카탈로그](../reference/storybook/index.html)**
+>
+> 이 문서는 **"왜 이 구조인가"** (설계 원칙/의사결정)만 다룹니다.
+
 ---
 
 ## 1. 계층 개요
@@ -86,6 +94,10 @@ Domain Page (Level 4)
 
 ## 6. 관련 문서
 
+### 자동 생성 문서 (컴포넌트 시각화)
+- **[Storybook - UI 컴포넌트 카탈로그](../reference/storybook/index.html)** ← 컴포넌트 Props, 예시 확인
+
+### 수동 문서 (설계/표준)
 - [README.md](./README.md) - UI 디자인 문서 인덱스
-- [page-layouts.md](./page-layouts.md) - 템플릿 기준
+- [page-layouts.md](./page-layouts.md) - 템플릿 레이아웃 기준
 - [design-system.md](./design-system.md) - 디자인 토큰/컴포넌트 규칙
