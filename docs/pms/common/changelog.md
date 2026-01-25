@@ -9,7 +9,7 @@
 ## 📍 Changelog 하이브리드 구조
 
 ### 자동 생성 (릴리스 노트)
-- **위치**: [/CHANGELOG.md](/CHANGELOG.md)
+- **위치**: [/docs/CHANGELOG.md](/docs/CHANGELOG.md)
 - **도구**: `conventional-changelog`
 - **용도**: 버전별 릴리스 노트 (Git 커밋 메시지 기반 자동 생성)
 - **명령어**: `pnpm changelog` (증분) / `pnpm changelog:init` (전체 재생성)
