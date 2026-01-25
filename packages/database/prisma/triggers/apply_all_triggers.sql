@@ -2,12 +2,19 @@
 -- SSOO History Triggers - Master Installation Script
 -- 
 -- 이 스크립트는 모든 히스토리 트리거를 순서대로 설치합니다.
+-- 각 트리거 파일은 명시적 스키마(common/pms)를 사용합니다.
+-- 
+-- 스키마 분류:
+--   - common: cm_user_m (사용자)
+--   - pms: cm_code_m, cm_menu_m, pr_* (코드, 메뉴, 프로젝트 관련)
+-- 
 -- 실행 방법:
 --   psql -h localhost -U appuser -d appdb -f apply_all_triggers.sql
 -- =========================================================
 
 \echo '=========================================='
 \echo 'SSOO History Triggers Installation'
+\echo 'Schema: common (user), pms (code, menu, project)'
 \echo '=========================================='
 
 \echo 'Installing: cm_code_h trigger...'
@@ -42,6 +49,15 @@
 
 \echo 'Installing: pr_project_close_condition_r_h trigger...'
 \i 11_pr_project_close_condition_r_h_trigger.sql
+
+\echo 'Installing: cm_menu_h trigger...'
+\i 12_cm_menu_h_trigger.sql
+
+\echo 'Installing: cm_role_menu_h trigger...'
+\i 13_cm_role_menu_h_trigger.sql
+
+\echo 'Installing: cm_user_menu_h trigger...'
+\i 14_cm_user_menu_h_trigger.sql
 
 \echo '=========================================='
 \echo 'All triggers installed successfully!'

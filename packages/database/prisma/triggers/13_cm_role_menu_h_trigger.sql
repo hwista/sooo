@@ -1,16 +1,17 @@
 -- ============================================
--- cm_role_menu_r 히스토리 트리거
+-- History Trigger: pms.cm_role_menu_r -> pms.cm_role_menu_h
+-- Schema: pms
 -- ============================================
 
 -- 시퀀스 (history_seq 생성용)
-CREATE SEQUENCE IF NOT EXISTS cm_role_menu_h_seq;
+CREATE SEQUENCE IF NOT EXISTS pms.cm_role_menu_h_seq;
 
 -- 트리거 함수
 CREATE OR REPLACE FUNCTION fn_cm_role_menu_r_history()
 RETURNS TRIGGER AS $$
 DECLARE
     v_event_type CHAR(1);
-    v_record cm_role_menu_r%ROWTYPE;
+    v_record pms.cm_role_menu_r%ROWTYPE;
 BEGIN
     IF TG_OP = 'INSERT' THEN
         v_event_type := 'C';
@@ -23,14 +24,14 @@ BEGIN
         v_record := OLD;
     END IF;
 
-    INSERT INTO cm_role_menu_h (
+    INSERT INTO pms.cm_role_menu_h (
         role_menu_id, history_seq, event_type, event_at,
         role_code, menu_id, access_type,
         is_active, memo, created_by, created_at, updated_by, updated_at,
         last_source, last_activity, transaction_id
     ) VALUES (
         v_record.role_menu_id,
-        nextval('cm_role_menu_h_seq'),
+        nextval('pms.cm_role_menu_h_seq'),
         v_event_type,
         NOW(),
         v_record.role_code,
@@ -56,7 +57,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 트리거 생성
-DROP TRIGGER IF EXISTS tr_cm_role_menu_r_history ON cm_role_menu_r;
+DROP TRIGGER IF EXISTS tr_cm_role_menu_r_history ON pms.cm_role_menu_r;
 CREATE TRIGGER tr_cm_role_menu_r_history
-    AFTER INSERT OR UPDATE OR DELETE ON cm_role_menu_r
+    AFTER INSERT OR UPDATE OR DELETE ON pms.cm_role_menu_r
     FOR EACH ROW EXECUTE FUNCTION fn_cm_role_menu_r_history();

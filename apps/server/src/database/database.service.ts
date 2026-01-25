@@ -41,6 +41,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return this._client.menu;
   }
 
+  get userFavorite() {
+    return this._client.userFavorite;
+  }
+
   // ===== Raw Query (기존 this.db.$queryRaw 패턴 유지) =====
 
   get $queryRaw() {
@@ -53,5 +57,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   get $transaction() {
     return this._client.$transaction.bind(this._client);
+  }
+
+  /**
+   * Generic accessor for new models without adding explicit getters.
+   * Prefer `db.client.<model>` in new code to avoid touching this service.
+   */
+  get client(): ExtendedPrismaClient {
+    return this._client;
   }
 }

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { commonColumnsExtension } from './extensions/common-columns.extension';
+import { commonColumnsExtension } from './extensions/common-columns.extension.js';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: ReturnType<typeof createPrismaClient> | undefined;
@@ -35,14 +35,14 @@ export {
   commonColumnsExtension,
   softDeleteExtension,
   activeFilterExtension,
-} from './extensions/common-columns.extension';
+} from './extensions/common-columns.extension.js';
 
 export {
   RequestContext,
   requestContextStorage,
   getRequestContext,
   runWithContext,
-} from './extensions/common-columns.extension';
+} from './extensions/common-columns.extension.js';
 
 export * from '@prisma/client';
 export default prisma;

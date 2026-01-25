@@ -1,172 +1,43 @@
-# SSOO 변경 이력 (Changelog)
+## 0.0.1 (2026-01-25)
 
-> 버그 수정, 주요 변경 사항을 기록합니다.
 
----
+### Bug Fixes
 
-## 2026-01-20
+* 사이드바 스크롤 영역을 검색란 아래로 한정 ([ebd82f5](https://github.com/hwista/sooo/commit/ebd82f5ab7be9f5563ca6638721a9d8fe23a0ab9))
+* 접힌 사이드바에서 관리자 메뉴 표시 ([6d0a8b9](https://github.com/hwista/sooo/commit/6d0a8b931250e3a0bb14a75af562cbcec87908d9))
+* 즐겨찾기 API 404 에러 수정 ([405d713](https://github.com/hwista/sooo/commit/405d713e7a1deda1b2fc35b756b8f023c25960c6))
+* 현재 열린 페이지에서 홈 탭 제외 ([bba91bc](https://github.com/hwista/sooo/commit/bba91bc04376df1d027b6aa3354f01e38bff7da8))
+* add ls-red-hover for destructive button hover state ([961aba8](https://github.com/hwista/sooo/commit/961aba8049cb80a14c00b1591abafc50f8e2a0bb))
+* apply ls-red-hover class to destructive button ([c1a97b1](https://github.com/hwista/sooo/commit/c1a97b189c9c9a1eedaaf937e0767ac7dcf1504d)), closes [#d90027](https://github.com/hwista/sooo/issues/d90027)
+* **docs:** 백로그 중복 제거 - docs/BACKLOG.md로 통합 ([6dc1766](https://github.com/hwista/sooo/commit/6dc17667ab092db0acdc65d90ff92b92fcb95bcb))
+* **menu:** add pms schema prefix to raw SQL queries ([d96b73d](https://github.com/hwista/sooo/commit/d96b73d8785c1f677cb4f698ad87474621ef28ff))
+* **ui:** center loading state vertically on page ([56191f8](https://github.com/hwista/sooo/commit/56191f82efd334ba2dc9ec08e50bbebafe795715))
+* **ui:** center page loading spinner in ContentArea ([a5b5694](https://github.com/hwista/sooo/commit/a5b5694eb3ffaab07ee97925f4cf27fa809b74fb))
 
-### ✨ 권한 가드 구현 (P1-FEATURE)
 
-**백엔드:**
-- `@Roles()` 데코레이터: 역할 기반 접근 제어 (예: `@Roles('admin', 'pm')`)
-- `RolesGuard`: JwtAuthGuard와 함께 사용하는 역할 검증 가드
-- 모든 컨트롤러에 `@UseGuards(JwtAuthGuard, RolesGuard)` 적용
+### Code Refactoring
 
-**프론트엔드:**
-- `useAuth` 훅: `hasRole()`, `isAdmin`, `isManager` 제공
-- `ProtectedRoute` 컴포넌트: 역할 기반 라우트 보호
-- `AuthUser` 타입 export (auth.store.ts)
+* **types:** sync type definitions with Prisma schema ([0ca75ec](https://github.com/hwista/sooo/commit/0ca75ecd2293901a9e3ff5c1d7432779322e7037))
 
-**사용 예시:**
-```typescript
-// 백엔드 - admin만 접근 가능한 엔드포인트
-@Delete(':id')
-@Roles('admin')
-async remove(@Param('id') id: string) { ... }
 
-// 프론트엔드 - 역할 기반 UI 제어
-const { hasRole, isAdmin } = useAuth();
-{hasRole('admin', 'pm') && <AdminPanel />}
+### Features
 
-// 프론트엔드 - 라우트 보호
-<ProtectedRoute roles={['admin']}>
-  <AdminPage />
-</ProtectedRoute>
-```
+* 사이드바 하단에 카피라이트 영역 추가 ([188c1f7](https://github.com/hwista/sooo/commit/188c1f7befffa40fe69d5530b592d3eb8dffb29f))
+* 즐겨찾기 DB 연동 구현 ([8047c9c](https://github.com/hwista/sooo/commit/8047c9c9cef4783c8c863752b6736738aa9d5916))
+* 초기 프로젝트 구성 완료 ([15f26f8](https://github.com/hwista/sooo/commit/15f26f83a001d80bbe82affe6827b9c42524e33f))
+* 커스텀 스크롤바 디자인 시스템 추가 ([d43cb90](https://github.com/hwista/sooo/commit/d43cb90ba74026821749d405900dfcb259bdec81))
+* add Home tab with dashboard placeholder and improve tab styling ([0b7b3bf](https://github.com/hwista/sooo/commit/0b7b3bf1164167eaa5229b6f783a0807eb7f8087)), closes [#9FC1E7](https://github.com/hwista/sooo/issues/9FC1E7) [#003876](https://github.com/hwista/sooo/issues/003876) [#7D8282](https://github.com/hwista/sooo/issues/7D8282)
+* add quality gate and security improvements (IMMEDIATE tasks) ([3d811f3](https://github.com/hwista/sooo/commit/3d811f3b76fdd50664bc3a693738f7630c58e431))
+* **docs:** add conventional-changelog for hybrid changelog management ([55d4085](https://github.com/hwista/sooo/commit/55d40858f482b9a55756529c6cd15fac3cf3142e))
+* **docs:** add Redoc HTML generation for OpenAPI specs ([50e84d0](https://github.com/hwista/sooo/commit/50e84d0d7945e6ae4139ba767f6c47f79fb36d83))
+* implement role-based access control (P1-FEATURE) ([a4fe62b](https://github.com/hwista/sooo/commit/a4fe62b1c7c2d046cc7029b3cdb09276cacdd5e7))
+* **server:** add JwtAuthGuard to ProjectController ([79b3e6b](https://github.com/hwista/sooo/commit/79b3e6b30ee28b875a80b30dc31ffa6493dd706c))
+* **server:** add rate limiting and strengthen password policy ([ca76541](https://github.com/hwista/sooo/commit/ca7654194ee6961e82ffe6fce0e50fe6e427bd36))
 
----
 
-### ✅ 타입 정합성 검증 완료 (P1-TYPE)
+### BREAKING CHANGES
 
-**SRV-06: any 타입 제거**
-- `request-context.interceptor.ts`: `Observable<unknown>` 반환 확인 (이미 수정됨)
+* **types:** Type literal values changed to match database schema
 
-**TYPE-05: 메뉴 타입 통합 검토**
-- 중복 없음 확인: `packages/types`(공통 엔티티) vs `apps/web/src/types`(프론트엔드 전용 UI)
-- 현 구조 유지 결정
 
----
 
-### ✨ 리팩토링: 대형 컴포넌트 분리 (P1-REFACTOR)
-
-**DataTable 분리 (WEB-05):**
-- 454줄 단일 파일 → 5개 파일 폴더 구조
-- `DataTable.tsx`: 메인 컴포넌트 + 상태 관리
-- `DataTableToolbar.tsx`: 검색 + 컨럼 가시성
-- `DataTableBody.tsx`: 테이블 본문 + 로딩/빈상태
-- `DataTableFooter.tsx`: 선택 정보 + 페이지네이션
-- `data-table-utils.tsx`: 유틸리티 함수 (createSortableHeader, createActionsColumn)
-
-**MainSidebar 분리 (WEB-06):**
-- 295줄 단일 파일 → 6개 파일 폴더 구조
-- `MainSidebar.tsx`: 메인 컴포넌트 + 플로트 로직
-- `CollapsedSidebar.tsx`: 접힌 상태 (아이콘만)
-- `ExpandedSidebar.tsx`: 펼친 상태 (전체 UI)
-- `FloatingPanel.tsx`: 플로틸 패널
-- `SidebarSection.tsx`: 섹션 래퍼
-- `sidebar-constants.ts`: 상수 정의
-
-**효과:**
-- 컴포넌트별 단일 책임 원칙 준수
-- 코드 가독성 및 유지보수성 향상
-- 테스트 및 재사용성 개선
-
----
-
-### ✨ 기능 추가: 자동 품질 게이트 (IMM-01)
-
-**추가된 도구:**
-- Husky: Git hooks 자동 실행 (pre-commit, commit-msg)
-- Commitlint: 커밋 메시지 규칙 강제 (conventional commits)
-
-**설정 파일:**
-- `.husky/pre-commit`: 전체 lint 실행
-- `.husky/commit-msg`: commitlint 검증
-- `commitlint.config.mjs`: 커밋 타입 규칙 정의
-- `apps/server/eslint.config.mjs`: ESLint v9 flat config 추가
-
-**효과:**
-- 커밋 시 자동 ESLint 검증으로 코드 품질 강제
-- 일관된 커밋 메시지(feat/fix/docs 등)로 변경 이력 추적 용이
-
----
-
-### 🔧 개선: 하드코딩 URL 제거 (IMM-02)
-
-**변경:**
-- `apps/web/src/stores/menu.store.ts`
-- `fetch('http://localhost:4000/api/menus/my')` → `apiClient.get('/menus/my')`
-
-**추가 개선:**
-- 401 에러 처리 중복 제거 (apiClient에서 통합 처리)
-- 환경변수 기반 API URL로 배포 환경 대응
-
----
-
-### 🔧 개선: 인증 가드 타입 안전성 강화 (IMM-03)
-
-**변경:**
-- `apps/server/src/auth/guards/jwt-auth.guard.ts`
-- `handleRequest(err: any, user: any, info: any): any`
-- → `handleRequest<TUser = TokenPayload>(err: Error | null, user: TUser | false, info: { message?: string }): TUser`
-
-**효과:**
-- 보안 핵심 모듈의 타입 안전성 확보
-- 런타임 에러 사전 방지
-
----
-
-### 🔧 버그 수정: 인증 토큰 만료 시 메뉴 로드 실패
-
-**증상:**
-- 서버 재시작 후에도 이미 로그인된 화면으로 표시
-- localStorage에 만료된 토큰이 남아있어 `isAuthenticated`가 true
-- 메뉴 API 호출 시 401 에러 발생하나 처리되지 않아 빈 메뉴 트리
-
-**원인:**
-1. `checkAuth()`에서 `isAuthenticated`가 true일 때 서버 검증 없이 진행
-2. 메뉴 API 401 응답 시 인증 초기화 로직 부재
-3. 토큰 갱신 실패 시 조용히 실패 (에러 로그 없음)
-
-**수정:**
-- `stores/auth.store.ts`: checkAuth에서 항상 서버에서 토큰 유효성 검증
-- `stores/menu.store.ts`: 401 응답 시 clearAuth + clearMenu 호출
-- `app/(main)/layout.tsx`: 로그인 성공 시 메뉴도 함께 로드
-
-**관련 문서:**
-- [architecture/auth-system.md](architecture/auth-system.md)
-
----
-
-## 2026-01-19
-
-### ✨ 기능 추가: 메뉴/레이아웃 시스템 구현 완료
-
-- Prisma db push - 6개 테이블 생성
-- 히스토리 트리거 14개 설치
-- 메뉴 Seed 데이터 17건 입력
-- 역할별 권한 데이터 66건 입력 (6개 역할)
-- 프론트엔드 레이아웃 컴포넌트 구현 완료
-- Next.js App Router Route Groups 적용
-
-### ✨ 기능 추가: 페이지 보안 및 라우팅 강화
-
-- 미들웨어 직접 접근 차단
-- 404 자동 리다이렉트
-- ContentArea 동적 로딩
-
-### ✨ 기능 추가: 디자인 시스템 표준화
-
-- 그룹웨어 색상 체계 적용
-- 컨트롤 높이 표준화 (36px)
-- 디자인 토큰 정의
-
----
-
-## 2026-01-17
-
-### 📝 문서: 백로그 문서 생성
-
-- 테스트 자동화 항목 추가
-- 메뉴/레이아웃 시스템 설계 시작

@@ -8,14 +8,24 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "default": "./dist/common/index.js"
+    },
+    "./pms": {
+      "types": "./dist/pms/index.d.ts",
+      "default": "./dist/pms/index.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "docs:typedoc": "typedoc --options typedoc.json"
   },
   "devDependencies": {
+    "typedoc": "^0.28.0",
     "typescript": "^5.7.0",
     "rimraf": "^6.0.0"
   }

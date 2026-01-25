@@ -1,58 +1,58 @@
 -- =========================================================
 -- Seed: 01_project_status_code.sql
--- 프로젝트 상태/단계/소스/결과 코드
+-- ?�로?�트 ?�태/?�계/결과 코드
 -- =========================================================
 
-begin;
-
--- PROJECT_STATUS
-insert into cm_code_m (code_group, code_value, display_name_ko, display_name_en, description, sort_order)
+-- PROJECT_STATUS (4?�계: ?�청 ???�안 ???�행 ???�환)
+insert into pms.cm_code_m (code_group, code_value, display_name_ko, display_name_en, description, sort_order, created_at, updated_at)
 values
-('PROJECT_STATUS','opportunity','기회','Opportunity','계약 전 기회(요청/제안 기반).',10),
-('PROJECT_STATUS','execution','실행','Execution','계약 후 실행(프로젝트 수행).',20)
-on conflict (code_group, code_value) do update
+('PROJECT_STATUS','request','?�청','Request','고객 ?�청 ?�수 �?검???�계.',10,now(),now()),
+('PROJECT_STATUS','proposal','?�안','Proposal','견적/?�안???�성 �?계약 ?�상 ?�계.',20,now(),now()),
+('PROJECT_STATUS','execution','?�행','Execution','계약 체결 ???�로?�트 ?�행 ?�계.',30,now(),now()),
+('PROJECT_STATUS','transition','?�환','Transition','?�로?�트 ?�료 ???�영/?��?보수 ?�환 ?�계.',40,now(),now())
+on conflict on constraint ux_cm_code_m_group_value do update
 set display_name_ko=excluded.display_name_ko,
     display_name_en=excluded.display_name_en,
     description=excluded.description,
     sort_order=excluded.sort_order,
     updated_at=now();
 
--- PROJECT_STAGE
-insert into cm_code_m (code_group, code_value, display_name_ko, display_name_en, description, sort_order)
+-- PROJECT_STAGE (�??�태 ??진행 ?�계)
+insert into pms.cm_code_m (code_group, code_value, display_name_ko, display_name_en, description, sort_order, created_at, updated_at)
 values
-('PROJECT_STAGE','waiting','대기','Waiting','아직 본격 작업 전(대기).',10),
-('PROJECT_STAGE','in_progress','진행','In Progress','작업 진행 중.',20),
-('PROJECT_STAGE','done','완료','Done','해당 상태의 종료.',30)
-on conflict (code_group, code_value) do update
+('PROJECT_STAGE','waiting','?��?,'Waiting','?�직 본격 ?�업 ???��?.',10,now(),now()),
+('PROJECT_STAGE','in_progress','진행','In Progress','?�업 진행 �?',20,now(),now()),
+('PROJECT_STAGE','done','?�료','Done','?�당 ?�태??종료.',30,now(),now())
+on conflict on constraint ux_cm_code_m_group_value do update
 set display_name_ko=excluded.display_name_ko,
     display_name_en=excluded.display_name_en,
     description=excluded.description,
     sort_order=excluded.sort_order,
     updated_at=now();
 
--- PROJECT_SOURCE
-insert into cm_code_m (code_group, code_value, display_name_ko, display_name_en, description, sort_order)
+-- PROJECT_DONE_RESULT (?�태�?종료 결과)
+-- request done: accepted(?�용), rejected(거�?), hold(보류)
+-- proposal done: won(?�주), lost(?�주), hold(보류)
+-- execution done: completed(?�료), cancelled(취소), hold(보류)
+-- transition done: transferred(?�환?�료), cancelled(취소)
+insert into pms.cm_code_m (code_group, code_value, display_name_ko, display_name_en, description, sort_order, created_at, updated_at)
 values
-('PROJECT_SOURCE','request','요청','Request','고객 요청 기반 유입.',10),
-('PROJECT_SOURCE','proposal','제안','Proposal','영업/AM 제안 기반 유입.',20)
-on conflict (code_group, code_value) do update
+-- ?�청 ?�계 결과
+('PROJECT_DONE_RESULT','accepted','?�용','Accepted','?�청 ?�용(?�안 ?�계 ?�환 ?�??.',10,now(),now()),
+('PROJECT_DONE_RESULT','rejected','거�?','Rejected','?�청 거�?(종료).',15,now(),now()),
+-- ?�안 ?�계 결과
+('PROJECT_DONE_RESULT','won','?�주','Won','계약 ?�사(?�행 ?�환 ?�??.',20,now(),now()),
+('PROJECT_DONE_RESULT','lost','?�주','Lost','무산/?�배.',25,now(),now()),
+-- ?�행 ?�계 결과
+('PROJECT_DONE_RESULT','completed','?�료','Completed','?�로?�트 ?�상 ?�료(?�환 ?�계 ?�환 ?�??.',30,now(),now()),
+('PROJECT_DONE_RESULT','cancelled','취소','Cancelled','?�로?�트 취소.',35,now(),now()),
+-- ?�환 ?�계 결과
+('PROJECT_DONE_RESULT','transferred','?�환?�료','Transferred','?�영/?��?보수 ?�환 ?�료.',40,now(),now()),
+-- 공통
+('PROJECT_DONE_RESULT','hold','보류','Hold','보류(추후 ?�개 가??.',50,now(),now())
+on conflict on constraint ux_cm_code_m_group_value do update
 set display_name_ko=excluded.display_name_ko,
     display_name_en=excluded.display_name_en,
     description=excluded.description,
     sort_order=excluded.sort_order,
     updated_at=now();
-
--- PROJECT_DONE_RESULT (opportunity + done일 때 의미)
-insert into cm_code_m (code_group, code_value, display_name_ko, display_name_en, description, sort_order)
-values
-('PROJECT_DONE_RESULT','won','수주','Won','계약 성사(실행 전환 대상).',10),
-('PROJECT_DONE_RESULT','lost','실주','Lost','무산/패배.',20),
-('PROJECT_DONE_RESULT','hold','보류','Hold','보류(추후 재개 가능).',30)
-on conflict (code_group, code_value) do update
-set display_name_ko=excluded.display_name_ko,
-    display_name_en=excluded.display_name_en,
-    description=excluded.description,
-    sort_order=excluded.sort_order,
-    updated_at=now();
-
-commit;

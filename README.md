@@ -58,7 +58,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    TypeScript (단일 언어)                    │
 ├─────────────┬─────────────┬──────────────┬──────────────────┤
-│ apps/server │  apps/web   │ apps/mobile  │   apps/desktop   │
+│ apps/server │  apps/web-pms       │ apps/mobile  │   apps/desktop   │
 │   NestJS    │  Next.js    │ React Native │    Electron      │
 │  (백엔드)    │ (프론트엔드) │   (나중에)    │     (나중에)      │
 ├─────────────┴─────────────┴──────────────┴──────────────────┤
@@ -94,7 +94,8 @@ hwista-ssoo/
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
-│   └── web/                     # Next.js 프론트엔드
+│   ├── web-pms/                 # Next.js 프론트엔드
+│   └── web-dms/                 # 도큐먼트 관리 시스템
 │       ├── src/app/             # App Router
 │       │   ├── layout.tsx       # 루트 레이아웃
 │       │   ├── page.tsx         # 메인 페이지
@@ -187,12 +188,12 @@ pnpm --filter @ssoo/database db:push
 ### 4. 개발 서버 실행
 
 ```bash
-# 전체 실행 (server + web 동시)
+# 전체 실행 (server + web-pms 동시)
 pnpm dev
 
 # 또는 개별 실행
 pnpm dev:server   # 백엔드: http://localhost:4000
-pnpm dev:web      # 프론트엔드: http://localhost:3000
+pnpm dev:web-pms      # 프론트엔드: http://localhost:3000
 ```
 
 ### 5. 동작 확인
@@ -272,7 +273,7 @@ node ./node_modules/typescript/lib/tsc.js --project tsconfig.json
 node dist/main.js
 
 # 9. 웹 실행 (새 터미널에서)
-cd c:\WorkSpace\dev\source\hwista-ssoo\apps\web
+cd c:\WorkSpace\dev\source\hwista-ssoo\apps\web-pms
 node ./node_modules/next/dist/bin/next dev --port 3000
 ```
 
@@ -282,7 +283,7 @@ node ./node_modules/next/dist/bin/next dev --port 3000
 ✅ Server: http://localhost:4000/api/health
    → {"success":true,"data":{"status":"ok","service":"ssoo-server","version":"0.0.1"}}
 
-✅ Web: http://localhost:3000
+✅ Web PMS: http://localhost:3000
    → SSOO 메인 페이지 + Server Status 연동 확인
 ```
 
@@ -315,8 +316,8 @@ pnpm dev:server
 pnpm build:server
 
 # Web만 실행/빌드
-pnpm dev:web
-pnpm build:web
+pnpm dev:web-pms
+pnpm build:web-pms
 
 # 특정 앱 + 의존 패키지만 빌드
 pnpm build --filter=server...
@@ -356,8 +357,8 @@ pnpm --filter @ssoo/database build
 
 | 장점 | 설명 |
 |------|------|
-| **타입 공유** | Server ↔ Web 간 DTO/Entity 타입 100% 동기화 |
-| **원자적 변경** | API 변경 시 Server + Web을 하나의 PR로 처리 |
+| **타입 공유** | Server ↔ Web PMS 간 DTO/Entity 타입 100% 동기화 |
+| **원자적 변경** | API 변경 시 Server + Web PMS를 하나의 PR로 처리 |
 | **의존성 통일** | 모든 앱이 같은 버전의 라이브러리 사용 |
 | **독립 배포** | 각 앱별로 필요할 때만 개별 배포 가능 |
 
@@ -373,8 +374,8 @@ pnpm --filter @ssoo/database build
     │         │
     ▼         ▼
 ┌────────┐  ┌────────┐
-│ server │  │  web   │
-│ NestJS │  │Next.js │
+│ server │  │ web-pms │
+│ NestJS │  │ Next.js │
 └────────┘  └────────┘
 ```
 
@@ -383,7 +384,7 @@ pnpm --filter @ssoo/database build
 | 앱 | 빌드 결과 | 배포 대상 |
 |-----|----------|----------|
 | server | Docker Image | Cloud Run, ECS, EC2 |
-| web | Static/SSR | Vercel, Netlify, S3+CloudFront |
+| web-pms | Static/SSR | Vercel, Netlify, S3+CloudFront |
 | mobile (예정) | APK/IPA | App Store, Play Store |
 | desktop (예정) | .exe/.dmg | GitHub Releases |
 
@@ -395,13 +396,13 @@ pnpm --filter @ssoo/database build
 |------|------|------|
 | **개발 가이드** | [docs/SETUP.md](docs/SETUP.md) | 개발 환경 설정 가이드 |
 | **진행 상황** | [docs/BACKLOG.md](docs/BACKLOG.md) | Phase별 태스크 및 완료 현황 |
-| **UI 설계** | [docs/ui-design/README.md](docs/ui-design/README.md) | 페이지 레이아웃, 보안, 디자인 시스템 |
-| **디자인 시스템** | [docs/ui-design/design-system.md](docs/ui-design/design-system.md) | 타이포그래피, 색상, 버튼 표준 |
+| **UI 설계** | [docs/pms/ui-design/README.md](docs/pms/ui-design/README.md) | 페이지 레이아웃, 보안, 디자인 시스템 |
+| **디자인 시스템** | [docs/pms/ui-design/design-system.md](docs/pms/ui-design/design-system.md) | 타이포그래피, 색상, 버튼 표준 |
 | 서비스 정의 | [docs/README.md](docs/README.md) | 서비스 컨셉, 핵심 개념, MVP 로드맵 |
 | DB 설계 규칙 | [docs/database/rules.md](docs/database/rules.md) | 테이블 네이밍, 컬럼 규칙 |
 | DB 접속 정보 | [docs/database/README.md](docs/database/README.md) | 개발/운영 DB 접속 정보 |
-| 업무 흐름 | [docs/service/workflows/](docs/service/workflows/) | 프로젝트 라이프사이클, 인증 흐름 등 |
-| 액션 명세 | [docs/service/actions/](docs/service/actions/) | 로그인, 프로젝트 관리 등 상세 명세 |
+| 업무 흐름 | [docs/pms/domain/workflows/](docs/pms/domain/workflows/) | 프로젝트 라이프사이클, 인증 흐름 등 |
+| 액션 명세 | [docs/pms/domain/actions/](docs/pms/domain/actions/) | 로그인, 프로젝트 관리 등 상세 명세 |
 
 ---
 
@@ -439,8 +440,8 @@ pnpm --filter @ssoo/database build
 
 ### 관련 문서
 
-- [디자인 시스템 가이드](docs/ui-design/design-system.md) - 상세 가이드 및 코드 예시
-- [UI Design 문서](docs/ui-design/README.md) - 전체 UI 설계 문서
+- [디자인 시스템 가이드](docs/pms/ui-design/design-system.md) - 상세 가이드 및 코드 예시
+- [UI Design 문서](docs/pms/ui-design/README.md) - 전체 UI 설계 문서
 
 ---
 
@@ -472,8 +473,8 @@ Role: admin
 
 ### 관련 문서
 
-- [사용자 인증 워크플로우](docs/service/workflows/user_authentication.md)
-- [로그인 액션 상세](docs/service/actions/user_login.md)
+- [사용자 인증 워크플로우](docs/pms/domain/workflows/user_authentication.md)
+- [로그인 액션 상세](docs/pms/domain/actions/user_login.md)
 
 ---
 
