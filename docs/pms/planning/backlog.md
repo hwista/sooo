@@ -19,7 +19,7 @@
 | **상태 관리** | [architecture/state-management.md](../architecture/state-management.md#backlog) | Store 개선 |
 | **UI 컴포넌트** | [architecture/ui-components.md](../architecture/ui-components.md#backlog) | 컴포넌트 추가 |
 | **유틸리티** | [architecture/utilities.md](../architecture/utilities.md#backlog) | 헬퍼 함수 |
-| **데이터베이스** | [database/README.md](../database/README.md#backlog) | 테이블 변경 |
+| **데이터베이스** | [guides/database-guide.md](../guides/database-guide.md) | 테이블 변경 |
 
 ---
 

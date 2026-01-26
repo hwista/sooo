@@ -394,13 +394,13 @@ pnpm --filter @ssoo/database build
 
 | 문서 | 경로 | 설명 |
 |------|------|------|
-| **개발 가이드** | [docs/SETUP.md](docs/SETUP.md) | 개발 환경 설정 가이드 |
-| **진행 상황** | [docs/BACKLOG.md](docs/BACKLOG.md) | Phase별 태스크 및 완료 현황 |
-| **UI 설계** | [docs/pms/ui-design/README.md](docs/pms/ui-design/README.md) | 페이지 레이아웃, 보안, 디자인 시스템 |
-| **디자인 시스템** | [docs/pms/ui-design/design-system.md](docs/pms/ui-design/design-system.md) | 타이포그래피, 색상, 버튼 표준 |
+| **개발 가이드** | [docs/pms/getting-started.md](docs/pms/getting-started.md) | 개발 환경 설정 가이드 |
+| **진행 상황** | [docs/pms/planning/backlog.md](docs/pms/planning/backlog.md) | Phase별 태스크 및 완료 현황 |
+| **UI 설계** | [docs/pms/design/README.md](docs/pms/design/README.md) | 페이지 레이아웃, 보안, 디자인 시스템 |
+| **디자인 시스템** | [docs/pms/design/design-system.md](docs/pms/design/design-system.md) | 타이포그래피, 색상, 버튼 표준 |
 | 서비스 정의 | [docs/README.md](docs/README.md) | 서비스 컨셉, 핵심 개념, MVP 로드맵 |
-| DB 설계 규칙 | [docs/database/rules.md](docs/database/rules.md) | 테이블 네이밍, 컬럼 규칙 |
-| DB 접속 정보 | [docs/database/README.md](docs/database/README.md) | 개발/운영 DB 접속 정보 |
+| DB 설계 규칙 | [docs/pms/guides/rules.md](docs/pms/guides/rules.md) | 테이블 네이밍, 컬럼 규칙 |
+| DB 가이드 | [docs/pms/guides/database-guide.md](docs/pms/guides/database-guide.md) | 데이터베이스 사용 가이드 |
 | 업무 흐름 | [docs/pms/domain/workflows/](docs/pms/domain/workflows/) | 프로젝트 라이프사이클, 인증 흐름 등 |
 | 액션 명세 | [docs/pms/domain/actions/](docs/pms/domain/actions/) | 로그인, 프로젝트 관리 등 상세 명세 |
 

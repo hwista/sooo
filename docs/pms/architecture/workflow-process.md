@@ -241,7 +241,7 @@ npx --no -- commitlint --edit "$1"
 
 - [개발 표준](./development-standards.md)
 - [프론트엔드 표준](./frontend-standards.md)
-- [DB 규칙](../database/rules.md)
+- [DB 규칙](../guides/rules.md)
 
 ---
 

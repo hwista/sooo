@@ -158,7 +158,6 @@
 
 ## 관련 문서
 
-- [../database/tables/cm_menu.md](../database/tables/cm_menu.md) - 메뉴 테이블 정의서
-- [../database/tables/cm_role_menu.md](../database/tables/cm_role_menu.md) - 역할별 권한
-- [../database/tables/cm_user_menu.md](../database/tables/cm_user_menu.md) - 사용자별 예외
+- [../reference/db/schema.dbml](../reference/db/schema.dbml) - 데이터베이스 스키마 (cm_menu, cm_role_menu, cm_user_menu)
+- [../guides/database-guide.md](../guides/database-guide.md) - 데이터베이스 가이드
 - [../architecture/tech-decisions.md](../architecture/tech-decisions.md) - 권한 관리 방식 결정

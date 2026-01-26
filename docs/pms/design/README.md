@@ -88,6 +88,6 @@
 
 ## 🔗 참고 문서
 
-- [../common/backlog.md](../common/backlog.md) - 전체 개발 백로그
-- [../database/README.md](../database/README.md) - 데이터베이스 설계
+- [../planning/backlog.md](../planning/backlog.md) - 전체 개발 백로그
+- [../guides/database-guide.md](../guides/database-guide.md) - 데이터베이스 가이드
 - [../domain/service-overview.md](../domain/service-overview.md) - 서비스 개요

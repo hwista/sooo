@@ -101,4 +101,4 @@ pnpm test:e2e
 
 - [서비스 액션 문서](../domain/actions/)
 - [워크플로우 문서](../domain/workflows/)
-- [데이터베이스 문서](../database/)
+- [데이터베이스 가이드](../guides/database-guide.md)
