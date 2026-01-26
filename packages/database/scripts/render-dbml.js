@@ -4,17 +4,18 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, '..');
+const root = join(__dirname, '..'); // packages/database
+const workspaceRoot = join(root, '..', '..'); // hwista-ssoo
 
 const targets = [
-  { schema: 'common', out: ['..', '..', '..', 'docs', 'common', 'reference', 'db', 'erd.svg'] },
-  { schema: 'pms', out: ['..', '..', '..', 'docs', 'pms', 'reference', 'db', 'erd.svg'] },
-  { schema: 'dms', out: ['..', '..', '..', 'docs', 'dms', 'reference', 'db', 'erd.svg'] },
+  { schema: 'common', out: ['docs', 'common', 'reference', 'db', 'erd.svg'] },
+  { schema: 'pms', out: ['docs', 'pms', 'reference', 'db', 'erd.svg'] },
+  { schema: 'dms', out: ['docs', 'dms', 'reference', 'db', 'erd.svg'] },
 ];
 
 for (const { schema, out } of targets) {
   const src = join(root, 'dbml', `${schema}.dbml`);
-  const dest = join(__dirname, ...out);
+  const dest = join(workspaceRoot, ...out);
   try {
     const size = statSync(src).size;
     if (size === 0) {

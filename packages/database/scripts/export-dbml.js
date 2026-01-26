@@ -3,17 +3,18 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, '..');
+const root = join(__dirname, '..'); // packages/database
+const workspaceRoot = join(root, '..', '..'); // hwista-ssoo
 
 const targets = [
-  { schema: 'common', outDir: ['..', '..', '..', '..', 'docs', 'common', 'reference', 'db'] },
-  { schema: 'pms', outDir: ['..', '..', '..', '..', 'docs', 'pms', 'reference', 'db'] },
-  { schema: 'dms', outDir: ['..', '..', '..', '..', 'docs', 'dms', 'reference', 'db'] },
+  { schema: 'common', outDir: ['docs', 'common', 'reference', 'db'] },
+  { schema: 'pms', outDir: ['docs', 'pms', 'reference', 'db'] },
+  { schema: 'dms', outDir: ['docs', 'dms', 'reference', 'db'] },
 ];
 
 for (const { schema, outDir } of targets) {
   const src = join(root, 'dbml', `${schema}.dbml`);
-  const destDir = join(__dirname, ...outDir);
+  const destDir = join(workspaceRoot, ...outDir);
   const dest = join(destDir, 'schema.dbml');
   mkdirSync(destDir, { recursive: true });
   copyFileSync(src, dest);

@@ -1,3 +1,11 @@
+## [Unreleased]
+
+### Bug Fixes
+
+* **database:** DBML 문서 출력 경로 수정 - 워크스페이스 외부가 아닌 `docs/` 하위로 정상 출력 ([export-dbml.js](packages/database/scripts/export-dbml.js), [render-dbml.js](packages/database/scripts/render-dbml.js))
+
+---
+
 ## 0.0.1 (2026-01-25)
 
 
