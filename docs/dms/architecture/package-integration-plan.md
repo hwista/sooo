@@ -493,12 +493,13 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 - [x] `server/` 디렉토리 생성
 - [x] 백엔드 로직 이동:
   - [x] `services/` → `server/services/`
-  - [ ] API 핸들러 추출: `app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts` (순차 진행 예정)
-- [ ] `app/api/` 얇은 레이어로 변경 (handler import만)
+  - [ ] API 핸들러 추출: `src/app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts` (순차 진행 예정)
+- [ ] `src/app/api/` 얇은 레이어로 변경 (handler import만)
 
-**Step 3: 페이지 라우팅 (`src/app/`) 구성**
-- [ ] `app/` 페이지 파일들 → `src/app/` 이동 (api 제외)
-- [ ] `app/api/`는 루트에 유지 (Next.js 규칙)
+**Step 3: 페이지 라우팅 (`src/app/`) 구성** ✅ 완료
+- [x] `app/` 전체를 `src/app/`으로 이동 (api 포함)
+- [x] `(main)/` route group 생성 (wiki)
+- [x] 루트 `app/` 디렉토리 제거
 
 **Step 4: 설정 업데이트** ✅ 완료
 - [x] `tsconfig.json` paths 업데이트:
@@ -516,13 +517,17 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 **현재 구조 (Step 2 완료 후):**
 ```
 apps/web/dms/
-├── app/                    ← 페이지 + API (Step 3에서 분리)
-│   ├── api/               ← 19개 엔드포인트 (핸들러 추출 예정)
-│   ├── wiki/
-│   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css
-├── src/                    ← ✅ 프론트엔드
+**현재 구조 (Phase 0 Step 3 완료):**
+```
+apps/web/dms/
+├── src/                    ← ✅ 프론트엔드 + 라우팅 통합
+│   ├── app/               ← Next.js App Router
+│   │   ├── (main)/       ← 메인 페이지들
+│   │   │   └── wiki/
+│   │   ├── api/          ← API Routes (19개)
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   └── globals.css
 │   ├── components/
 │   ├── contexts/          ← (Phase 1에서 stores로 변환)
 │   ├── hooks/
@@ -534,23 +539,9 @@ apps/web/dms/
 └── ...
 ```
 
-**최종 목표 (Phase 0 완료 시):**
-```
-apps/web/dms/
-├── src/                    ← 프론트엔드
-│   ├── app/               ← 페이지만
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
-│   └── types/
-├── server/                 ← 백엔드
-│   ├── handlers/          ← API 로직
-│   └── services/
-└── app/api/               ← 얇은 라우팅 레이어
-                                 │
-                                 └── app/api/          ← 라우팅만
-                                     └── */route.ts
-```
+**남은 작업 (핸들러 추출 - 순차 진행):**
+- `src/app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts`
+- 이후 route.ts는 handler import만 하는 얇은 레이어로 유지
 
 ---
 
@@ -724,5 +715,6 @@ export const apiClient = {
 | 2026-01-27 | **Phase 0 시작** - Step 0 완료 (불필요 페이지 삭제: goals-md, goals.md, wiki-test) |
 | 2026-01-27 | **Phase 0 Step 1 완료** - src/ 프론트엔드 구조 생성, 95개 파일 이동 |
 | 2026-01-27 | **Phase 0 Step 2 완료** - server/ 백엔드 구조 생성, services 이동 |
+| 2026-01-27 | **Phase 0 Step 3 완료** - src/app/ 라우팅 구조 완성, (main) route group 생성 |
 
 ````
