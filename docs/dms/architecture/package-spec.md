@@ -21,7 +21,7 @@
 
 | 패키지 | 버전 | 용도 |
 |--------|------|------|
-| `next` | 16.0.0 | React 프레임워크 (App Router) |
+| `next` | ^15.1.0 | React 프레임워크 (App Router) |
 | `react` | 19.2.0 | UI 라이브러리 |
 | `react-dom` | 19.2.0 | React DOM 렌더링 |
 | `typescript` | ^5 | 타입 시스템 |
@@ -35,7 +35,7 @@
 | 패키지 | 버전 | 용도 |
 |--------|------|------|
 | `tailwindcss` | ^3.4.0 | 유틸리티 CSS |
-| `tailwind-merge` | ^3.3.1 | 클래스 병합 유틸리티 |
+| `tailwind-merge` | ^2.6.0 | 클래스 병합 유틸리티 |
 | `tailwind-variants` | ^3.1.1 | Tailwind 변형 관리 |
 | `class-variance-authority` | ^0.7.1 | 컴포넌트 변형 관리 |
 | `clsx` | ^2.1.1 | 조건부 클래스 결합 |
@@ -133,7 +133,7 @@
 | 패키지 | 버전 | 용도 |
 |--------|------|------|
 | `eslint` | ^9 | 코드 린팅 |
-| `eslint-config-next` | 16.0.0 | Next.js ESLint 설정 |
+| `eslint-config-next` | ^15.1.0 | Next.js ESLint 설정 |
 | `autoprefixer` | ^10.4.21 | CSS 벤더 프리픽스 |
 | `postcss` | ^8.5.6 | CSS 후처리 |
 | `@tailwindcss/typography` | ^0.5.19 | 타이포그래피 플러그인 |
@@ -145,12 +145,12 @@
 ```json
 {
   "dev": "next dev",
-  "build": "next build --webpack",
+  "build": "next build",
   "start": "next start"
 }
 ```
 
-> ⚠️ **주의**: 모노레포에서 실행 시 `--webpack` 플래그 필요 (Turbopack 충돌 방지)
+> ✅ Next.js 15.x로 다운그레이드 후 `--webpack` 플래그 불필요
 
 ---
 
@@ -180,3 +180,4 @@ Fluent UI v9는 CSS-in-JS 방식이므로 이 import는 작동하지 않음.
 | 날짜 | 내용 |
 |------|------|
 | 2026-01-27 | 초기 작성 - GitLab subtree 기준 |
+| 2026-01-27 | PMS 호환성을 위해 다운그레이드: Next.js 16→15, tailwind-merge 3→2 |

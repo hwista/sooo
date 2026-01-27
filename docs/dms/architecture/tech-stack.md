@@ -1,12 +1,12 @@
 # DMS 기술 스택
 
-> 최종 업데이트: 2026-01-21
+> 최종 업데이트: 2026-01-27
 
 ---
 
 ## 개요
 
-DMS는 **pnpm + Turborepo** 기반 모노레포 내 독립 앱으로 운영된다.
+DMS는 모노레포 내 독립 앱으로 운영되며, **npm**을 사용한다 (pnpm workspace에서 제외).
 
 ---
 
@@ -16,12 +16,13 @@ DMS는 **pnpm + Turborepo** 기반 모노레포 내 독립 앱으로 운영된�
 hwista-ssoo/
 ├── apps/
 │   ├── server/          # 공용 백엔드 (추후 연동)
-│   └── web-dms/         # 도큐먼트 관리 시스템
+│   ├── web-pms/         # 프로젝트 관리 시스템 (pnpm)
+│   └── web-dms/         # 도큐먼트 관리 시스템 (npm, 독립)
 ├── packages/
 │   ├── database/        # Prisma ORM
 │   └── types/           # 공유 타입
 ├── docs/                # 문서
-├── pnpm-workspace.yaml
+├── pnpm-workspace.yaml  # DMS 제외
 ├── turbo.json
 └── package.json
 ```
@@ -30,13 +31,12 @@ hwista-ssoo/
 
 ## 프론트엔드 (apps/web-dms)
 
-> DMS 소스 반영 후 확정한다.
-
 | 기술 | 버전 | 용도 |
 |------|------|------|
-| **Next.js** | - | React 프레임워크 |
-| **React** | - | UI 라이브러리 |
-| **TypeScript** | - | 언어 |
+| **Next.js** | ^15.1.0 | React 프레임워크 |
+| **React** | 19.2.0 | UI 라이브러리 |
+| **TypeScript** | ^5 | 언어 |
+| **tailwind-merge** | ^2.6.0 | 클래스 병합 |
 
 ---
 

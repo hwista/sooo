@@ -9,20 +9,20 @@
 
 | 패키지 | PMS | DMS | 차이 | 통일 방향 |
 |--------|-----|-----|------|----------|
-| `next` | ^15.1.0 | 16.0.0 | ⚠️ 메이저 차이 | DMS 다운그레이드 예정 |
+| `next` | ^15.1.0 | ^15.1.0 | ✅ 통일 완료 | 15.1.0 |
 | `react` | ^19.2.0 | 19.2.0 | ✅ 통일 완료 | 19.2.0 |
 | `react-dom` | ^19.2.0 | 19.2.0 | ✅ 통일 완료 | 19.2.0 |
 | `typescript` | ^5.7.0 | ^5 | ✅ 호환 | 5.7.0으로 통일 |
 
-### 1.1 Next.js 버전 이슈
+### 1.1 Next.js 버전 통일 완료
 
-| 항목 | PMS (15.x) | DMS (16.x) |
+| 항목 | PMS (15.x) | DMS (15.x) |
 |------|------------|------------|
-| 기본 번들러 | Webpack | Turbopack |
-| 실행 플래그 | 없음 | `--webpack` 필요 |
-| 안정성 | Stable | Latest |
+| 기본 번들러 | Webpack | Webpack |
+| 실행 플래그 | 없음 | 없음 |
+| 안정성 | Stable | Stable |
 
-**권장:** PMS 기준 (15.x)으로 통일 또는 DMS를 15.x로 다운그레이드
+**완료:** DMS를 15.x로 다운그레이드하여 PMS와 통일 완료 ✅
 
 ---
 
@@ -97,7 +97,7 @@ Tailwind CSS + Emotion
 |--------|-----|-----|------|
 | `class-variance-authority` | ^0.7.1 | ^0.7.1 | ✅ 동일 |
 | `clsx` | ^2.1.0 | ^2.1.1 | ✅ 호환 |
-| `tailwind-merge` | ^2.6.0 | ^3.3.1 | ⚠️ 메이저 차이 - DMS 다운그레이드 예정 |
+| `tailwind-merge` | ^2.6.0 | ^2.6.0 | ✅ 통일 완료 |
 | `lucide-react` | ^0.548.0 | ^0.548.0 | ✅ 통일 완료 |
 | `dayjs` | ^1.11.0 | ❌ 없음 | PMS만 |
 | `axios` | ^1.7.0 | ❌ 없음 | PMS만 |
@@ -157,8 +157,8 @@ Tailwind CSS + Emotion
 
 | 작업 | 설명 |
 |------|------|
-| ❌ Next.js 버전 통일 | DMS 16.x → 15.x 다운그레이드 예정 |
-| ❌ tailwind-merge 통일 | DMS 3.x → 2.x 다운그레이드 예정 |
+| ✅ Next.js 버전 통일 | DMS 16.x → 15.x 다운그레이드 완료 |
+| ✅ tailwind-merge 통일 | DMS 3.x → 2.x 다운그레이드 완료 |
 | ❌ `@ssoo/types` 연동 | DMS에서 공유 타입 사용 |
 | ❌ 상태 관리 추가 | Zustand, TanStack Query |
 
@@ -177,3 +177,4 @@ Tailwind CSS + Emotion
 |------|------|
 | 2026-01-27 | 초기 작성 - 현황 비교 분석 |
 | 2026-01-27 | PMS 업그레이드: react 19.2.0, react-dom 19.2.0, lucide-react 0.548.0 |
+| 2026-01-27 | DMS 다운그레이드: Next.js 16.x → 15.x, tailwind-merge 3.x → 2.x |
