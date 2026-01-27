@@ -19,7 +19,7 @@
     "changelog:init": "conventional-changelog -p angular -i docs/CHANGELOG.md -s -r 0",
     "dev:server": "turbo dev --filter=server",
     "dev:web-pms": "turbo dev --filter=web-pms",
-    "dev:web-dms": "cd apps/web/dms && npm run dev -- --webpack",
+    "dev:web-dms": "cd apps/web/dms && npm run dev",
     "build:server": "turbo build --filter=server",
     "build:web-pms": "turbo build --filter=web-pms",
     "build:web-dms": "cd apps/web/dms && npm run build",
