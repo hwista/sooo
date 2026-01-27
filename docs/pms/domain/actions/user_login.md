@@ -408,6 +408,6 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ## 12. 관련 문서
 
 - [사용자 인증 워크플로우](../workflows/user_authentication.md)
-- [데이터베이스 스키마](../../reference/db/schema.dbml) - cm_user 테이블 참조
+- [데이터베이스 스키마](../../../common/reference/db/schema.dbml) - cm_user 테이블 참조
 - [사용자 초대 플로우](./user_invitation.md)
 - [로그인 테스트 상세](../../tests/auth/login.md)

@@ -88,9 +88,14 @@ PMS와 DMS에서 공통으로 적용되는 문서들:
 
 | 유형 | 위치 | 생성 도구 |
 |------|------|-----------|
-| API 문서 | `pms/reference/api/` | Swagger/OpenAPI |
-| 타입 문서 | `pms/reference/typedoc/` | TypeDoc |
-| 컴포넌트 문서 | `pms/reference/storybook/` | Storybook |
+| Common ERD | `common/reference/db/` | Prisma DBML |
+| Common TypeDoc | `common/reference/typedoc/` | TypeDoc |
+| Common API | `common/reference/api/` | OpenAPI |
+| PMS ERD | `pms/reference/db/` | Prisma DBML |
+| PMS TypeDoc | `pms/reference/typedoc/` | TypeDoc |
+| PMS API | `pms/reference/api/` | Swagger/OpenAPI |
+| PMS Storybook | `pms/reference/storybook/` | Storybook |
+| DMS ERD | `dms/reference/db/` | Prisma DBML |
 
 ### 문서 작성 규칙
 

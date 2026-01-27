@@ -158,6 +158,6 @@
 
 ## 관련 문서
 
-- [../reference/db/schema.dbml](../reference/db/schema.dbml) - 데이터베이스 스키마 (cm_menu, cm_role_menu, cm_user_menu)
+- [../../common/reference/db/schema.dbml](../../common/reference/db/schema.dbml) - 데이터베이스 스키마 (cm_menu, cm_role_menu, cm_user_menu)
 - [database-guide.md](../../common/guides/database-guide.md) - 데이터베이스 가이드 (공용)
 - [../architecture/tech-decisions.md](../architecture/tech-decisions.md) - 권한 관리 방식 결정

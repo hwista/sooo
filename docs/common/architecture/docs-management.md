@@ -101,8 +101,8 @@ pnpm docs:verify     # 산출물 존재 확인
 ## API 레퍼런스
 
 자세한 API 명세는 자동 생성된 문서를 참조하세요:
-- **[OpenAPI Spec (JSON)](../reference/api/openapi.json)**
-- **[API 문서 (Redoc)](../reference/api/index.html)**
+- **[OpenAPI Spec (JSON)](../reference/api/openapi.json)** (공용 API)
+- **[API 문서 (Redoc)](../reference/api/index.html)** (공용 API)
 ```
 
 ### 4.3 Storybook 활용

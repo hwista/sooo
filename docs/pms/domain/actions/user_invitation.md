@@ -149,5 +149,5 @@ Response: {
 ---
 
 ## 7. 관련 문서
-- [데이터베이스 스키마](../../reference/db/schema.dbml) - cm_user 테이블 참조
+- [데이터베이스 스키마](../../../common/reference/db/schema.dbml) - cm_user 테이블 참조
 - [사용자 로그인](./user_login.md)

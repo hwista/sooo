@@ -12,8 +12,9 @@ SSOO 데이터베이스 구조 및 사용 가이드입니다.
 
 | 문서 | 설명 |
 |------|------|
-| **[Common ERD](../../pms/reference/db/erd.svg)** | common 스키마 ER 다이어그램 |
-| **[PMS ERD](../../pms/reference/db/erd.svg)** | pms 스키마 ER 다이어그램 |
+| **[Common ERD](../reference/db/erd.svg)** | common 스키마 ER 다이어그램 (`cm_` 접두사 테이블) |
+| **[PMS ERD](../../pms/reference/db/erd.svg)** | pms 스키마 ER 다이어그램 (`pr_` 접두사 테이블) |
+| **[DMS ERD](../../dms/reference/db/erd.svg)** | dms 스키마 ER 다이어그램 (`dm_` 접두사 테이블) |
 | **[Prisma Schema](../../../packages/database/prisma/schema.prisma)** | 원본 스키마 정의 |
 
 ---

@@ -10,10 +10,19 @@ SSOO 백엔드 서버의 REST API 사용 가이드입니다.
 
 > **상세 API 명세는 자동 생성된 문서를 참조하세요:**
 
+### 공용 API (Common)
+
 | 문서 | 설명 |
 |------|------|
-| **[OpenAPI Spec (JSON)](../../pms/reference/api/openapi.json)** | OpenAPI 3.0 스펙 파일 |
-| **[API 문서 (Redoc)](../../pms/reference/api/index.html)** | 인터랙티브 API 문서 |
+| **[OpenAPI Spec (JSON)](../reference/api/openapi.json)** | 공용 API OpenAPI 3.0 스펙 |
+| **[API 문서 (Redoc)](../reference/api/index.html)** | 공용 API 인터랙티브 문서 |
+
+### PMS API
+
+| 문서 | 설명 |
+|------|------|
+| **[OpenAPI Spec (JSON)](../../pms/reference/api/openapi.json)** | PMS API OpenAPI 3.0 스펙 |
+| **[API 문서 (Redoc)](../../pms/reference/api/index.html)** | PMS API 인터랙티브 문서 |
 
 ---
 
