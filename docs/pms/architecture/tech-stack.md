@@ -41,7 +41,7 @@ PMS(Project Management System) 프론트엔드 전용 기술 스택입니다.
 ## 관련 문서
 
 - [공용 기술 스택](../../common/architecture/tech-stack.md) - 백엔드, DB, 개발 도구
-- [getting-started.md](../getting-started.md) - 개발 환경 설정
+- [getting-started.md](../../getting-started.md) - 개발 환경 설정
 - [package-spec.md](package-spec.md) - 패키지 상세 명세
 
 ````

@@ -329,7 +329,7 @@ model NewEntity {
 - [tech-stack.md](./tech-stack.md) - 기술 스택 개요
 - [development-standards.md](./development-standards.md) - 개발 표준
 - [database README](../../../packages/database/README.md) - DB 스키마 상세
-- [auth-system.md](../../pms/architecture/auth-system.md) - PMS 인증 시스템
+- [auth-system.md](./auth-system.md) - 인증 시스템
 
 ---
 

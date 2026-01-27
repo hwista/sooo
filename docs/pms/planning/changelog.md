@@ -26,7 +26,7 @@
 | **상태 관리** | [architecture/state-management.md](../architecture/state-management.md#changelog) | Zustand Store |
 | **UI 컴포넌트** | [architecture/ui-components.md](../architecture/ui-components.md#changelog) | 공통 컴포넌트 |
 | **유틸리티** | [architecture/utilities.md](../architecture/utilities.md#changelog) | API Client, 헬퍼 |
-| **인증** | [architecture/auth-system.md](../architecture/auth-system.md#changelog) | 인증/인가 |
+| **인증** | [auth-system.md](../../common/architecture/auth-system.md#changelog) | 인증/인가 (공용) |
 | **스크롤바** | [architecture/scrollbar.md](../architecture/scrollbar.md#changelog) | 스크롤바 스타일 |
 | **데이터베이스** | [database-guide.md](../../common/guides/database-guide.md#changelog) | DB 구조/연결 (공용) |
 

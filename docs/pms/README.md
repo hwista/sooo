@@ -8,7 +8,7 @@
 
 ## 🚀 시작하기
 
-- **[getting-started.md](getting-started.md)** - 개발 환경 설정 가이드
+- **[getting-started.md](../getting-started.md)** - 개발 환경 설정 가이드
 
 ---
 

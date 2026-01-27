@@ -9,7 +9,7 @@ PMS 시스템의 아키텍처 및 개발 기준 문서입니다.
 | [modular-monolith.md](modular-monolith.md) | **모듈러 모놀리스 아키텍처** - 모듈 구조, 의존성 규칙, 확장 가이드 |
 | [frontend-package-strategy.md](frontend-package-strategy.md) | **프론트엔드 패키지 전략** - PMS/DMS 공용화 계획, 이원화 관리 |
 | [tech-stack.md](tech-stack.md) | 기술 스택 - 사용 기술 및 버전 |
-| [auth-system.md](auth-system.md) | 인증 시스템 - JWT, 토큰 갱신, 보안 정책 |
+| [auth-system.md](../../common/architecture/auth-system.md) | 인증 시스템 - JWT, 토큰 갱신, 보안 정책 (공용) |
 
 ## 개발 표준
 
@@ -36,5 +36,5 @@ PMS 시스템의 아키텍처 및 개발 기준 문서입니다.
 | [utilities.md](utilities.md) | 유틸리티 함수 |
 | [tech-decisions.md](tech-decisions.md) | 기술 결정 기록 (ADR) |
 | [workflow-process.md](workflow-process.md) | 워크플로우 프로세스 |
-| [docs-structure-plan.md](docs-structure-plan.md) | 문서 구조 계획 |
-| [wiki-integration-plan.md](wiki-integration-plan.md) | DMS 통합 계획 |
+| [docs-structure-plan.md](../../common/architecture/docs-structure-plan.md) | 문서 구조 계획 (공용) |
+| [wiki-integration-plan.md](../../dms/architecture/wiki-integration-plan.md) | DMS 통합 계획 (DMS) |

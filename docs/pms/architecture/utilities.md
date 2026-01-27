@@ -364,7 +364,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 ## 관련 문서
 
 - [API 명세서](../api/README.md)
-- [인증 시스템](./auth-system.md)
+- [인증 시스템](../../common/architecture/auth-system.md)
 - [상태 관리](./state-management.md)
 
 ---
