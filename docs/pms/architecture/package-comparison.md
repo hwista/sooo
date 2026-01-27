@@ -148,7 +148,7 @@ Tailwind CSS + Emotion
 
 | 작업 | 설명 |
 |------|------|
-| ❌ globals.css 수정 | 잘못된 Fluent UI CSS import 제거 |
+| ✅ globals.css 수정 | 잘못된 Fluent UI CSS import 제거 |
 | ❌ UI 라이브러리 정리 | Fluent UI 제거 또는 MUI 제거 |
 
 ### Phase 2: 인프라 통일
