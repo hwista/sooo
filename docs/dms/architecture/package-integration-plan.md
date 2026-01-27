@@ -150,7 +150,7 @@ DMS (Self-contained)
 | **프로젝트 구조** | ✅ 완료 | PMS 기준 `src/` + `server/` 구조로 통일 |
 | **코어 프레임워크** | ✅ 완료 | Next.js 15.x, React 19.x |
 | **CSS 유틸리티** | ✅ 완료 | Tailwind, tailwind-merge 2.x |
-| **상태 관리** | ✅ P1 설치완료 | zustand, react-hook-form, zod, sonner |
+| **상태 관리** | ✅ P1 완료 | zustand stores 생성, sonner toast 적용 |
 | **UI 라이브러리** | 🔴 정리 필요 | MUI/Fluent UI 혼용 |
 | **DMS 도메인** | ✅ 유지 | Tiptap, 마크다운, AI |
 | **모노레포 연동** | 🚫 해당없음 | DMS는 독립 프로젝트로 유지 |
@@ -187,7 +187,7 @@ Tailwind CSS + Emotion
 | **소스 디렉토리** | `src/` 래퍼 | `src/` + `server/` | ✅ 완료 |
 | **라우팅** | `(auth)/`, `(main)/` | `(main)/wiki/` | ✅ 완료 |
 | **컴포넌트** | `common/layout/pages/templates/ui/` | `editor/ui/wiki/` | 🟡 재분류 예정 |
-| **상태관리** | `stores/` (zustand) | `contexts/` + zustand 설치됨 | 🟡 마이그레이션 예정 |
+| **상태관리** | `stores/` (zustand) | `stores/` (4개 생성) | ✅ 완료 |
 | **API 레이어** | `lib/api/` | `server/handlers/` (19개) | ✅ 완료 |
 | **유틸리티** | `lib/utils/` | `src/lib/utils/` | ✅ 완료 |
 | **훅** | `hooks/queries/` | `hooks/` | 🟡 명명 통일 예정 |
@@ -721,13 +721,20 @@ apps/web/dms/
 │   │   ├── page.tsx
 │   │   └── globals.css
 │   ├── components/
-│   ├── contexts/          ← (Phase 1에서 stores로 변환)
+│   ├── contexts/          ← (stores로 대부분 변환됨, 레거시)
+│   ├── stores/            ← ✅ zustand stores (Phase 1 완료)
+│   │   ├── gemini-store.ts
+│   │   ├── theme-store.ts
+│   │   ├── tree-store.ts
+│   │   ├── user-store.ts
+│   │   └── index.ts
 │   ├── hooks/
 │   ├── lib/
+│   │   ├── toast.ts       ← ✅ sonner 래퍼 (Phase 1 완료)
 │   │   └── utils/
 │   └── types/
 ├── server/                 ← ✅ 백엔드
-│   ├── handlers/          ← ✅ 10개 핸들러 추출 완료
+│   ├── handlers/          ← ✅ 19개 핸들러 추출 완료
 │   │   ├── ask.handler.ts
 │   │   ├── file.handler.ts
 │   │   ├── files.handler.ts
@@ -744,23 +751,44 @@ apps/web/dms/
 
 ---
 
-### Phase 1: 상태관리 + P1 패키지 (2~3일)
+### Phase 1: 상태관리 + P1 패키지 (2~3일) ✅ 완료
 
 > **구조 + 패키지 동시 진행** - 가장 큰 시너지
 
-**패키지 설치:**
-- [ ] `zod` 설치
-- [ ] `react-hook-form` + `@hookform/resolvers` 설치
-- [ ] `zustand` 설치
-- [ ] `sonner` 설치
+**패키지 설치:** ✅ 완료
+- [x] `zod` 설치
+- [x] `react-hook-form` + `@hookform/resolvers` 설치
+- [x] `zustand` 설치
+- [x] `sonner` 설치
 
-**구조 변경:**
-- [ ] `src/contexts/` 분석 (어떤 Context가 있는지)
-- [ ] `src/stores/` 디렉토리 생성
-- [ ] Context → zustand store 변환
-- [ ] Provider 패턴 제거
-- [ ] 컴포넌트에서 `useContext` → zustand 훅으로 교체
-- [ ] 빌드/동작 테스트
+**구조 변경:** ✅ 완료 (2026-01-27)
+- [x] `src/contexts/` 분석 (6개 Context 확인)
+- [x] `src/stores/` 디렉토리 생성
+- [x] Context → zustand store 변환:
+  - [x] `GeminiChatContext` → `stores/gemini-store.ts`
+  - [x] `ThemeContext` → `stores/theme-store.ts`
+  - [x] `TreeDataContext` → `stores/tree-store.ts`
+  - [x] `UserContext` → `stores/user-store.ts`
+  - [x] `NotificationContext` → `lib/toast.ts` (sonner 사용)
+  - [ ] `WikiContext` - 복잡, Phase 2에서 점진적 변환
+- [x] `GeminiChat.tsx` - useGeminiStore 적용
+- [x] `ThemeToggle.tsx` - useThemeStore 적용
+- [x] `WikiContext.tsx` - useToast 적용
+- [x] `WikiApp.tsx` - NotificationProvider 제거
+- [x] `layout.tsx` - Toaster 추가
+
+**생성된 파일:**
+```
+src/stores/
+├── gemini-store.ts    ← GeminiChat 상태
+├── theme-store.ts     ← 테마 (persist)
+├── tree-store.ts      ← 파일 트리 상태
+├── user-store.ts      ← 사용자 (persist)
+└── index.ts           ← 재export
+
+src/lib/
+└── toast.ts           ← sonner 래퍼 (useToast)
+```
 
 **예시 변환:**
 ```tsx
@@ -871,7 +899,7 @@ export const apiClient = {
 | Phase | 작업 | 예상 기간 | 상태 | 패키지 연동 |
 |-------|------|----------|--------|------------|
 | **0** | 기반 구조 (프론트/백 분리) | 1~2일 | ✅ 완료 | - |
-| **1** | 상태관리 + P1 | 2~3일 | 🔄 진행중 | zod✅, zustand✅, sonner✅, RHF✅ |
+| **1** | 상태관리 + P1 | 2~3일 | ✅ 완료 | zod✅, zustand✅, sonner✅, RHF✅ |
 | **2** | UI 정리 + 컴포넌트 | 3~4일 | ⬜ 대기 | Fluent 제거, MUI 최소화 |
 | **3** | API 레이어 정리 | 1~2일 | ⬜ 대기 | react-query (선택) |
 | **4** | 라우트 정리 | 1~2일 | ⬜ 대기 | - |
@@ -917,5 +945,6 @@ export const apiClient = {
 | 2026-01-27 | **Phase 0 Step 3 완료** - src/app/ 라우팅 구조 완성, (main) route group 생성 |
 | 2026-01-27 | **Phase 0 완전 완료** - 나머지 9개 핸들러 추출 (총 19개), 모든 route.ts 얇은 레이어로 변환 |
 | 2026-01-27 | **Phase 1 시작** - P1 패키지 설치 (zod, react-hook-form, @hookform/resolvers, zustand, sonner) |
+| 2026-01-27 | **Phase 1 완료** - zustand stores 생성 (4개), sonner toast 적용, contexts→stores 마이그레이션 |
 
 ````
