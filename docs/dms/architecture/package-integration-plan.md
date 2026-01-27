@@ -476,15 +476,18 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 - [x] 불필요한 페이지 삭제 (`goals-md/`, `goals.md/`, `wiki-test/`)
 - [x] 문서 업데이트
 
-**Step 1: 프론트엔드 영역 (`src/`) 구성**
-- [ ] `src/` 디렉토리 생성
-- [ ] 프론트엔드 폴더 이동:
-  - [ ] `components/` → `src/components/`
-  - [ ] `hooks/` → `src/hooks/`
-  - [ ] `lib/` → `src/lib/`
-  - [ ] `types/` → `src/types/`
-  - [ ] `utils/` → `src/lib/utils/` (통합)
-  - [ ] `contexts/` → `src/contexts/` (Phase 1에서 stores로 변환)
+**Step 1: 프론트엔드 영역 (`src/`) 구성** ✅ 완료
+- [x] `src/` 디렉토리 생성
+- [x] 프론트엔드 폴더 이동:
+  - [x] `components/` → `src/components/`
+  - [x] `hooks/` → `src/hooks/`
+  - [x] `lib/` → `src/lib/`
+  - [x] `types/` → `src/types/`
+  - [x] `utils/` → `src/lib/utils/` (통합)
+  - [x] `contexts/` → `src/contexts/` (Phase 1에서 stores로 변환)
+- [x] `tsconfig.json` paths 업데이트 (`@/*` → `./src/*`)
+- [x] import 경로 수정 (`@/utils/` → `@/lib/utils/`)
+- [x] 빌드 테스트 통과
 
 **Step 2: 백엔드 영역 (`server/`) 분리**
 - [ ] `server/` 디렉토리 생성
@@ -700,5 +703,6 @@ export const apiClient = {
 | 2026-01-27 | 프로젝트 구조 정렬 계획 통합, 모노레포 독립성 원칙 반영 |
 | 2026-01-27 | 통합 대비 "미니 모노레포" 구조 설계, 소스 구조 도식화 추가 |
 | 2026-01-27 | **Phase 0 시작** - Step 0 완료 (불필요 페이지 삭제: goals-md, goals.md, wiki-test) |
+| 2026-01-27 | **Phase 0 Step 1 완료** - src/ 프론트엔드 구조 생성, 95개 파일 이동 |
 
 ````
