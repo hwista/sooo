@@ -68,16 +68,16 @@ Tailwind CSS + Emotion
 
 ### 1.3 프로젝트 구조 비교
 
-| 측면 | PMS (목표) | DMS (현재) | 변경 필요 |
+| 측면 | PMS (목표) | DMS (현재) | 상태 |
 |------|------------|------------|----------|
-| **소스 디렉토리** | `src/` 래퍼 | 루트 레벨 | 🔴 이동 필요 |
-| **라우팅** | `(auth)/`, `(main)/` | `wiki/`, `api/` | 🟡 Route Group |
-| **컴포넌트** | `common/layout/pages/templates/ui/` | `editor/ui/wiki/` | 🔴 재분류 |
-| **상태관리** | `stores/` (zustand) | `contexts/` (Context API) | 🔴 패턴 변경 |
-| **API 레이어** | `lib/api/` | `services/` | 🟡 구조 통일 |
-| **유틸리티** | `lib/utils/` | `utils/` + `lib/` (분산) | 🟡 통합 |
-| **훅** | `hooks/queries/` | `hooks/services/` | 🟡 명명 통일 |
-| **타입** | `types/` | `types/` | ✅ 유사 |
+| **소스 디렉토리** | `src/` 래퍼 | `src/` + `server/` | ✅ 완료 |
+| **라우팅** | `(auth)/`, `(main)/` | `(main)/wiki/` | ✅ 완료 |
+| **컴포넌트** | `common/layout/pages/templates/ui/` | `editor/ui/wiki/` | 🟡 재분류 예정 |
+| **상태관리** | `stores/` (zustand) | `contexts/` + zustand 설치됨 | 🟡 마이그레이션 예정 |
+| **API 레이어** | `lib/api/` | `server/handlers/` (19개) | ✅ 완료 |
+| **유틸리티** | `lib/utils/` | `src/lib/utils/` | ✅ 완료 |
+| **훅** | `hooks/queries/` | `hooks/` | 🟡 명명 통일 예정 |
+| **타입** | `types/` | `src/types/` | ✅ 완료 |
 
 > ⚠️ **참고**: DMS는 모노레포 패키지(`@ssoo/types`, `@ssoo/database`)를 사용하지 않음
 
@@ -118,12 +118,12 @@ apps/web/pms/
 👉 백엔드: apps/server (NestJS) - 별도 프로젝트
 ```
 
-#### DMS 소스 구조 - 변경 전 (현재)
+#### DMS 소스 구조 - 변경 전 (리팩터링 이전)
 
 ```
-apps/web/dms/
+apps/web/dms/                     ← ❌ 과거 구조
 ├── app/                          ← 페이지 + API 혼재
-│   ├── api/                     ← ⚙️ 내부 백엔드 (API Routes)
+│   ├── api/                     ← 비즈니스 로직 포함
 │   │   ├── files/
 │   │   ├── file/
 │   │   ├── search/
@@ -131,64 +131,66 @@ apps/web/dms/
 │   │   └── git/
 │   └── wiki/                    ← 페이지
 ├── components/                   ← 분류 없이 혼재
-│   ├── editor/
-│   ├── ui/
-│   └── wiki/
 ├── contexts/                     ← React Context (구식)
 ├── hooks/
-│   └── services/
 ├── services/                     ← 비즈니스 로직 (백엔드)
-│   └── fileSystem/
 ├── lib/
 ├── types/
 ├── utils/
 └── docs/
 ```
 
-#### DMS 소스 구조 - 변경 후 (목표, 통합 대비 "미니 모노레포")
+#### DMS 소스 구조 - 변경 후 (현재 ✅ Phase 0 완료)
 
 ```
 apps/web/dms/
 │
 ├── src/                          ← 🎨 프론트엔드 영역 (통합 후 유지)
-│   ├── app/                      ← Next.js App Router (페이지만)
-│   │   ├── (main)/              ← 메인 라우트 그룹
+│   ├── app/                      ← Next.js App Router
+│   │   ├── (main)/              ← ✅ 메인 라우트 그룹
 │   │   │   └── wiki/
-│   │   └── layout.tsx
-│   ├── components/
-│   │   ├── common/
-│   │   ├── layout/
-│   │   ├── pages/
-│   │   │   ├── editor/
-│   │   │   └── wiki/
-│   │   ├── templates/
-│   │   └── ui/
+│   │   ├── api/                 ← 얇은 라우팅 레이어 (19개)
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/              ← (Phase 2에서 재분류 예정)
+│   │   ├── editor/
+│   │   ├── ui/
+│   │   └── wiki/
+│   ├── contexts/                ← (Phase 1에서 stores로 변환)
 │   ├── hooks/
-│   │   └── queries/             ← API 호출 훅
 │   ├── lib/
-│   │   ├── api/                 ← 🔗 API 클라이언트 (server/ 호출)
-│   │   └── utils/
-│   ├── stores/                  ← zustand 스토어
+│   │   └── utils/               ← ✅ 통합됨
 │   └── types/
 │
 ├── server/                       ← ⚙️ 백엔드 영역 (통합 시 → apps/server로 이전)
-│   ├── handlers/                ← API 핸들러 로직
+│   ├── handlers/                ← ✅ API 핸들러 로직 (19개)
 │   │   ├── files.handler.ts
 │   │   ├── file.handler.ts
+│   │   ├── git.handler.ts
 │   │   ├── search.handler.ts
-│   │   └── gemini.handler.ts
-│   ├── services/                ← 비즈니스 로직
+│   │   ├── index.handler.ts
+│   │   ├── upload.handler.ts
+│   │   ├── watch.handler.ts
+│   │   ├── gemini.handler.ts
+│   │   ├── text-search.handler.ts
+│   │   ├── ask.handler.ts
+│   │   ├── collaborate.handler.ts
+│   │   ├── comments.handler.ts
+│   │   ├── notifications.handler.ts
+│   │   ├── permissions.handler.ts
+│   │   ├── plugins.handler.ts
+│   │   ├── tags.handler.ts
+│   │   ├── templates.handler.ts
+│   │   ├── users.handler.ts
+│   │   └── versions.handler.ts
+│   ├── services/                ← ✅ 비즈니스 로직
 │   │   └── fileSystem/
 │   └── lib/                     ← 서버 유틸리티
 │
-├── app/                          ← Next.js 라우팅 (얇은 레이어)
-│   └── api/                     ← server/handlers 호출만
-│       ├── files/route.ts       → import { GET } from '@/server/handlers/files.handler'
-│       ├── file/route.ts
-│       └── .../route.ts
-│
-└── docs/
+└── public/
 ```
+
+> **참고:** `src/app/api/`는 `server/handlers/`를 import하는 얇은 레이어 역할만 수행
 
 ### 1.5 통합 시 마이그레이션 전략
 
@@ -326,9 +328,9 @@ apps/web/dms/
 
 ---
 
-## 3. DMS 도입 대상 (PMS → DMS)
+## 4. DMS 도입 대상 (PMS → DMS)
 
-### 3.1 P1: 즉시 도입 (웹 개발 표준)
+### 4.1 P1: 즉시 도입 (웹 개발 표준) ✅ 설치완료
 
 > 폼 처리, 상태 관리, 유효성 검사 - 모든 웹 앱 필수
 
@@ -347,7 +349,7 @@ npm install zod react-hook-form @hookform/resolvers zustand sonner
 
 ---
 
-### 3.2 P2: 내부 API 개선 (선택)
+### 4.2 P2: 내부 API 개선 (선택)
 
 > 현재 DMS는 Next.js API Routes로 자체 백엔드 구현 중  
 > 외부 서버 연동 없음 - 내부 fetch 호출 개선용
@@ -378,7 +380,7 @@ app/api/
 
 ---
 
-### 3.3 P3: 기능별 선택 도입
+### 4.3 P3: 기능별 선택 도입
 
 > 해당 기능 구현 시 도입
 
@@ -394,7 +396,7 @@ app/api/
 
 ---
 
-### 3.4 P4: UI 디자인 통일 (장기)
+### 4.4 P4: UI 디자인 통일 (장기)
 
 > PMS 디자인 시스템 적용 시 - MUI/Fluent 대체
 
@@ -428,7 +430,7 @@ npm install -D tailwindcss-animate
 
 ---
 
-## 4. DMS 전용 패키지 정리
+## 5. DMS 전용 패키지 정리
 
 ### 4.1 🔴 제거 대상 (UI 라이브러리 정리)
 
@@ -529,7 +531,7 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 
 ---
 
-## 5. 통합 리팩터링 실행 계획
+## 6. 통합 리팩터링 실행 계획
 
 > 프로젝트 구조 정렬과 패키지 통합을 **동시 진행**하여 효율성 극대화  
 > **통합 대비 "미니 모노레포" 구조**로 프론트/백엔드 분리
@@ -750,22 +752,22 @@ export const apiClient = {
 
 ---
 
-## 6. 일정 요약
+## 7. 일정 요약
 
-| Phase | 작업 | 예상 기간 | 의존성 | 패키지 연동 |
+| Phase | 작업 | 예상 기간 | 상태 | 패키지 연동 |
 |-------|------|----------|--------|------------|
-| **0** | 기반 구조 (프론트/백 분리) | 1~2일 | - | - |
-| **1** | 상태관리 + P1 | 2~3일 | Phase 0 | zod, zustand, sonner, RHF |
-| **2** | UI 정리 + 컴포넌트 | 3~4일 | Phase 0 | Fluent 제거, MUI 최소화 |
-| **3** | API 레이어 정리 | 1~2일 | Phase 1 | react-query (선택) |
-| **4** | 라우트 정리 | 1~2일 | Phase 2 | - |
-| **5** | 디자인 통일 | 점진적 | Phase 2 | Radix UI (필요시) |
+| **0** | 기반 구조 (프론트/백 분리) | 1~2일 | ✅ 완료 | - |
+| **1** | 상태관리 + P1 | 2~3일 | 🔄 진행중 | zod✅, zustand✅, sonner✅, RHF✅ |
+| **2** | UI 정리 + 컴포넌트 | 3~4일 | ⬜ 대기 | Fluent 제거, MUI 최소화 |
+| **3** | API 레이어 정리 | 1~2일 | ⬜ 대기 | react-query (선택) |
+| **4** | 라우트 정리 | 1~2일 | ⬜ 대기 | - |
+| **5** | 디자인 통일 | 점진적 | ⬜ 대기 | Radix UI (필요시) |
 
 **총 예상: 약 10~14일** (Phase 5 제외)
 
 ---
 
-## 7. 주의사항
+## 8. 주의사항
 
 ### ❌ 하지 말아야 할 것
 
