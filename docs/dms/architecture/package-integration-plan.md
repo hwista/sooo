@@ -470,7 +470,7 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 
 > 모든 작업의 전제조건 - 통합 대비 프론트/백엔드 분리 구조
 
-**진행 상태:** 🔄 진행 중 (2026-01-27 시작)
+**진행 상태:** ✅ 완료 (2026-01-27)
 
 **Step 0: 준비 작업** ✅ 완료
 - [x] 불필요한 페이지 삭제 (`goals-md/`, `goals.md/`, `wiki-test/`)
@@ -504,8 +504,8 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
     - [x] gemini.handler.ts (Gemini AI 질문)
     - [x] text-search.handler.ts (텍스트 검색)
     - [x] ask.handler.ts (RAG AI 질문)
-    - [ ] 나머지 9개 (collaborate, comments, notifications, permissions, plugins, tags, templates, users, versions) - 이미 lib 모듈 사용 중으로 추후 진행
-- [x] `src/app/api/` 얇은 레이어로 변경 완료 (10개 핸들러 추출됨)
+    - [x] 나머지 9개 (collaborate, comments, notifications, permissions, plugins, tags, templates, users, versions)
+- [x] `src/app/api/` 얇은 레이어로 변경 완료 (19개 핸들러 전체 추출됨)
 
 **Step 3: 페이지 라우팅 (`src/app/`) 구성** ✅ 완료
 - [x] `app/` 전체를 `src/app/`으로 이동 (api 포함)
@@ -731,5 +731,6 @@ export const apiClient = {
 | 2026-01-27 | **Phase 0 Step 1 완료** - src/ 프론트엔드 구조 생성, 95개 파일 이동 |
 | 2026-01-27 | **Phase 0 Step 2 완료** - server/ 백엔드 구조 생성, services 이동 |
 | 2026-01-27 | **Phase 0 Step 3 완료** - src/app/ 라우팅 구조 완성, (main) route group 생성 |
+| 2026-01-27 | **Phase 0 완전 완료** - 나머지 9개 핸들러 추출 (총 19개), 모든 route.ts 얇은 레이어로 변환 |
 
 ````
