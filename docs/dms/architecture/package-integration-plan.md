@@ -489,12 +489,23 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 - [x] import 경로 수정 (`@/utils/` → `@/lib/utils/`)
 - [x] 빌드 테스트 통과
 
-**Step 2: 백엔드 영역 (`server/`) 분리** ✅ 부분 완료
+**Step 2: 백엔드 영역 (`server/`) 분리** ✅ 완료
 - [x] `server/` 디렉토리 생성
 - [x] 백엔드 로직 이동:
   - [x] `services/` → `server/services/`
-  - [ ] API 핸들러 추출: `src/app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts` (순차 진행 예정)
-- [ ] `src/app/api/` 얇은 레이어로 변경 (handler import만)
+  - [x] API 핸들러 추출: `src/app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts`
+    - [x] files.handler.ts (파일 트리)
+    - [x] file.handler.ts (단일 파일 CRUD)
+    - [x] git.handler.ts (Git 작업)
+    - [x] search.handler.ts (벡터 검색)
+    - [x] index.handler.ts (벡터 인덱싱)
+    - [x] upload.handler.ts (파일 업로드)
+    - [x] watch.handler.ts (파일 감시 SSE)
+    - [x] gemini.handler.ts (Gemini AI 질문)
+    - [x] text-search.handler.ts (텍스트 검색)
+    - [x] ask.handler.ts (RAG AI 질문)
+    - [ ] 나머지 9개 (collaborate, comments, notifications, permissions, plugins, tags, templates, users, versions) - 이미 lib 모듈 사용 중으로 추후 진행
+- [x] `src/app/api/` 얇은 레이어로 변경 완료 (10개 핸들러 추출됨)
 
 **Step 3: 페이지 라우팅 (`src/app/`) 구성** ✅ 완료
 - [x] `app/` 전체를 `src/app/`으로 이동 (api 포함)
@@ -514,17 +525,14 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 - [x] 모든 import 경로 수정
 - [x] 빌드 테스트 (`npm run build`)
 
-**현재 구조 (Step 2 완료 후):**
-```
-apps/web/dms/
-**현재 구조 (Phase 0 Step 3 완료):**
+**현재 구조 (Phase 0 완료):**
 ```
 apps/web/dms/
 ├── src/                    ← ✅ 프론트엔드 + 라우팅 통합
 │   ├── app/               ← Next.js App Router
 │   │   ├── (main)/       ← 메인 페이지들
 │   │   │   └── wiki/
-│   │   ├── api/          ← API Routes (19개)
+│   │   ├── api/          ← API Routes (19개) - 얇은 레이어
 │   │   ├── layout.tsx
 │   │   ├── page.tsx
 │   │   └── globals.css
@@ -535,13 +543,20 @@ apps/web/dms/
 │   │   └── utils/
 │   └── types/
 ├── server/                 ← ✅ 백엔드
-│   └── services/          ← (handlers/ 추가 예정)
+│   ├── handlers/          ← ✅ 10개 핸들러 추출 완료
+│   │   ├── ask.handler.ts
+│   │   ├── file.handler.ts
+│   │   ├── files.handler.ts
+│   │   ├── gemini.handler.ts
+│   │   ├── git.handler.ts
+│   │   ├── index.handler.ts
+│   │   ├── search.handler.ts
+│   │   ├── text-search.handler.ts
+│   │   ├── upload.handler.ts
+│   │   └── watch.handler.ts
+│   └── services/
 └── ...
 ```
-
-**남은 작업 (핸들러 추출 - 순차 진행):**
-- `src/app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts`
-- 이후 route.ts는 handler import만 하는 얇은 레이어로 유지
 
 ---
 
