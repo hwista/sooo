@@ -42,8 +42,8 @@ docs/
 |------|------|
 | [PMS README](./pms/README.md) | PMS 문서 인덱스 |
 | [PMS 기술 스택](./pms/architecture/tech-stack.md) | PMS 프론트엔드 기술 |
-| [설치 가이드](./pms/common/setup.md) | 개발 환경 설정 |
-| [변경 이력](./pms/common/changelog.md) | 최신 변경사항 |
+| [개발 환경 설정](./getting-started.md) | 개발 환경 설정 가이드 |
+| [변경 이력](./pms/planning/changelog.md) | 최신 변경사항 |
 | [백로그](./pms/planning/backlog.md) | 작업 현황 |
 
 ### DMS (Document Management System)
@@ -109,4 +109,4 @@ PMS와 DMS에서 공통으로 적용되는 문서들:
 1. **신규 개발자**: [개발 환경 설정](./getting-started.md) → [개발 표준](./common/architecture/development-standards.md)
 2. **API 개발**: [API 가이드](./common/guides/api-guide.md) → [API 명세](./pms/api/README.md)
 3. **데이터베이스 작업**: [DB 가이드](./common/guides/database-guide.md) → [DB 규칙](./common/guides/rules.md)
-4. **프론트엔드 개발**: [PMS 기술 스택](./pms/architecture/tech-stack.md) → [UI 설계](./pms/ui-design/README.md)
+4. **프론트엔드 개발**: [PMS 기술 스택](./pms/architecture/tech-stack.md) → [UI 설계](./pms/design/README.md)
