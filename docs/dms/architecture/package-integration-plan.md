@@ -33,10 +33,10 @@ DMS (Self-contained)
 
 | 구분 | 상태 | 비고 |
 |------|------|------|
-| **프로젝트 구조** | 🔴 정렬 필요 | PMS 기준 `src/` 구조로 통일 |
+| **프로젝트 구조** | ✅ 완료 | PMS 기준 `src/` + `server/` 구조로 통일 |
 | **코어 프레임워크** | ✅ 완료 | Next.js 15.x, React 19.x |
 | **CSS 유틸리티** | ✅ 완료 | Tailwind, tailwind-merge 2.x |
-| **상태 관리** | ⬜ 미적용 | zustand, react-hook-form |
+| **상태 관리** | ✅ P1 설치완료 | zustand, react-hook-form, zod, sonner |
 | **UI 라이브러리** | 🔴 정리 필요 | MUI/Fluent UI 혼용 |
 | **DMS 도메인** | ✅ 유지 | Tiptap, 마크다운, AI |
 | **모노레포 연동** | 🚫 해당없음 | DMS는 독립 프로젝트로 유지 |
@@ -236,9 +236,77 @@ apps/web/dms/
 
 ---
 
-## 2. 이미 통일된 패키지 ✅
+## 2. 패키지 일치율 현황 📊
 
-> 더 이상 작업 불필요
+> P1 패키지 설치 후 PMS와의 공통 패키지 일치 현황 (2026-01-27 업데이트)
+
+### 2.1 공통 패키지 (PMS와 DMS 모두 사용)
+
+| 카테고리 | 패키지 | PMS | DMS | 일치 |
+|----------|--------|-----|-----|------|
+| **코어** | `next` | ^15.1.0 | ^15.1.0 | ✅ |
+| | `react` | ^19.2.4 | 19.2.0 | ✅ |
+| | `react-dom` | ^19.2.4 | 19.2.0 | ✅ |
+| | `typescript` | ^5.7.0 | ^5 | ✅ |
+| **스타일** | `tailwindcss` | ^3.4.0 | ^3.4.0 | ✅ |
+| | `tailwind-merge` | ^2.6.0 | ^2.6.0 | ✅ |
+| | `class-variance-authority` | ^0.7.1 | ^0.7.1 | ✅ |
+| | `clsx` | ^2.1.0 | ^2.1.1 | ✅ |
+| **아이콘** | `lucide-react` | ^0.548.0 | ^0.548.0 | ✅ |
+| **폼/유효성** | `zod` | ^3.24.0 | ^3.25.76 | ✅ |
+| | `react-hook-form` | ^7.54.0 | ^7.71.1 | ✅ |
+| | `@hookform/resolvers` | ^3.9.0 | ^3.10.0 | ✅ |
+| **상태관리** | `zustand` | ^5.0.0 | ^5.0.10 | ✅ |
+| **알림** | `sonner` | ^1.7.0 | ^1.7.4 | ✅ |
+| **빌드** | `autoprefixer` | ^10.4.0 | ^10.4.21 | ✅ |
+| | `postcss` | ^8.4.0 | ^8.5.6 | ✅ |
+| | `eslint` | ^9.0.0 | ^9 | ✅ |
+| | `eslint-config-next` | ^15.1.0 | ^15.1.0 | ✅ |
+
+**공통 패키지: 18개 / 18개 일치 (100%)**
+
+### 2.2 PMS 전용 패키지 (DMS 미사용)
+
+| 패키지 | 용도 | DMS 필요성 |
+|--------|------|-----------|
+| `@radix-ui/*` (8개) | UI 프리미티브 | P4에서 도입 예정 |
+| `@tanstack/react-query` | 서버 상태 | P2 선택 |
+| `@tanstack/react-table` | 데이터 테이블 | P3 선택 |
+| `@tanstack/react-virtual` | 가상 스크롤 | P3 선택 |
+| `axios` | HTTP 클라이언트 | P2 선택 |
+| `dayjs` | 날짜 처리 | P3 선택 |
+| `numeral` | 숫자 포맷 | P3 선택 |
+| `recharts` | 차트 | P3 선택 |
+| `socket.io-client` | WebSocket | P3 선택 |
+| `xlsx` | 엑셀 처리 | P3 선택 |
+| `@ssoo/types` | 모노레포 타입 | ❌ DMS 제외 |
+
+### 2.3 DMS 전용 패키지 (도메인 특화)
+
+| 패키지 | 용도 | 비고 |
+|--------|------|------|
+| `@tiptap/*` (14개) | 리치 텍스트 에디터 | DMS 핵심 |
+| `@google/generative-ai` | Gemini AI | AI 기능 |
+| `@lancedb/lancedb` | 벡터 DB | RAG 검색 |
+| `@mui/x-tree-view` | 트리 뷰 | 파일 탐색기 |
+| `marked`, `react-markdown` | 마크다운 | 문서 렌더링 |
+| `chokidar` | 파일 감시 | 실시간 반영 |
+| `lowlight` | 코드 하이라이팅 | 에디터 |
+
+### 2.4 제거 대상 (중복/불필요)
+
+| 패키지 | 이유 | 우선순위 |
+|--------|------|----------|
+| `@fluentui/react` | Radix로 대체 예정 | P4 |
+| `@fluentui/react-components` | Radix로 대체 예정 | P4 |
+| `@emotion/react` | Tailwind로 충분 | P4 |
+| `@emotion/styled` | Tailwind로 충분 | P4 |
+
+---
+
+## 3. 이미 통일된 패키지 ✅
+
+> 더 이상 작업 불필요 (섹션 2.1에서 상세 확인)
 
 | 패키지 | PMS | DMS | 상태 |
 |--------|-----|-----|------|
@@ -264,13 +332,13 @@ apps/web/dms/
 
 > 폼 처리, 상태 관리, 유효성 검사 - 모든 웹 앱 필수
 
-| # | 패키지 | 버전 | 용도 | 상태 |
-|---|--------|------|------|------|
-| 1 | `zod` | ^3.24.0 | 스키마 유효성 검사 | ⬜ 미적용 |
-| 2 | `react-hook-form` | ^7.54.0 | 폼 상태 관리 | ⬜ 미적용 |
-| 3 | `@hookform/resolvers` | ^3.9.0 | RHF + Zod 연동 | ⬜ 미적용 |
-| 4 | `zustand` | ^5.0.0 | 클라이언트 상태 관리 | ⬜ 미적용 |
-| 5 | `sonner` | ^1.7.0 | 토스트 알림 | ⬜ 미적용 |
+| # | 패키지 | PMS 버전 | DMS 버전 | 용도 | 상태 |
+|---|--------|---------|---------|------|------|
+| 1 | `zod` | ^3.24.0 | ^3.25.76 | 스키마 유효성 검사 | ✅ 설치완료 |
+| 2 | `react-hook-form` | ^7.54.0 | ^7.71.1 | 폼 상태 관리 | ✅ 설치완료 |
+| 3 | `@hookform/resolvers` | ^3.9.0 | ^3.10.0 | RHF + Zod 연동 | ✅ 설치완료 |
+| 4 | `zustand` | ^5.0.0 | ^5.0.10 | 클라이언트 상태 관리 | ✅ 설치완료 |
+| 5 | `sonner` | ^1.7.0 | ^1.7.4 | 토스트 알림 | ✅ 설치완료 |
 
 **설치 명령어:**
 ```bash
@@ -732,5 +800,6 @@ export const apiClient = {
 | 2026-01-27 | **Phase 0 Step 2 완료** - server/ 백엔드 구조 생성, services 이동 |
 | 2026-01-27 | **Phase 0 Step 3 완료** - src/app/ 라우팅 구조 완성, (main) route group 생성 |
 | 2026-01-27 | **Phase 0 완전 완료** - 나머지 9개 핸들러 추출 (총 19개), 모든 route.ts 얇은 레이어로 변환 |
+| 2026-01-27 | **Phase 1 시작** - P1 패키지 설치 (zod, react-hook-form, @hookform/resolvers, zustand, sonner) |
 
 ````
