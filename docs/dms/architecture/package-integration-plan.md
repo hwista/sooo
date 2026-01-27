@@ -29,6 +29,120 @@ DMS (Self-contained)
 
 ---
 
+## 📦 PMS vs DMS 전체 패키지 비교표
+
+> 📅 최종 업데이트: 2026-01-27
+
+### Dependencies (런타임)
+
+| 패키지 | PMS | DMS | 상태 |
+|--------|-----|-----|------|
+| **[Core Framework]** ||||
+| next | ^15.1.0 | ^15.1.0 | ✅ 동일 |
+| react | ^19.2.4 | 19.2.0 | ✅ 동일 |
+| react-dom | ^19.2.4 | 19.2.0 | ✅ 동일 |
+| **[State & Forms]** ||||
+| zustand | ^5.0.0 | ^5.0.10 | ✅ 동일 |
+| react-hook-form | ^7.54.0 | ^7.71.1 | ✅ 동일 |
+| @hookform/resolvers | ^3.9.0 | ^3.10.0 | ✅ 동일 |
+| zod | ^3.24.0 | ^3.25.76 | ✅ 동일 |
+| **[Data Fetching]** ||||
+| @tanstack/react-query | ^5.62.0 | ❌ | 🔴 DMS 없음 |
+| @tanstack/react-table | ^8.21.3 | ❌ | 🔴 DMS 없음 |
+| @tanstack/react-virtual | ^3.13.18 | ❌ | 🔴 DMS 없음 |
+| axios | ^1.7.0 | ❌ | 🔴 DMS 없음 |
+| socket.io-client | ^4.8.0 | ❌ | 🔴 DMS 없음 |
+| **[UI - Radix Primitives]** ||||
+| @radix-ui/react-checkbox | ^1.3.3 | ❌ | 🔴 DMS 없음 |
+| @radix-ui/react-dialog | ^1.1.15 | ❌ | 🔴 DMS 없음 |
+| @radix-ui/react-dropdown-menu | ^2.1.16 | ❌ | 🔴 DMS 없음 |
+| @radix-ui/react-label | ^2.1.8 | ❌ | 🔴 DMS 없음 |
+| @radix-ui/react-select | ^2.2.6 | ❌ | 🔴 DMS 없음 |
+| @radix-ui/react-separator | ^1.1.8 | ❌ | 🔴 DMS 없음 |
+| @radix-ui/react-slot | ^1.2.4 | ❌ | 🔴 DMS 없음 |
+| @radix-ui/react-tooltip | ^1.2.8 | ❌ | 🔴 DMS 없음 |
+| **[Styling]** ||||
+| class-variance-authority | ^0.7.1 | ^0.7.1 | ✅ 동일 |
+| clsx | ^2.1.0 | ^2.1.1 | ✅ 동일 |
+| tailwind-merge | ^2.6.0 | ^2.6.0 | ✅ 동일 |
+| tailwind-variants | ❌ | ^3.1.1 | 🟢 DMS 전용 |
+| lucide-react | ^0.548.0 | ^0.548.0 | ✅ 동일 |
+| **[Toast]** ||||
+| sonner | ^1.7.0 | ^1.7.4 | ✅ 동일 |
+| **[Utils]** ||||
+| dayjs | ^1.11.0 | ❌ | 🔴 DMS 없음 |
+| numeral | ^2.0.0 | ❌ | 🔴 DMS 없음 |
+| xlsx | ^0.18.5 | ❌ | 🔴 DMS 없음 |
+| recharts | ^3.6.0 | ❌ | 🔴 DMS 없음 |
+| @ssoo/types | workspace:* | ❌ | 🚫 DMS 제외 |
+| **[DMS 전용 - Editor]** ||||
+| @tiptap/* (15개) | ❌ | ✅ | 🟢 DMS 전용 |
+| lowlight | ❌ | ^3.3.0 | 🟢 DMS 전용 |
+| tippy.js | ❌ | ^6.3.7 | 🟢 DMS 전용 |
+| marked | ❌ | ^17.0.1 | 🟢 DMS 전용 |
+| react-markdown | ❌ | ^10.1.0 | 🟢 DMS 전용 |
+| remark-gfm | ❌ | ^4.0.1 | 🟢 DMS 전용 |
+| turndown | ❌ | ^7.2.2 | 🟢 DMS 전용 |
+| **[DMS 전용 - UI Library]** ||||
+| @mui/material | ❌ | ^7.3.4 | 🟡 검토 필요 |
+| @mui/lab | ❌ | ^7.0.1-beta.18 | 🟡 검토 필요 |
+| @mui/x-tree-view | ❌ | ^8.15.0 | 🟢 DMS 전용 (트리뷰) |
+| @fluentui/react | ❌ | ^8.125.1 | 🔴 제거 예정 |
+| @fluentui/react-components | ❌ | ^9.72.7 | 🔴 제거 예정 |
+| @fluentui/react-icons | ❌ | ^2.0.317 | 🔴 제거 예정 |
+| @emotion/react | ❌ | ^11.14.0 | 🟡 MUI 따라감 |
+| @emotion/styled | ❌ | ^11.14.1 | 🟡 MUI 따라감 |
+| **[DMS 전용 - AI/DB]** ||||
+| @google/generative-ai | ❌ | ^0.24.1 | 🟢 DMS 전용 |
+| @lancedb/lancedb | ❌ | ^0.23.0 | 🟢 DMS 전용 |
+| **[DMS 전용 - Server]** ||||
+| chokidar | ❌ | ^4.0.3 | 🟡 검토 필요 |
+| formidable | ❌ | ^3.5.4 | 🟡 검토 필요 |
+| multer | ❌ | ^2.0.2 | 🟡 검토 필요 |
+| nodemailer | ❌ | ^7.0.12 | 🟡 검토 필요 |
+
+### DevDependencies (개발용)
+
+| 패키지 | PMS | DMS | 상태 |
+|--------|-----|-----|------|
+| typescript | ^5.7.0 | ^5 | ✅ 동일 |
+| eslint | ^9.0.0 | ^9 | ✅ 동일 |
+| eslint-config-next | ^15.1.0 | ^15.1.0 | ✅ 동일 |
+| @types/node | ^22.0.0 | ^20 | ⚠️ 버전 차이 |
+| @types/react | ^19.0.0 | ^19 | ✅ 동일 |
+| @types/react-dom | ^19.0.0 | ^19 | ✅ 동일 |
+| autoprefixer | ^10.4.0 | ^10.4.21 | ✅ 동일 |
+| postcss | ^8.4.0 | ^8.5.6 | ✅ 동일 |
+| tailwindcss | ^3.4.0 | ^3.4.0 | ✅ 동일 |
+| tailwindcss-animate | ^1.0.7 | ❌ | 🔴 DMS 없음 |
+| @tailwindcss/typography | ❌ | ^0.5.19 | 🟢 DMS 전용 |
+| storybook + @storybook/* | ^8.6.15 | ❌ | 🔴 DMS 없음 |
+| @tanstack/react-query-devtools | ^5.91.2 | ❌ | 🔴 DMS 없음 |
+| typedoc | ^0.28.16 | ❌ | 🔴 DMS 없음 |
+| @types/numeral | ^2.0.0 | ❌ | 🔴 DMS 없음 |
+| rimraf | ^6.0.0 | ❌ | 🔴 DMS 없음 |
+
+### 📊 요약 통계
+
+| 구분 | 개수 | 설명 |
+|------|------|------|
+| ✅ **공통 패키지** | 18개 | PMS/DMS 모두 사용 |
+| 🔴 **PMS 전용** (DMS 추가 가능) | 20개 | 필요시 도입 |
+| 🟢 **DMS 전용** (유지) | 30개+ | 도메인 필수 |
+| 🟡 **검토 필요** | 8개 | 제거/유지 결정 |
+| 🔴 **제거 예정** | 3개 | Fluent UI |
+
+### 🎯 DMS 추가 예정 패키지 (우선순위별)
+
+| 우선순위 | 패키지 | 용도 | 상태 |
+|---------|--------|------|------|
+| **P1** | zod, react-hook-form, zustand, sonner | 폼/상태/알림 | ✅ 완료 |
+| **P2** | @tanstack/react-query, axios | 서버 상태/HTTP | ⬜ 선택 |
+| **P3** | @tanstack/react-table, dayjs, numeral | 테이블/유틸 | ⬜ 선택 |
+| **P4** | @radix-ui/* (8개), tailwindcss-animate | UI 통일 | ⬜ 장기 |
+
+---
+
 ## 1. 통합 현황 요약
 
 | 구분 | 상태 | 비고 |
