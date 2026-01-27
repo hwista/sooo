@@ -489,19 +489,19 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 - [x] import 경로 수정 (`@/utils/` → `@/lib/utils/`)
 - [x] 빌드 테스트 통과
 
-**Step 2: 백엔드 영역 (`server/`) 분리**
-- [ ] `server/` 디렉토리 생성
-- [ ] 백엔드 로직 이동:
-  - [ ] `services/` → `server/services/`
-  - [ ] API 핸들러 추출: `app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts`
+**Step 2: 백엔드 영역 (`server/`) 분리** ✅ 부분 완료
+- [x] `server/` 디렉토리 생성
+- [x] 백엔드 로직 이동:
+  - [x] `services/` → `server/services/`
+  - [ ] API 핸들러 추출: `app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts` (순차 진행 예정)
 - [ ] `app/api/` 얇은 레이어로 변경 (handler import만)
 
 **Step 3: 페이지 라우팅 (`src/app/`) 구성**
 - [ ] `app/` 페이지 파일들 → `src/app/` 이동 (api 제외)
 - [ ] `app/api/`는 루트에 유지 (Next.js 규칙)
 
-**Step 4: 설정 업데이트**
-- [ ] `tsconfig.json` paths 업데이트:
+**Step 4: 설정 업데이트** ✅ 완료
+- [x] `tsconfig.json` paths 업데이트:
   ```json
   {
     "paths": {
@@ -510,24 +510,43 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
     }
   }
   ```
-- [ ] 모든 import 경로 수정
-- [ ] 빌드 테스트 (`npm run build`)
+- [x] 모든 import 경로 수정
+- [x] 빌드 테스트 (`npm run build`)
 
-**변경 전후 비교:**
+**현재 구조 (Step 2 완료 후):**
 ```
-Before:                          After:
-apps/web/dms/                    apps/web/dms/
-├── app/                         ├── src/              ← 프론트엔드
-│   ├── api/  ◀─┐               │   ├── app/          ← 페이지만
-│   ├── wiki/   │               │   ├── components/
-│   └── ...     │ 혼재          │   ├── hooks/
-├── components/ │               │   ├── lib/
-├── services/ ◀─┘               │   ├── stores/
-├── contexts/                    │   └── types/
-├── hooks/                       │
-├── lib/                         ├── server/           ← 백엔드
-├── types/                       │   ├── handlers/
-└── utils/                       │   └── services/
+apps/web/dms/
+├── app/                    ← 페이지 + API (Step 3에서 분리)
+│   ├── api/               ← 19개 엔드포인트 (핸들러 추출 예정)
+│   ├── wiki/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── src/                    ← ✅ 프론트엔드
+│   ├── components/
+│   ├── contexts/          ← (Phase 1에서 stores로 변환)
+│   ├── hooks/
+│   ├── lib/
+│   │   └── utils/
+│   └── types/
+├── server/                 ← ✅ 백엔드
+│   └── services/          ← (handlers/ 추가 예정)
+└── ...
+```
+
+**최종 목표 (Phase 0 완료 시):**
+```
+apps/web/dms/
+├── src/                    ← 프론트엔드
+│   ├── app/               ← 페이지만
+│   ├── components/
+│   ├── hooks/
+│   ├── lib/
+│   └── types/
+├── server/                 ← 백엔드
+│   ├── handlers/          ← API 로직
+│   └── services/
+└── app/api/               ← 얇은 라우팅 레이어
                                  │
                                  └── app/api/          ← 라우팅만
                                      └── */route.ts
@@ -704,5 +723,6 @@ export const apiClient = {
 | 2026-01-27 | 통합 대비 "미니 모노레포" 구조 설계, 소스 구조 도식화 추가 |
 | 2026-01-27 | **Phase 0 시작** - Step 0 완료 (불필요 페이지 삭제: goals-md, goals.md, wiki-test) |
 | 2026-01-27 | **Phase 0 Step 1 완료** - src/ 프론트엔드 구조 생성, 95개 파일 이동 |
+| 2026-01-27 | **Phase 0 Step 2 완료** - server/ 백엔드 구조 생성, services 이동 |
 
 ````
