@@ -240,7 +240,7 @@ npx --no -- commitlint --edit "$1"
 ## 관련 문서
 
 - [개발 표준](./development-standards.md)
-- [프론트엔드 표준](./frontend-standards.md)
+- [프론트엔드 표준](../../pms/architecture/frontend-standards.md) - PMS 프론트엔드 표준
 - [DB 규칙](../guides/rules.md)
 
 ---

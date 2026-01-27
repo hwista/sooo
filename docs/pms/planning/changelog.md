@@ -19,16 +19,16 @@
 
 | 영역 | 문서 위치 | 설명 |
 |------|----------|------|
-| **작업 프로세스** | [architecture/workflow-process.md](../architecture/workflow-process.md#changelog) | 개발 프로세스/커밋/Git |
+| **작업 프로세스** | [workflow-process.md](../../common/architecture/workflow-process.md#changelog) | 개발 프로세스/커밋/Git (공용) |
 | **프론트엔드 표준** | [architecture/frontend-standards.md](../architecture/frontend-standards.md#changelog) | 컴포넌트 표준 |
-| **API** | [guides/api-guide.md](../guides/api-guide.md#changelog) | REST API 사용 가이드 |
+| **API** | [api-guide.md](../../common/guides/api-guide.md#changelog) | REST API 사용 가이드 (공용) |
 | **레이아웃** | [architecture/layout-system.md](../architecture/layout-system.md#changelog) | 레이아웃/사이드바/탭바 |
 | **상태 관리** | [architecture/state-management.md](../architecture/state-management.md#changelog) | Zustand Store |
 | **UI 컴포넌트** | [architecture/ui-components.md](../architecture/ui-components.md#changelog) | 공통 컴포넌트 |
 | **유틸리티** | [architecture/utilities.md](../architecture/utilities.md#changelog) | API Client, 헬퍼 |
 | **인증** | [architecture/auth-system.md](../architecture/auth-system.md#changelog) | 인증/인가 |
 | **스크롤바** | [architecture/scrollbar.md](../architecture/scrollbar.md#changelog) | 스크롤바 스타일 |
-| **데이터베이스** | [guides/database-guide.md](../guides/database-guide.md#changelog) | DB 구조/연결 |
+| **데이터베이스** | [database-guide.md](../../common/guides/database-guide.md#changelog) | DB 구조/연결 (공용) |
 
 ---
 

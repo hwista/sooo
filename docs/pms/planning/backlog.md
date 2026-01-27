@@ -12,14 +12,14 @@
 
 | 영역 | 문서 위치 | 설명 |
 |------|----------|------|
-| **작업 프로세스** | [architecture/workflow-process.md](../architecture/workflow-process.md#backlog) | 작업 프로세스/커밋/Git |
+| **작업 프로세스** | [workflow-process.md](../../common/architecture/workflow-process.md#backlog) | 작업 프로세스/커밋/Git (공용) |
 | **프론트엔드 표준** | [architecture/frontend-standards.md](../architecture/frontend-standards.md#backlog) | 컴포넌트 계층/표준 |
 | **API** | [api/README.md](../api/README.md#backlog) | API 추가/개선 |
 | **레이아웃** | [architecture/layout-system.md](../architecture/layout-system.md#backlog) | 레이아웃/모바일 |
 | **상태 관리** | [architecture/state-management.md](../architecture/state-management.md#backlog) | Store 개선 |
 | **UI 컴포넌트** | [architecture/ui-components.md](../architecture/ui-components.md#backlog) | 컴포넌트 추가 |
 | **유틸리티** | [architecture/utilities.md](../architecture/utilities.md#backlog) | 헬퍼 함수 |
-| **데이터베이스** | [guides/database-guide.md](../guides/database-guide.md) | 테이블 변경 |
+| **데이터베이스** | [database-guide.md](../../common/guides/database-guide.md) | 테이블 변경 (공용) |
 
 ---
 

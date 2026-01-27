@@ -8,20 +8,20 @@
 
 ## 📚 가이드 목록
 
-### API & 백엔드
+### API & 백엔드 (공용)
 
 | 문서 | 설명 |
 |------|------|
-| **[api-guide.md](api-guide.md)** | REST API 사용 가이드 (인증, 응답 형식, 에러 코드) |
-| **[bigint-guide.md](bigint-guide.md)** | BigInt 처리 가이드 (직렬화, DTO 변환) |
+| **[api-guide.md](../../common/guides/api-guide.md)** | REST API 사용 가이드 (인증, 응답 형식, 에러 코드) |
+| **[bigint-guide.md](../../common/guides/bigint-guide.md)** | BigInt 처리 가이드 (직렬화, DTO 변환) |
 
-### 데이터베이스
+### 데이터베이스 (공용)
 
 | 문서 | 설명 |
 |------|------|
-| **[database-guide.md](database-guide.md)** | DB 구조 및 셋업 가이드 |
-| **[history-management.md](history-management.md)** | 히스토리 트리거 및 Extension 가이드 |
-| **[rules.md](rules.md)** | 데이터베이스 설계 규칙 |
+| **[database-guide.md](../../common/guides/database-guide.md)** | DB 구조 및 셋업 가이드 |
+| **[history-management.md](history-management.md)** | 히스토리 트리거 및 Extension 가이드 (PMS) |
+| **[rules.md](../../common/guides/rules.md)** | 데이터베이스 설계 규칙 |
 
 ---
 

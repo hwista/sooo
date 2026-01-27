@@ -12,9 +12,9 @@ SSOO 데이터베이스 구조 및 사용 가이드입니다.
 
 | 문서 | 설명 |
 |------|------|
-| **[Common ERD](../reference/db/erd.svg)** | common 스키마 ER 다이어그램 |
-| **[PMS ERD](../reference/db/erd.svg)** | pms 스키마 ER 다이어그램 |
-| **[Prisma Schema](../../../../packages/database/prisma/schema.prisma)** | 원본 스키마 정의 |
+| **[Common ERD](../../pms/reference/db/erd.svg)** | common 스키마 ER 다이어그램 |
+| **[PMS ERD](../../pms/reference/db/erd.svg)** | pms 스키마 ER 다이어그램 |
+| **[Prisma Schema](../../../packages/database/prisma/schema.prisma)** | 원본 스키마 정의 |
 
 ---
 
@@ -220,9 +220,9 @@ Seed 파일 위치: `packages/database/prisma/seeds/`
 
 ## 관련 문서
 
-- [히스토리 관리 가이드](./history-management.md)
+- [히스토리 관리 가이드](../../pms/guides/history-management.md) - PMS 트리거 가이드
 - [데이터베이스 설계 규칙](./rules.md)
-- [Prisma Schema](../../../../packages/database/prisma/schema.prisma)
+- [Prisma Schema](../../../packages/database/prisma/schema.prisma)
 
 ---
 

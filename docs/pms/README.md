@@ -40,9 +40,9 @@
 
 | 문서 | 설명 |
 |------|------|
-| [docs-management.md](architecture/docs-management.md) | **문서 관리 전략** - 자동/수동 구분, 중복 방지 |
-| [tech-stack.md](architecture/tech-stack.md) | 기술 스택 |
-| [modular-monolith.md](architecture/modular-monolith.md) | 모듈러 모놀리스 아키텍처 |
+| [docs-management.md](../common/architecture/docs-management.md) | **문서 관리 전략** - 자동/수동 구분, 중복 방지 (공용) |
+| [tech-stack.md](architecture/tech-stack.md) | PMS 기술 스택 |
+| [modular-monolith.md](../common/architecture/modular-monolith.md) | 모듈러 모놀리스 아키텍처 (공용) |
 | [service-overview.md](domain/service-overview.md) | 서비스 개요 |
 
 ---

@@ -1,6 +1,11 @@
+````mdc
 # DMS 기술 스택
 
 > 최종 업데이트: 2026-01-27
+
+DMS(Document Management System) 프론트엔드 전용 기술 스택입니다.
+
+> 📌 공용 기술 스택: [common/architecture/tech-stack.md](../../common/architecture/tech-stack.md)
 
 ---
 
@@ -10,33 +15,37 @@ DMS는 모노레포 내 독립 앱으로 운영되며, **npm**을 사용한다 (
 
 ---
 
-## 프로젝트 구조 (DMS 관점)
+## 프론트엔드 (apps/web/dms)
 
-```
-hwista-ssoo/
-├── apps/
-│   ├── server/          # 공용 백엔드 (추후 연동)
-│   ├── web-pms/         # 프로젝트 관리 시스템 (pnpm)
-│   └── web-dms/         # 도큐먼트 관리 시스템 (npm, 독립)
-├── packages/
-│   ├── database/        # Prisma ORM
-│   └── types/           # 공유 타입
-├── docs/                # 문서
-├── pnpm-workspace.yaml  # DMS 제외
-├── turbo.json
-└── package.json
-```
-
----
-
-## 프론트엔드 (apps/web-dms)
+> 상세: [package-spec.md](package-spec.md)
 
 | 기술 | 버전 | 용도 |
 |------|------|------|
 | **Next.js** | ^15.1.0 | React 프레임워크 |
 | **React** | 19.2.0 | UI 라이브러리 |
 | **TypeScript** | ^5 | 언어 |
+| **Tailwind CSS** | ^3.4.0 | 스타일링 |
 | **tailwind-merge** | ^2.6.0 | 클래스 병합 |
+| **Tiptap** | ^3.16.0 | 리치 텍스트 에디터 |
+| **MUI X Tree View** | ^8.15.0 | 트리 뷰 컴포넌트 |
+| **Lucide React** | 0.548.x | 아이콘 |
+
+---
+
+## DMS 전용 기능
+
+### 리치 텍스트 에디터 (Tiptap)
+- 블록 기반 에디터
+- 마크다운 지원
+- 코드 구문 강조
+
+### 마크다운 처리
+- `marked`, `react-markdown` - 파싱 및 렌더링
+- `turndown` - HTML → MD 변환
+
+### AI / 벡터 검색
+- `@google/generative-ai` - Gemini API
+- `@lancedb/lancedb` - 벡터 데이터베이스
 
 ---
 
@@ -50,4 +59,8 @@ hwista-ssoo/
 
 ## 관련 문서
 
-- [docs-structure-plan.md](docs-structure-plan.md) - DMS 문서 구조
+- [공용 기술 스택](../../common/architecture/tech-stack.md) - 백엔드, DB, 개발 도구
+- [package-spec.md](package-spec.md) - 패키지 상세 명세
+- [package-integration-plan.md](package-integration-plan.md) - PMS 통합 계획
+
+````

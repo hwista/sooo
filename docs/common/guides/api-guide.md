@@ -12,8 +12,8 @@ SSOO 백엔드 서버의 REST API 사용 가이드입니다.
 
 | 문서 | 설명 |
 |------|------|
-| **[OpenAPI Spec (JSON)](../reference/api/openapi.json)** | OpenAPI 3.0 스펙 파일 |
-| **[API 문서 (Redoc)](../reference/api/index.html)** | 인터랙티브 API 문서 |
+| **[OpenAPI Spec (JSON)](../../pms/reference/api/openapi.json)** | OpenAPI 3.0 스펙 파일 |
+| **[API 문서 (Redoc)](../../pms/reference/api/index.html)** | 인터랙티브 API 문서 |
 
 ---
 
@@ -138,7 +138,7 @@ Authorization: Bearer <access_token>
 
 ## 관련 문서
 
-- [인증 시스템 아키텍처](../architecture/auth-system.md)
+- [인증 시스템 아키텍처](../../pms/architecture/auth-system.md) - PMS 인증 흐름
 - [보안 표준](../architecture/security-standards.md)
 
 ---

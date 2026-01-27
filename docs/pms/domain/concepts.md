@@ -171,4 +171,4 @@ Opportunity = Project (status_code=request/proposal)
 - [service-overview.md](service-overview.md) - 서비스 소개
 - [actions/](actions/) - 액션 명세
 - [workflows/](workflows/) - 워크플로우 명세
-- [../guides/database-guide.md](../guides/database-guide.md) - 데이터베이스 가이드
+- [database-guide.md](../../common/guides/database-guide.md) - 데이터베이스 가이드 (공용)

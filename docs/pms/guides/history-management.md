@@ -305,7 +305,7 @@ DROP FUNCTION IF EXISTS fn_pr_project_history();
 
 ## 6. 참고 자료
 
-- [Database Design Rules](./rules.md) - 새 테이블 작업 세트 체크리스트 포함
-- [Database Overview](./README.md)
+- [Database Design Rules](../../common/guides/rules.md) - 새 테이블 작업 세트 체크리스트 포함 (공용)
+- [Database Guide](../../common/guides/database-guide.md) - DB 구조 가이드 (공용)
 - [Prisma Schema](../../../packages/database/prisma/schema.prisma)
 - [Trigger Template](../../../packages/database/prisma/triggers/00_history_trigger_template.sql)
