@@ -1,9 +1,31 @@
 ````mdc
-# DMS 패키지 통합 계획서
+# DMS 통합 리팩터링 계획서
 
 > 📅 기준일: 2026-01-27  
-> 📌 목적: PMS 기준 DMS 패키지 통합 및 정리  
+> 📌 목적: PMS 기준 DMS 프로젝트 구조 정렬 및 패키지 통합  
 > 📂 이전 문서: `docs/pms/architecture/package-comparison.md` (병합됨)
+
+---
+
+## 🔴 핵심 원칙
+
+> **DMS는 모노레포를 몰라야 한다**
+
+| 원칙 | 설명 |
+|------|------|
+| **독립 실행** | DMS는 GitLab에서 단독으로 clone하여 실행 가능해야 함 |
+| **모노레포 패키지 금지** | `@ssoo/types`, `@ssoo/database` 등 workspace 패키지 사용 금지 |
+| **자체 완결** | 타입, API, 유틸리티 모두 DMS 내부에서 정의 |
+| **외부 통신** | 필요시 HTTP API로만 통신 (현재 해당 없음) |
+
+**현재 DMS 아키텍처:**
+```
+DMS (Self-contained)
+├── Frontend: Next.js
+├── Backend: Next.js API Routes (app/api/)
+├── Storage: 로컬 파일 시스템 (docs/wiki/)
+└── 외부 연동: ❌ 없음 (백엔드/DB 미연동)
+```
 
 ---
 
@@ -11,12 +33,13 @@
 
 | 구분 | 상태 | 비고 |
 |------|------|------|
+| **프로젝트 구조** | 🔴 정렬 필요 | PMS 기준 `src/` 구조로 통일 |
 | **코어 프레임워크** | ✅ 완료 | Next.js 15.x, React 19.x |
 | **CSS 유틸리티** | ✅ 완료 | Tailwind, tailwind-merge 2.x |
 | **상태 관리** | ⬜ 미적용 | zustand, react-hook-form |
 | **UI 라이브러리** | 🔴 정리 필요 | MUI/Fluent UI 혼용 |
 | **DMS 도메인** | ✅ 유지 | Tiptap, 마크다운, AI |
-| **모노레포 연동** | ⬜ 미연동 | @ssoo/types, @ssoo/database |
+| **모노레포 연동** | 🚫 해당없음 | DMS는 독립 프로젝트로 유지 |
 
 ### 1.1 UI 스택 비교
 
@@ -43,13 +66,173 @@ Tailwind CSS + Emotion
 | **학습 비용** | 개발자가 3개 API 모두 숙지 필요 | 🟡 중간 |
 | **CSS-in-JS 충돌** | Emotion(MUI) vs Griffel(Fluent) | 🔴 높음 |
 
-### 1.3 모노레포 통합 상태
+### 1.3 프로젝트 구조 비교
 
-| 프로젝트 | `@ssoo/types` | `@ssoo/database` |
-|----------|---------------|------------------|
-| **server** | ✅ workspace:* | ✅ workspace:* |
-| **web-pms** | ✅ workspace:* | ❌ 미사용 |
-| **web-dms** | ❌ 미연동 | ❌ 미연동 |
+| 측면 | PMS (목표) | DMS (현재) | 변경 필요 |
+|------|------------|------------|----------|
+| **소스 디렉토리** | `src/` 래퍼 | 루트 레벨 | 🔴 이동 필요 |
+| **라우팅** | `(auth)/`, `(main)/` | `wiki/`, `api/` | 🟡 Route Group |
+| **컴포넌트** | `common/layout/pages/templates/ui/` | `editor/ui/wiki/` | 🔴 재분류 |
+| **상태관리** | `stores/` (zustand) | `contexts/` (Context API) | 🔴 패턴 변경 |
+| **API 레이어** | `lib/api/` | `services/` | 🟡 구조 통일 |
+| **유틸리티** | `lib/utils/` | `utils/` + `lib/` (분산) | 🟡 통합 |
+| **훅** | `hooks/queries/` | `hooks/services/` | 🟡 명명 통일 |
+| **타입** | `types/` | `types/` | ✅ 유사 |
+
+> ⚠️ **참고**: DMS는 모노레포 패키지(`@ssoo/types`, `@ssoo/database`)를 사용하지 않음
+
+### 1.4 소스 구조 도식화
+
+#### PMS 소스 구조 (목표 - 프론트엔드 전용)
+
+```
+apps/web/pms/
+├── src/                          ← 🎨 프론트엔드 (전부)
+│   ├── app/                      ← Next.js App Router
+│   │   ├── (auth)/              ← 인증 라우트 그룹
+│   │   │   └── login/
+│   │   └── (main)/              ← 메인 라우트 그룹
+│   │       ├── projects/
+│   │       └── settings/
+│   ├── components/
+│   │   ├── common/              ← 범용 컴포넌트
+│   │   ├── layout/              ← 레이아웃 (Header, Sidebar)
+│   │   ├── pages/               ← 페이지별 전용
+│   │   ├── templates/           ← 페이지 템플릿
+│   │   └── ui/                  ← 기본 UI (Button, Input)
+│   ├── hooks/
+│   │   └── queries/             ← React Query 훅
+│   ├── lib/
+│   │   ├── api/                 ← 🔗 외부 서버 API 클라이언트
+│   │   │   ├── client.ts        ← axios (→ localhost:4000)
+│   │   │   ├── auth.ts
+│   │   │   └── endpoints/
+│   │   ├── utils/
+│   │   └── validations/
+│   ├── stores/                  ← zustand 스토어
+│   └── types/
+│
+├── (app/api/ 없음)              ← ❌ 내부 백엔드 없음
+└── public/
+
+👉 백엔드: apps/server (NestJS) - 별도 프로젝트
+```
+
+#### DMS 소스 구조 - 변경 전 (현재)
+
+```
+apps/web/dms/
+├── app/                          ← 페이지 + API 혼재
+│   ├── api/                     ← ⚙️ 내부 백엔드 (API Routes)
+│   │   ├── files/
+│   │   ├── file/
+│   │   ├── search/
+│   │   ├── gemini/
+│   │   └── git/
+│   └── wiki/                    ← 페이지
+├── components/                   ← 분류 없이 혼재
+│   ├── editor/
+│   ├── ui/
+│   └── wiki/
+├── contexts/                     ← React Context (구식)
+├── hooks/
+│   └── services/
+├── services/                     ← 비즈니스 로직 (백엔드)
+│   └── fileSystem/
+├── lib/
+├── types/
+├── utils/
+└── docs/
+```
+
+#### DMS 소스 구조 - 변경 후 (목표, 통합 대비 "미니 모노레포")
+
+```
+apps/web/dms/
+│
+├── src/                          ← 🎨 프론트엔드 영역 (통합 후 유지)
+│   ├── app/                      ← Next.js App Router (페이지만)
+│   │   ├── (main)/              ← 메인 라우트 그룹
+│   │   │   └── wiki/
+│   │   └── layout.tsx
+│   ├── components/
+│   │   ├── common/
+│   │   ├── layout/
+│   │   ├── pages/
+│   │   │   ├── editor/
+│   │   │   └── wiki/
+│   │   ├── templates/
+│   │   └── ui/
+│   ├── hooks/
+│   │   └── queries/             ← API 호출 훅
+│   ├── lib/
+│   │   ├── api/                 ← 🔗 API 클라이언트 (server/ 호출)
+│   │   └── utils/
+│   ├── stores/                  ← zustand 스토어
+│   └── types/
+│
+├── server/                       ← ⚙️ 백엔드 영역 (통합 시 → apps/server로 이전)
+│   ├── handlers/                ← API 핸들러 로직
+│   │   ├── files.handler.ts
+│   │   ├── file.handler.ts
+│   │   ├── search.handler.ts
+│   │   └── gemini.handler.ts
+│   ├── services/                ← 비즈니스 로직
+│   │   └── fileSystem/
+│   └── lib/                     ← 서버 유틸리티
+│
+├── app/                          ← Next.js 라우팅 (얇은 레이어)
+│   └── api/                     ← server/handlers 호출만
+│       ├── files/route.ts       → import { GET } from '@/server/handlers/files.handler'
+│       ├── file/route.ts
+│       └── .../route.ts
+│
+└── docs/
+```
+
+### 1.5 통합 시 마이그레이션 전략
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        현재 (독립 운영)                              │
+├─────────────────────────────────────────────────────────────────────┤
+│  DMS (풀스택)                                                        │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                  │
+│  │   src/      │  │   server/   │  │   app/api/  │                  │
+│  │ 프론트엔드  │─▶│  백엔드로직 │◀─│  라우팅     │                  │
+│  └─────────────┘  └─────────────┘  └─────────────┘                  │
+│                          │                                           │
+│                          ▼                                           │
+│                   파일 시스템 (fs.*)                                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+                              ⬇️ 통합 시
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                        통합 후 (예상)                                │
+├─────────────────────────────────────────────────────────────────────┤
+│  DMS (프론트엔드만)              Server (NestJS)                     │
+│  ┌─────────────┐                ┌─────────────────────┐             │
+│  │   src/      │    HTTP API    │ modules/dms/        │             │
+│  │ 프론트엔드  │───────────────▶│ ├── handlers/       │◀── server/ │
+│  │ lib/api/    │                │ ├── services/       │    이전     │
+│  └─────────────┘                │ └── lib/            │             │
+│                                 └─────────────────────┘             │
+│  ┌─────────────┐                         │                          │
+│  │  app/api/   │ ❌ 삭제                 ▼                          │
+│  └─────────────┘                  파일 시스템 + DB                   │
+│                                  (하이브리드 스토리지)               │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**마이그레이션 요약:**
+
+| 현재 위치 | 통합 후 | 비고 |
+|-----------|---------|------|
+| `src/` | **유지** | 프론트엔드 그대로 |
+| `server/` | → `apps/server/modules/dms/` | 백엔드 로직 이전 |
+| `app/api/` | **삭제** | 라우팅 레이어 불필요 |
+| `src/lib/api/` | 외부 호출로 변경 | `localhost:4000/api/dms/*` |
 
 ---
 
@@ -96,24 +279,33 @@ npm install zod react-hook-form @hookform/resolvers zustand sonner
 
 ---
 
-### 3.2 P2: API 연동 시 (서버 통합 시점)
+### 3.2 P2: 내부 API 개선 (선택)
 
-> 백엔드 서버 연동 시 함께 도입
+> 현재 DMS는 Next.js API Routes로 자체 백엔드 구현 중  
+> 외부 서버 연동 없음 - 내부 fetch 호출 개선용
 
 | # | 패키지 | 버전 | 용도 | 상태 |
 |---|--------|------|------|------|
-| 1 | `@tanstack/react-query` | ^5.62.0 | 서버 상태 관리 | ⬜ 미적용 |
-| 2 | `axios` | ^1.7.0 | HTTP 클라이언트 | ⬜ 미적용 |
-| 3 | `@ssoo/types` | workspace:* | 공유 타입 | ⬜ 미연동 |
+| 1 | `@tanstack/react-query` | ^5.62.0 | 클라이언트 캐싱/상태 | ⬜ 선택 |
+| 2 | `axios` | ^1.7.0 | HTTP 클라이언트 | ⬜ 선택 |
 
-**설치 명령어:**
+> ❌ **제외**: `@ssoo/types` - DMS는 모노레포 패키지 사용 금지
+
+**설치 명령어 (필요시):**
 ```bash
 npm install @tanstack/react-query axios
+npm install -D @tanstack/react-query-devtools
 ```
 
-**devDependencies:**
-```bash
-npm install -D @tanstack/react-query-devtools
+**현재 DMS API 구조:**
+```
+app/api/
+├── files/      → 파일 목록 (fs.readdirSync)
+├── file/       → 파일 CRUD (fs.read/writeFileSync)
+├── search/     → 파일 내용 검색
+├── upload/     → 파일 업로드
+├── gemini/     → Google AI API
+└── git/        → Git 명령어 실행
 ```
 
 ---
@@ -269,41 +461,234 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 
 ---
 
-## 5. 작업 체크리스트
+## 5. 통합 리팩터링 실행 계획
 
-### Phase 1: 즉시 (P1 패키지 설치)
+> 프로젝트 구조 정렬과 패키지 통합을 **동시 진행**하여 효율성 극대화  
+> **통합 대비 "미니 모노레포" 구조**로 프론트/백엔드 분리
 
+### Phase 0: 기반 구조 정렬 (1~2일) ⭐ 최우선
+
+> 모든 작업의 전제조건 - 통합 대비 프론트/백엔드 분리 구조
+
+**진행 상태:** 🔄 진행 중 (2026-01-27 시작)
+
+**Step 0: 준비 작업** ✅ 완료
+- [x] 불필요한 페이지 삭제 (`goals-md/`, `goals.md/`, `wiki-test/`)
+- [x] 문서 업데이트
+
+**Step 1: 프론트엔드 영역 (`src/`) 구성**
+- [ ] `src/` 디렉토리 생성
+- [ ] 프론트엔드 폴더 이동:
+  - [ ] `components/` → `src/components/`
+  - [ ] `hooks/` → `src/hooks/`
+  - [ ] `lib/` → `src/lib/`
+  - [ ] `types/` → `src/types/`
+  - [ ] `utils/` → `src/lib/utils/` (통합)
+  - [ ] `contexts/` → `src/contexts/` (Phase 1에서 stores로 변환)
+
+**Step 2: 백엔드 영역 (`server/`) 분리**
+- [ ] `server/` 디렉토리 생성
+- [ ] 백엔드 로직 이동:
+  - [ ] `services/` → `server/services/`
+  - [ ] API 핸들러 추출: `app/api/*/route.ts` 로직 → `server/handlers/*.handler.ts`
+- [ ] `app/api/` 얇은 레이어로 변경 (handler import만)
+
+**Step 3: 페이지 라우팅 (`src/app/`) 구성**
+- [ ] `app/` 페이지 파일들 → `src/app/` 이동 (api 제외)
+- [ ] `app/api/`는 루트에 유지 (Next.js 규칙)
+
+**Step 4: 설정 업데이트**
+- [ ] `tsconfig.json` paths 업데이트:
+  ```json
+  {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/server/*": ["./server/*"]
+    }
+  }
+  ```
+- [ ] 모든 import 경로 수정
+- [ ] 빌드 테스트 (`npm run build`)
+
+**변경 전후 비교:**
+```
+Before:                          After:
+apps/web/dms/                    apps/web/dms/
+├── app/                         ├── src/              ← 프론트엔드
+│   ├── api/  ◀─┐               │   ├── app/          ← 페이지만
+│   ├── wiki/   │               │   ├── components/
+│   └── ...     │ 혼재          │   ├── hooks/
+├── components/ │               │   ├── lib/
+├── services/ ◀─┘               │   ├── stores/
+├── contexts/                    │   └── types/
+├── hooks/                       │
+├── lib/                         ├── server/           ← 백엔드
+├── types/                       │   ├── handlers/
+└── utils/                       │   └── services/
+                                 │
+                                 └── app/api/          ← 라우팅만
+                                     └── */route.ts
+```
+
+---
+
+### Phase 1: 상태관리 + P1 패키지 (2~3일)
+
+> **구조 + 패키지 동시 진행** - 가장 큰 시너지
+
+**패키지 설치:**
 - [ ] `zod` 설치
 - [ ] `react-hook-form` + `@hookform/resolvers` 설치
 - [ ] `zustand` 설치
 - [ ] `sonner` 설치
-- [ ] 설치 후 동작 확인
 
-### Phase 2: UI 정리 (Fluent UI 제거)
+**구조 변경:**
+- [ ] `src/contexts/` 분석 (어떤 Context가 있는지)
+- [ ] `src/stores/` 디렉토리 생성
+- [ ] Context → zustand store 변환
+- [ ] Provider 패턴 제거
+- [ ] 컴포넌트에서 `useContext` → zustand 훅으로 교체
+- [ ] 빌드/동작 테스트
 
+**예시 변환:**
+```tsx
+// Before: contexts/AuthContext.tsx
+const AuthContext = createContext<AuthState | null>(null);
+export const useAuth = () => useContext(AuthContext);
+
+// After: stores/auth-store.ts
+import { create } from 'zustand';
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+}));
+```
+
+---
+
+### Phase 2: UI 정리 + 컴포넌트 재구성 (3~4일)
+
+> Fluent UI 제거와 컴포넌트 분류를 **동시에**
+
+**Fluent UI 제거:**
 - [ ] Fluent UI 사용 코드 분석
-- [ ] 대체 컴포넌트 구현 또는 Radix 도입
-- [ ] `@fluentui/*` 패키지 제거
-- [ ] globals.css Fluent import 제거 (이미 완료?)
+- [ ] 대체 컴포넌트 구현 (Tailwind/Radix)
+- [ ] `@fluentui/react` 제거
+- [ ] `@fluentui/react-components` 제거
+- [ ] `@fluentui/react-icons` → `lucide-react`로 대체
+- [ ] globals.css Fluent import 확인/제거
 
-### Phase 3: MUI 최소화 (선택)
+**컴포넌트 재분류 (PMS 스타일):**
+- [ ] `src/components/common/` - 재사용 가능한 범용 컴포넌트
+- [ ] `src/components/layout/` - Header, Sidebar, Footer 등
+- [ ] `src/components/pages/` - 페이지별 전용 컴포넌트
+  - [ ] `pages/editor/` - 에디터 관련 (기존 `editor/`)
+  - [ ] `pages/wiki/` - 위키 관련 (기존 `wiki/`)
+- [ ] `src/components/templates/` - 페이지 템플릿
+- [ ] `src/components/ui/` - 기본 UI (Button, Input 등)
 
+**MUI 최소화:**
 - [ ] MUI 사용 현황 분석
 - [ ] 트리 뷰 외 MUI 사용처 파악
-- [ ] 트리 뷰만 유지 or 전체 대체 결정
+- [ ] `@mui/x-tree-view` 유지 결정 또는 대체 검토
 - [ ] 불필요 MUI 패키지 제거
 
-### Phase 4: API 연동 준비
+---
 
+### Phase 3: API 레이어 정리 (1~2일)
+
+> 서비스 구조 PMS 스타일로 통일 + API 클라이언트 구성
+
+**API 클라이언트 구성 (`src/lib/api/`):**
+- [ ] `src/lib/api/client.ts` 생성 - 내부 API 호출 래퍼
+- [ ] 기존 fetch 직접 호출 → `apiClient` 통해 호출
+- [ ] (통합 시 이 파일만 외부 서버 URL로 변경하면 됨)
+
+```typescript
+// src/lib/api/client.ts
+const API_BASE = '/api';  // 현재: 내부
+// 통합 후: 'http://localhost:4000/api/dms'
+
+export const apiClient = {
+  get: (path: string) => fetch(`${API_BASE}${path}`).then(r => r.json()),
+  post: (path: string, data: unknown) => fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }).then(r => r.json()),
+  // ...
+};
+```
+
+**훅 구조 변경:**
+- [ ] `src/hooks/services/` → `src/hooks/queries/` 명명 통일
+
+**선택 (react-query 도입 시):**
 - [ ] `@tanstack/react-query` 설치
-- [ ] `axios` 설치
-- [ ] 공유 타입 `@ssoo/types` 연동 검토
+- [ ] 기존 fetch 호출 → useQuery/useMutation 패턴 적용
+- [ ] QueryClientProvider 설정
 
-### Phase 5: 디자인 통일 (장기)
+---
 
-- [ ] Radix UI 패키지 설치
-- [ ] shadcn/ui 컴포넌트 마이그레이션
-- [ ] tailwindcss-animate 설치
+### Phase 4: 라우트 정리 (1~2일)
+
+> Route Group 도입으로 레이아웃 분리
+
+**구조 변경:**
+- [ ] `src/app/(main)/` 그룹 생성
+- [ ] `src/app/wiki/` → `src/app/(main)/wiki/`
+- [ ] `src/app/goals-md/` → `src/app/(main)/goals/` (또는 제거)
+- [ ] `src/app/(main)/layout.tsx` - 메인 레이아웃 (사이드바 포함)
+- [ ] `src/app/(auth)/layout.tsx` - 인증 레이아웃 (미래 확장용)
+- [ ] `middleware.ts` 업데이트 (경로 변경 반영)
+
+---
+
+### Phase 5: 디자인 통일 (장기, 점진적)
+
+> P4 패키지 - Radix UI 기반 컴포넌트 교체
+
+- [ ] 필요한 Radix UI 패키지만 선택 설치
+- [ ] `tailwindcss-animate` 설치
+- [ ] MUI 컴포넌트 → Radix/shadcn 스타일로 점진적 교체
+- [ ] `components.json` (shadcn CLI 설정) 추가
+
+---
+
+## 6. 일정 요약
+
+| Phase | 작업 | 예상 기간 | 의존성 | 패키지 연동 |
+|-------|------|----------|--------|------------|
+| **0** | 기반 구조 (프론트/백 분리) | 1~2일 | - | - |
+| **1** | 상태관리 + P1 | 2~3일 | Phase 0 | zod, zustand, sonner, RHF |
+| **2** | UI 정리 + 컴포넌트 | 3~4일 | Phase 0 | Fluent 제거, MUI 최소화 |
+| **3** | API 레이어 정리 | 1~2일 | Phase 1 | react-query (선택) |
+| **4** | 라우트 정리 | 1~2일 | Phase 2 | - |
+| **5** | 디자인 통일 | 점진적 | Phase 2 | Radix UI (필요시) |
+
+**총 예상: 약 10~14일** (Phase 5 제외)
+
+---
+
+## 7. 주의사항
+
+### ❌ 하지 말아야 할 것
+
+| 항목 | 이유 |
+|------|------|
+| `@ssoo/types` 연동 | DMS 모노레포 독립성 원칙 위배 |
+| `@ssoo/database` 연동 | DMS 모노레포 독립성 원칙 위배 |
+| `workspace:*` 의존성 | GitLab 단독 배포 불가 |
+| `src/`에 백엔드 로직 포함 | 통합 시 분리 어려움 |
+
+### ✅ 해야 할 것
+
+| 항목 | 이유 |
+|------|------|
+| DMS 자체 타입 정의 | `src/types/` 에서 독립 관리 |
+| npm 공개 패키지만 사용 | 어디서든 설치 가능 |
+| `server/`에 백엔드 로직 분리 | 통합 시 이전 용이 |
+| `app/api/`는 얇은 레이어로 유지 | handler 호출만 |
+| `src/lib/api/`로 API 호출 추상화 | 통합 시 URL만 변경 |
 
 ---
 
@@ -311,6 +696,9 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 
 | 날짜 | 내용 |
 |------|------|
-| 2026-01-27 | 초기 작성 - 통합 계획서 |
+| 2026-01-27 | 초기 작성 - 패키지 통합 계획서 |
+| 2026-01-27 | 프로젝트 구조 정렬 계획 통합, 모노레포 독립성 원칙 반영 |
+| 2026-01-27 | 통합 대비 "미니 모노레포" 구조 설계, 소스 구조 도식화 추가 |
+| 2026-01-27 | **Phase 0 시작** - Step 0 완료 (불필요 페이지 삭제: goals-md, goals.md, wiki-test) |
 
 ````
