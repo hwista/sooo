@@ -1,7 +1,7 @@
 'use client';
 
 import { useSidebarStore } from '@/stores';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 /**
  * 사이드바 메뉴 검색
@@ -23,9 +23,9 @@ export function SidebarSearch() {
       {searchQuery && (
         <button
           onClick={clearSearch}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600"
         >
-          ×
+          <X className="w-3.5 h-3.5" />
         </button>
       )}
     </div>

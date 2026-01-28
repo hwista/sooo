@@ -75,7 +75,7 @@ export function MainSidebar() {
         style={{ width: sidebarWidth }}
       >
         {/* 사이드바 헤더 - 그룹웨어 스타일 */}
-        <div className="flex items-center justify-between h-[60px] px-3 bg-ssoo-primary">
+        <div className="flex items-center justify-between h-header-h px-3 bg-ssoo-primary">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 bg-white rounded flex items-center justify-center">
