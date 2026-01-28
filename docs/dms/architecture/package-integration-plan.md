@@ -301,7 +301,8 @@ Tailwind CSS + Emotion
 | **소스 디렉토리** | `src/` 래퍼 | `src/` + `server/` | ✅ 완료 |
 | **라우팅** | `(auth)/`, `(main)/` | `(main)/wiki/` | ✅ 완료 |
 | **컴포넌트** | `common/layout/pages/templates/ui/` | `editor/ui/wiki/` | 🟡 재분류 예정 |
-| **상태관리** | `stores/` (zustand) | `stores/` (4개 생성) | ✅ 완료 |
+| **상태관리** | `stores/` (zustand) | `stores/` (7개) | ✅ 완료 |
+| **Context** | 없음 | 없음 (삭제됨) | ✅ PMS 동일 |
 | **API 레이어** | `lib/api/` | `server/handlers/` (19개) | ✅ 완료 |
 | **유틸리티** | `lib/utils/` | `src/lib/utils/` | ✅ 완료 |
 | **훅** | `hooks/queries/` | `hooks/` | 🟡 명명 통일 예정 |
@@ -368,7 +369,7 @@ apps/web/dms/                     ← ❌ 과거 구조
 └── docs/
 ```
 
-#### DMS 소스 구조 - 변경 후 (현재 ✅ Phase 0 완료)
+#### DMS 소스 구조 - 변경 후 (현재 ✅ Phase 2 완료)
 
 ```
 apps/web/dms/
@@ -380,13 +381,23 @@ apps/web/dms/
 │   │   ├── api/                 ← 얇은 라우팅 레이어 (19개)
 │   │   ├── layout.tsx
 │   │   └── page.tsx
-│   ├── components/              ← (Phase 2에서 재분류 예정)
+│   ├── components/              ← (Phase 2-E/F에서 재분류 예정)
 │   │   ├── editor/
 │   │   ├── ui/
 │   │   └── wiki/
-│   ├── contexts/                ← (Phase 1에서 stores로 변환)
+│   ├── stores/                  ← ✅ zustand stores (7개, Phase 2 완료)
+│   │   ├── gemini-store.ts       ← GeminiChat 상태
+│   │   ├── theme-store.ts        ← 테마 (persist)
+│   │   ├── tree-store.ts         ← 파일 트리 + loadFileTree/refreshFileTree
+│   │   ├── user-store.ts         ← 사용자 (persist)
+│   │   ├── wiki-editor-store.ts  ← 에디터 (content, isEditing, fileMetadata)
+│   │   ├── wiki-ui-store.ts      ← UI (contextMenu, createModal, sidebar)
+│   │   ├── wiki-items-store.ts   ← 아이템 추적 (newlyCreated, updated)
+│   │   └── index.ts
 │   ├── hooks/
+│   │   └── useFileOperations.ts ← stores 연동
 │   ├── lib/
+│   │   ├── toast.ts             ← ✅ sonner 래퍼
 │   │   └── utils/               ← ✅ 통합됨
 │   └── types/
 │
@@ -825,7 +836,7 @@ npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
 - [x] 모든 import 경로 수정
 - [x] 빌드 테스트 (`npm run build`)
 
-**현재 구조 (Phase 0 완료):**
+**현재 구조 (Phase 0 완료, Phase 2 반영):**
 ```
 apps/web/dms/
 ├── src/                    ← ✅ 프론트엔드 + 라우팅 통합
@@ -837,14 +848,17 @@ apps/web/dms/
 │   │   ├── page.tsx
 │   │   └── globals.css
 │   ├── components/
-│   ├── contexts/          ← (stores로 대부분 변환됨, 레거시)
-│   ├── stores/            ← ✅ zustand stores (Phase 1 완료)
+│   ├── stores/            ← ✅ zustand stores (7개, Phase 2 완료)
 │   │   ├── gemini-store.ts
 │   │   ├── theme-store.ts
-│   │   ├── tree-store.ts
+│   │   ├── tree-store.ts      ← loadFileTree/refreshFileTree 포함
 │   │   ├── user-store.ts
+│   │   ├── wiki-editor-store.ts  ← 에디터 상태 (content, isEditing, fileMetadata)
+│   │   ├── wiki-ui-store.ts      ← UI 상태 (contextMenu, createModal, sidebar)
+│   │   ├── wiki-items-store.ts   ← 아이템 추적 (newlyCreated, updated)
 │   │   └── index.ts
 │   ├── hooks/
+│   │   └── useFileOperations.ts ← tree-store, wiki-stores 연동
 │   ├── lib/
 │   │   ├── toast.ts       ← ✅ sonner 래퍼 (Phase 1 완료)
 │   │   └── utils/
@@ -864,6 +878,8 @@ apps/web/dms/
 │   └── services/
 └── ...
 ```
+
+> ⚠️ **주의**: `contexts/` 폴더는 완전히 삭제됨 (Phase 2 완료). PMS와 동일하게 stores만 사용.
 
 ---
 
@@ -886,24 +902,27 @@ apps/web/dms/
   - [x] `TreeDataContext` → `stores/tree-store.ts`
   - [x] `UserContext` → `stores/user-store.ts`
   - [x] `NotificationContext` → `lib/toast.ts` (sonner 사용)
-  - [ ] `WikiContext` - 복잡, Phase 2에서 점진적 변환
+  - [x] `WikiContext` → 3개 store로 분할 완료 (Phase 2)
 - [x] `GeminiChat.tsx` - useGeminiStore 적용
 - [x] `ThemeToggle.tsx` - useThemeStore 적용
 - [x] `WikiContext.tsx` - useToast 적용
 - [x] `WikiApp.tsx` - NotificationProvider 제거
 - [x] `layout.tsx` - Toaster 추가
 
-**생성된 파일:**
+**생성된 파일 (최종 7개 stores):**
 ```
 src/stores/
-├── gemini-store.ts    ← GeminiChat 상태
-├── theme-store.ts     ← 테마 (persist)
-├── tree-store.ts      ← 파일 트리 상태
-├── user-store.ts      ← 사용자 (persist)
-└── index.ts           ← 재export
+├── gemini-store.ts       ← GeminiChat 상태
+├── theme-store.ts        ← 테마 (persist)
+├── tree-store.ts         ← 파일 트리 + loadFileTree/refreshFileTree
+├── user-store.ts         ← 사용자 (persist)
+├── wiki-editor-store.ts  ← 에디터 상태 (content, isEditing, fileMetadata)
+├── wiki-ui-store.ts      ← UI 상태 (contextMenu, createModal, sidebar)
+├── wiki-items-store.ts   ← 아이템 추적 (newlyCreated, updated)
+└── index.ts              ← 재export
 
 src/lib/
-└── toast.ts           ← sonner 래퍼 (useToast)
+└── toast.ts              ← sonner 래퍼 (useToast)
 ```
 
 **예시 변환:**
@@ -926,6 +945,35 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 > Fluent UI 제거와 컴포넌트 분류를 **동시에**
 
+#### Phase 2-A: Context → Store 전환 ✅ 완료 (2026-01-28)
+
+- [x] GeminiChatProvider 제거 (wiki/page.tsx)
+- [x] NotificationProvider 제거 (wiki/page.tsx)
+- [x] TreeDataContext → useTreeStore 마이그레이션
+- [x] Context 파일 삭제 (GeminiChat, Notification, Theme, TreeData, User)
+
+#### Phase 2-C: WikiContext 분할 ✅ 완료 (2026-01-28)
+
+- [x] `wiki-editor-store.ts` 생성 (~220줄): content, isEditing, fileMetadata, saveFile, loadFile
+- [x] `wiki-ui-store.ts` 생성 (~65줄): sidebarWidth, renamingItem, createModal, contextMenu
+- [x] `wiki-items-store.ts` 생성 (~60줄): newlyCreatedItems, updatedItems
+- [x] WikiContext 단순화 (521 → ~230줄)
+- [x] WikiEditor.tsx, WikiSidebar.tsx 새 stores 사용으로 업데이트
+
+#### Phase 2-D: WikiContext 완전 제거 ✅ 완료 (2026-01-28)
+
+- [x] tree-store에 loadFileTree/refreshFileTree 추가 (fileSystemService.getFileTree 사용)
+- [x] useFileOperations 훅 재작성 (stores 사용, 로컬 상태 제거)
+- [x] WikiApp.tsx에서 WikiProvider 제거, tree-store 직접 사용
+- [x] WikiEditor.tsx, WikiSidebar.tsx stores + hooks 직접 사용으로 업데이트
+- [x] WikiContext.tsx 삭제
+- [x] `contexts/` 폴더 완전 삭제
+- [x] page-broken.tsx 삭제 (obsolete)
+
+> ✅ **결과**: `contexts/` 폴더 없음 - PMS와 동일한 구조 달성!
+
+#### Phase 2-E: Fluent UI 제거 (대기)
+
 **Fluent UI 제거:**
 - [ ] Fluent UI 사용 코드 분석
 - [ ] 대체 컴포넌트 구현 (Tailwind/Radix)
@@ -933,6 +981,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 - [ ] `@fluentui/react-components` 제거
 - [ ] `@fluentui/react-icons` → `lucide-react`로 대체
 - [ ] globals.css Fluent import 확인/제거
+
+#### Phase 2-F: 컴포넌트 재분류 (대기)
 
 **컴포넌트 재분류 (PMS 스타일):**
 - [ ] `src/components/common/` - 재사용 가능한 범용 컴포넌트
@@ -1016,7 +1066,8 @@ export const apiClient = {
 |-------|------|----------|--------|------------|
 | **0** | 기반 구조 (프론트/백 분리) | 1~2일 | ✅ 완료 | - |
 | **1** | 상태관리 + P1 | 2~3일 | ✅ 완료 | zod✅, zustand✅, sonner✅, RHF✅ |
-| **2** | UI 정리 + 컴포넌트 | 3~4일 | ⬜ 대기 | Fluent 제거, MUI 최소화 |
+| **2-A~D** | Context → Store 전환 | 1~2일 | ✅ 완료 | contexts/ 삭제, 7개 stores |
+| **2-E~F** | Fluent UI 제거 + 컴포넌트 | 2~3일 | ⬜ 대기 | Fluent 제거, MUI 최소화 |
 | **3** | API 레이어 정리 | 1~2일 | ⬜ 대기 | react-query (선택) |
 | **4** | 라우트 정리 | 1~2일 | ⬜ 대기 | - |
 | **5** | 디자인 통일 | 점진적 | ⬜ 대기 | Radix UI (필요시) |
@@ -1066,6 +1117,9 @@ export const apiClient = {
 | 2026-01-28 | **패키지 정리** - `tailwind-variants` 제거 (미사용), `tailwind-merge` ^2.6.0 유지 (PMS와 동일) |
 | 2026-01-28 | **설정 수정** - `tailwind.config.js` content 경로 `./src/**` 로 수정 |
 | 2026-01-28 | **독립 실행 검증** - DMS npm 독립 설치 및 dev 서버 실행 성공 |
+| 2026-01-28 | **Phase 2-A 완료** - Context → Store 전환 (GeminiChat, Notification, TreeData, Theme, User) |
+| 2026-01-28 | **Phase 2-C 완료** - WikiContext 분할 (wiki-editor-store, wiki-ui-store, wiki-items-store) |
+| 2026-01-28 | **Phase 2-D 완료** - WikiContext 완전 제거, `contexts/` 폴더 삭제, PMS 구조와 동일화 달성 |
 
 ---
 
