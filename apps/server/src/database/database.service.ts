@@ -13,7 +13,7 @@ import { createPrismaClient, ExtendedPrismaClient } from '@ssoo/database';
  */
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
-  private readonly _client: ExtendedPrismaClient;
+  private _client!: ExtendedPrismaClient;
 
   constructor() {
     this._client = createPrismaClient();
@@ -30,33 +30,33 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   // ===== Prisma 모델 Getter (기존 this.db.xxx 패턴 유지) =====
 
   get user() {
-    return this._client.user;
+    return this._client!.user;
   }
 
   get project() {
-    return this._client.project;
+    return this._client!.project;
   }
 
   get menu() {
-    return this._client.menu;
+    return this._client!.menu;
   }
 
   get userFavorite() {
-    return this._client.userFavorite;
+    return this._client!.userFavorite;
   }
 
   // ===== Raw Query (기존 this.db.$queryRaw 패턴 유지) =====
 
   get $queryRaw() {
-    return this._client.$queryRaw.bind(this._client);
+    return this._client!.$queryRaw.bind(this._client!);
   }
 
   get $executeRaw() {
-    return this._client.$executeRaw.bind(this._client);
+    return this._client!.$executeRaw.bind(this._client!);
   }
 
   get $transaction() {
-    return this._client.$transaction.bind(this._client);
+    return this._client!.$transaction.bind(this._client!);
   }
 
   /**
@@ -64,6 +64,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
    * Prefer `db.client.<model>` in new code to avoid touching this service.
    */
   get client(): ExtendedPrismaClient {
-    return this._client;
+    return this._client!;
   }
 }

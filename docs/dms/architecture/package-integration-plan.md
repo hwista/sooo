@@ -1004,17 +1004,53 @@ export const useAuthStore = create<AuthState>((set) => ({
 | `ThemeToggle` | 테마 전환 버튼 | 🟡 UI에 추가 가능 |
 | `wiki/ContextMenu` | 우클릭 메뉴 | 🟡 트리 우클릭에 필요 가능 |
 
-#### Phase 2-F: Fluent UI 제거 (진행 중)
+#### Phase 2-F: Fluent UI 제거 ✅ 완료 (2026-01-28)
 
 **Fluent UI 제거:**
-- [ ] Fluent UI 사용 코드 분석
-- [ ] 대체 컴포넌트 구현 (Tailwind/Radix)
-- [ ] `@fluentui/react` 제거
-- [ ] `@fluentui/react-components` 제거
-- [ ] `@fluentui/react-icons` → `lucide-react`로 대체
-- [ ] globals.css Fluent import 확인/제거
+- [x] Fluent UI 사용 코드 분석
+- [x] 대체 컴포넌트 구현 (Tailwind/Radix)
+- [x] `@fluentui/react` 제거 (96개 패키지 삭제)
+- [x] `@fluentui/react-components` 제거
+- [x] `@fluentui/react-icons` → `lucide-react`로 대체
+- [x] globals.css Fluent import 확인/제거
+- [x] `layout.tsx` FluentProvider 제거
 
-#### Phase 2-F: 컴포넌트 재분류 (대기)
+**생성된 UI 컴포넌트 (src/components/ui/):**
+- `button.tsx` - CVA 기반 (shadcn/ui 스타일)
+- `card.tsx` - Card, CardHeader, CardTitle, CardDescription, CardFooter
+- `input.tsx` - 네이티브 input 래퍼
+- `dialog.tsx` - Radix Dialog + DialogSurface/DialogBody alias
+- `dropdown.tsx` - Radix Dropdown + Fluent 호환 API
+- `tooltip.tsx` - Radix Tooltip + SimpleTooltip
+- `progress.tsx` - Radix Progress (ProgressBar alias)
+- `spinner.tsx` - SVG 스피너
+- `divider.tsx` - 구분선 (Separator alias)
+- `menu.tsx` - Radix Context Menu
+
+**추가된 Radix 패키지:**
+- `@radix-ui/react-tooltip`
+- `@radix-ui/react-dialog`
+- `@radix-ui/react-dropdown-menu`
+- `@radix-ui/react-progress`
+- `@radix-ui/react-context-menu`
+- `@radix-ui/react-slot`
+
+**변환된 컴포넌트 (13개):**
+- EditorToolbar.tsx (18개 아이콘)
+- WikiEditor.tsx
+- WikiSidebar.tsx (makeStyles 제거)
+- WikiApp.tsx
+- TextSearch.tsx
+- ThemeToggle.tsx
+- CreateFileModal.tsx
+- AIChat.tsx
+- FileUpload.tsx
+- GeminiChat.tsx
+- LinkModal.tsx
+- SearchPanel.tsx
+- TreeComponent.tsx
+
+#### Phase 2-G: 컴포넌트 재분류 (대기)
 
 **컴포넌트 재분류 (PMS 스타일):**
 - [ ] `src/components/common/` - 재사용 가능한 범용 컴포넌트
@@ -1099,10 +1135,12 @@ export const apiClient = {
 | **0** | 기반 구조 (프론트/백 분리) | 1~2일 | ✅ 완료 | - |
 | **1** | 상태관리 + P1 | 2~3일 | ✅ 완료 | zod✅, zustand✅, sonner✅, RHF✅ |
 | **2-A~D** | Context → Store 전환 | 1~2일 | ✅ 완료 | contexts/ 삭제, 7개 stores |
-| **2-E~F** | Fluent UI 제거 + 컴포넌트 | 2~3일 | ⬜ 대기 | Fluent 제거, MUI 최소화 |
+| **2-E** | 미사용 컴포넌트 정리 | 1일 | ✅ 완료 | 11개 컴포넌트 삭제 |
+| **2-F** | Fluent UI 제거 | 2일 | ✅ 완료 (2026-01-28) | Fluent 제거, Radix UI 6개 추가 |
+| **2-G** | 컴포넌트 재분류 | 1~2일 | ⬜ 대기 | - |
 | **3** | API 레이어 정리 | 1~2일 | ⬜ 대기 | react-query (선택) |
 | **4** | 라우트 정리 | 1~2일 | ⬜ 대기 | - |
-| **5** | 디자인 통일 | 점진적 | ⬜ 대기 | Radix UI (필요시) |
+| **5** | 디자인 통일 (MUI 검토) | 점진적 | ⬜ 대기 | MUI → Radix 검토 |
 
 **총 예상: 약 10~14일** (Phase 5 제외)
 
