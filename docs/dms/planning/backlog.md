@@ -64,26 +64,28 @@
 
 ## ✅ Phase 2 완료!
 
+### Phase 2 추가: 색상 토큰 통일
+- [x] SidebarSearch: `text-muted-foreground` → `text-gray-400`
+- [x] SidebarOpenTabs: semantic 토큰 → `gray-xxx`
+- [x] SidebarBookmarks: semantic 토큰 → `gray-xxx`
+- [x] SidebarFileTree: semantic 토큰 → `gray-xxx`
+- [x] MainSidebar 카피라이트: semantic 토큰 → `gray-xxx`
+
 ---
 
 ## 📋 예정된 작업
 
-### Phase 3: 기능 검증
-- [ ] ScrollArea 완전 동일화 확인
-- [ ] Dialog 컴포넌트 비교
-- [ ] Button, Input 등 기본 UI 비교
-- [ ] packages/ui-common 분리 검토 (후순위)
-
-### Phase 2-L: Store 구조 정리
-- [ ] tab-store PMS 구조 비교
-- [ ] layout-store PMS sidebarStore 비교
-- [ ] tree-store 정리
-
 ### Phase 3: 기능 구현
-- [ ] 파일 목록 API 연동
+- [ ] 파일 목록 API 연동 (tree-store → server)
 - [ ] 마크다운 뷰어/에디터 정리
 - [ ] 검색 기능 구현
 - [ ] 책갈피 API 연동
+
+### Phase 4: 레거시 정리
+- [ ] WikiSidebar.tsx 삭제 (하드코딩 hex 다수)
+- [ ] WikiEditor.tsx 정리 (인라인 스타일)
+- [ ] MarkdownToolbar.tsx 정리
+- [ ] SlashCommand.tsx 정리
 
 ---
 

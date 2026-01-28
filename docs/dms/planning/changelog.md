@@ -10,6 +10,16 @@
 
 ### 2026-01-28
 
+#### Phase 2 추가: 색상 토큰 PMS 표준 통일
+| 커밋 | 변경 내용 |
+|------|----------|
+| `14fb202` | **Sidebar 색상 토큰 PMS 표준 통일** |
+| | - SidebarSearch: `text-muted-foreground` → `text-gray-400` |
+| | - SidebarOpenTabs: `text-foreground` → `text-gray-700` |
+| | - SidebarBookmarks: semantic 토큰 → `gray-xxx` |
+| | - SidebarFileTree: semantic 토큰 → `gray-xxx` |
+| | - MainSidebar 카피라이트: `text-muted-foreground` → `text-gray-500` |
+
 #### Phase 2-L: Store 구조 비교 (분석 완료)
 | 분석 | 결과 |
 |------|------|
