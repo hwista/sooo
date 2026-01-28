@@ -972,7 +972,39 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 > ✅ **결과**: `contexts/` 폴더 없음 - PMS와 동일한 구조 달성!
 
-#### Phase 2-E: Fluent UI 제거 (대기)
+#### Phase 2-E: 미사용 컴포넌트 정리 ✅ 완료 (2026-01-28)
+
+> 마이그레이션 전 불필요 코드 제거 - YAGNI 원칙 적용
+
+**삭제된 컴포넌트 (11개, ~3,854줄):**
+
+| 컴포넌트 | 용도 | 라인 | 삭제 이유 |
+|----------|------|------|-----------|
+| `CollaborationIndicator` | 실시간 협업 표시 | 243 | 멀티유저 협업 기능 미구현 |
+| `Comments` | 파일별 댓글 | 397 | 댓글 기능 미구현 |
+| `NotificationCenter` | 알림 센터 | 364 | 복잡한 알림 시스템 미사용 |
+| `NotificationSettings` | 알림 설정 | 461 | NotificationCenter 종속 |
+| `PermissionEditor` | 권한 편집기 | 463 | 권한 시스템 미구현 |
+| `PluginManager` | 플러그인 관리 | 316 | 플러그인 시스템 미구현 |
+| `RoleManager` | 역할 관리 | 565 | 역할 시스템 미구현 |
+| `TagManager` | 태그 관리 | 428 | 태그 기능 미구현 |
+| `TemplateSelector` | 문서 템플릿 선택 | 192 | 템플릿 기능 미구현 |
+| `VersionHistory` | 버전 히스토리 | 265 | Git 기반으로 대체 |
+| `Notification` | 단일 알림 (레거시) | 160 | sonner로 대체됨 |
+
+**보류된 컴포넌트 (추후 검토):**
+
+| 컴포넌트 | 용도 | 상태 |
+|----------|------|------|
+| `MarkdownToolbar` | 마크다운 도구모음 | 🟡 Tiptap 사용으로 불필요할 수 있음 |
+| `ImageModal` | 이미지 삽입 모달 | 🟡 에디터에서 필요 가능 |
+| `LinkModal` | 링크 삽입 모달 | 🟡 에디터에서 필요 가능 |
+| `TextSearch` | 텍스트 검색 | 🟡 검색 기능 필요시 유지 |
+| `SearchPanel` | 벡터 검색 | 🟡 AI 검색 기능 |
+| `ThemeToggle` | 테마 전환 버튼 | 🟡 UI에 추가 가능 |
+| `wiki/ContextMenu` | 우클릭 메뉴 | 🟡 트리 우클릭에 필요 가능 |
+
+#### Phase 2-F: Fluent UI 제거 (진행 중)
 
 **Fluent UI 제거:**
 - [ ] Fluent UI 사용 코드 분석
