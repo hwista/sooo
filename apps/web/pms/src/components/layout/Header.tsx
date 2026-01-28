@@ -12,7 +12,7 @@ import { Search, Plus, Bell, User, ChevronDown } from 'lucide-react';
  */
 export function Header() {
   return (
-    <header className="h-[60px] flex items-center justify-between px-4 bg-ssoo-primary">
+    <header className="h-header-h flex items-center justify-between px-4 bg-ssoo-primary">
       {/* 왼쪽: 통합 검색 (추후 Elasticsearch 또는 AI 챗 연동 예정) */}
       <div className="flex items-center flex-1 max-w-md">
         <div className="relative w-full">
