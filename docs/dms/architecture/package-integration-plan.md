@@ -91,16 +91,18 @@ DMS (Self-contained)
 | @fluentui/react | ❌ | ^8.125.1 | 🔴 제거 예정 |
 | @fluentui/react-components | ❌ | ^9.72.7 | 🔴 제거 예정 |
 | @fluentui/react-icons | ❌ | ^2.0.317 | 🔴 제거 예정 |
-| @emotion/react | ❌ | ^11.14.0 | 🟡 MUI 따라감 |
-| @emotion/styled | ❌ | ^11.14.1 | 🟡 MUI 따라감 |
+| @emotion/react | ❌ | ^11.14.0 | �️ 미사용 제거 대상 |
+| @emotion/styled | ❌ | ^11.14.1 | 🗑️ 미사용 제거 대상 |
+| @mui/material | ❌ | ^7.3.4 | 🗑️ 미사용 제거 대상 |
+| @mui/lab | ❌ | ^7.0.1-beta.18 | 🗑️ 미사용 제거 대상 |
 | **[DMS 전용 - AI/DB]** ||||
 | @google/generative-ai | ❌ | ^0.24.1 | 🟢 DMS 전용 |
 | @lancedb/lancedb | ❌ | ^0.23.0 | 🟢 DMS 전용 |
 | **[DMS 전용 - Server]** ||||
-| chokidar | ❌ | ^4.0.3 | 🟡 검토 필요 |
-| formidable | ❌ | ^3.5.4 | 🟡 검토 필요 |
-| multer | ❌ | ^2.0.2 | 🟡 검토 필요 |
-| nodemailer | ❌ | ^7.0.12 | 🟡 검토 필요 |
+| chokidar | ❌ | ^4.0.3 | 🗑️ 미사용 제거 대상 |
+| formidable | ❌ | ^3.5.4 | 🗑️ 미사용 제거 대상 |
+| multer | ❌ | ^2.0.2 | 🗑️ 미사용 제거 대상 |
+| nodemailer | ❌ | ^7.0.12 | 🟡 사용 중 (동적 import) |
 
 ### DevDependencies (개발용)
 
@@ -129,9 +131,10 @@ DMS (Self-contained)
 |------|------|------|
 | ✅ **공통 패키지** | 18개 | PMS/DMS 모두 사용 |
 | 🔴 **PMS 전용** (DMS 추가 가능) | 20개 | 필요시 도입 |
-| 🟢 **DMS 전용** (유지) | 30개+ | 도메인 필수 |
-| 🟡 **검토 필요** | 8개 | 제거/유지 결정 |
-| 🔴 **제거 예정** | 3개 | Fluent UI |
+| 🟢 **DMS 전용** (유지) | 25개 | 도메인 필수 |
+| 🗑️ **DMS 미사용 (즉시 제거)** | 7개 | MUI/emotion/chokidar/formidable/multer |
+| 🔴 **DMS 제거 예정** | 3개 | Fluent UI (Phase 2) |
+| 🟡 **PMS 미사용 (검토 필요)** | 7개 | dayjs/numeral/recharts/socket.io/xlsx/react-virtual/sonner |
 
 ### 🎯 DMS 추가 예정 패키지 (우선순위별)
 
@@ -141,6 +144,116 @@ DMS (Self-contained)
 | **P2** | @tanstack/react-query, axios | 서버 상태/HTTP | ⬜ 선택 |
 | **P3** | @tanstack/react-table, dayjs, numeral | 테이블/유틸 | ⬜ 선택 |
 | **P4** | @radix-ui/* (8개), tailwindcss-animate | UI 통일 | ⬜ 장기 |
+
+---
+
+## 📊 패키지 사용 여부 분석 (2026-01-28)
+
+> 📌 **배경**: `tailwind-variants`처럼 설치만 되어 있고 실제 사용하지 않는 패키지가 발견됨
+> 이러한 패키지가 다른 패키지와의 의존성 충돌을 유발하여 불필요한 작업을 초래함
+
+### 🔴 DMS: 미사용 패키지 (제거 대상)
+
+| 패키지 | 용도 (추정) | 실제 사용 | 처리 방향 |
+|--------|------------|----------|----------|
+| **@emotion/react** | MUI CSS-in-JS | ❌ 미사용 | MUI 제거 시 함께 제거 |
+| **@emotion/styled** | MUI CSS-in-JS | ❌ 미사용 | MUI 제거 시 함께 제거 |
+| **@mui/material** | Material UI 컴포넌트 | ❌ import 없음 | 🗑️ 제거 |
+| **@mui/lab** | MUI 실험적 기능 | ❌ import 없음 | 🗑️ 제거 |
+| **chokidar** | 파일 감시 (서버) | ❌ import 없음 | 🗑️ 제거 |
+| **formidable** | 파일 업로드 파싱 | ❌ import 없음 | 🗑️ 제거 |
+| **multer** | 파일 업로드 미들웨어 | ❌ import 없음 | 🗑️ 제거 |
+| **@hookform/resolvers** | react-hook-form zod resolver | ❌ import 없음 | 🟡 유지 (예정) |
+| **react-hook-form** | 폼 관리 | ❌ import 없음 | 🟡 유지 (예정) |
+| **zod** | 스키마 검증 | ❌ import 없음 | 🟡 유지 (예정) |
+| **class-variance-authority** | 컴포넌트 variants | ❌ import 없음 | 🟡 유지 (예정) |
+| **clsx** | 조건부 클래스 | ❌ import 없음 | 🟡 유지 (예정) |
+| **lucide-react** | 아이콘 | ❌ import 없음 | 🟡 유지 (예정) |
+
+> 💡 **참고**: `@hookform/resolvers`, `react-hook-form`, `zod`, `class-variance-authority`, `clsx`, `lucide-react`는 Phase 2에서 Fluent UI 제거 후 사용 예정이므로 유지
+
+### ✅ DMS: 실제 사용 중인 패키지
+
+| 패키지 | 사용 위치 | 비고 |
+|--------|----------|------|
+| **@fluentui/react-components** | 20+ 컴포넌트 | 🔴 Phase 2에서 제거 |
+| **@fluentui/react-icons** | 20+ 컴포넌트 | 🔴 Phase 2에서 제거 (→ lucide-react) |
+| **@google/generative-ai** | `lib/embeddings.ts` | 🟢 DMS 전용 |
+| **@lancedb/lancedb** | `lib/vectorStore.ts` | 🟢 DMS 전용 |
+| **@mui/x-tree-view** | TreeComponent | 🟢 유지 (트리뷰 용도) |
+| **@tiptap/*** (15개) | `components/editor/` | 🟢 DMS 전용 (WYSIWYG) |
+| **lowlight** | BlockEditor 코드 하이라이팅 | 🟢 DMS 전용 |
+| **marked** | `lib/markdownConverter.ts` | 🟢 DMS 전용 |
+| **react-markdown** | WikiEditor | 🟢 DMS 전용 |
+| **remark-gfm** | WikiEditor GFM 지원 | 🟢 DMS 전용 |
+| **tippy.js** | SlashCommand 팝업 | 🟢 DMS 전용 |
+| **turndown** | `lib/markdownConverter.ts` | 🟢 DMS 전용 |
+| **nodemailer** | `lib/notifications/email.ts` | 🟡 검토 필요 (동적 import) |
+| **zustand** | `stores/` (4개) | ✅ 사용 중 |
+| **sonner** | `lib/toast.ts` | ✅ 사용 중 |
+| **tailwind-merge** | `lib/utils/index.ts` | ✅ 사용 중 |
+
+### 🔴 PMS: 미사용 패키지 (검토 필요)
+
+| 패키지 | 용도 (추정) | 실제 사용 | 처리 방향 |
+|--------|------------|----------|----------|
+| **@tanstack/react-virtual** | 가상 스크롤 | ❌ import 없음 | 🟡 향후 사용 예정? |
+| **dayjs** | 날짜 포맷 | ❌ import 없음 | 🟡 향후 사용 예정? |
+| **numeral** | 숫자 포맷 | ❌ import 없음 | 🟡 향후 사용 예정? |
+| **recharts** | 차트 라이브러리 | ❌ import 없음 | 🟡 대시보드용? |
+| **socket.io-client** | 웹소켓 클라이언트 | ❌ import 없음 | 🟡 실시간 기능용? |
+| **xlsx** | 엑셀 파일 처리 | ❌ import 없음 | 🟡 내보내기용? |
+| **sonner** | 토스트 알림 | ❌ import 없음 | 🟡 구현 예정? |
+
+### ✅ PMS: 실제 사용 중인 패키지
+
+| 패키지 | 사용 위치 | 비고 |
+|--------|----------|------|
+| **@radix-ui/** (8개) | `components/ui/` | ✅ shadcn/ui 기반 |
+| **@tanstack/react-query** | `hooks/queries/`, `providers.tsx` | ✅ 데이터 페칭 |
+| **@tanstack/react-table** | `components/common/DataTable/` | ✅ 테이블 |
+| **axios** | `lib/api/client.ts` | ✅ HTTP 클라이언트 |
+| **class-variance-authority** | `components/ui/` (4개) | ✅ 사용 중 |
+| **clsx** | `lib/utils/index.ts` | ✅ 사용 중 |
+| **lucide-react** | 20+ 컴포넌트 | ✅ 아이콘 |
+| **react-hook-form** | login, layout, RequestCreatePage | ✅ 사용 중 |
+| **@hookform/resolvers** | login, layout, RequestCreatePage | ✅ 사용 중 |
+| **zod** | `lib/validations/`, 페이지 | ✅ 스키마 검증 |
+| **zustand** | `stores/` (5개) | ✅ 상태관리 |
+| **tailwind-merge** | `lib/utils/index.ts` | ✅ 사용 중 |
+
+### 🎯 DMS 패키지 정리 액션 플랜
+
+#### Phase 2 이전 (즉시 제거 가능)
+```bash
+npm uninstall @mui/material @mui/lab @emotion/react @emotion/styled chokidar formidable multer
+```
+- **이유**: import 없음, Fluent UI 제거와 무관하게 즉시 삭제 가능
+
+#### Phase 2 진행 시 (Fluent UI 제거 후)
+```bash
+npm uninstall @fluentui/react @fluentui/react-components @fluentui/react-icons
+```
+- **대체**: lucide-react (아이콘), Tailwind/Radix (컴포넌트)
+
+#### Phase 2 진행 시 (대체 컴포넌트 작성 후 활성화)
+- `class-variance-authority` → 버튼 variants 정의
+- `clsx` → cn() 유틸리티
+- `lucide-react` → Fluent Icons 대체
+- `react-hook-form` + `@hookform/resolvers` + `zod` → 폼 검증
+
+### 🎯 PMS 패키지 검토 사항
+
+| 패키지 | 상태 | 권장 액션 |
+|--------|------|----------|
+| dayjs, numeral | 미사용 | 사용 계획 없으면 제거 검토 |
+| recharts | 미사용 | 대시보드 개발 전까지 유지 |
+| socket.io-client | 미사용 | 실시간 기능 개발 전까지 유지 |
+| xlsx | 미사용 | 내보내기 기능 개발 전까지 유지 |
+| @tanstack/react-virtual | 미사용 | 대량 데이터 처리 시 사용 예정? 유지 |
+| sonner | 미사용 | 🔴 토스트 구현 필요! |
+
+> ⚠️ **PMS sonner 미사용 이슈**: 설치되어 있으나 import 없음. 토스트 구현이 필요함!
 
 ---
 
