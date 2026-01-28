@@ -10,6 +10,30 @@
 
 ### 2026-01-28
 
+#### Phase 2-L: Store 구조 비교 (분석 완료)
+| 분석 | 결과 |
+|------|------|
+| tab-store | PMS: menuCode/menuId 기반 / DMS: id 기반 → **도메인 차이로 유지** |
+| layout-store | PMS: sidebar collapse/float / DMS: 위키 특화 상태 → **유지** |
+| tree-store | DMS 전용 파일 트리 → **유지** |
+| wiki-*.ts | DMS 위키 도메인 전용 → **유지** |
+| **결론** | Store 구조는 도메인 특성상 다르게 유지 (코드 변경 없음) |
+
+#### Phase 2-K: UI 컴포넌트 통일
+| 커밋 | 변경 내용 |
+|------|----------|
+| `f0495b1` | **Button, Input SSOO 디자인 시스템 적용** |
+| | - Button: `bg-ssoo-primary`, `bg-ls-red`, `h-control-h` |
+| | - Input: `h-9` → `h-control-h` |
+| | - Dialog: PMS와 동일 확인 (변경 불필요) |
+
+#### Phase 2-J: ContentArea, AppLayout 통일
+| 커밋 | 변경 내용 |
+|------|----------|
+| `04ad943` | **ContentArea 헤더 스타일 PMS 통일** |
+| | - `hover:border-[#003366]` → `hover:border-ssoo-primary` |
+| | - `text-2xl font-bold` → `heading-1` |
+
 #### Phase 2-I: Header/TabBar 스타일 통일
 | 커밋 | 변경 내용 |
 |------|----------|

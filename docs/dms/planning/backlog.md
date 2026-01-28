@@ -45,19 +45,30 @@
 - [x] DMS TabBar: 높이, 배경색, 보더색, 텍스트색 PMS 기준 통일
 - [x] 하드코딩 gray 색상 → CSS 변수화 (muted-foreground, foreground)
 
+### Phase 2-J: ContentArea, AppLayout 통일
+- [x] ContentArea: `hover:border-[#003366]` → `hover:border-ssoo-primary`
+- [x] AppLayout: `text-2xl font-bold` → `heading-1`
+
+### Phase 2-K: UI 컴포넌트 통일
+- [x] Dialog: PMS와 동일 확인 (변경 불필요)
+- [x] Button: SSOO 디자인 시스템 토큰 적용
+- [x] Input: `h-9` → `h-control-h`
+
+### Phase 2-L: Store 구조 비교 (분석)
+- [x] tab-store: 도메인 차이로 구조 유지
+- [x] layout-store: 위키 특화 상태로 유지
+- [x] tree-store: DMS 전용 유지
+- [x] wiki-*.ts: DMS 도메인 전용 유지
+
 ---
 
-## 🔄 진행 중
-
-### Phase 2-J: 나머지 레이아웃 컴포넌트 검토
-- [ ] ContentArea 비교/통일
-- [ ] AppLayout 비교/통일
+## ✅ Phase 2 완료!
 
 ---
 
 ## 📋 예정된 작업
 
-### Phase 2-K: 공통 컴포넌트 정리
+### Phase 3: 기능 검증
 - [ ] ScrollArea 완전 동일화 확인
 - [ ] Dialog 컴포넌트 비교
 - [ ] Button, Input 등 기본 UI 비교
