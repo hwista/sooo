@@ -25,10 +25,12 @@
 | Phase | 작업 | 상태 |
 |-------|------|------|
 | **0~2** | 기반 구조, 상태관리, UI 통합 | ✅ 완료 ([상세](./package-integration-completed.md)) |
-| **3** | **PMS 패턴 동기화** | ✅ **완료** |
-| **4** | API 레이어 정리 | ⬜ 대기 |
+| **3** | PMS 패턴 동기화 | ✅ 완료 |
+| **4** | API 레이어 정리 | ✅ **완료** |
 | **5** | 라우트 정리 | ⬜ 대기 |
 | **6** | 디자인 통일 (MUI 검토) | ⬜ 대기 |
+
+> 📎 **장기 통합 분석**: PMS-DMS 패키지 공용화 분석은 [package-unification-analysis.md](./package-unification-analysis.md) 참조
 
 ---
 
@@ -126,40 +128,34 @@ src/components/
 
 ---
 
-## Phase 4: API 레이어 정리 (1~2일)
+## Phase 4: API 레이어 정리 (1~2일) ✅ 완료
 
-> 서비스 구조 PMS 스타일로 통일 + API 클라이언트 구성
+> **목적**: 서비스 구조 PMS 스타일로 통일 + API 클라이언트 구성  
+> **완료일**: 2026-01-29
 
-### 작업 내용
+### 완료 내용
 
-**API 클라이언트 구성 (`src/lib/api/`):**
-- [ ] `src/lib/api/client.ts` 생성 - 내부 API 호출 래퍼
-- [ ] 기존 fetch 직접 호출 → `apiClient` 통해 호출
+**apiClient.ts 확장:**
+- [x] `userApi` - 로그인, 사용자 생성, 프로필 업데이트
+- [x] `searchApi` - 시맨틱 검색, 텍스트 검색, 인덱싱
+- [x] `uploadApi` - 파일 업로드
+- [x] `aiApi` - AI 질의, Gemini 채팅
 
-```typescript
-// src/lib/api/client.ts
-const API_BASE = '/api';  // 현재: 내부
-// 통합 후: 'http://localhost:4000/api/dms'
+**직접 fetch 호출 제거:**
+- [x] `user-store.ts` → `userApi` 사용
+- [x] `SearchPanel.tsx` → `searchApi` 사용
+- [x] `FileUpload.tsx` → `uploadApi` 사용
+- [x] `AIChat.tsx`, `GeminiChat.tsx` → `aiApi` 사용
+- [x] `AISearchPage.tsx` → `searchApi`, `aiApi` 사용
+- [x] `TextSearch.tsx` → `searchApi` 사용
 
-export const apiClient = {
-  get: (path: string) => fetch(`${API_BASE}${path}`).then(r => r.json()),
-  post: (path: string, data: unknown) => fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }).then(r => r.json()),
-};
-```
-
-**훅 구조 변경:**
-- [ ] `src/hooks/services/` → `src/hooks/queries/` 명명 통일
-
-**선택 (react-query 도입 시):**
-- [ ] `@tanstack/react-query` 설치
-- [ ] 기존 fetch 호출 → useQuery/useMutation 패턴 적용
+**추가 수정:**
+- [x] `AppLayout` - children prop 제거 (PMS 패턴 동기화)
+- [x] `MainSidebar` - `refreshFiles` → `refreshFileTree` 수정
 
 ---
 
-## Phase 5: 라우트 정리 (1~2일)
+## Phase 5: 라우트 정리 (1~2일) ⬜ 대기
 
 > Route Group 도입으로 레이아웃 분리
 
