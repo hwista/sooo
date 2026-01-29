@@ -1,8 +1,9 @@
 # PMS-DMS 패키지 공용화 분석
 
-> **문서 목적**: 장기적 관점에서 PMS와 DMS의 공통 모듈을 모노레포 패키지로 통합하기 위한 분석
-> **작성일**: 2026-01-29
-> **상태**: 📋 분석 완료, 구현 대기
+> **문서 목적**: 장기적 관점에서 PMS와 DMS의 공통 모듈을 모노레포 패키지로 통합하기 위한 분석  
+> **작성일**: 2026-01-29  
+> **상태**: 📋 분석 완료 (DMS Phase 5 리팩터링 반영)  
+> **관련 문서**: [PMS-DMS 비교 분석](./pms-dms-comparison-analysis.md) | [통합 리팩터링 계획](./package-integration-plan.md)
 
 ---
 
@@ -76,13 +77,13 @@ interface TabItem {
 }
 ```
 
-### 2.3 Layout 컴포넌트
+### 2.3 Layout 컴포넌트 (✅ Phase 3 이후)
 
 | 컴포넌트 | PMS | DMS | 공용화 |
 |----------|-----|-----|--------|
-| **AppLayout** | `children` prop 사용 | `children` 제거됨 | 🟡 패턴 다름 |
-| **ContentArea** | `pageComponents` + `children` fallback | `pageComponents` only | ✅ 유사 |
-| **MainSidebar** | 펼침/접힘 + 플로팅 | 항상 펼침 | 🔴 기능 차이 |
+| **AppLayout** | `children` prop 사용 | `children` prop 사용 | ✅ 패턴 동일 |
+| **ContentArea** | `pageComponents` + `children` fallback | `pageComponents` + Suspense | ✅ 패턴 동일 |
+| **MainSidebar** | 펼침/접힘 + 플로팅 | 항상 펼침 | 🟡 의도적 차이 |
 | **Header** | 유사 | 유사 | ✅ 공용화 가능 |
 | **TabBar** | 유사 | 유사 | ✅ 공용화 가능 |
 
@@ -104,14 +105,14 @@ DMS sidebar/
 └── SidebarSearch.tsx     # 검색
 ```
 
-### 2.5 API 레이어
+### 2.5 API 레이어 (✅ Phase 4 이후)
 
-| 영역 | PMS | DMS |
-|------|-----|-----|
-| **HTTP 클라이언트** | `axios` + interceptor | `fetch` 기반 |
-| **인증 처리** | 자동 토큰 갱신 | 없음 |
-| **API 구조** | `lib/api/` 도메인별 분리 | `lib/utils/apiClient.ts` 단일 파일 |
-| **서버 통신** | 외부 백엔드 (NestJS) | Next.js API Routes (로컬) |
+| 영역 | PMS | DMS | 비고 |
+|------|-----|-----|------|
+| **HTTP 클라이언트** | `axios` + interceptor | `fetch` 기반 (`apiClient.ts`) | 🟡 Phase 7 검토 |
+| **인증 처리** | 자동 토큰 갱신 | 없음 (의도적) | ✅ 별도 유지 |
+| **API 구조** | `lib/api/` 도메인별 분리 | `lib/utils/apiClient.ts` 확장 | ✅ 개선 완료 |
+| **서버 통신** | 외부 백엔드 (NestJS) | Next.js API Routes + Server Action | ✅ 의도적 차이 |
 
 ---
 
@@ -181,20 +182,22 @@ packages/
 
 ## 5. 구현 로드맵
 
+> **전제 조건**: DMS Phase 6~7 완료 후 진행 권장
+
 ### Phase A: UI 패키지 추출 (우선순위 높음)
 - [ ] `packages/ui/` 생성
-- [ ] 공통 UI 컴포넌트 이동
+- [ ] 공통 UI 컴포넌트 이동 (shadcn/ui 기반)
 - [ ] 각 앱에서 import 경로 변경
 - [ ] 스토리북 설정 (선택)
 
 ### Phase B: 레이아웃 코어 추출
 - [ ] `packages/layout-core/` 생성
-- [ ] 상수, 타입 이동
-- [ ] TabBar, Header 추상화
+- [ ] 상수, 타입 이동 (`LAYOUT_SIZES`, `DeviceType` 등)
+- [ ] TabBar, Header 추상화 (제네릭 + 슬롯 패턴)
 - [ ] 각 앱에서 확장 사용
 
 ### Phase C: 스토어 유틸리티
-- [ ] 제네릭 스토어 팩토리 설계
+- [ ] 제네릭 스토어 팩토리 설계 (`createTabStore`, `createLayoutStore`)
 - [ ] 구현 및 테스트
 - [ ] 각 앱 마이그레이션
 
@@ -220,3 +223,4 @@ packages/
 | 날짜 | 내용 |
 |------|------|
 | 2026-01-29 | 초안 작성 - PMS/DMS 비교 분석 완료 |
+| 2026-01-29 | DMS Phase 5 완료 반영 - Layout/API 비교 업데이트 |

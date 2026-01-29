@@ -1,8 +1,9 @@
 # DMS 통합 리팩터링 완료 기록
 
 > 📅 작성일: 2026-01-29  
-> 📌 목적: Phase 0~2 완료 내역 아카이브  
-> 📂 현재 진행 문서: `package-integration-plan.md`
+> 📌 목적: Phase 0~6 완료 내역 아카이브  
+> 📂 현재 진행 문서: `package-integration-plan.md`  
+> 📊 비교 분석: `pms-dms-comparison-analysis.md`
 
 ---
 
@@ -17,6 +18,10 @@
 | **2-F** | Fluent UI 제거 | 2026-01-28 | Radix UI 6개 추가 |
 | **2-G~L** | 레이아웃 + 스타일 통합 | 2026-01-28 | PMS 디자인 시스템 100% |
 | **3** | PMS 패턴 동기화 | 2026-01-29 | pageComponents + WikiViewerPage loadFile |
+| **4** | API 레이어 정리 | 2026-01-29 | apiClient 확장, fetch 호출 통합 |
+| **5** | 라우트 정리 | 2026-01-29 | `/` 루트 진입점, Middleware 추가 |
+| **검증** | PMS-DMS 비교 분석 | 2026-01-29 | 4가지 관점 종합 분석, 즉시 조치 완료 |
+| **6** | 레거시 코드 정리 | 2026-01-29 | **33개 파일 삭제**, 빌드 검증 완료 |
 
 ---
 
@@ -324,6 +329,86 @@ openTab({ ... });
 |------|------|
 | `d0f152b` | pageComponents 패턴, WikiHomePage, WikiViewerPage, AISearchPage |
 | `7037c7e` | currentFilePath 추가로 파일 로딩/하이라이트 버그 수정 |
+
+---
+
+## 🧹 Phase 6: 레거시 코드 정리 (완료)
+
+> 📅 완료일: 2026-01-29  
+> 📌 목적: 미사용 레거시 코드 완전 제거
+
+### 삭제 완료 내역 (총 33개 파일)
+
+#### 컴포넌트 (16개)
+
+| 파일 | 이유 |
+|------|------|
+| `WikiApp.tsx` | AppLayout으로 대체, 아무도 import 안함 |
+| `WikiSidebar.tsx` | MainSidebar + SidebarFileTree로 대체 |
+| `WikiModals.tsx` | sonner toast로 대체 |
+| `AIChat.tsx` | AISearchPage로 대체 |
+| `GeminiChat.tsx` | 레거시 전용 |
+| `SearchPanel.tsx` | 미사용 |
+| `TextSearch.tsx` | 미사용 |
+| `TreeComponent.tsx` | SidebarFileTree로 대체 |
+| `CreateFileModal.tsx` | 레거시 전용, 재구현 예정 |
+| `FileUpload.tsx` | 레거시 전용 |
+| `MessageModal.tsx` | sonner로 대체 |
+| `ThemeToggle.tsx` | 미사용 |
+| `ImageModal.tsx` | 미사용 |
+| `LinkModal.tsx` | 미사용 |
+| `MarkdownToolbar.tsx` | 미사용 |
+| `wiki/` (폴더) | ContextMenu.tsx 포함, 미사용 |
+
+#### Hooks (8개)
+
+| 파일 | 이유 |
+|------|------|
+| `useContextMenu.ts` | 미사용 |
+| `useNotification.ts` | 미사용 |
+| `useTreeData.ts` | 미사용 |
+| `useAutoScroll.ts` | 미사용 |
+| `useFileOperations.ts` | 레거시 전용 |
+| `useFileSystem.ts` | 미사용 |
+| `useMessage.ts` | 레거시 전용 |
+| `useResize.ts` | 레거시 전용 |
+| `services/` (폴더) | 미사용 |
+
+#### Stores (5개)
+
+| 파일 | 이유 |
+|------|------|
+| `gemini.store.ts` | 레거시 전용 |
+| `theme.store.ts` | 레거시 전용 |
+| `wiki-items.store.ts` | 레거시 전용 |
+| `wiki-ui.store.ts` | 레거시 전용 |
+| `user.store.ts` | 미사용 (export만 됨) |
+
+#### Utils (2개)
+
+| 파일 | 이유 |
+|------|------|
+| `markdownUtils.ts` | 미사용 |
+| `performanceUtils.ts` | 미사용 |
+
+#### Types (2개)
+
+| 파일 | 이유 |
+|------|------|
+| `hooks.ts` | 미사용 |
+| `wiki.ts` | 레거시 전용 |
+
+### Index 파일 정리
+
+| 파일 | 변경 |
+|------|------|
+| `hooks/index.ts` | useEditor만 남김 |
+| `stores/index.ts` | layout, tab, tree, wiki-editor만 남김 |
+
+### 검증
+
+- ✅ `npm run build` 성공
+- ✅ 모든 라우트 정상 빌드
 
 ---
 
