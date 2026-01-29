@@ -162,13 +162,19 @@ src/components/
 
 ### 완료 내용
 
-**루트 페이지 리디렉트:**
-- [x] `/` → `/wiki` 자동 리디렉트
-- [x] 미사용 Welcome 랜딩 페이지 제거
+**루트 진입점 변경:**
+- [x] `/` 루트가 메인 진입점 (HOME_TAB path: `/`)
+- [x] 문서 탭 경로: `/doc/{filePath}`
+- [x] `/wiki` 라우트 제거
 
-**라우트 파일 간소화:**
-- [x] `(main)/wiki/page.tsx` - AppLayout/ContentArea가 렌더링하므로 `null` 반환
-- [x] Next.js App Router 라우팅 용 최소 파일 유지
+**라우트 구조:**
+```
+src/app/
+├── layout.tsx         # Root (Toaster)
+└── (main)/
+    ├── layout.tsx     # AppLayout
+    └── page.tsx       # 루트 페이지 (/)
+```
 
 ---
 
@@ -270,6 +276,7 @@ cd apps/web/dms && npm run dev
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-01-29 | **루트 진입점 변경** - `/wiki` → `/`, 문서 경로 `/doc/` |
 | 2026-01-29 | **Phase 5 완료** - 라우트 정리 (/ → /wiki 리디렉트) |
 | 2026-01-29 | **패턴 통일** - Store 파일명 (`*.store.ts`), types/tab.ts 분리 |
 | 2026-01-29 | **Phase 4 완료** - API 레이어 정리 |
