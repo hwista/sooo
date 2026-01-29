@@ -1,0 +1,273 @@
+# DMS 통합 리팩터링 완료 기록
+
+> 📅 작성일: 2026-01-29  
+> 📌 목적: Phase 0~2 완료 내역 아카이브  
+> 📂 현재 진행 문서: `package-integration-plan.md`
+
+---
+
+## 📊 완료된 Phase 요약
+
+| Phase | 작업 | 완료일 | 주요 성과 |
+|-------|------|--------|----------|
+| **0** | 기반 구조 정렬 | 2026-01-27 | src/ + server/ 분리, 95개 파일 이동 |
+| **1** | 상태관리 + P1 패키지 | 2026-01-27 | zustand 7개 store, sonner toast |
+| **2-A~D** | Context → Store 전환 | 2026-01-28 | contexts/ 폴더 완전 삭제 |
+| **2-E** | 미사용 컴포넌트 정리 | 2026-01-28 | 11개 컴포넌트 삭제 |
+| **2-F** | Fluent UI 제거 | 2026-01-28 | Radix UI 6개 추가 |
+| **2-G~L** | 레이아웃 + 스타일 통합 | 2026-01-28 | PMS 디자인 시스템 100% |
+
+---
+
+## 📦 패키지 비교표 (완료 시점 스냅샷)
+
+> 📅 최종 업데이트: 2026-01-28
+
+### Dependencies (런타임)
+
+| 패키지 | PMS | DMS | 상태 |
+|--------|-----|-----|------|
+| **[Core Framework]** ||||
+| next | ^15.1.0 | ^15.1.0 | ✅ 동일 |
+| react | ^19.2.4 | 19.2.0 | ✅ 동일 |
+| react-dom | ^19.2.4 | 19.2.0 | ✅ 동일 |
+| **[State & Forms]** ||||
+| zustand | ^5.0.0 | ^5.0.10 | ✅ 동일 |
+| react-hook-form | ^7.54.0 | ^7.71.1 | ✅ 동일 |
+| @hookform/resolvers | ^3.9.0 | ^3.10.0 | ✅ 동일 |
+| zod | ^3.24.0 | ^3.25.76 | ✅ 동일 |
+| **[Data Fetching]** ||||
+| @tanstack/react-query | ^5.62.0 | ❌ | 🔴 DMS 없음 |
+| @tanstack/react-table | ^8.21.3 | ❌ | 🔴 DMS 없음 |
+| axios | ^1.7.0 | ❌ | 🔴 DMS 없음 |
+| **[UI - Radix Primitives]** ||||
+| @radix-ui/react-dialog | ^1.1.15 | ✅ | ✅ 추가됨 |
+| @radix-ui/react-dropdown-menu | ^2.1.16 | ✅ | ✅ 추가됨 |
+| @radix-ui/react-scroll-area | - | ✅ | ✅ 추가됨 |
+| @radix-ui/react-separator | ^1.1.8 | ✅ | ✅ 추가됨 |
+| @radix-ui/react-slot | ^1.2.4 | ✅ | ✅ 추가됨 |
+| @radix-ui/react-tooltip | ^1.2.8 | ✅ | ✅ 추가됨 |
+| **[Styling]** ||||
+| class-variance-authority | ^0.7.1 | ^0.7.1 | ✅ 동일 |
+| clsx | ^2.1.0 | ^2.1.1 | ✅ 동일 |
+| tailwind-merge | ^2.6.0 | ^2.6.0 | ✅ 동일 |
+| lucide-react | ^0.548.0 | ^0.548.0 | ✅ 동일 |
+| **[Toast]** ||||
+| sonner | ^1.7.0 | ^1.7.4 | ✅ 동일 |
+| **[DMS 전용 - Editor]** ||||
+| @tiptap/* (15개) | ❌ | ✅ | 🟢 DMS 전용 |
+| lowlight | ❌ | ^3.3.0 | 🟢 DMS 전용 |
+| marked | ❌ | ^17.0.1 | 🟢 DMS 전용 |
+| react-markdown | ❌ | ^10.1.0 | 🟢 DMS 전용 |
+| **[DMS 전용 - AI/DB]** ||||
+| @google/generative-ai | ❌ | ^0.24.1 | 🟢 DMS 전용 |
+| @lancedb/lancedb | ❌ | ^0.23.0 | 🟢 DMS 전용 |
+
+### 제거된 패키지
+
+| 패키지 | 제거일 | 이유 |
+|--------|--------|------|
+| @fluentui/react | 2026-01-28 | Radix UI로 대체 |
+| @fluentui/react-components | 2026-01-28 | Radix UI로 대체 |
+| @fluentui/react-icons | 2026-01-28 | lucide-react로 대체 |
+| @mui/material | 2026-01-28 | 미사용 |
+| @mui/lab | 2026-01-28 | 미사용 |
+| @emotion/react | 2026-01-28 | MUI 제거로 불필요 |
+| @emotion/styled | 2026-01-28 | MUI 제거로 불필요 |
+| tailwind-variants | 2026-01-28 | 미사용 (CVA로 충분) |
+| chokidar | 2026-01-28 | 미사용 |
+| formidable | 2026-01-28 | 미사용 |
+| multer | 2026-01-28 | 미사용 |
+
+---
+
+## 🏗️ Phase 0: 기반 구조 정렬 (완료)
+
+### Step 0: 준비 작업
+- ✅ 불필요한 페이지 삭제 (`goals-md/`, `goals.md/`, `wiki-test/`)
+
+### Step 1: 프론트엔드 영역 (`src/`) 구성
+- ✅ `src/` 디렉토리 생성
+- ✅ 95개 파일 이동:
+  - `components/` → `src/components/`
+  - `hooks/` → `src/hooks/`
+  - `lib/` → `src/lib/`
+  - `types/` → `src/types/`
+  - `utils/` → `src/lib/utils/` (통합)
+  - `contexts/` → `src/contexts/` (Phase 1에서 stores로 변환)
+- ✅ `tsconfig.json` paths 업데이트 (`@/*` → `./src/*`)
+
+### Step 2: 백엔드 영역 (`server/`) 구성
+- ✅ `server/` 디렉토리 생성
+- ✅ 서비스 분리:
+  - `server/services/FileSystemService.ts`
+  - `server/services/SearchService.ts`
+  - `server/handlers/` (19개 핸들러 추출)
+- ✅ `app/api/` 얇은 레이어로 변환
+
+### Step 3: 라우팅 구조
+- ✅ `src/app/(main)/` route group 생성
+- ✅ `src/app/(main)/wiki/page.tsx` 연결
+
+### 최종 구조
+```
+apps/web/dms/
+├── src/                        # 프론트엔드
+│   ├── app/
+│   │   └── (main)/wiki/
+│   ├── components/
+│   ├── hooks/
+│   ├── lib/
+│   ├── stores/
+│   └── types/
+├── server/                     # 백엔드
+│   ├── handlers/              # 19개
+│   └── services/              # FileSystem, Search
+└── docs/wiki/                  # 데이터
+```
+
+---
+
+## 🔄 Phase 1: 상태관리 + P1 패키지 (완료)
+
+### 설치된 패키지
+- ✅ `zod` ^3.25.76
+- ✅ `react-hook-form` ^7.71.1
+- ✅ `@hookform/resolvers` ^3.10.0
+- ✅ `zustand` ^5.0.10
+- ✅ `sonner` ^1.7.4
+
+### 생성된 Stores (7개)
+| Store | 파일 | 역할 |
+|-------|------|------|
+| gemini-store | `stores/gemini-store.ts` | AI 채팅 상태 |
+| layout-store | `stores/layout-store.ts` | 레이아웃 상태 |
+| tab-store | `stores/tab-store.ts` | 탭 + 북마크 |
+| theme-store | `stores/theme-store.ts` | 테마 |
+| tree-store | `stores/tree-store.ts` | 파일 트리 |
+| user-store | `stores/user-store.ts` | 사용자 |
+| wiki-editor-store | `stores/wiki-editor-store.ts` | 에디터 상태 |
+
+---
+
+## 🧹 Phase 2-A~D: Context → Store 전환 (완료)
+
+### 삭제된 Context (5개)
+- ❌ `GeminiChatContext` → `gemini-store`
+- ❌ `NotificationContext` → sonner toast
+- ❌ `TreeDataContext` → `tree-store`
+- ❌ `ThemeContext` → `theme-store`
+- ❌ `UserContext` → `user-store`
+- ❌ `WikiContext` → 3개 store로 분할
+
+### 결과
+- ✅ `contexts/` 폴더 완전 삭제
+- ✅ PMS 구조와 동일화 달성
+
+---
+
+## 🗑️ Phase 2-E: 미사용 컴포넌트 정리 (완료)
+
+### 삭제된 컴포넌트 (11개)
+| 컴포넌트 | 경로 | 이유 |
+|----------|------|------|
+| WikiAside | `wiki/WikiAside.tsx` | WikiSidebar로 대체 |
+| WikiAsideToggle | `wiki/WikiAsideToggle.tsx` | 미사용 |
+| WikiFooter | `wiki/WikiFooter.tsx` | 미사용 |
+| WikiHeader | `wiki/WikiHeader.tsx` | Header.tsx로 대체 |
+| WikiLayout | `wiki/WikiLayout.tsx` | AppLayout으로 대체 |
+| WikiThemeToggle | `wiki/WikiThemeToggle.tsx` | ThemeToggle로 통합 |
+| ... | ... | ... |
+
+---
+
+## 🎨 Phase 2-F: Fluent UI 제거 (완료)
+
+### 제거된 패키지
+- ❌ `@fluentui/react`
+- ❌ `@fluentui/react-components`
+- ❌ `@fluentui/react-icons`
+
+### 추가된 패키지 (Radix UI)
+- ✅ `@radix-ui/react-dialog`
+- ✅ `@radix-ui/react-dropdown-menu`
+- ✅ `@radix-ui/react-scroll-area`
+- ✅ `@radix-ui/react-separator`
+- ✅ `@radix-ui/react-slot`
+- ✅ `@radix-ui/react-tooltip`
+
+### 아이콘 전환
+- Fluent Icons → lucide-react (20+ 컴포넌트)
+
+---
+
+## 🎨 Phase 2-G~L: 레이아웃 + 스타일 통합 (완료)
+
+### Phase 2-G: PMS 표준 레이아웃 적용
+- ✅ AppLayout 3단 구조 (Sidebar + Main + Resizer)
+- ✅ Header, TabBar, ContentArea 배치
+
+### Phase 2-H: 사이드바 스타일링
+- ✅ SidebarFileTree PMS 패턴 적용
+- ✅ SidebarResizer 통합
+
+### Phase 2-I: Header 통합
+- ✅ 검색바 스타일 통일
+- ✅ 사용자 메뉴 드롭다운
+
+### Phase 2-J: TabBar 통합
+- ✅ 탭 스타일 PMS와 통일
+- ✅ Home 탭 고정 (closable: false)
+
+### Phase 2-K: UI 컴포넌트 검토
+- ✅ Button, Input, Modal shadcn/ui 기반 확인
+
+### Phase 2-L: Store 비교 및 정리
+- ✅ tab-store: BookmarkItem 추가
+- ✅ layout-store: sidebarWidth 리사이즈 로직
+
+### 색상 토큰 통일
+- ✅ `text-muted-foreground` → `text-gray-400` 표준화
+- ✅ DMS globals.css PMS와 완전 동기화
+
+---
+
+## 📋 변경 이력 (전체)
+
+| 날짜 | 내용 |
+|------|------|
+| 2026-01-27 | **Phase 0 시작** - 불필요 페이지 삭제 |
+| 2026-01-27 | **Phase 0 Step 1** - src/ 프론트엔드 구조, 95개 파일 이동 |
+| 2026-01-27 | **Phase 0 Step 2** - server/ 백엔드 구조, services 이동 |
+| 2026-01-27 | **Phase 0 Step 3** - (main) route group 생성 |
+| 2026-01-27 | **Phase 0 완료** - 19개 핸들러 추출, route.ts 얇은 레이어화 |
+| 2026-01-27 | **Phase 1 시작** - P1 패키지 설치 |
+| 2026-01-27 | **Phase 1 완료** - zustand stores 생성, sonner toast 적용 |
+| 2026-01-28 | **패키지 정리** - tailwind-variants 제거, 버전 통일 |
+| 2026-01-28 | **독립 실행 검증** - DMS npm 독립 설치 성공 |
+| 2026-01-28 | **Phase 2-A 완료** - 5개 Context → Store 전환 |
+| 2026-01-28 | **Phase 2-C 완료** - WikiContext 분할 |
+| 2026-01-28 | **Phase 2-D 완료** - contexts/ 폴더 삭제 |
+| 2026-01-28 | **Phase 2-E 완료** - 11개 미사용 컴포넌트 삭제 |
+| 2026-01-28 | **Phase 2-F 완료** - Fluent UI 제거, Radix UI 전환 |
+| 2026-01-28 | **Phase 2-G~L 완료** - PMS 디자인 시스템 100% 적용 |
+
+---
+
+## 📊 통합 현황 (Phase 2 완료 시점)
+
+| 구분 | 상태 |
+|------|------|
+| **프로젝트 구조** | ✅ PMS 기준 `src/` + `server/` 통일 |
+| **코어 프레임워크** | ✅ Next.js 15.x, React 19.x |
+| **CSS 유틸리티** | ✅ Tailwind, tailwind-merge (PMS 동일) |
+| **상태 관리** | ✅ zustand 7개 store |
+| **UI 라이브러리** | ✅ Radix UI + shadcn/ui 패턴 |
+| **레이아웃** | ✅ PMS AppLayout 구조 |
+| **스타일** | ✅ PMS 디자인 시스템 100% |
+| **DMS 도메인** | ✅ Tiptap, 마크다운, AI 유지 |
+
+---
+
+> 📌 **이 문서는 아카이브 목적입니다.**  
+> 진행 중인 작업은 `package-integration-plan.md`를 참조하세요.
