@@ -2,88 +2,65 @@
 
 > DMS(Document Management System) 작업 계획 및 진행 상황
 
-**마지막 업데이트**: 2026-01-28
+**마지막 업데이트**: 2026-01-29
 
 ---
 
-## 🎯 현재 작업: Phase 2 - DMS 리팩토링
+## 🎯 현재 작업: Phase 7 - 문서 시스템 템플릿 재설계
 
 **브랜치**: `dms/refactor/integration`  
-**목표**: PMS 기준 프로젝트 구조 통일 및 SSOO 디자인 시스템 적용
+**목표**: 문서 뷰어/에디터 템플릿 완성 및 기능 구현
 
 ---
 
 ## ✅ 완료된 작업
 
-### Phase 2-F: Fluent UI 제거
-- [x] @fluentui/react-components 의존성 제거
-- [x] 자체 UI 컴포넌트로 전환
-- [x] shadcn/ui 스타일 패턴 적용
+### Phase 7: 문서 시스템 템플릿 재설계
+- [x] DocPageTemplate 슬롯 기반 구조 (뷰어/에디터 공용)
+- [x] DocViewer 뷰어 툴바 구현
+  - [x] 목차: 마우스 오버 플로팅 패널 + 레벨별 스타일 구분
+  - [x] 검색: 하이라이트 + 결과 탐색 + 0/0 표시
+  - [x] 줌: 확대/축소 + 리셋
+- [x] markdownConverter.ts 커스텀 renderer (헤딩 id 부여)
+- [x] PMS 네이밍 패턴 통일
+  - [x] `common/doc/` → `common/page/`
+- [x] 가비지 코드 정리
+  - [x] `DocViewerTemplate.tsx` 삭제 (미사용)
+  - [x] `pages/wiki/editor/` 빈 폴더 삭제
+  - [x] 템플릿 미사용 props 제거
 
-### Phase 2-G: Layout 컴포넌트 신규 생성
-- [x] AppLayout 컴포넌트 (PMS 표준)
-- [x] Header 컴포넌트
-- [x] TabBar 컴포넌트
-- [x] MainSidebar 컴포넌트
-- [x] ContentArea 컴포넌트
-- [x] Sidebar 하위 컴포넌트 구조
+### Phase 4: API 레이어 정리 완료
+- [x] apiClient.ts 확장 (userApi, searchApi, uploadApi, aiApi)
+- [x] 직접 fetch 호출 제거 → API 클라이언트 사용
+- [x] package-unification-analysis.md 작성
 
-### Phase 2-H: 사이드바 PMS 스타일 통일
-- [x] SidebarSearch PMS 스타일 적용
-- [x] SidebarOpenTabs PMS 스타일 적용
-- [x] SidebarFileTree 재작성 (TreeComponent 제거)
-- [x] SidebarSection 래퍼 컴포넌트 생성
-- [x] SidebarBookmarks 컴포넌트 생성 (PMS 즐겨찾기 대응)
-- [x] MainSidebar 구조 변경 (로고, 섹션, 카피라이트)
-- [x] tab-store 북마크 기능 추가
-- [x] layout-store 폴더 확장 상태 추가
-- [x] ScrollArea 컴포넌트 추가
-
-### Phase 2-I: Header/TabBar 스타일 통일
-- [x] PMS Header: `h-[60px]` → `h-header-h`
-- [x] DMS Header: 알림 뱃지 `bg-red-500` → `bg-ls-red`
-- [x] DMS TabBar: 높이, 배경색, 보더색, 텍스트색 PMS 기준 통일
-- [x] 하드코딩 gray 색상 → CSS 변수화 (muted-foreground, foreground)
-
-### Phase 2-J: ContentArea, AppLayout 통일
-- [x] ContentArea: `hover:border-[#003366]` → `hover:border-ssoo-primary`
-- [x] AppLayout: `text-2xl font-bold` → `heading-1`
-
-### Phase 2-K: UI 컴포넌트 통일
-- [x] Dialog: PMS와 동일 확인 (변경 불필요)
-- [x] Button: SSOO 디자인 시스템 토큰 적용
-- [x] Input: `h-9` → `h-control-h`
-
-### Phase 2-L: Store 구조 비교 (분석)
-- [x] tab-store: 도메인 차이로 구조 유지
-- [x] layout-store: 위키 특화 상태로 유지
-- [x] tree-store: DMS 전용 유지
-- [x] wiki-*.ts: DMS 도메인 전용 유지
-
----
-
-## ✅ Phase 2 완료!
-
-### Phase 2 추가: 색상 토큰 통일
-- [x] SidebarSearch: `text-muted-foreground` → `text-gray-400`
-- [x] SidebarOpenTabs: semantic 토큰 → `gray-xxx`
-- [x] SidebarBookmarks: semantic 토큰 → `gray-xxx`
-- [x] SidebarFileTree: semantic 토큰 → `gray-xxx`
-- [x] MainSidebar 카피라이트: semantic 토큰 → `gray-xxx`
+### Phase 2: DMS 리팩토링 완료
+- [x] Fluent UI 제거 → shadcn/ui 전환
+- [x] Layout 컴포넌트 PMS 표준화
+- [x] 사이드바/헤더/탭바 스타일 통일
+- [x] UI 컴포넌트 SSOO 디자인 시스템 적용
+- [x] Store 파일명 컨벤션 통일 (`*.store.ts`)
+- [x] 색상 토큰 PMS 표준 통일
 
 ---
 
 ## 📋 예정된 작업
 
-### Phase 3: 기능 구현
-- [ ] 파일 목록 API 연동 (tree-store → server)
-- [ ] 마크다운 뷰어/에디터 정리
-- [ ] 검색 기능 구현
-- [ ] 책갈피 API 연동
+### Phase 8: 에디터 기능 구현
+- [ ] DocEditor 컴포넌트 완성
+- [ ] 마크다운 에디터 툴바
+- [ ] 실시간 미리보기 (좌우 분할)
+- [ ] 저장/취소 기능
 
-### Phase 4: 레거시 정리
-- [ ] WikiSidebar.tsx 삭제 (하드코딩 hex 다수)
-- [ ] WikiEditor.tsx 정리 (인라인 스타일)
+### Phase 9: API 연동 및 기능 완성
+- [ ] 파일 목록 API 연동 (tree-store → server)
+- [ ] 검색 기능 API 연동
+- [ ] 책갈피 API 연동
+- [ ] 히스토리 기능
+
+### Phase 10: 레거시 정리
+- [ ] WikiEditor.tsx → editor/ 이동 (현재 루트에 위치)
+- [ ] WikiEditor.tsx 인라인 스타일 정리
 - [ ] MarkdownToolbar.tsx 정리
 - [ ] SlashCommand.tsx 정리
 
