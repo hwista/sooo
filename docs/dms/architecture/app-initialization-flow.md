@@ -264,67 +264,63 @@ src/components/
 
 ### Phase 3-A: 페이지 컴포넌트 생성
 
-- [ ] `components/pages/wiki/WikiHomePage.tsx`
+- [x] `components/pages/wiki/WikiHomePage.tsx` ✅ 완료
   - ContentArea의 Home 탭 JSX 이동
   - 빠른 액션, 최근 문서 등
 
-- [ ] `components/pages/wiki/WikiViewerPage.tsx`
+- [x] `components/pages/wiki/WikiViewerPage.tsx` ✅ 완료
   - URL에서 path 파라미터 추출
   - useEffect로 `loadFile(path)` 호출
   - TreeStore의 `fileContent` 사용
   - 에디터/뷰어 컴포넌트 통합
 
-- [ ] `components/pages/ai/AISearchPage.tsx`
+- [x] `components/pages/ai/AISearchPage.tsx` ✅ 완료
   - ContentArea의 AI 검색 JSX 이동
   - 검색 쿼리 처리 로직
 
-### Phase 3-B: ContentArea 리팩토링
+### Phase 3-B: ContentArea 리팩토링 ✅ 완료
 
 ```typescript
-// 변경 전
-if (activeTab.id === HOME_TAB.id) {
-  return <main>...</main>;  // 인라인 JSX
-}
-if (activeTab.path.startsWith('/ai-search')) {
-  return <main>...</main>;  // 인라인 JSX
-}
-return <main>{children}</main>;
-
-// 변경 후
+// 변경 완료: pageComponents 패턴 + React.lazy + Suspense
 const pageComponents = {
-  '/wiki': lazy(() => import('@/components/pages/wiki/WikiHomePage')),
-  '/ai-search': lazy(() => import('@/components/pages/ai/AISearchPage')),
+  home: lazy(() => import('@/components/pages/wiki/WikiHomePage')),
+  'ai-search': lazy(() => import('@/components/pages/ai/AISearchPage')),
+  wiki: lazy(() => import('@/components/pages/wiki/WikiViewerPage')),
 };
 
-// /wiki/:path 패턴 매칭
-const PageComponent = getPageComponent(activeTab.path);
+function getPageType(activeTab: Tab | undefined) {
+  if (!activeTab) return null;
+  if (activeTab.id === HOME_TAB.id) return 'home';
+  if (activeTab.path.startsWith('/ai-search')) return 'ai-search';
+  if (activeTab.path.startsWith('/wiki')) return 'wiki';
+  return null;
+}
+
+const PageComponent = pageComponents[pageType];
 return (
-  <Suspense fallback={<Loading />}>
+  <Suspense fallback={<LoadingFallback />}>
     <PageComponent />
   </Suspense>
 );
 ```
 
-### Phase 3-C: SidebarFileTree 간소화
+### Phase 3-C: SidebarFileTree 간소화 ✅ 완료
 
 ```typescript
-// 변경 전
+// 변경 완료: PMS 패턴 - 탭만 열고 WikiViewerPage가 자동 로드
 const handleClick = () => {
   if (isFolder) {
     toggleFolder(node.path);
   } else {
-    selectFile(node.path);     // ← 제거 또는 WikiViewerPage로 이동
-    openTab({ ... });
-  }
-};
-
-// 변경 후
-const handleClick = () => {
-  if (isFolder) {
-    toggleFolder(node.path);
-  } else {
-    openTab({ ... });          // 탭만 열기
-    // WikiViewerPage가 마운트되며 자동으로 loadFile() 호출
+    // PMS 패턴: 사이드바는 탭만 열고, 페이지 컴포넌트(WikiViewerPage)가 loadFile() 호출
+    openTab({
+      id: `file-${node.path.replace(/\//g, '-')}`,
+      title: node.name,
+      path: `/wiki/${encodeURIComponent(node.path)}`,
+      icon: 'FileText',
+      closable: true,
+      activate: true,
+    });
   }
 };
 ```
@@ -344,3 +340,4 @@ const handleClick = () => {
 | 날짜 | 내용 |
 |------|------|
 | 2026-01-29 | 초안 작성 - 현재 흐름 + PMS 비교 + 개선 계획 |
+| 2026-01-29 | Phase 3 완료 - pageComponents 패턴, WikiViewerPage, SidebarFileTree 단순화 |
