@@ -2,11 +2,34 @@
 
 > DMS(Document Management System) 개발 변경 이력
 
-**마지막 업데이트**: 2026-01-28
+**마지막 업데이트**: 2026-01-29
 
 ---
 
 ## 📅 2026-01
+
+### 2026-01-29
+
+#### 패턴 통일: Store 파일명 및 타입 분리
+| 커밋 | 변경 내용 |
+|------|----------|
+| `c1316bc` | **Store 파일명 컨벤션 PMS 표준화** |
+| | - `*-store.ts` → `*.store.ts` (9개 파일 rename) |
+| | - stores/index.ts 중앙 export 업데이트 |
+| | - 모든 컴포넌트 `@/stores` barrel export 사용 |
+| | **types/tab.ts 도메인별 분리** |
+| | - TabItem, OpenTabOptions 타입을 layout.ts에서 분리 |
+| | - types/index.ts export 추가 |
+| | - tab.store.ts import 경로 수정 |
+
+#### Phase 4: API 레이어 정리 완료
+| 커밋 | 변경 내용 |
+|------|----------|
+| `05219e4` | **apiClient.ts 확장** |
+| | - userApi, searchApi, uploadApi, aiApi 추가 |
+| | - 모든 직접 fetch 호출 제거 → API 클라이언트 사용 |
+| `3b88a4f` | package-unification-analysis.md 장기 통합 분석 문서 추가 |
+| `262da36` | BlockEditor Tiptap SSR 하이드레이션 오류 수정 (`immediatelyRender: false`) |
 
 ### 2026-01-28
 

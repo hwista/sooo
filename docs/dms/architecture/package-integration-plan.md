@@ -265,6 +265,8 @@ cd apps/web/dms && npm run dev
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-01-29 | **패턴 통일** - Store 파일명 (`*.store.ts`), types/tab.ts 분리 |
+| 2026-01-29 | **Phase 4 완료** - API 레이어 정리 |
 | 2026-01-29 | 문서 분리 - 완료 내역 → `package-integration-completed.md` |
 | 2026-01-29 | **Phase 3 완료** - pageComponents 패턴, WikiViewerPage, SidebarFileTree 단순화 |
 | 2026-01-29 | **Phase 3 시작** - PMS 패턴 동기화 |
