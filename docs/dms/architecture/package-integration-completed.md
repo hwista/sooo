@@ -16,6 +16,7 @@
 | **2-E** | 미사용 컴포넌트 정리 | 2026-01-28 | 11개 컴포넌트 삭제 |
 | **2-F** | Fluent UI 제거 | 2026-01-28 | Radix UI 6개 추가 |
 | **2-G~L** | 레이아웃 + 스타일 통합 | 2026-01-28 | PMS 디자인 시스템 100% |
+| **3** | PMS 패턴 동기화 | 2026-01-29 | pageComponents + WikiViewerPage loadFile |
 
 ---
 
@@ -251,6 +252,7 @@ apps/web/dms/
 | 2026-01-28 | **Phase 2-E 완료** - 11개 미사용 컴포넌트 삭제 |
 | 2026-01-28 | **Phase 2-F 완료** - Fluent UI 제거, Radix UI 전환 |
 | 2026-01-28 | **Phase 2-G~L 완료** - PMS 디자인 시스템 100% 적용 |
+| 2026-01-29 | **Phase 3 완료** - pageComponents 패턴, WikiViewerPage, currentFilePath |
 
 ---
 
@@ -266,6 +268,62 @@ apps/web/dms/
 | **레이아웃** | ✅ PMS AppLayout 구조 |
 | **스타일** | ✅ PMS 디자인 시스템 100% |
 | **DMS 도메인** | ✅ Tiptap, 마크다운, AI 유지 |
+
+---
+
+## 📦 Phase 3: PMS 패턴 동기화 (완료)
+
+> **완료일**: 2026-01-29  
+> **목적**: DMS를 PMS의 `pageComponents` 패턴과 동기화
+
+### 생성된 페이지 컴포넌트 (3개)
+
+| 컴포넌트 | 경로 | 역할 |
+|----------|------|------|
+| WikiHomePage | `components/pages/wiki/WikiHomePage.tsx` | 홈 대시보드 |
+| WikiViewerPage | `components/pages/wiki/WikiViewerPage.tsx` | 문서 뷰어/에디터 + loadFile 자동 호출 |
+| AISearchPage | `components/pages/ai/AISearchPage.tsx` | AI 검색 |
+
+### ContentArea 리팩토링
+
+```typescript
+// 변경 전: if/else 분기
+if (activeTab.id === HOME_TAB.id) return <HomeJSX />;
+if (activeTab.path.startsWith('/ai-search')) return <AISearchJSX />;
+return <>{children}</>;
+
+// 변경 후: pageComponents 패턴 + React.lazy + Suspense
+const pageComponents = {
+  home: lazy(() => import('@/components/pages/wiki/WikiHomePage')),
+  'ai-search': lazy(() => import('@/components/pages/ai/AISearchPage')),
+  wiki: lazy(() => import('@/components/pages/wiki/WikiViewerPage')),
+};
+```
+
+### SidebarFileTree 단순화
+
+```typescript
+// 변경 전: selectFile() + openTab()
+selectFile(node.path);  // tree-store 업데이트
+openTab({ ... });
+
+// 변경 후: openTab()만 호출
+// PMS 패턴: 사이드바는 탭만 열고, WikiViewerPage가 loadFile() 호출
+openTab({ ... });
+```
+
+### wiki-editor-store 확장
+
+| 필드 | 설명 |
+|------|------|
+| `currentFilePath` | 현재 로드된 파일 경로 (하이라이트 상태용) |
+
+### 커밋 이력
+
+| 커밋 | 내용 |
+|------|------|
+| `d0f152b` | pageComponents 패턴, WikiHomePage, WikiViewerPage, AISearchPage |
+| `7037c7e` | currentFilePath 추가로 파일 로딩/하이라이트 버그 수정 |
 
 ---
 
