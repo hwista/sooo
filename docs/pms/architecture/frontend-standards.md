@@ -160,6 +160,37 @@ types/
 └── index.ts
 ```
 
+### 타입 정의 위치 컨벤션
+
+타입의 **사용 범위**에 따라 정의 위치를 결정합니다:
+
+| 위치 | 용도 | 예시 |
+|------|------|------|
+| `src/types/` | 도메인/비즈니스 타입 (여러 곳에서 공유) | MenuItem, TabItem, FileNode, SidebarSection |
+| `lib/*/types.ts` | 해당 모듈에서만 사용하는 타입 | ApiResponse, AuthState |
+| 컴포넌트 파일 내 | 해당 컴포넌트에서만 사용하는 Props | MenuTreeNodeProps, EditorToolbarProps |
+
+#### Decision Tree
+
+```
+이 타입이 여러 모듈에서 공유되는가?
+    ├─ YES → src/types/ (도메인 타입)
+    │
+    └─ NO → 특정 기능 모듈에 속하는가?
+              ├─ YES → 해당 모듈 내 types.ts (예: lib/api/types.ts)
+              │
+              └─ NO → 컴포넌트 전용 Props인가?
+                        ├─ YES → 컴포넌트 파일 내 inline 정의
+                        │
+                        └─ NO → src/types/에 추가
+```
+
+#### ❌ 지양 패턴
+
+- `types/components.ts` (중앙 집중식 Props 관리)
+  - 컴포넌트와 분리되어 동기화 어려움
+  - 컴포넌트 삭제 시 타입이 남는 문제 발생
+
 ---
 
 ## 설치된 라이브러리
