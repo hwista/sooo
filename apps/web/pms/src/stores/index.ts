@@ -13,3 +13,6 @@ export { useTabStore, HOME_TAB } from './tab.store';
 
 // Data
 export { useMenuStore } from './menu.store';
+
+// UI
+export { useConfirmStore } from './confirm.store';

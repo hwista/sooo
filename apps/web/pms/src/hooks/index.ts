@@ -10,6 +10,9 @@ export * from './queries';
 // 인증 및 권한
 export { useAuth } from './useAuth';
 
+// Tab
+export { useOpenTabWithConfirm } from './useOpenTabWithConfirm';
+
 // 추후 추가
 // export * from './useDebounce';
 // export * from './useLocalStorage';

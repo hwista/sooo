@@ -1,6 +1,7 @@
 'use client';
 
 import { useMenuStore, useTabStore } from '@/stores';
+import { useOpenTabWithConfirm } from '@/hooks';
 import { Star, X } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
 
@@ -10,7 +11,7 @@ import { getIconComponent } from '@/lib/utils/icons';
  */
 export function Favorites() {
   const { favorites, removeFavorite } = useMenuStore();
-  const { openTab } = useTabStore();
+  const openTabWithConfirm = useOpenTabWithConfirm();
 
   if (favorites.length === 0) {
     return (
@@ -20,8 +21,8 @@ export function Favorites() {
     );
   }
 
-  const handleClick = (favorite: typeof favorites[0]) => {
-    openTab({
+  const handleClick = async (favorite: typeof favorites[0]) => {
+    await openTabWithConfirm({
       menuCode: favorite.menuCode,
       menuId: favorite.menuId,
       title: favorite.menuName,

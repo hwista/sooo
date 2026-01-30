@@ -3,6 +3,8 @@
 import { ReactNode, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from 'sonner';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 // DevExtreme 라이선스 설정 (상용 라이선스 보유 시)
 // import { licenseKey } from './devextreme-license';
@@ -55,6 +57,15 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
+      {/* 전역 Confirm Dialog */}
+      <ConfirmDialog />
+      {/* 전역 Toast */}
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        duration={4000}
+      />
       {/* 개발 환경에서만 DevTools 표시 */}
       {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />

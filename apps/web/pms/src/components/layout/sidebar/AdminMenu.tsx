@@ -1,6 +1,7 @@
 'use client';
 
 import { useMenuStore, useSidebarStore, useTabStore } from '@/stores';
+import { useOpenTabWithConfirm } from '@/hooks';
 import { MenuItem } from '@/types';
 import { ChevronRight, Folder, FolderOpen, FileText, Shield } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
@@ -15,7 +16,8 @@ interface AdminMenuTreeNodeProps {
  */
 function AdminMenuTreeNode({ item, level }: AdminMenuTreeNodeProps) {
   const { expandedMenuIds, toggleMenuExpand } = useSidebarStore();
-  const { openTab, tabs, activeTabId } = useTabStore();
+  const { tabs, activeTabId } = useTabStore();
+  const openTabWithConfirm = useOpenTabWithConfirm();
   
   const isExpanded = expandedMenuIds.has(item.menuId);
   const isFolder = item.menuType === 'group';
@@ -29,11 +31,11 @@ function AdminMenuTreeNode({ item, level }: AdminMenuTreeNodeProps) {
   const IconComponent = CustomIcon 
     || (isFolder ? (isExpanded ? FolderOpen : Folder) : FileText);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (isFolder) {
       toggleMenuExpand(item.menuId);
     } else if (item.menuPath) {
-      openTab({
+      await openTabWithConfirm({
         menuCode: item.menuCode,
         menuId: item.menuId,
         title: item.menuName,

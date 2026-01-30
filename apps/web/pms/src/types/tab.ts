@@ -61,6 +61,7 @@ export interface TabStoreActions {
   closeTab: (tabId: string) => void; // 탭 닫기
   closeAllTabs: () => void; // 모든 탭 닫기 (closable=false 제외)
   closeOtherTabs: (tabId: string) => void; // 다른 탭 닫기
+  closeOldestTab: () => void; // 가장 오래된 탭 닫기 (탭 초과 시 사용)
   activateTab: (tabId: string) => void; // 탭 활성화
   updateTabTitle: (tabId: string, title: string) => void; // 탭 제목 변경
   updateTabData: (tabId: string, data: unknown) => void; // 탭 데이터 업데이트

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMenuStore, useSidebarStore, useTabStore } from '@/stores';
+import { useOpenTabWithConfirm } from '@/hooks';
 import { MenuItem } from '@/types';
 import { ChevronRight, Folder, FolderOpen, FileText, Star } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
@@ -16,7 +17,8 @@ interface MenuTreeNodeProps {
 function MenuTreeNode({ item, level }: MenuTreeNodeProps) {
   const { expandedMenuIds, toggleMenuExpand } = useSidebarStore();
   const { isFavorite, addFavorite, removeFavorite } = useMenuStore();
-  const { openTab, tabs, activeTabId } = useTabStore();
+  const { tabs, activeTabId } = useTabStore();
+  const openTabWithConfirm = useOpenTabWithConfirm();
   
   const isExpanded = expandedMenuIds.has(item.menuId);
   const isFolder = item.menuType === 'group';
@@ -30,12 +32,12 @@ function MenuTreeNode({ item, level }: MenuTreeNodeProps) {
   const IconComponent = CustomIcon 
     || (isFolder ? (isExpanded ? FolderOpen : Folder) : FileText);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (isFolder) {
       toggleMenuExpand(item.menuId);
     } else if (item.menuPath) {
       // 탭만 열기 (URL 변경 없음)
-      openTab({
+      await openTabWithConfirm({
         menuCode: item.menuCode,
         menuId: item.menuId,
         title: item.menuName,
