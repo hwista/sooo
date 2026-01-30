@@ -7,7 +7,7 @@ import { Search, X } from 'lucide-react';
  * 사이드바 메뉴 검색
  * - 입력 시 실시간 필터링
  */
-export function SidebarSearch() {
+export function Search() {
   const { searchQuery, setSearchQuery, clearSearch } = useSidebarStore();
 
   return (

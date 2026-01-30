@@ -2,7 +2,7 @@
 
 import type { SidebarSection } from '@/types';
 import { SIDEBAR_SECTION_LABELS } from '@/types';
-import { SECTION_ICONS } from './sidebar-constants';
+import { SECTION_ICONS } from './constants';
 import { useAuthStore, useMenuStore } from '@/stores';
 
 interface CollapsedSidebarProps {

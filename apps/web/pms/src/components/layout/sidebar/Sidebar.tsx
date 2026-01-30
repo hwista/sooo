@@ -16,7 +16,7 @@ import { FloatingPanel } from './FloatingPanel';
  * - 펼침: 검색 + 즐겨찾기 + 열린탭 + 메뉴트리 + 관리자
  * - 접힘: 아이콘만 + hover 시 플로트 패널
  */
-export function MainSidebar() {
+export function Sidebar() {
   const {
     isCollapsed,
     activeFloatSection,

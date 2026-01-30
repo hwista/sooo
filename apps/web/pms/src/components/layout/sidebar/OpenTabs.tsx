@@ -8,7 +8,7 @@ import { getIconComponent } from '@/lib/utils/icons';
  * 사이드바 현재 열린 탭 목록
  * - 홈 탭(/home)은 항상 고정이므로 제외
  */
-export function SidebarOpenTabs() {
+export function OpenTabs() {
   const { tabs, activeTabId, activateTab, closeTab } = useTabStore();
 
   // 홈 탭 제외 (항상 열려있는 고정 탭)

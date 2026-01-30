@@ -149,7 +149,7 @@ function filterMenuTree(items: MenuItem[], query: string): MenuItem[] {
 /**
  * 사이드바 메뉴 트리
  */
-export function SidebarMenuTree() {
+export function MenuTree() {
   const { generalMenus } = useMenuStore();
   const { searchQuery } = useSidebarStore();
   

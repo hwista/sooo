@@ -8,7 +8,7 @@ import { getIconComponent } from '@/lib/utils/icons';
  * 사이드바 즐겨찾기 목록
  * - 각 항목에 삭제 버튼 포함
  */
-export function SidebarFavorites() {
+export function Favorites() {
   const { favorites, removeFavorite } = useMenuStore();
   const { openTab } = useTabStore();
 

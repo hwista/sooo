@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ListPageTemplateV2 } from '@/components/templates';
+import { ListPageTemplate } from '@/components/templates';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTabStore } from '@/stores';
 import { ColumnDef } from '@tanstack/react-table';
-import type { FilterValues } from '@/components/common/page/PageHeader';
+import type { FilterValues } from '@/components/common/page/Header';
 
 interface ExecutionItem {
   id: string;
@@ -113,7 +113,7 @@ export default function ExecutionListPage() {
   }, [openTab]);
 
   return (
-    <ListPageTemplateV2
+    <ListPageTemplate
       breadcrumb={['실행', '프로젝트 목록']}
       header={{
         collapsible: true,

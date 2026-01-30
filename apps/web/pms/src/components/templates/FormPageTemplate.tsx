@@ -2,10 +2,22 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { PageHeader, PageHeaderProps } from '../common/PageHeader';
+import { Breadcrumb } from '../common/page/Breadcrumb';
 import { FormSection, FormActions, FormActionsProps } from '../common/FormComponents';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingState, ErrorState } from '../common/StateDisplay';
+
+/**
+ * 폼 헤더 설정 (Breadcrumb용)
+ */
+export interface FormHeaderConfig {
+  /** 페이지 제목 */
+  title: string;
+  /** 페이지 설명 (선택) */
+  description?: string;
+  /** 브레드크럼 경로 */
+  breadcrumb?: (string | { label: string; href?: string })[];
+}
 
 /**
  * 폼 섹션 정의
@@ -25,8 +37,8 @@ export interface FormSectionConfig {
  * FormPageTemplate Props
  */
 export interface FormPageTemplateProps extends Omit<FormActionsProps, 'className'> {
-  /** PageHeader 설정 */
-  header: PageHeaderProps;
+  /** 헤더 설정 (title, description, breadcrumb) */
+  header: FormHeaderConfig;
   /** 폼 섹션들 */
   sections: FormSectionConfig[];
   /** 로딩 상태 */
@@ -47,13 +59,14 @@ export interface FormPageTemplateProps extends Omit<FormActionsProps, 'className
  * FormPageTemplate 컴포넌트
  * 
  * 폼 페이지의 표준 레이아웃을 제공합니다.
- * PageHeader + FormSections + FormActions 구조
+ * Breadcrumb + Title + FormSections + FormActions 구조
  * 
  * @example
  * ```tsx
  * <FormPageTemplate
  *   header={{
  *     title: '고객요청 등록',
+ *     description: '새로운 요청을 등록합니다',
  *     breadcrumb: ['요청', '고객요청 관리', '등록'],
  *   }}
  *   sections={[
@@ -95,11 +108,26 @@ export function FormPageTemplate({
   showDelete,
   loading: actionLoading,
 }: FormPageTemplateProps) {
+  // 헤더 렌더링 (Breadcrumb + Title)
+  const renderHeader = () => (
+    <div className="space-y-1">
+      {header.breadcrumb && header.breadcrumb.length > 0 && (
+        <Breadcrumb items={header.breadcrumb} />
+      )}
+      <div>
+        <h1 className="heading-1">{header.title}</h1>
+        {header.description && (
+          <p className="text-sm text-muted-foreground mt-1">{header.description}</p>
+        )}
+      </div>
+    </div>
+  );
+
   // 에러 상태
   if (error) {
     return (
       <div className={cn('p-6 space-y-6', className)}>
-        <PageHeader {...header} />
+        {renderHeader()}
         <ErrorState error={error} onRetry={onRetry} />
       </div>
     );
@@ -109,7 +137,7 @@ export function FormPageTemplate({
   if (loading) {
     return (
       <div className={cn('p-6 space-y-6', className)}>
-        <PageHeader {...header} />
+        {renderHeader()}
         <LoadingState message="데이터를 불러오는 중..." fullHeight />
       </div>
     );
@@ -118,7 +146,7 @@ export function FormPageTemplate({
   return (
     <div className={cn('p-6 space-y-6', className)}>
       {/* 페이지 헤더 */}
-      <PageHeader {...header} />
+      {renderHeader()}
 
       {/* 폼 영역 */}
       <form onSubmit={onFormSubmit}>

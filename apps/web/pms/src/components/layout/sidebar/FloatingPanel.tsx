@@ -2,14 +2,12 @@
 
 import type { SidebarSection as SidebarSectionType } from '@/types';
 import { SIDEBAR_SECTION_LABELS } from '@/types';
-import {
-  SidebarSearch,
-  SidebarFavorites,
-  SidebarOpenTabs,
-  SidebarMenuTree,
-  SidebarAdminMenu,
-} from '../sidebar';
-import { SECTION_ICONS } from './sidebar-constants';
+import { Search } from './Search';
+import { Favorites } from './Favorites';
+import { OpenTabs } from './OpenTabs';
+import { MenuTree } from './MenuTree';
+import { Admin as AdminMenu } from './Admin';
+import { SECTION_ICONS } from './constants';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface FloatingPanelProps {
@@ -48,11 +46,11 @@ export function FloatingPanel({
         variant="sidebar" 
         className="max-h-[calc(100vh-140px)] p-2"
       >
-        {activeSection === 'search' && <SidebarSearch />}
-        {activeSection === 'favorites' && <SidebarFavorites />}
-        {activeSection === 'openTabs' && <SidebarOpenTabs />}
-        {activeSection === 'menuTree' && <SidebarMenuTree />}
-        {activeSection === 'admin' && <SidebarAdminMenu />}
+        {activeSection === 'search' && <Search />}
+        {activeSection === 'favorites' && <Favorites />}
+        {activeSection === 'openTabs' && <OpenTabs />}
+        {activeSection === 'menuTree' && <MenuTree />}
+        {activeSection === 'admin' && <AdminMenu />}
       </ScrollArea>
     </div>
   );

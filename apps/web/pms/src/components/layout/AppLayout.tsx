@@ -2,7 +2,7 @@
 
 import { useLayoutStore, useSidebarStore } from '@/stores';
 import { LAYOUT_SIZES } from '@/types';
-import { MainSidebar } from './MainSidebar';
+import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { TabBar } from './TabBar';
 import { ContentArea } from './ContentArea';
@@ -39,7 +39,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Sidebar */}
-      <MainSidebar />
+      <Sidebar />
 
       {/* Main Content Area */}
       <div

@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 import {
   Breadcrumb,
   BreadcrumbItem,
-  PageHeader,
-  PageHeaderProps,
-  PageContent,
-  PageContentProps,
+  Header,
+  HeaderProps,
+  Content,
+  ContentProps,
   DataGrid,
 } from '../common';
 import { DataTable, DataTableProps } from '../common/DataTable';
@@ -20,10 +20,10 @@ import { Pagination, PaginationProps } from '../common/Pagination';
 export interface ListPageTemplateProps<TData, TValue> {
   /** 브레드크럼 경로 */
   breadcrumb?: (string | BreadcrumbItem)[];
-  /** PageHeader 설정 */
-  header: Omit<PageHeaderProps, 'className'>;
-  /** PageContent 설정 */
-  content?: Omit<PageContentProps, 'children' | 'className'>;
+  /** Header 설정 */
+  header: Omit<HeaderProps, 'className'>;
+  /** Content 설정 */
+  content?: Omit<ContentProps, 'children' | 'className'>;
   /** DataTable Props */
   table: Omit<DataTableProps<TData, TValue>, 'className'>;
   /** Pagination Props */
@@ -41,8 +41,8 @@ export interface ListPageTemplateProps<TData, TValue> {
  * 
  * 구조:
  * - Breadcrumb: 경로 표시
- * - PageHeader: 액션 버튼 + 검색 필터 (접기/펼치기)
- * - PageContent: 고정 크기 컨텐츠 영역
+ * - Header: 액션 버튼 + 검색 필터 (접기/펼치기)
+ * - Content: 고정 크기 컨텐츠 영역
  *   - DataGrid: DataTable + Pagination 묶음
  * 
  * @example
@@ -95,18 +95,18 @@ export function ListPageTemplate<TData, TValue>({
       )}
 
       {/* 페이지 헤더 (액션 + 필터, 접기/펼치기) */}
-      <PageHeader {...header} />
+      <Header {...header} />
 
       {/* 페이지 컨텐츠 */}
       {children ? (
-        <PageContent {...content}>{children}</PageContent>
+        <Content {...content}>{children}</Content>
       ) : (
-        <PageContent {...content}>
+        <Content {...content}>
           <DataGrid>
             <DataTable {...table} />
             {pagination && <Pagination {...pagination} />}
           </DataGrid>
-        </PageContent>
+        </Content>
       )}
     </div>
   );

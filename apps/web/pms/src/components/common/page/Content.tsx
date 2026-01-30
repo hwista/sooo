@@ -4,9 +4,9 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * PageContent Props
+ * Content Props
  */
-export interface PageContentProps {
+export interface ContentProps {
   /** 레이아웃 타입 */
   layout?: 'single' | 'vertical' | 'horizontal';
   /** 그리드 비율 (2개일 때) - 예: [60, 40] */
@@ -18,7 +18,7 @@ export interface PageContentProps {
 }
 
 /**
- * PageContent 컴포넌트
+ * Content 컴포넌트 (page/Content)
  * 
  * 표준 해상도에 맞는 고정 크기 컨텐츠 영역을 제공합니다.
  * 내부에 DataGrid를 배치하여 테이블+페이지네이션 또는 차트를 표시합니다.
@@ -26,32 +26,32 @@ export interface PageContentProps {
  * @example
  * ```tsx
  * // 단일 그리드
- * <PageContent>
+ * <Content>
  *   <DataGrid>
  *     <DataTable ... />
  *     <Pagination ... />
  *   </DataGrid>
- * </PageContent>
+ * </Content>
  * 
  * // 상하 2그리드
- * <PageContent layout="vertical" ratio={[60, 40]}>
+ * <Content layout="vertical" ratio={[60, 40]}>
  *   <DataGrid>...</DataGrid>
  *   <DataGrid>...</DataGrid>
- * </PageContent>
+ * </Content>
  * 
  * // 좌우 2그리드
- * <PageContent layout="horizontal" ratio={[50, 50]}>
+ * <Content layout="horizontal" ratio={[50, 50]}>
  *   <DataGrid scrollable>...</DataGrid>
  *   <DataGrid scrollable>...</DataGrid>
- * </PageContent>
+ * </Content>
  * ```
  */
-export function PageContent({
+export function Content({
   layout = 'single',
   ratio = [50, 50],
   children,
   className,
-}: PageContentProps) {
+}: ContentProps) {
   const childArray = React.Children.toArray(children);
 
   // 레이아웃별 스타일

@@ -89,7 +89,7 @@ function AdminMenuTreeNode({ item, level }: AdminMenuTreeNodeProps) {
  * - is_admin_menu = true 메뉴 표시
  * - isAdmin 사용자에게만 표시됨 (상위에서 제어)
  */
-export function SidebarAdminMenu() {
+export function Admin() {
   const { adminMenus } = useMenuStore();
   const { searchQuery } = useSidebarStore();
   

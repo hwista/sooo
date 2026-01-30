@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ListPageTemplateV2 } from '@/components/templates';
+import { ListPageTemplate } from '@/components/templates';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTabStore } from '@/stores';
 import { ColumnDef } from '@tanstack/react-table';
-import type { FilterValues } from '@/components/common/page/PageHeader';
+import type { FilterValues } from '@/components/common/page/Header';
 
 // 샘플 데이터 타입
 interface RequestItem {
@@ -142,7 +142,7 @@ export default function RequestListPage() {
   }, [openTab]);
 
   return (
-    <ListPageTemplateV2
+    <ListPageTemplate
       breadcrumb={['요청', '요청 목록']}
       header={{
         collapsible: true,

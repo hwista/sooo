@@ -2,11 +2,30 @@
 
 > DMS(Document Management System) 개발 변경 이력
 
-**마지막 업데이트**: 2026-01-29
+**마지막 업데이트**: 2026-01-30
 
 ---
 
 ## 📅 2026-01
+
+### 2026-01-30
+
+#### Phase 8: PMS/DMS 구조 통일 - Sidebar 통합
+| 커밋 | 변경 내용 |
+|------|----------|
+| - | **Sidebar 폴더 구조 통합** |
+| | - `MainSidebar/` + `sidebar/` → `Sidebar/` 단일 폴더로 통합 |
+| | - 컴포넌트 접두어 제거: `SidebarSearch` → `Search`, `SidebarSection` → `Section` 등 |
+| | - `MainSidebar` 컴포넌트 → `Sidebar`로 이름 변경 |
+| | - `layout/index.ts`, `AppLayout.tsx` import/export 수정 |
+| | **common/page 네이밍 PMS 통일** |
+| | - `DocBreadcrumb` → `Breadcrumb` |
+| | - `DocHeader` → `Header` |
+| | - `DocContent` → `Content` |
+| | - `DocSidecar` → `Sidecar` |
+| | - `DocViewer` → `Viewer` |
+| | **editor 폴더 구조 정리** |
+| | - `WikiEditor.tsx` → `editor/WikiEditor.tsx` 이동 |
 
 ### 2026-01-29
 

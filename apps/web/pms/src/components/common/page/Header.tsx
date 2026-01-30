@@ -27,9 +27,9 @@ export interface ActionItem {
 }
 
 /**
- * PageHeader Props
+ * Header Props
  */
-export interface PageHeaderProps {
+export interface HeaderProps {
   /** 액션 버튼 목록 (좌측 정렬) */
   actions?: ActionItem[];
   /** 검색 필터 필드 (옵션) */
@@ -49,13 +49,13 @@ export interface PageHeaderProps {
 export type { FilterField, FilterValues };
 
 /**
- * PageHeader 컴포넌트 (새 표준)
+ * Header 컴포넌트 (page/Header)
  * 
  * 액션 버튼(좌측 정렬) + 검색 필터로 구성되며, 접기/펼치기 가능
  * 
  * @example
  * ```tsx
- * <PageHeader
+ * <Header
  *   actions={[
  *     { label: '등록', icon: <Plus />, onClick: handleCreate },
  *     { label: '삭제', variant: 'destructive', onClick: handleDelete },
@@ -70,7 +70,7 @@ export type { FilterField, FilterValues };
  * />
  * ```
  */
-export function PageHeader({
+export function Header({
   actions,
   filters,
   onSearch,
@@ -78,7 +78,7 @@ export function PageHeader({
   collapsible = true,
   defaultCollapsed = false,
   className,
-}: PageHeaderProps) {
+}: HeaderProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
 
