@@ -1,6 +1,6 @@
 'use client';
 
-import { useMenuStore, useTabStore } from '@/stores';
+import { useMenuStore } from '@/stores';
 import { useOpenTabWithConfirm } from '@/hooks';
 import { Star, X } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
