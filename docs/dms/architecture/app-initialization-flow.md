@@ -141,7 +141,7 @@ const sidebarWidth = isCollapsed ? LAYOUT_SIZES.sidebar.collapsedWidth : expande
 return <div><MainSidebar /><div style={{ marginLeft: sidebarWidth }}><ContentArea>{children}</ContentArea></div></div>;
 
 // DMS
-return <div><MainSidebar /><div style={{ marginLeft: LAYOUT_SIZES.sidebar.width }}><ContentArea /></div></div>;
+return <div><MainSidebar /><div style={{ marginLeft: LAYOUT_SIZES.sidebar.expandedWidth }}><ContentArea /></div></div>;
 ```
 
 ### 4. ContentArea 비교
