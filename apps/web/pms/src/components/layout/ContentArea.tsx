@@ -2,6 +2,7 @@
 
 import { ReactNode, Suspense, lazy } from 'react';
 import { useTabStore } from '@/stores';
+import { LoadingState } from '@/components/common/StateDisplay';
 
 // 페이지 컴포넌트 동적 import (Next.js 라우팅에서 제외됨)
 const pageComponents: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
@@ -33,14 +34,7 @@ export function ContentArea({ children }: ContentAreaProps) {
     if (PageComponent) {
       return (
         <div className="flex-1 overflow-auto bg-white">
-          <Suspense fallback={
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-gray-500">페이지 로딩 중...</p>
-              </div>
-            </div>
-          }>
+          <Suspense fallback={<LoadingState message="페이지 로딩 중..." fullHeight />}>
             <PageComponent />
           </Suspense>
         </div>
@@ -52,14 +46,7 @@ export function ContentArea({ children }: ContentAreaProps) {
   if (children) {
     return (
       <div className="flex-1 overflow-auto bg-white">
-        <Suspense fallback={
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-gray-500">페이지 로딩 중...</p>
-            </div>
-          </div>
-        }>
+        <Suspense fallback={<LoadingState message="페이지 로딩 중..." fullHeight />}>
           {children}
         </Suspense>
       </div>

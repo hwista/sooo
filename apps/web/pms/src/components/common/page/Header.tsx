@@ -5,6 +5,7 @@ import { useState, useCallback } from 'react';
 import { ChevronUp, ChevronDown, Search, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/common/StateDisplay';
 import { FilterBar } from './FilterBar';
 import type { FilterField, FilterValues } from './FilterBar';
 
@@ -123,7 +124,7 @@ export function Header({
               className="h-control-h"
             >
               {action.loading ? (
-                <span className="h-4 w-4 mr-1.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <LoadingSpinner className="mr-1.5" />
               ) : action.icon ? (
                 <span className="mr-1.5">{action.icon}</span>
               ) : null}

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { LoadingSpinner } from './StateDisplay';
 
 /**
  * FormSection Props
@@ -125,7 +125,7 @@ export function FormActions({
             onClick={onSubmit}
             disabled={loading || submitDisabled}
           >
-            {loading && <Loader2 className="icon-body animate-spin" />}
+            {loading && <LoadingSpinner className="icon-body" />}
             {submitLabel}
           </Button>
         )}
