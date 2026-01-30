@@ -13,6 +13,12 @@
 #### Phase 8: PMS/DMS 구조 통일 - Sidebar 통합
 | 커밋 | 변경 내용 |
 |------|----------|
+| - | **types 구조 PMS 통일** |
+| | - `layout.ts`: 주석 헤더 통일, `sidebar.width` → `expandedWidth` 네이밍 변경 |
+| | - `layout.ts`: `tabBar.height` 명확화 (height: 36, containerHeight: 53) |
+| | - `sidebar.ts`: 신규 생성 (SidebarSection, SidebarState, SIDEBAR_SECTION_ICONS 등) |
+| | - `index.ts`: sidebar.ts export 추가 |
+| | - 사용처 업데이트: AppLayout, Sidebar, DocPageTemplate, layout.store |
 | - | **미사용 ui 컴포넌트 삭제**: menu, popover, progress, spinner |
 | | **Breadcrumb 스타일 PMS 통일** |
 | | - 중간 경로/파일 아이콘 제거 (루트 Folder 아이콘만 유지) |
