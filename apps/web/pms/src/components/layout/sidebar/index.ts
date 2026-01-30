@@ -22,7 +22,7 @@ export { Search } from './Search';
 export { Favorites } from './Favorites';
 export { OpenTabs } from './OpenTabs';
 export { MenuTree } from './MenuTree';
-export { Admin as AdminMenu } from './Admin';
+export { AdminMenu } from './AdminMenu';
 
 // 상수
 export { SECTION_ICONS } from './constants';

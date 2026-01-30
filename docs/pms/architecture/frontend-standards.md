@@ -1,6 +1,6 @@
 ﻿# SSOO 프론트엔드 표준
 
-> 최종 업데이트: 2026-01-20
+> 최종 업데이트: 2026-01-30
 
 프론트엔드 개발 시 준수해야 할 표준 구조와 패턴을 정의합니다.
 
@@ -24,8 +24,11 @@ components/
 
 | 컴포넌트 | 용도 | Props |
 |----------|------|-------|
-| `PageHeader` | 페이지 제목 + 액션 + 필터 | title, actions, filters |
-| `PageHeader (legacy)` | 구버전 헤더 (유지보수) | title, breadcrumb, actions |
+| `Breadcrumb` | 페이지 경로 표시 | items |
+| `Header` | 페이지 제목 + 액션 + 필터 | title, actions, filters |
+| `Content` | 페이지 본문 래퍼 | children, className |
+| `DataGrid` | DataTable + Pagination 통합 | columns, data, pagination |
+| `FilterBar` | 필터 입력 영역 | filters, onFilterChange |
 | `DataTable` | 정렬/선택/페이지네이션 테이블 | columns, data, loading, pagination |
 | `Pagination` | 페이지 네비게이션 | page, pageSize, total, onChange |
 | `FormSection` | 폼 섹션 제목 + 필드 그룹 | title, description, children |
@@ -34,15 +37,16 @@ components/
 | `EmptyState` | 데이터 없음 표시 | icon, title, description, action |
 | `LoadingState` | 로딩 상태 표시 | message |
 | `ErrorState` | 에러 상태 표시 | error, onRetry |
-| `ProtectedRoute` | 인증 보호 래퍼 | children |
 
 ### Page 전용 컴포넌트 (common/page/)
 
 | 컴포넌트 | 용도 |
 |----------|------|
-| `PageHeader` | 액션 + 필터 통합 헤더 (표준) |
-| `PageContent` | 본문 레이아웃 래퍼 |
+| `Breadcrumb` | 페이지 경로 (Home > 메뉴 > 서브메뉴) |
+| `Header` | 액션 + 필터 통합 헤더 (표준) |
+| `Content` | 본문 레이아웃 래퍼 |
 | `DataGrid` | DataTable + Pagination 묶음 |
+| `FilterBar` | 필터 입력 영역 |
 
 ---
 
@@ -50,10 +54,8 @@ components/
 
 | 템플릿 | 용도 | 주요 Props |
 |--------|------|-----------|
-| `ListPageTemplate` | 목록 페이지 (레거시) | header, filterFields, columns, data, pagination |
-| `ListPageTemplateV2` | 목록 페이지 (표준) | header, table |
+| `ListPageTemplate` | 목록 페이지 (표준) | header, table |
 | `FormPageTemplate` | 등록/수정 페이지 | header, sections[], onSubmit, onCancel |
-| `DetailPageTemplate` | 상세 페이지 | header, sections[], DetailFields |
 
 ---
 
@@ -180,12 +182,13 @@ types/
 
 | 컴포넌트 | 용도 |
 |----------|------|
-| button, input, label | 기본 폼 요소 |
+| button, input | 기본 폼 요소 |
 | select, checkbox | 선택 요소 |
 | table, card | 데이터 표시 |
-| skeleton, badge | 상태 표시 |
-| dialog, sheet | 오버레이 |
-| dropdown-menu, tooltip | 인터랙션 |
+| skeleton | 상태 표시 |
+| dropdown-menu | 인터랙션 |
+| scroll-area | 스크롤 영역 |
+| textarea | 텍스트 입력 |
 
 ---
 
@@ -215,6 +218,7 @@ types/
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-30 | Sidebar 구조 통합, 미사용 컴포넌트 정리, 템플릿 통합 |
 | 2026-01-22 | 공통/템플릿/훅 구조를 현재 코드 기준으로 정합화 |
 | 2026-01-21 | Backlog/Changelog 섹션 추가 |
 | 2026-01-20 | 프론트엔드 표준 문서 작성 |

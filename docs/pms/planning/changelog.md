@@ -38,6 +38,10 @@
 
 | 시간 | 커밋 | 영역 | 변경 내용 |
 |------|------|------|----------|
+| - | - | 정리 | **미사용 ui 컴포넌트 삭제**: badge, dialog, label, separator, sheet, tooltip, breadcrumb |
+| - | - | 정리 | **미사용 ProtectedRoute 삭제** (향후 컨트롤 레벨 권한은 별도 패턴으로 구현 예정) |
+| - | - | 리팩토링 | **Admin.tsx → AdminMenu.tsx** 파일명/함수명 통일 |
+| - | - | 문서 | frontend-standards.md, layout-system.md, ui-components.md 현행화 |
 | - | - | 버그 | **Search 컴포넌트 무한 루프 수정**: lucide-react `Search` 아이콘과 컴포넌트 이름 충돌 → `SearchIcon` alias로 해결 |
 | - | - | 리팩토링 | **`ListPageTemplateV2.tsx` → `ListPageTemplate.tsx` 파일명 변경** (레거시 제거 후 표준 이름 사용) |
 | - | - | 구조 | **PMS/DMS Sidebar 구조 통일**: `MainSidebar/` + `sidebar/` → `Sidebar/` 폴더 통합 |

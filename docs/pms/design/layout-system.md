@@ -46,17 +46,17 @@ const LAYOUT_SIZES = {
 
 ```
 AppLayout
-├── MainSidebar
+├── Sidebar
 │   ├── Header (로고, 토글 버튼)
 │   ├── CollapsedSidebar (접힌 상태)
 │   │   └── 아이콘 버튼들
 │   ├── ExpandedSidebar (펼친 상태)
 │   │   ├── Search (검색창 - 고정)
 │   │   ├── ScrollArea
-│   │   │   ├── 즐겨찾기 섹션
-│   │   │   ├── 현재 열린 페이지 섹션
-│   │   │   ├── 메뉴 탐색 섹션
-│   │   │   └── 관리자 섹션 (isAdmin만)
+│   │   │   ├── Favorites (즐겨찾기 섹션)
+│   │   │   ├── OpenTabs (현재 열린 페이지 섹션)
+│   │   │   ├── MenuTree (메뉴 탐색 섹션)
+│   │   │   └── AdminMenu (관리자 섹션, isAdmin만)
 │   │   └── Footer (카피라이트 - 고정)
 │   └── FloatingPanel (접힌 상태에서 hover 시)
 ├── Header (상단 바)
@@ -97,21 +97,28 @@ AppLayout
 
 ---
 
-## MainSidebar
+## Sidebar
 
 사이드바 컴포넌트입니다. 두 가지 상태를 가집니다.
 
 ### 파일 위치
 
-`apps/web/pms/src/components/layout/MainSidebar/`
+`apps/web/pms/src/components/layout/Sidebar/`
 
 ```
-MainSidebar/
+Sidebar/
 ├── index.ts
-├── MainSidebar.tsx       # 메인 컴포넌트
+├── Sidebar.tsx           # 메인 컴포넌트
 ├── CollapsedSidebar.tsx  # 접힌 상태
 ├── ExpandedSidebar.tsx   # 펼친 상태
-└── FloatingPanel.tsx     # 플로팅 패널
+├── FloatingPanel.tsx     # 플로팅 패널
+├── Section.tsx           # 섹션 컴포넌트
+├── Search.tsx            # 검색 컴포넌트
+├── Favorites.tsx         # 즐겨찾기 섹션
+├── OpenTabs.tsx          # 열린 탭 섹션
+├── MenuTree.tsx          # 메뉴 트리 섹션
+├── AdminMenu.tsx         # 관리자 메뉴 섹션
+└── constants.ts          # 섹션 아이콘 상수
 ```
 
 ### 상태별 구조

@@ -27,23 +27,16 @@ Radix UI Primitives + shadcn/ui 기반의 커스텀 컴포넌트입니다.
 
 ```
 apps/web/pms/src/components/ui/
-├── badge.tsx
-├── breadcrumb.tsx
 ├── button.tsx
 ├── card.tsx
 ├── checkbox.tsx
-├── dialog.tsx
 ├── dropdown-menu.tsx
 ├── input.tsx
-├── label.tsx
 ├── scroll-area.tsx
 ├── select.tsx
-├── separator.tsx
-├── sheet.tsx
 ├── skeleton.tsx
 ├── table.tsx
-├── textarea.tsx
-└── tooltip.tsx
+└── textarea.tsx
 ```
 
 ---

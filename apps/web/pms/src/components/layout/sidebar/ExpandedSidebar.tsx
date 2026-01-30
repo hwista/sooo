@@ -6,7 +6,7 @@ import { Search } from './Search';
 import { Favorites } from './Favorites';
 import { OpenTabs } from './OpenTabs';
 import { MenuTree } from './MenuTree';
-import { Admin as AdminMenu } from './Admin';
+import { AdminMenu } from './AdminMenu';
 import { Section } from './Section';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuthStore, useMenuStore } from '@/stores';

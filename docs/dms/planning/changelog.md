@@ -13,6 +13,10 @@
 #### Phase 8: PMS/DMS 구조 통일 - Sidebar 통합
 | 커밋 | 변경 내용 |
 |------|----------|
+| - | **미사용 ui 컴포넌트 삭제**: menu, popover, progress, spinner |
+| | **Breadcrumb 스타일 PMS 통일** |
+| | - 중간 경로/파일 아이콘 제거 (루트 Folder 아이콘만 유지) |
+| | - PMS와 동일 스타일: `📁 > 텍스트 > 텍스트(볼드)` |
 | - | **버그 수정: Search 무한 루프** |
 | | - lucide-react `Search` 아이콘과 컴포넌트 이름 충돌 → `SearchIcon` alias로 해결 |
 | | **레거시 정리** |
