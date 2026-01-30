@@ -18,8 +18,8 @@
  */
 
 // 목록 페이지 템플릿
-export { ListPageTemplate } from './ListPageTemplateV2';
-export type { ListPageTemplateProps } from './ListPageTemplateV2';
+export { ListPageTemplate } from './ListPageTemplate';
+export type { ListPageTemplateProps } from './ListPageTemplate';
 
 // 폼 페이지 템플릿
 export { FormPageTemplate } from './FormPageTemplate';

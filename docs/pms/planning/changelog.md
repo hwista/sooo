@@ -38,12 +38,13 @@
 
 | 시간 | 커밋 | 영역 | 변경 내용 |
 |------|------|------|----------|
+| - | - | 버그 | **Search 컴포넌트 무한 루프 수정**: lucide-react `Search` 아이콘과 컴포넌트 이름 충돌 → `SearchIcon` alias로 해결 |
+| - | - | 리팩토링 | **`ListPageTemplateV2.tsx` → `ListPageTemplate.tsx` 파일명 변경** (레거시 제거 후 표준 이름 사용) |
 | - | - | 구조 | **PMS/DMS Sidebar 구조 통일**: `MainSidebar/` + `sidebar/` → `Sidebar/` 폴더 통합 |
 | - | - | 구조 | Sidebar 컴포넌트 접두어 제거: `SidebarSearch` → `Search`, `SidebarSection` → `Section` 등 |
 | - | - | 구조 | **common/page 네이밍 통일**: `PageHeader` → `Header`, `PageContent` → `Content` 등 |
 | - | - | 삭제 | **레거시 템플릿 삭제**: `ListPageTemplate` (V2가 표준), `DetailPageTemplate`, `PageHeader` 삭제 |
 | - | - | 구조 | `FormPageTemplate` 리팩토링: `PageHeader` → `Breadcrumb` + Title 내장 방식 |
-| - | - | 구조 | `ListPageTemplateV2` → `ListPageTemplate`으로 이름 변경 (기존 레거시 제거) |
 
 ### 2026-01-25
 

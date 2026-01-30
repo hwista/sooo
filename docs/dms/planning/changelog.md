@@ -13,6 +13,12 @@
 #### Phase 8: PMS/DMS 구조 통일 - Sidebar 통합
 | 커밋 | 변경 내용 |
 |------|----------|
+| - | **버그 수정: Search 무한 루프** |
+| | - lucide-react `Search` 아이콘과 컴포넌트 이름 충돌 → `SearchIcon` alias로 해결 |
+| | **레거시 정리** |
+| | - `MainSidebar/` 폴더 삭제 (Sidebar로 통합 완료) |
+| | - `Sidebar/constants.ts` 추가 (SECTION_ICONS 상수 PMS와 동일 구조) |
+| | - `Sidebar/index.ts` barrel export 재구성 |
 | - | **Sidebar 폴더 구조 통합** |
 | | - `MainSidebar/` + `sidebar/` → `Sidebar/` 단일 폴더로 통합 |
 | | - 컴포넌트 접두어 제거: `SidebarSearch` → `Search`, `SidebarSection` → `Section` 등 |

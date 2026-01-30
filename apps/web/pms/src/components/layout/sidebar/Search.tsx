@@ -1,7 +1,7 @@
 'use client';
 
 import { useSidebarStore } from '@/stores';
-import { Search, X } from 'lucide-react';
+import { Search as SearchIcon, X } from 'lucide-react';
 
 /**
  * 사이드바 메뉴 검색
@@ -12,7 +12,7 @@ export function Search() {
 
   return (
     <div className="relative flex-1">
-      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
       <input
         type="text"
         placeholder="메뉴 검색..."
