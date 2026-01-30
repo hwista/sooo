@@ -16,7 +16,7 @@ export interface SidebarState {
   activeFloatSection: SidebarSection | null; // 현재 플로팅 중인 섹션
   expandedSections: SidebarSection[]; // 펼쳐진 섹션들
   searchQuery: string; // 메뉴 검색어
-  expandedMenuIds: string[]; // 펼쳐진 메뉴 폴더 ID들
+  expandedMenuIds: Set<string>; // 펼쳐진 메뉴 폴더 ID들
 }
 
 /**

@@ -16,7 +16,7 @@ export const useSidebarStore = create<SidebarStore>()((set, get) => ({
   activeFloatSection: null,
   expandedSections: DEFAULT_EXPANDED_SECTIONS,
   searchQuery: '',
-  expandedMenuIds: [],
+  expandedMenuIds: new Set<string>(),
 
   // Actions
   toggleCollapse: () => {
@@ -73,30 +73,35 @@ export const useSidebarStore = create<SidebarStore>()((set, get) => ({
   // 메뉴 트리 펼치기
   toggleMenuExpand: (menuId: string) => {
     set((state) => {
-      const isExpanded = state.expandedMenuIds.includes(menuId);
-      return {
-        expandedMenuIds: isExpanded
-          ? state.expandedMenuIds.filter((id) => id !== menuId)
-          : [...state.expandedMenuIds, menuId],
-      };
+      const newExpanded = new Set(state.expandedMenuIds);
+      if (newExpanded.has(menuId)) {
+        newExpanded.delete(menuId);
+      } else {
+        newExpanded.add(menuId);
+      }
+      return { expandedMenuIds: newExpanded };
     });
   },
 
   expandMenu: (menuId: string) => {
-    set((state) => ({
-      expandedMenuIds: state.expandedMenuIds.includes(menuId)
-        ? state.expandedMenuIds
-        : [...state.expandedMenuIds, menuId],
-    }));
+    set((state) => {
+      if (state.expandedMenuIds.has(menuId)) return state;
+      const newExpanded = new Set(state.expandedMenuIds);
+      newExpanded.add(menuId);
+      return { expandedMenuIds: newExpanded };
+    });
   },
 
   collapseMenu: (menuId: string) => {
-    set((state) => ({
-      expandedMenuIds: state.expandedMenuIds.filter((id) => id !== menuId),
-    }));
+    set((state) => {
+      if (!state.expandedMenuIds.has(menuId)) return state;
+      const newExpanded = new Set(state.expandedMenuIds);
+      newExpanded.delete(menuId);
+      return { expandedMenuIds: newExpanded };
+    });
   },
 
   collapseAllMenus: () => {
-    set({ expandedMenuIds: [] });
+    set({ expandedMenuIds: new Set() });
   },
 }));

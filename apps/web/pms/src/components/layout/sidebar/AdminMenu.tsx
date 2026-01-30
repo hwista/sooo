@@ -17,7 +17,7 @@ function AdminMenuTreeNode({ item, level }: AdminMenuTreeNodeProps) {
   const { expandedMenuIds, toggleMenuExpand } = useSidebarStore();
   const { openTab, tabs, activeTabId } = useTabStore();
   
-  const isExpanded = expandedMenuIds.includes(item.menuId);
+  const isExpanded = expandedMenuIds.has(item.menuId);
   const isFolder = item.menuType === 'group';
   const hasChildren = item.children && item.children.length > 0;
   
