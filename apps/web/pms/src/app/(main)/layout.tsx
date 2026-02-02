@@ -167,5 +167,5 @@ export default function MainLayout({
     );
   }
 
-  return <AppLayout>{children}</AppLayout>;
+  return <AppLayout />;
 }

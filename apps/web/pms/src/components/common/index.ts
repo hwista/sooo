@@ -4,20 +4,19 @@
  * 비즈니스 로직 없이 재사용 가능한 복합 컴포넌트
  * shadcn/ui 원자 컴포넌트를 조합하여 구성
  * 
- * 포함 컴포넌트:
- * - Page 컴포넌트: Breadcrumb, Header, Content, DataGrid, FilterBar
- * - DataTable: 정렬/선택/페이지네이션 통합 테이블
- * - Pagination: 페이지 네비게이션
- * - FormSection, FormActions, FormField: 폼 관련 컴포넌트
- * - EmptyState, LoadingState, ErrorState: 상태 표시
+ * 구조:
+ * - page/: 레이아웃 빌딩블록 (Breadcrumb, Header, Content, FilterBar)
+ * - datagrid/: 테이블 슬롯 컴포넌트 (DataGrid, Toolbar, Body, Footer, Pagination)
+ * - form/: 폼 슬롯 컴포넌트 (FormSection, FormActions, FormField)
+ * - StateDisplay: 로딩/에러/빈 상태 표시
+ * - ConfirmDialog: 확인 다이얼로그
  */
 
-// 페이지 컴포넌트
+// 페이지 레이아웃 빌딩블록
 export {
   Breadcrumb,
   Header,
   Content,
-  DataGrid,
   FilterBar,
 } from './page';
 export type {
@@ -27,26 +26,28 @@ export type {
   ActionItem,
   FilterField,
   ContentProps,
-  DataGridProps,
   FilterBarProps,
 } from './page';
 
-// DataTable (폴더 구조로 분리됨)
+// DataGrid 슬롯 컴포넌트
 export { 
-  DataTable, 
-  DataTableToolbar,
-  DataTableBody,
-  DataTableFooter,
+  DataGrid, 
+  Toolbar as DataGridToolbar,
+  Body as DataGridBody,
+  Footer as DataGridFooter,
+  Pagination,
   createSortableHeader, 
   createActionsColumn,
-} from './DataTable';
-export type { DataTableProps, ColumnDef } from './DataTable';
+} from './datagrid';
+export type { DataGridProps, ColumnDef } from './datagrid';
 
-export { Pagination } from './Pagination';
-export type { PaginationProps } from './Pagination';
+// Form 슬롯 컴포넌트
+export { FormSection, FormActions, FormField } from './form';
+export type { FormSectionProps, FormActionsProps, FormFieldProps } from './form';
 
-export { FormSection, FormActions, FormField } from './FormComponents';
-export type { FormSectionProps, FormActionsProps, FormFieldProps } from './FormComponents';
+// 상태 표시
+export { LoadingState, LoadingSpinner, ErrorState, EmptyState } from './StateDisplay';
+export type { LoadingStateProps, LoadingSpinnerProps, ErrorStateProps, EmptyStateProps } from './StateDisplay';
 
-export { LoadingState, ErrorState, EmptyState } from './StateDisplay';
-export type { LoadingStateProps, ErrorStateProps, EmptyStateProps } from './StateDisplay';
+// 다이얼로그
+export { ConfirmDialog } from './ConfirmDialog';

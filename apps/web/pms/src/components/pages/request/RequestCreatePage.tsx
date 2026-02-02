@@ -21,7 +21,7 @@ const createRequestSchema = z.object({
 
 type FormData = z.infer<typeof createRequestSchema>;
 
-export default function RequestCreatePage() {
+export function RequestCreatePage() {
   const { openTab } = useTabStore();
   const [loading, setLoading] = useState(false);
 

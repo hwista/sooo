@@ -11,7 +11,7 @@ import { Home, Calendar, CheckSquare, TrendingUp, Clock } from 'lucide-react';
  *   - 최근 활동 내역
  *   - 집계/통계 위젯
  */
-export default function HomeDashboardPage() {
+export function HomeDashboardPage() {
   return (
     <div className="h-full flex items-center justify-center p-8">
       <div className="text-center max-w-md">

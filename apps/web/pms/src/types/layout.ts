@@ -29,6 +29,7 @@ export const LAYOUT_SIZES = {
   },
   tabBar: {
     height: 36, // 탭바 높이 (control-h 기준)
+    containerHeight: 53, // 탭바 컨테이너 높이 (패딩 포함)
     tabMinWidth: 120, // 탭 최소 너비
     tabMaxWidth: 200, // 탭 최대 너비
   },

@@ -1,29 +1,26 @@
 'use client';
 
-import { ReactNode, Suspense, lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import { useTabStore } from '@/stores';
 import { LoadingState } from '@/components/common/StateDisplay';
 
-// 페이지 컴포넌트 동적 import (Next.js 라우팅에서 제외됨)
+// 페이지 컴포넌트 동적 import (named export 사용)
 const pageComponents: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
-  '/home': lazy(() => import('@/components/pages/home/HomeDashboardPage')),
-  '/request': lazy(() => import('@/components/pages/request/RequestListPage')),
-  '/request/create': lazy(() => import('@/components/pages/request/RequestCreatePage')),
-  '/proposal': lazy(() => import('@/components/pages/proposal/ProposalListPage')),
-  '/execution': lazy(() => import('@/components/pages/execution/ExecutionListPage')),
-  '/transition': lazy(() => import('@/components/pages/transition/TransitionListPage')),
+  '/home': lazy(() => import('@/components/pages/home/HomeDashboardPage').then(m => ({ default: m.HomeDashboardPage }))),
+  '/request': lazy(() => import('@/components/pages/request/RequestListPage').then(m => ({ default: m.RequestListPage }))),
+  '/request/create': lazy(() => import('@/components/pages/request/RequestCreatePage').then(m => ({ default: m.RequestCreatePage }))),
+  '/proposal': lazy(() => import('@/components/pages/proposal/ProposalListPage').then(m => ({ default: m.ProposalListPage }))),
+  '/execution': lazy(() => import('@/components/pages/execution/ExecutionListPage').then(m => ({ default: m.ExecutionListPage }))),
+  '/transition': lazy(() => import('@/components/pages/transition/TransitionListPage').then(m => ({ default: m.TransitionListPage }))),
 };
-
-interface ContentAreaProps {
-  children?: ReactNode;
-}
 
 /**
  * 메인 콘텐츠 영역
+ * - 탭 시스템 전용: URL 직접 접근 미지원
  * - 활성화된 탭의 컨텐츠 표시
- * - 탭이 없을 때 빈 상태 표시
+ * - Home 탭이 항상 존재하므로 빈 상태는 발생하지 않음
  */
-export function ContentArea({ children }: ContentAreaProps) {
+export function ContentArea() {
   const { tabs, activeTabId } = useTabStore();
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
@@ -42,19 +39,7 @@ export function ContentArea({ children }: ContentAreaProps) {
     }
   }
 
-  // children이 있으면 렌더링 (Next.js 라우팅 지원 - 직접 URL 접근용)
-  if (children) {
-    return (
-      <div className="flex-1 overflow-auto bg-white">
-        <Suspense fallback={<LoadingState message="페이지 로딩 중..." fullHeight />}>
-          {children}
-        </Suspense>
-      </div>
-    );
-  }
-
-  // Home 탭이 항상 존재하므로 빈 상태는 발생하지 않음
-  // activeTab이 없거나 path가 없으면 Home으로 리다이렉트 처리
+  // activeTab이 없거나 path가 없는 경우 (정상적으로는 발생하지 않음)
   if (!activeTab || !activeTab.path) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">

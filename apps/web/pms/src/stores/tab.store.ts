@@ -28,7 +28,6 @@ const createHomeTab = (): TabItem => {
     icon: HOME_TAB.icon,
     path: HOME_TAB.path,
     closable: HOME_TAB.closable,
-    status: 'active',
     openedAt: now,
     lastActiveAt: now,
   };
@@ -105,7 +104,6 @@ export const useTabStore = create<TabStore>()(
           icon,
           path,
           closable,
-          status: 'active',
           params,
           openedAt: now,
           lastActiveAt: now,
@@ -161,8 +159,8 @@ export const useTabStore = create<TabStore>()(
           activeTabId: tabId,
           tabs: state.tabs.map((t) =>
             t.id === tabId
-              ? { ...t, status: 'active' as const, lastActiveAt: new Date() }
-              : { ...t, status: 'inactive' as const }
+              ? { ...t, lastActiveAt: new Date() }
+              : t
           ),
         }));
       },
@@ -170,12 +168,6 @@ export const useTabStore = create<TabStore>()(
       updateTabTitle: (tabId: string, title: string): void => {
         set((state) => ({
           tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, title } : t)),
-        }));
-      },
-
-      updateTabData: (tabId: string, data: unknown): void => {
-        set((state) => ({
-          tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, data } : t)),
         }));
       },
 

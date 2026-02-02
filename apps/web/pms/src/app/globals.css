@@ -56,16 +56,15 @@
     /* ========================================
        SSOO 전용 색상 변수
        ======================================== */
-    --ssoo-primary: #0A1E5A;
-    --ssoo-primary-hover: #235a98;
-    --ssoo-secondary: #235a98;
-    --ssoo-background: #F9FBFD;
-    --ssoo-content-border: #9FC1E7;
-    --ssoo-content-background: #DEE7F1;
-    --ssoo-sitemap-title: #016CA2;
-    --ssoo-sitemap-bullet: #00588A;
-    --ssoo-sitemap-background: #F6FBFF;
-    
+      --ssoo-primary: #0A1E5A;
+      --ssoo-primary-hover: #314278;
+      --ssoo-secondary: #314278;
+      --ssoo-background: #F9FBFD;
+      --ssoo-content-border: #9FB1E7;
+      --ssoo-content-background: #DEE3F1;
+      --ssoo-sitemap-title: #0148A2;
+      --ssoo-sitemap-bullet: #00398A;
+      --ssoo-sitemap-background: #F6F9FF;
     /* ========================================
        LS CI 색상 팔레트
        ======================================== */

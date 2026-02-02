@@ -1,1 +1,1 @@
-export { default as ProposalListPage } from './ProposalListPage';
+export { ProposalListPage } from './ProposalListPage';

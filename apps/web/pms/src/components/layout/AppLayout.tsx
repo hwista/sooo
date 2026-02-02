@@ -2,21 +2,18 @@
 
 import { useLayoutStore, useSidebarStore } from '@/stores';
 import { LAYOUT_SIZES } from '@/types';
-import { Sidebar } from './Sidebar';
+import { Sidebar } from './sidebar';
 import { Header } from './Header';
 import { TabBar } from './TabBar';
 import { ContentArea } from './ContentArea';
-
-interface AppLayoutProps {
-  children?: React.ReactNode;
-}
 
 /**
  * 메인 앱 레이아웃
  * - Desktop: Sidebar + Header + TabBar + Content
  * - Mobile: 별도 UI (추후 개발)
+ * - 탭 시스템 전용: URL 직접 접근 미지원
  */
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout() {
   const { deviceType } = useLayoutStore();
   const { isCollapsed } = useSidebarStore();
 
@@ -53,7 +50,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <TabBar />
 
         {/* Content */}
-        <ContentArea>{children}</ContentArea>
+        <ContentArea />
       </div>
     </div>
   );

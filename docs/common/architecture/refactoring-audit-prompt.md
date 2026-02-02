@@ -1,7 +1,7 @@
-# 모노레포 리팩토링 + 문서 일치성 감사 프롬프트
+# 모노레포 리팩토링 표준 + 감사 프롬프트
 
-> 최종 업데이트: 2026-01-25
-> 용도: AI 에이전트에게 전체 워크스페이스 감사를 요청할 때 사용
+> 최종 업데이트: 2026-02-02
+> 용도: 모노레포 전체 리팩토링의 **기준 문서** + AI 에이전트 감사 요청 시 사용
 
 ---
 
@@ -10,6 +10,48 @@
 당신은 **"대규모 모노레포(모듈러 모놀리스) 리팩토링 + 문서 일치성(Documentation-as-Code) 감사(Audit)"** 전문가입니다.
 
 우리 워크스페이스는 비대하고 설정/패키지가 많으며, 중간중간 리팩토링과 문서 체크를 지속합니다. 이번 목표는 소스 코드의 실효성, 복잡도 감소, 유지보수 용이성, 문서와 구현의 100% 일치를 달성하도록 **누락 없이 전수 점검**하고 **실행 가능한 수정 계획**을 제시하는 것입니다.
+
+---
+
+## ⚠️ AI 작업 원칙 (필독)
+
+### 역할 분담
+| 단계 | AI | 사람 |
+|------|-----|------|
+| **점검/분석** | ✅ 수행 | 결과 확인 |
+| **브리핑/제안** | ✅ 수행 | 검토 |
+| **삭제/변경 결정** | ✅ 판단 제시 | 🔒 **최종 승인** |
+| **실행** | ⏸️ 승인 대기 | 🔒 **컨펌 후 지시** |
+
+### 점검 기준 (러프하게 넘어가지 말 것)
+
+1. **"수정 필요없음"으로 넘어가지 말 것**
+   - 변경 소지가 있으면 반드시 명시하고 판단 근거 제시
+   - 확신이 없으면 "확인 필요"로 표기하고 검증 방법 제안
+
+2. **모든 발견 사항에 증거 포함**
+   - 파일 경로, 라인 번호, grep 검색 결과
+   - "~로 보임", "~일 것 같음" 금지 → 확인된 사실만 기술
+
+3. **영향 범위 명시**
+   - 수정 시 영향받는 다른 파일/모듈 목록
+   - 빌드/런타임 영향 여부
+
+4. **바이브 코딩 산물 의심**
+   - 통제 없이 생성된 코드일 가능성 항상 고려
+   - 설계 의도와 맞지 않는 코드 적극 식별
+
+---
+
+## 리팩토링 목표
+
+> **바이브 코딩으로 발생한 통제 불가 코드를 클렌징하고, 원하는 설계 안에서 효율적이고 컴팩트한 구현에 집중**
+
+### 핵심 원칙
+1. **단순함 우선**: 불필요한 추상화, 과도한 레이어 제거
+2. **사용되는 코드만 유지**: Dead Code 적극 삭제
+3. **일관된 패턴**: 앱/패키지 간 동일한 문제는 동일한 방식으로 해결
+4. **문서-코드 동기화**: 문서에 없으면 코드도 없어야 함, 코드에 없으면 문서도 없어야 함
 
 ---
 
@@ -30,7 +72,7 @@
 |------|---------|------|------|
 | `apps/server` | server | NestJS 백엔드 API 서버 | ✅ 활성 |
 | `apps/web/pms` | web-pms | PMS 프론트엔드 (Next.js 15, React 19) | ✅ 활성 |
-| `apps/web/dms` | web-dms | DMS 프론트엔드 (문서 허브, docs/ 렌더링) | ⏸️ **슬롯 (미개발)** |
+| `apps/web/dms` | web-dms | DMS 프론트엔드 (문서 허브, docs/ 렌더링) | 🔄 **개발 중** |
 | `packages/database` | @ssoo/database | Prisma 6.x ORM, DB 스키마, 트리거 | ✅ 활성 |
 | `packages/types` | @ssoo/types | 공유 TypeScript 타입 정의 | ✅ 활성 |
 | `packages/ui` | @ssoo/ui | 공용 UI 컴포넌트 (shadcn/ui 기반) | 📋 **계획됨** |
@@ -71,12 +113,14 @@
 docs/
 ├── CHANGELOG.md                    # 자동 (conventional-changelog)
 ├── README.md                       # 전체 문서 인덱스
+├── getting-started.md              # 빠른 시작 가이드
 │
 ├── common/                         # 공통 도메인
+│   ├── architecture/               # 아키텍처/표준 문서 (이 문서 포함)
+│   ├── guides/                     # 공통 가이드라인
 │   └── reference/                  # 자동 생성 전용
 │
 ├── pms/                            # PMS 도메인
-│   ├── getting-started.md          # 빠른 시작 가이드
 │   ├── architecture/               # 아키텍처/표준 (수동)
 │   ├── design/                     # UI/UX 설계 (수동)
 │   ├── domain/                     # 비즈니스 개념 (수동)
@@ -88,13 +132,13 @@ docs/
 │
 └── dms/                            # DMS 도메인
     ├── architecture/               # 아키텍처 (docs-structure-plan, tech-stack 등)
-    ├── common/                     # 공통 (changelog, README)
+    ├── planning/                   # 프로젝트 계획
     └── reference/                  # 자동 생성 전용
 ```
 
 ### 6. 문서 관리 전략
 
-**참조**: `docs/pms/architecture/docs-management.md`
+**참조**: `docs/common/architecture/docs-management.md`
 
 | 구분 | 위치 | 규칙 |
 |------|------|------|
@@ -102,7 +146,24 @@ docs/
 | **수동 문서** | `architecture/`, `domain/`, `design/`, `planning/`, `tests/` | 의사결정, 개념, 프로세스 |
 | **하이브리드** | `guides/` | 수동 작성 + 자동 문서 링크 |
 
-### 7. CI/CD 현황
+### 7. 보조 표준 문서 (참조 필수)
+
+이 문서와 함께 아래 표준 문서들을 기준으로 점검합니다:
+
+| 문서 | 경로 | 역할 |
+|------|------|------|
+| **기술 스택** | `docs/common/architecture/tech-stack.md` | 기술 선택 기준 |
+| **개발 표준** | `docs/common/architecture/development-standards.md` | 코딩 규칙 |
+| **모듈러 모놀리스** | `docs/common/architecture/modular-monolith.md` | 아키텍처 원칙 |
+| **문서 관리** | `docs/common/architecture/docs-management.md` | 문서화 규칙 |
+| **보안 표준** | `docs/common/architecture/security-standards.md` | 보안 규칙 |
+| **인증 시스템** | `docs/common/architecture/auth-system.md` | 인증/인가 설계 |
+| **DB 패키지 스펙** | `docs/common/architecture/database-package-spec.md` | DB 설계 규칙 |
+| **서버 패키지 스펙** | `docs/common/architecture/server-package-spec.md` | 백엔드 설계 규칙 |
+| **타입 패키지 스펙** | `docs/common/architecture/types-package-spec.md` | 타입 정의 규칙 |
+| **워크플로우** | `docs/common/architecture/workflow-process.md` | 개발 프로세스 |
+
+### 8. CI/CD 현황
 
 | 항목 | 상태 |
 |------|------|
@@ -110,7 +171,7 @@ docs/
 | 로컬 검증 | ✅ husky + lint-staged (pre-commit) |
 | 문서 검증 | ✅ `pnpm docs:verify` (11개 항목) |
 
-### 8. DB 스키마 구조
+### 9. DB 스키마 구조
 
 | 스키마 | 접두사 | 설명 | 테이블 수 |
 |--------|--------|------|-----------|
@@ -129,6 +190,23 @@ docs/
 3. 어떤 항목도 **"추정"하지 말고**, 확인 불가하면 **"확인 필요"**로 표시하고 어떤 확인이 필요한지 구체적으로 적습니다.
 
 4. 결과물은 아래 **산출물 포맷**을 반드시 지켜주세요.
+
+5. **삭제/변경 실행은 사용자 승인 후에만** 진행합니다.
+
+---
+
+## 점검 대상 (모노레포 전체)
+
+### 점검 범위
+
+| 영역 | 대상 |
+|------|------|
+| **백엔드** | `apps/server/` - NestJS 모듈, 서비스, 컨트롤러, DTO |
+| **프론트엔드** | `apps/web/pms/`, `apps/web/dms/` - 컴포넌트, 스토어, 훅, API |
+| **DB 패키지** | `packages/database/` - Prisma 스키마, 트리거, 시드 |
+| **타입 패키지** | `packages/types/` - 공유 타입 정의 |
+| **문서** | `docs/` - 모든 문서의 코드 일치성 |
+| **설정** | 루트 및 각 패키지의 config 파일들 |
 
 ---
 
@@ -210,6 +288,29 @@ docs/
 #### (D4) Export Surface 정리
 - 패키지에서 export하지만 실제 미사용인 항목
 
+#### (D5) Dead Code 삭제 기준
+- **삭제 판단 기준**:
+  - `grep_search`로 사용처 검색 결과 0건
+  - import는 있으나 실제 호출/사용이 없음
+  - 주석 처리된 코드 블록
+  - TODO/FIXME 주석만 있고 구현이 없는 스텁
+- **삭제 전 검증**:
+  - 빌드 성공 확인: `pnpm build`
+  - 타입 체크 확인: `pnpm typecheck`
+  - 영향 파일 목록 명시
+- **삭제 기록**: 삭제 사유와 영향 범위 브리핑
+
+#### (D6) 리팩토링 히스토리 (완료된 정리)
+> 이 섹션은 완료된 Dead Code 정리 작업을 기록합니다.
+
+**2026-02-02 DMS Dead Code 정리**:
+| 삭제 대상 | 라인 수 | 사유 |
+|----------|--------|------|
+| 미사용 API Handler 9개 | ~500줄 | users, git, watch, upload, index, text-search, gemini, search, ask |
+| AI 관련 코드 | ~200줄 | embeddings.ts, vectorStore.ts |
+| 서비스 레이어 인프라 | ~1,500줄 | markdownService, metadataService, base/*, types/* |
+| 미사용 UI 컴포넌트 | ~50줄 | input.tsx |
+
 ---
 
 ### E. 패키지/도구 정의 적합성
@@ -220,7 +321,7 @@ docs/
 |---------|---------|----------|
 | `apps/server` | NestJS, Swagger, TypeDoc, ESLint | 설치/설정/사용 일치 |
 | `apps/web/pms` | Next.js, Storybook, TypeDoc, ESLint | 설치/설정/사용 일치 |
-| `apps/web/dms` | Next.js (슬롯) | 불필요한 의존성 없는지 |
+| `apps/web/dms` | Next.js, ESLint | PMS와 구조 통일 여부 |
 | `packages/database` | Prisma, DBML generator | 설치/설정/사용 일치 |
 | `packages/types` | TypeScript, TypeDoc | 설치/설정/사용 일치 |
 
@@ -305,9 +406,10 @@ docs/
 - 트리거 SQL에 스키마 prefix(`common.`, `pms.`)가 일관 적용되었는지
 - Seed 데이터가 올바른 스키마에 삽입되는지
 
-#### (I2) 슬롯 앱(DMS) 관리
-- `apps/web/dms` 빈 앱의 불필요한 설정/의존성 존재 여부
-- PMS 공용화 대상 코드가 DMS에서도 사용 가능한 구조인지
+#### (I2) 앱 간 구조 통일 (PMS ↔ DMS)
+- 폴더 구조 일치 여부
+- 컴포넌트 패턴 일치 여부
+- 코드 패턴 표준 (아래 섹션 참조)
 
 #### (I3) docs-verify.js 검증 범위
 - 현재 11개 항목이 실제 생성 산출물과 일치하는지
@@ -316,6 +418,72 @@ docs/
 #### (I4) 히스토리 트리거 일관성
 - `packages/database/prisma/triggers/` 파일들이 모든 마스터 테이블 커버하는지
 - 트리거 SQL이 Prisma schema 변경과 동기화되었는지
+
+---
+
+## 코드 패턴 표준 (앱 간 통일 기준)
+
+### 프론트엔드 패턴
+
+#### 미들웨어 (`middleware.ts`)
+```typescript
+// ✅ 표준 패턴
+export function middleware(request: NextRequest) { ... }
+
+export const config = {
+  matcher: ['/((?!api|_next|.*\\..*|favicon.ico).*)'],
+};
+```
+- `export function` (named export) 사용
+- `matcher` 설정으로 정적 파일/API 필터링
+- 함수 내부 필터링 최소화
+
+#### 페이지 템플릿 Props
+```typescript
+// ✅ 표준: pagination은 table 내부에 포함
+<ListPageTemplate
+  table={{
+    columns,
+    data,
+    pagination: { page, pageSize, total, onPageChange, onPageSizeChange },
+  }}
+/>
+```
+
+#### 스토어 (Zustand)
+```typescript
+// ✅ 표준: 타입 인터페이스와 일치하는 필드만 사용
+const createItem = (): ItemType => ({
+  id: '...',
+  // 타입에 정의된 필드만 포함 (임의 필드 추가 금지)
+});
+```
+
+### 백엔드 패턴
+
+#### NestJS 모듈 구조
+```
+modules/
+├── {domain}/
+│   ├── {domain}.module.ts
+│   ├── {domain}.controller.ts
+│   ├── {domain}.service.ts
+│   └── dto/
+│       ├── create-{domain}.dto.ts
+│       └── update-{domain}.dto.ts
+```
+
+#### 서비스 레이어
+- 불필요한 추상화 클래스 금지 (BaseService 등)
+- 실제 사용되는 메서드만 구현
+- 미래 기능용 선제작 코드 금지
+
+### 공통 패턴
+
+#### 타입 정의
+- `packages/types`에서 공유 타입 정의
+- 앱별 타입은 해당 앱 내부 `types/` 폴더에
+- 인터페이스와 구현의 필드 일치 검증
 
 ---
 
@@ -349,11 +517,37 @@ pnpm docs:all && pnpm docs:verify
 
 | 프로젝트 타입 | 최소 툴셋 |
 |--------------|---------|
-| 백엔드 (server) | ... |
-| 프론트엔드 (web-pms) | ... |
-| DB 패키지 (database) | ... |
-| 타입 패키지 (types) | ... |
-| 슬롯 앱 (web-dms) | ... |
+| 백엔드 (server) | NestJS, Prisma, Swagger, ESLint, TypeDoc |
+| 프론트엔드 (web-pms/dms) | Next.js, Tailwind, shadcn/ui, Zustand, ESLint |
+| DB 패키지 (database) | Prisma, DBML generator |
+| 타입 패키지 (types) | TypeScript, TypeDoc |
+
+---
+
+## 빌드 검증 체크리스트
+
+### 수정 후 필수 검증
+```bash
+# 1. 타입 체크
+pnpm typecheck
+
+# 2. 빌드 (각 앱별)
+cd apps/server && pnpm build
+cd apps/web/pms && pnpm build
+cd apps/web/dms && pnpm build
+
+# 3. 린트
+pnpm lint
+```
+
+### 전체 검증 (대규모 변경 시)
+```bash
+# 루트에서 전체 빌드
+pnpm build
+
+# 문서 검증
+pnpm docs:all && pnpm docs:verify
+```
 
 ---
 
@@ -363,12 +557,20 @@ pnpm docs:all && pnpm docs:verify
 
 **"모호함/추정"은 금지**하며, 확인되지 않은 부분은 **확인 방법까지 제시**하세요.
 
+**삭제/변경 실행은 반드시 사용자 승인 후에만 진행**하세요.
+
 ---
 
 ## Changelog
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-02 | **대규모 업데이트**: AI 작업 원칙 추가, 점검 기준 강화 |
+| 2026-02-02 | DMS 상태 변경 (슬롯 → 개발 중), docs 구조 현행화 |
+| 2026-02-02 | Dead Code 삭제 기준/히스토리 섹션 추가 |
+| 2026-02-02 | 코드 패턴 표준 섹션 추가 (미들웨어, 템플릿, 스토어) |
+| 2026-02-02 | 빌드 검증 체크리스트 추가 |
+| 2026-02-02 | 보조 표준 문서 목록 추가 |
 | 2026-01-25 | 최초 작성 - 실제 워크스페이스 구조 반영 |
 | 2026-01-25 | 미래 공용 패키지 계획 추가 (@ssoo/ui, hooks, utils) |
 | 2026-01-25 | docs/ 구조 최신화: getting-started.md 추가, dms/ 폴더 구조 반영 |

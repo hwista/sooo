@@ -76,7 +76,7 @@ const columns: ColumnDef<ExecutionItem>[] = [
   { accessorKey: 'endDate', header: '종료일', size: 100 },
 ];
 
-export default function ExecutionListPage() {
+export function ExecutionListPage() {
   const { openTab } = useTabStore();
   const [data] = useState(sampleData);
   const [page, setPage] = useState(1);
@@ -144,13 +144,13 @@ export default function ExecutionListPage() {
         data,
         loading: false,
         onRowClick: handleRowClick,
-      }}
-      pagination={{
-        page,
-        pageSize,
-        total: data.length,
-        onPageChange: setPage,
-        onPageSizeChange: setPageSize,
+        pagination: {
+          page,
+          pageSize,
+          total: data.length,
+          onPageChange: setPage,
+          onPageSizeChange: setPageSize,
+        },
       }}
     />
   );

@@ -10,9 +10,8 @@ import {
   Content,
   ContentProps,
   DataGrid,
+  DataGridProps,
 } from '../common';
-import { DataTable, DataTableProps } from '../common/DataTable';
-import { Pagination, PaginationProps } from '../common/Pagination';
 
 /**
  * ListPageTemplate Props (새 표준)
@@ -24,10 +23,8 @@ export interface ListPageTemplateProps<TData, TValue> {
   header: Omit<HeaderProps, 'className'>;
   /** Content 설정 */
   content?: Omit<ContentProps, 'children' | 'className'>;
-  /** DataTable Props */
-  table: Omit<DataTableProps<TData, TValue>, 'className'>;
-  /** Pagination Props */
-  pagination?: Omit<PaginationProps, 'className'>;
+  /** DataGrid Props */
+  table: Omit<DataGridProps<TData, TValue>, 'className'>;
   /** 페이지 wrapper className */
   className?: string;
   /** 자식 요소 (DataGrid 직접 전달 시) */
@@ -43,7 +40,7 @@ export interface ListPageTemplateProps<TData, TValue> {
  * - Breadcrumb: 경로 표시
  * - Header: 액션 버튼 + 검색 필터 (접기/펼치기)
  * - Content: 고정 크기 컨텐츠 영역
- *   - DataGrid: DataTable + Pagination 묶음
+ *   - DataGrid: 테이블 슬롯 (내장 페이지네이션)
  * 
  * @example
  * ```tsx
@@ -67,13 +64,13 @@ export interface ListPageTemplateProps<TData, TValue> {
  *     data,
  *     loading: isLoading,
  *     onRowClick: handleRowClick,
- *   }}
- *   pagination={{
- *     page,
- *     pageSize,
- *     total,
- *     onPageChange: setPage,
- *     onPageSizeChange: setPageSize,
+ *     pagination: {
+ *       page,
+ *       pageSize,
+ *       total,
+ *       onPageChange: setPage,
+ *       onPageSizeChange: setPageSize,
+ *     },
  *   }}
  * />
  * ```
@@ -83,7 +80,6 @@ export function ListPageTemplate<TData, TValue>({
   header,
   content,
   table,
-  pagination,
   className,
   children,
 }: ListPageTemplateProps<TData, TValue>) {
@@ -102,10 +98,7 @@ export function ListPageTemplate<TData, TValue>({
         <Content {...content}>{children}</Content>
       ) : (
         <Content {...content}>
-          <DataGrid>
-            <DataTable {...table} />
-            {pagination && <Pagination {...pagination} />}
-          </DataGrid>
+          <DataGrid {...table} />
         </Content>
       )}
     </div>

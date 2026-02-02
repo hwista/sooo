@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Breadcrumb } from '../common/page/Breadcrumb';
-import { FormSection, FormActions, FormActionsProps } from '../common/FormComponents';
+import { FormSection, FormActions, FormActionsProps } from '../common/form';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingState, ErrorState } from '../common/StateDisplay';
 

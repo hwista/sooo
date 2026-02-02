@@ -16,7 +16,6 @@ export type {
 
 // Tab
 export type {
-  TabStatus,
   TabItem,
   OpenTabOptions,
   TabStoreState,

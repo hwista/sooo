@@ -105,7 +105,7 @@ const columns: ColumnDef<RequestItem>[] = [
   },
 ];
 
-export default function RequestListPage() {
+export function RequestListPage() {
   const { openTab } = useTabStore();
   const [data] = useState(sampleData);
   const [page, setPage] = useState(1);
@@ -174,13 +174,13 @@ export default function RequestListPage() {
         data,
         loading: false,
         onRowClick: handleRowClick,
-      }}
-      pagination={{
-        page,
-        pageSize,
-        total: data.length,
-        onPageChange: setPage,
-        onPageSizeChange: setPageSize,
+        pagination: {
+          page,
+          pageSize,
+          total: data.length,
+          onPageChange: setPage,
+          onPageSizeChange: setPageSize,
+        },
       }}
     />
   );

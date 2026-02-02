@@ -4,14 +4,6 @@
 // ============================================
 
 /**
- * 탭 상태
- * - active: 현재 활성 탭
- * - inactive: 비활성 탭
- * - loading: 로딩 중
- */
-export type TabStatus = 'active' | 'inactive' | 'loading';
-
-/**
  * MDI 탭 아이템
  */
 export interface TabItem {
@@ -22,9 +14,7 @@ export interface TabItem {
   icon?: string; // 아이콘
   path?: string; // 원본 경로
   closable: boolean; // 닫기 가능 여부 (대시보드는 false)
-  status: TabStatus;
   params?: Record<string, string>; // 동적 파라미터 (예: projectId)
-  data?: unknown; // 탭별 캐시 데이터
   openedAt: Date; // 열린 시각
   lastActiveAt: Date; // 마지막 활성화 시각
 }
@@ -50,7 +40,7 @@ export interface OpenTabOptions {
 export interface TabStoreState {
   tabs: TabItem[];
   activeTabId: string | null;
-  maxTabs: number; // 최대 탭 수 (기본 10)
+  maxTabs: number; // 최대 탭 수 (기본 16, 홈 탭 포함)
 }
 
 /**
@@ -64,7 +54,6 @@ export interface TabStoreActions {
   closeOldestTab: () => void; // 가장 오래된 탭 닫기 (탭 초과 시 사용)
   activateTab: (tabId: string) => void; // 탭 활성화
   updateTabTitle: (tabId: string, title: string) => void; // 탭 제목 변경
-  updateTabData: (tabId: string, data: unknown) => void; // 탭 데이터 업데이트
   reorderTabs: (fromIndex: number, toIndex: number) => void; // 탭 순서 변경
   getTabByMenuCode: (menuCode: string, params?: Record<string, string>) => TabItem | undefined;
 }

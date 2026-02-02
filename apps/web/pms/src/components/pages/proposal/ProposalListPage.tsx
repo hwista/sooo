@@ -59,7 +59,7 @@ const columns: ColumnDef<ProposalItem>[] = [
   { accessorKey: 'createdAt', header: '작성일', size: 100 },
 ];
 
-export default function ProposalListPage() {
+export function ProposalListPage() {
   const { openTab } = useTabStore();
   const [data] = useState(sampleData);
   const [page, setPage] = useState(1);
@@ -127,13 +127,13 @@ export default function ProposalListPage() {
         data,
         loading: false,
         onRowClick: handleRowClick,
-      }}
-      pagination={{
-        page,
-        pageSize,
-        total: data.length,
-        onPageChange: setPage,
-        onPageSizeChange: setPageSize,
+        pagination: {
+          page,
+          pageSize,
+          total: data.length,
+          onPageChange: setPage,
+          onPageSizeChange: setPageSize,
+        },
       }}
     />
   );

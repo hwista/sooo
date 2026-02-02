@@ -1,1 +1,1 @@
-export { default as ExecutionListPage } from './ExecutionListPage';
+export { ExecutionListPage } from './ExecutionListPage';
