@@ -19,10 +19,12 @@ SSOO 프론트엔드는 **Zustand**를 사용하여 전역 상태를 관리합�
 ```
 apps/web/pms/src/stores/
 ├── auth.store.ts      # 인증 상태
+├── confirm.store.ts   # 전역 Confirm Dialog
+├── index.ts           # 배럴 export
+├── layout.store.ts    # 레이아웃/반응형 상태
 ├── menu.store.ts      # 메뉴/즐겨찾기 상태
-├── tab.store.ts       # 탭 상태
 ├── sidebar.store.ts   # 사이드바 UI 상태
-└── layout.store.ts    # 레이아웃/반응형 상태
+└── tab.store.ts       # 탭 상태
 ```
 
 ---
@@ -32,6 +34,7 @@ apps/web/pms/src/stores/
 | Store | 용도 | 영속성 |
 |-------|------|--------|
 | `useAuthStore` | 인증, 토큰, 사용자 정보 | localStorage |
+| `useConfirmStore` | 전역 Confirm Dialog | 없음 |
 | `useMenuStore` | 메뉴 트리, 즐겨찾기 | 없음 (API 조회) |
 | `useTabStore` | 열린 탭, 활성 탭 | sessionStorage |
 | `useSidebarStore` | 사이드바 접힘, 섹션 펼침 | 없음 |
@@ -181,7 +184,7 @@ interface MenuItem {
 interface TabStoreState {
   tabs: TabItem[];          // 열린 탭 목록
   activeTabId: string | null; // 현재 활성 탭 ID
-  maxTabs: number;          // 최대 탭 수 (기본: 10)
+  maxTabs: number;          // 최대 탭 수 (기본: 16)
 }
 
 interface TabItem {
@@ -192,9 +195,7 @@ interface TabItem {
   icon: string | null;      // 아이콘
   path: string;             // 라우트 경로
   closable: boolean;        // 닫기 가능 여부
-  status: 'active' | 'inactive';
-  params?: Record<string, string>;
-  data?: unknown;           // 탭별 데이터
+  params?: Record<string, string>; // 탭별 파라미터
   openedAt: Date;           // 열린 시각
   lastActiveAt: Date;       // 마지막 활성 시각
 }
@@ -268,10 +269,10 @@ interface SidebarState {
   activeFloatSection: SidebarSection | null; // 활성 플로팅 섹션
   expandedSections: SidebarSection[]; // 펼쳐진 섹션 목록
   searchQuery: string;                // 검색어
-  expandedMenuIds: string[];          // 펼쳐진 메뉴 ID 목록
+  expandedMenuIds: Set<string>;       // 펼쳐진 메뉴 ID 목록
 }
 
-type SidebarSection = 'search' | 'favorites' | 'openTabs' | 'menuTree' | 'admin';
+type SidebarSection = 'favorites' | 'openTabs' | 'menuTree' | 'admin';
 ```
 
 ### Actions
@@ -376,10 +377,71 @@ window.addEventListener('resize', () => {
 ## 구현 파일
 
 - `apps/web/pms/src/stores/auth.store.ts`
+- `apps/web/pms/src/stores/confirm.store.ts`
 - `apps/web/pms/src/stores/menu.store.ts`
 - `apps/web/pms/src/stores/tab.store.ts`
 - `apps/web/pms/src/stores/sidebar.store.ts`
 - `apps/web/pms/src/stores/layout.store.ts`
+
+---
+
+## useConfirmStore
+
+전역 Confirm Dialog를 관리합니다. `Promise` 기반으로 비동기적으로 사용자 확인을 받을 수 있습니다.
+
+### State
+
+```typescript
+interface ConfirmState {
+  isOpen: boolean;
+  options: ConfirmOptions | null;
+  resolve: ((value: boolean) => void) | null;
+}
+
+interface ConfirmOptions {
+  title: string;
+  description?: string;
+  confirmText?: string;  // 기본: '확인'
+  cancelText?: string;   // 기본: '취소'
+}
+```
+
+### Actions
+
+| 액션 | 설명 |
+|------|------|
+| `confirm(options)` | Confirm Dialog 열기 (Promise 반환) |
+| `handleConfirm()` | 확인 버튼 클릭 처리 |
+| `handleCancel()` | 취소 버튼 클릭 처리 |
+
+### 사용 예시
+
+```tsx
+import { useConfirmStore } from '@/stores/confirm.store';
+
+function MyComponent() {
+  const { confirm } = useConfirmStore();
+
+  const handleDelete = async () => {
+    const confirmed = await confirm({
+      title: '삭제 확인',
+      description: '정말 삭제하시겠습니까?',
+      confirmText: '삭제',
+      cancelText: '취소',
+    });
+    
+    if (confirmed) {
+      // 삭제 실행
+    }
+  };
+}
+```
+
+### 영속성
+
+없음 (UI 상태만 관리)
+
+---
 
 ## 관련 문서
 
@@ -405,6 +467,7 @@ window.addEventListener('resize', () => {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-02 | useConfirmStore 추가, maxTabs 16으로 수정, expandedMenuIds 타입 수정, SidebarSection에서 search 제거 |
 | 2026-01-22 | Sidebar 섹션 타입에 search 추가 정합화 |
 | 2026-01-21 | 메뉴 응답 필드명 정합화 (menuId/icon/menuLevel/parentMenuId) |
 | 2026-01-21 | 즐겨찾기 순서 변경 항목 제거 (API 미지원) |

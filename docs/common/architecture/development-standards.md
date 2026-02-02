@@ -1,6 +1,6 @@
-﻿# 개발 표준 (Development Standards)
+# 개발 표준 (Development Standards)
 
-> 최종 업데이트: 2026-01-20  
+> 최종 업데이트: 2026-02-02  
 > 상태: 초안 작성
 
 ---

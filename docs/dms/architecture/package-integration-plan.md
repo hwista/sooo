@@ -1,10 +1,11 @@
 # DMS 통합 리팩터링 계획서
 
 > 📅 기준일: 2026-01-29  
+> � 최종 업데이트: 2026-02-02  
 > 📌 목적: PMS 기준 DMS 프로젝트 구조 정렬 및 패키지 통합  
 > 📂 완료 내역: `package-integration-completed.md` 참조  
 > 📊 비교 분석: `pms-dms-comparison-analysis.md` 참조  
-> ✅ 상태: **Phase 0~6 완료, Phase 7 진행중**
+> ✅ 상태: **Phase 0~7 완료**
 
 ---
 
@@ -32,7 +33,7 @@
 | **5** | 라우트 정리 + Middleware | ✅ 완료 | 2026-01-29 |
 | **검증** | PMS-DMS 비교 분석 | ✅ 완료 | 2026-01-29 |
 | **6** | 레거시 코드 정리 | ✅ 완료 | 2026-01-29 |
-| **7** | 문서 뷰어 템플릿 재설계 | ⬜ 진행중 | - |
+| **7** | 문서 뷰어 템플릿 재설계 | ✅ 완료 | 2026-02-02 |
 | **8** | 디자인 통일 (MUI 검토) | ⬜ 대기 | - |
 
 > 📄 **상세 문서**
@@ -70,18 +71,18 @@
 | 컴포넌트 | 위치 | 역할 |
 |----------|------|------|
 | AppLayout | `layout/` | 메인 레이아웃 |
-| MainSidebar | `layout/` | 새 사이드바 |
+| Sidebar | `layout/sidebar/` | 새 사이드바 |
 | Header | `layout/` | 헤더 |
 | TabBar | `layout/` | 탭바 |
 | ContentArea | `layout/` | 콘텐츠 영역 |
-| SidebarFileTree | `layout/sidebar/` | 파일 트리 |
-| SidebarSearch | `layout/sidebar/` | 검색 |
-| SidebarBookmarks | `layout/sidebar/` | 책갈피 |
-| SidebarOpenTabs | `layout/sidebar/` | 열린 탭 |
-| WikiHomePage | `pages/wiki/` | 홈 페이지 |
-| WikiViewerPage | `pages/wiki/` | 문서 뷰어 |
-| AISearchPage | `pages/ai/` | AI 검색 |
-| WikiEditor | 루트 | 에디터 (WikiViewerPage에서 import) |
+| FileTree | `layout/sidebar/` | 파일 트리 |
+| Search | `layout/sidebar/` | 검색 |
+| Bookmarks | `layout/sidebar/` | 책갈피 |
+| OpenTabs | `layout/sidebar/` | 열린 탭 |
+| HomeDashboardPage | `pages/home/` | 홈 대시보드 |
+| MarkdownViewerPage | `pages/markdown/` | 문서 뷰어 |
+| DocPageTemplate | `templates/` | 문서 템플릿 |
+| WikiEditor | 루트 | 에디터 |
 | BlockEditor | `editor/` | 블록 에디터 |
 | EditorToolbar | `editor/` | 에디터 툴바 |
 
@@ -110,8 +111,8 @@
 
 | 구 기능 | 구 컴포넌트 | 신규 대체 | 상태 |
 |---------|------------|----------|------|
-| 사이드바 | WikiSidebar (481줄) | MainSidebar + SidebarFileTree | ✅ 대체됨 |
-| 파일 트리 | TreeComponent (473줄) | SidebarFileTree (222줄) | ✅ 단순화됨 |
+| 사이드바 | WikiSidebar (481줄) | Sidebar + FileTree | ✅ 대체됨 |
+| 파일 트리 | TreeComponent (473줄) | FileTree (222줄) | ✅ 단순화됨 |
 | AI 검색 (RAG) | AIChat (211줄) | AISearchPage (205줄) | ✅ 대체됨 |
 | 벡터 검색 | SearchPanel (207줄) | AISearchPage | ✅ 통합됨 |
 | 메시지 모달 | MessageModal | sonner toast | ✅ 대체됨 |
@@ -125,33 +126,27 @@
 
 ### 6.1 Hooks 사용 현황
 
-| Hook | 파일 | 사용처 | 조치 |
+> ✅ **Phase 7 완료**: 레거시 Hooks 정리 완료, 현재 2개 Hooks 유지
+
+| Hook | 파일 | 사용처 | 상태 |
 |------|------|--------|------|
 | useEditor | `useEditor.ts` | WikiEditor | ✅ 활성 |
-| useMessage | `useMessage.ts` | WikiSidebar, WikiModals, CreateFileModal (레거시만) | ⚠️ 삭제 검토 |
-| useResize | `useResize.ts` | WikiApp, GeminiChat (레거시만) | ⚠️ 삭제 검토 |
-| useFileOperations | `useFileOperations.ts` | WikiSidebar (레거시만) | ⚠️ 이동 후 재연결 |
-| **useContextMenu** | `useContextMenu.ts` | ❌ 아무도 import 안함 | 삭제 |
-| **useNotification** | `useNotification.ts` | ❌ 아무도 import 안함 | 삭제 |
-| **useTreeData** | `useTreeData.ts` | ❌ 아무도 import 안함 | 삭제 |
-| **useAutoScroll** | `useAutoScroll.ts` | ❌ 아무도 import 안함 | 삭제 |
-| **useFileSystem** | `services/useFileSystem.ts` | ❌ 아무도 import 안함 | 삭제 |
+| useOpenTabWithConfirm | `useOpenTabWithConfirm.ts` | 탭 열기 확인 | ✅ 활성 |
 
 ---
 
 ### 6.2 Stores 사용 현황
 
-| Store | 사용처 | 조치 |
-|-------|--------|------|
-| useLayoutStore | MainSidebar, AppLayout, SidebarSearch 등 | ✅ 활성 |
-| useTabStore | 다수 | ✅ 활성 |
-| useTreeStore | MainSidebar, SidebarFileTree 등 | ✅ 활성 |
-| useWikiEditorStore | WikiViewerPage, WikiEditor, SidebarFileTree | ✅ 활성 |
-| useWikiUIStore | WikiSidebar (레거시만) | ⚠️ 삭제 검토 |
-| useWikiItemsStore | WikiSidebar (레거시만) | ⚠️ 삭제 검토 |
-| useGeminiStore | GeminiChat (레거시만) | ⚠️ 삭제 검토 |
-| useThemeStore | ThemeToggle (레거시만) | ⚠️ 삭제 검토 |
-| useUserStore | ❌ export만 됨 | ⚠️ 삭제 검토 |
+> ✅ **Phase 7 완료**: 레거시 Stores 정리 완료, 현재 6개 Stores 유지
+
+| Store | 파일 | 사용처 | 상태 |
+|-------|------|--------|------|
+| useConfirmStore | `confirm.store.ts` | 확인 모달 | ✅ 활성 |
+| useEditorStore | `editor.store.ts` | WikiEditor, WikiViewerPage | ✅ 활성 |
+| useFileStore | `file.store.ts` | 파일/폴더 트리 | ✅ 활성 |
+| useLayoutStore | `layout.store.ts` | AppLayout, Sidebar | ✅ 활성 |
+| useSidebarStore | `sidebar.store.ts` | Sidebar | ✅ 활성 |
+| useTabStore | `tab.store.ts` | 다수 | ✅ 활성 |
 
 ---
 

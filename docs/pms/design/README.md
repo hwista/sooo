@@ -6,7 +6,7 @@
 
 ### 1. 레이아웃 시스템
 - [layout-system.md](./layout-system.md) - 레이아웃 구조 및 컴포넌트
-  - AppLayout, MainSidebar, Header, TabBar, ContentArea
+  - AppLayout, Sidebar, Header, TabBar, ContentArea
   - 레이아웃 치수 (사이드바 56/340px, 헤더 60px, 탭바 53px)
 
 ### 2. UI 컴포넌트
@@ -18,7 +18,6 @@
 - [page-layouts.md](./page-layouts.md) - 표준 페이지 레이아웃 설계
   - 목록 페이지 (ListPageTemplate)
   - 등록/수정 페이지 (FormPageTemplate)
-  - 상세 페이지 (DetailPageTemplate)
 
 ### 4. 보안 및 라우팅
 - [page-security-routing.md](./page-security-routing.md) - 페이지 보안 및 라우팅 전략

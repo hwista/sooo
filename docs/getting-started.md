@@ -25,7 +25,7 @@
 | 도구 | 버전 | 확인 명령어 | 설치 방법 |
 |------|------|------------|----------|
 | **Node.js** | v20.x 이상 | `node --version` | [nodejs.org](https://nodejs.org/) |
-| **pnpm** | v8.x 이상 | `pnpm --version` | `npm install -g pnpm` |
+| **pnpm** | v9.x 이상 | `pnpm --version` | `npm install -g pnpm` |
 | **PostgreSQL** | v14 이상 | `psql --version` | [postgresql.org](https://www.postgresql.org/) |
 | **Git** | 최신 버전 | `git --version` | [git-scm.com](https://git-scm.com/) |
 

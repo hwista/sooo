@@ -39,7 +39,7 @@
 │ 4. Sidebar (components/layout/sidebar/Sidebar.tsx)                           │
 │    ├─ 헤더: 로고 + 접기 버튼                                                   │
 │    ├─ 빠른 액세스 (Favorites)                                                 │
-│    ├─ SidebarMenuTree: 메뉴 트리 렌더링                                       │
+│    ├─ MenuTree: 메뉴 트리 렌더링                                            │
 │    │     └─ useMenuStore.generalMenus/adminMenus                             │
 │    └─ 사용자 정보 + 로그아웃                                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -54,7 +54,7 @@
 │    ├─ activeTab.path로 컴포넌트 결정                                          │
 │    └─ <Suspense><PageComponent /></Suspense>                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 6. 메뉴 클릭 시 (SidebarMenuTree → handleMenuClick)                           │
+│ 6. 메뉴 클릭 시 (MenuTree → handleMenuClick)                                    │
 │    └─ openTab({ path: '/request', title: '의뢰', ... })                       │
 │         └─ ContentArea 리렌더링 → RequestListPage 로딩                        │
 │              └─ 페이지 컴포넌트가 자체적으로 데이터 fetch                       │
@@ -86,7 +86,16 @@ apps/web/pms/src/
 │   │   ├── ContentArea.tsx     # 동적 페이지 로딩
 │   │   └── sidebar/
 │   │       ├── Sidebar.tsx
-│   │       └── SidebarMenuTree.tsx
+│   │       ├── CollapsedSidebar.tsx
+│   │       ├── ExpandedSidebar.tsx
+│   │       ├── FloatingPanel.tsx
+│   │       ├── Section.tsx
+│   │       ├── Search.tsx
+│   │       ├── Favorites.tsx
+│   │       ├── OpenTabs.tsx
+│   │       ├── MenuTree.tsx        # 메뉴 트리
+│   │       ├── AdminMenu.tsx
+│   │       └── constants.ts
 │   └── pages/                  # 실제 비즈니스 페이지
 │       ├── home/
 │       │   └── HomeDashboardPage.tsx
@@ -101,6 +110,8 @@ apps/web/pms/src/
 │           └── TransitionListPage.tsx
 └── stores/
     ├── auth.store.ts           # 인증 상태
+    ├── confirm.store.ts        # 전역 Confirm Dialog
+    ├── index.ts                # 배럴 export
     ├── menu.store.ts           # 메뉴 트리, 즐겨찾기
     ├── tab.store.ts            # 탭 상태
     ├── sidebar.store.ts        # 사이드바 UI

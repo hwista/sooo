@@ -89,19 +89,21 @@ hwista-ssoo/
 │   │   ├── src/
 │   │   │   ├── main.ts          # 엔트리포인트
 │   │   │   ├── app.module.ts    # 루트 모듈
-│   │   │   ├── health/          # Health Check API
-│   │   │   └── project/         # Project CRUD API
-│   │   ├── package.json
-│   │   └── tsconfig.json
+│   │   │   └── modules/         # 도메인 모듈 (auth, user, menu 등)
+│   │   └── package.json
 │   │
-│   ├── web-pms/                 # Next.js 프론트엔드
-│   └── web-dms/                 # 도큐먼트 관리 시스템
-│       ├── src/app/             # App Router
-│       │   ├── layout.tsx       # 루트 레이아웃
-│       │   ├── page.tsx         # 메인 페이지
-│       │   └── globals.css      # 전역 스타일
-│       ├── package.json
-│       └── tsconfig.json
+│   └── web/                     # 프론트엔드 애플리케이션
+│       ├── pms/                 # PMS 프론트엔드 (Next.js 15)
+│       │   ├── src/
+│       │   │   ├── app/         # App Router
+│       │   │   ├── components/  # 컴포넌트
+│       │   │   └── stores/      # 상태 관리 (Zustand)
+│       │   └── package.json
+│       │
+│       └── dms/                 # DMS 프론트엔드 (독립 프로젝트)
+│           ├── src/             # 소스 코드
+│           ├── docs/            # DMS 정본 문서
+│           └── package.json     # npm 사용 (pnpm 아님)
 │
 ├── packages/                    # 공유 패키지
 │   ├── types/                   # @ssoo/types - 공통 타입 정의
@@ -118,10 +120,13 @@ hwista-ssoo/
 │       └── src/
 │           └── index.ts         # Prisma 클라이언트 export
 │
-├── docs/                        # 서비스 문서
-│   ├── README.md                # 서비스 정의/컨셉
-│   ├── database/                # DB 설계 문서
-│   └── service/                 # 업무 흐름/액션 문서
+├── docs/                        # 프로젝트 문서
+│   ├── README.md                # 문서 허브 인덱스
+│   ├── common/                  # 공통 문서 (아키텍처, 표준)
+│   │   ├── AGENTS.md            # 에이전트 가이드
+│   │   └── architecture/        # 개발 표준, 보안, 패키지 명세
+│   ├── pms/                     # PMS 도메인 문서
+│   └── dms/                     # DMS 통합 관련 (정본은 apps/web/dms/docs)
 │
 ├── package.json                 # 루트 워크스페이스 설정
 ├── pnpm-workspace.yaml          # pnpm 워크스페이스 정의

@@ -10,14 +10,18 @@ apps/web/pms/src/lib/
 │   ├── client.ts         # Axios 인스턴스
 │   ├── auth.ts           # 인증 API
 │   ├── types.ts          # API 응답 타입
+│   ├── index.ts          # API 모듈 진입점
 │   └── endpoints/        # 도메인별 API
 ├── utils/                # 유틸리티 함수
 │   ├── index.ts          # cn 및 공통 함수
 │   └── icons.ts          # 아이콘 유틸리티
-└── validations/          # Zod 유효성 검증
-    ├── common.ts         # 공통 스키마
-    ├── auth.ts           # 인증 스키마
-    └── project.ts        # 프로젝트 스키마
+├── validations/          # Zod 유효성 검증
+│   ├── index.ts          # 검증 모듈 진입점
+│   ├── common.ts         # 공통 스키마
+│   ├── auth.ts           # 인증 스키마
+│   └── project.ts        # 프로젝트 스키마
+├── index.ts              # lib 모듈 진입점
+└── toast.ts              # 토스트 알림 유틸리티
 ```
 
 ---
@@ -386,6 +390,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-02 | 파일 구조 실제 코드 반영 (index.ts, toast.ts 추가) |
 | 2026-01-22 | 토큰 갱신 실패 시 리다이렉트 경로 정합화 |
 | 2026-01-21 | 메뉴 아이콘 필드명 정합화 (icon) |
 | 2026-01-21 | 유틸리티 문서 최초 작성 |

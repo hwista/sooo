@@ -2,10 +2,11 @@
 
 ## 구현 상태
 
-- 상태: 부분 구현
+- 상태: ✅ 구현 완료
 - 현재 기준:
-  - AuthController/Service 기준 로그인, 토큰 갱신/로그아웃 구현됨.
-  - 문서 내 정책(계정 잠금 등)은 코드 반영 여부 미확인.
+  - AuthController/Service 기준 로그인, 토큰 갱신/로그아웃 구현됨
+  - 계정 잠금 정책: 5회 실패 시 30분 잠금 (UserService.incrementLoginFailCount에서 구현)
+  - 최종 검증일: 2026-02-02
 
 
 ## 1. 개요
@@ -96,9 +97,10 @@
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│  3. 계정 상태 확인                                                    │
-│     - status_code !== 'active' → "비활성화된 계정입니다."              │
-│     - locked_until > now() → "계정이 잠겨있습니다."                   │
+│  3. 시스템 사용자 및 계정 상태 확인                                    │
+│     - isSystemUser === false → "시스템 접근 권한이 없습니다."          │
+│     - userStatusCode !== 'active' → "비활성화된 계정입니다."           │
+│     - lockedUntil > now() → "계정이 잠겨있습니다."                    │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -119,9 +121,10 @@
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────┐
 │  6. JWT 토큰 발급 (AuthService.generateTokens)                        │
 │     - Access Token: 15분 만료                                         │
-│       · payload: userId, loginId, roleCode, userTypeCode             │
+│       · payload: userId, loginId, roleCode, userTypeCode, isAdmin    │
 │     - Refresh Token: 7일 만료                                         │
 │       · DB에 해시로 저장 (UserService.updateRefreshToken)             │
 └─────────────────────────────────────────────────────────────────────┘
@@ -180,7 +183,7 @@
 
 ```typescript
 // apps/server/src/modules/common/auth/auth.service.ts
-async login(loginDto: LoginDto): Promise<TokenResponse> {
+async login(loginDto: LoginDto): Promise<AuthTokens> {
   const { loginId, password } = loginDto;
   
   // 1. 사용자 조회
@@ -189,31 +192,41 @@ async login(loginDto: LoginDto): Promise<TokenResponse> {
     throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
   }
   
-  // 2. 계정 상태 확인
-  if (user.statusCode !== 'active') {
-    throw new UnauthorizedException('비활성화된 계정입니다.');
+  // 2. 시스템 사용자 여부 확인
+  if (!user.isSystemUser) {
+    throw new UnauthorizedException('시스템 접근 권한이 없습니다.');
   }
   
-  // 3. 계정 잠금 확인
+  // 3. 계정 상태 확인
+  if (user.userStatusCode !== 'active') {
+    throw new UnauthorizedException('비활성화된 계정입니다. 관리자에게 문의하세요.');
+  }
+  
+  // 4. 계정 잠금 확인
   if (user.lockedUntil && user.lockedUntil > new Date()) {
-    throw new UnauthorizedException('계정이 잠겨있습니다.');
+    throw new UnauthorizedException('계정이 잠겨있습니다. 잠시 후 다시 시도하세요.');
   }
   
-  // 4. 비밀번호 검증
-  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+  // 5. 비밀번호 검증
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash || '');
   if (!isPasswordValid) {
-    await this.userService.incrementLoginFailCount(BigInt(user.id));
-    // 5회 실패 시 30분 잠금 로직...
+    // 로그인 실패 횟수 증가 (5회 초과 시 30분 잠금 - incrementLoginFailCount 내부 로직)
+    await this.userService.incrementLoginFailCount(user.id);
     throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
   }
   
-  // 5. 성공 처리
-  await this.userService.resetLoginFailCount(BigInt(user.id));
-  await this.userService.updateLastLogin(BigInt(user.id));
+  // 6. 성공 처리
+  await this.userService.resetLoginFailCount(user.id);
+  await this.userService.updateLastLogin(user.id);
   
-  // 6. 토큰 생성 및 반환
-  const tokens = await this.generateTokens(user);
-  // Refresh Token DB 저장...
+  // 7. 토큰 생성 및 Refresh Token DB 저장
+  const tokens = await this.generateTokens({
+    userId: user.id.toString(),
+    loginId: user.loginId!,
+    roleCode: user.roleCode,
+    userTypeCode: user.userTypeCode,
+    isAdmin: user.isAdmin,
+  });
   
   return tokens;
 }
@@ -300,8 +313,10 @@ Response: {
     "userId": "1",
     "loginId": "admin",
     "roleCode": "admin",
-    "userTypeCode": "internal"
-  }
+    "userTypeCode": "internal",
+    "isAdmin": true
+  },
+  "message": "사용자 정보 조회 성공"
 }
 ```
 
@@ -340,10 +355,11 @@ const user = await this.userService.findById(BigInt(payload.userId));  // string
 ```typescript
 // apps/server/src/modules/common/auth/interfaces/auth.interface.ts
 export interface TokenPayload {
-  userId: string;  // BigInt를 JSON 직렬화할 수 없어 string으로 저장
+  userId: string;     // BigInt를 JSON 직렬화할 수 없어 string으로 저장
   loginId: string;
   roleCode: string;
   userTypeCode: string;
+  isAdmin: boolean;   // 관리자 여부
   type?: 'access' | 'refresh';
 }
 ```
@@ -395,13 +411,13 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 | TC-01 | 정상 로그인 (토큰 발급) | P0 | ✅ |
 | TC-02 | 잘못된 비밀번호 (401) | P0 | ✅ |
 | TC-03 | 존재하지 않는 사용자 | P0 | ✅ |
-| TC-04 | 비활성 계정 로그인 차단 | P1 | 🔲 |
-| TC-05 | 5회 실패 시 계정 잠금 | P1 | 🔲 |
-| TC-06 | 잠긴 계정 로그인 차단 | P1 | 🔲 |
-| TC-07 | 잠금 해제 후 로그인 | P2 | 🔲 |
+| TC-04 | 비활성 계정 로그인 차단 | P1 | ✅ 구현됨 |
+| TC-05 | 5회 실패 시 계정 잠금 | P1 | ✅ 구현됨 |
+| TC-06 | 잠긴 계정 로그인 차단 | P1 | ✅ 구현됨 |
+| TC-07 | 잠금 해제 후 로그인 | P2 | ✅ 구현됨 |
 | TC-08 | 빈 입력값 검증 | P2 | ✅ |
 | TC-09 | 대시보드 리다이렉트 | P1 | ✅ |
-| TC-10 | 로그인 상태에서 / 접근 | P2 | 🔲 |
+| TC-10 | 로그인 상태에서 / 접근 | P2 | ✅ |
 
 ---
 

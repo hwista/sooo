@@ -34,7 +34,12 @@ packages/database/
 │   ├── seeds/           # 초기 데이터 SQL
 │   └── triggers/        # 히스토리 트리거 SQL
 ├── scripts/
-│   └── migration/       # 스키마 마이그레이션 이력
+│   ├── apply-triggers.ts  # 트리거 적용
+│   ├── check-data.ts      # 데이터 검증
+│   ├── export-dbml.js     # DBML 내보내기
+│   ├── render-dbml.js     # DBML 렌더링
+│   ├── run-sql.ts         # SQL 실행
+│   └── split-dbml.js      # DBML 분리
 ├── src/
 │   └── index.ts         # Prisma 클라이언트 export
 ├── dist/                # 빌드 결과물

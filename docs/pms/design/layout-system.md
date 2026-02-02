@@ -103,10 +103,10 @@ AppLayout
 
 ### 파일 위치
 
-`apps/web/pms/src/components/layout/Sidebar/`
+`apps/web/pms/src/components/layout/sidebar/`
 
 ```
-Sidebar/
+sidebar/
 ├── index.ts
 ├── Sidebar.tsx           # 메인 컴포넌트
 ├── CollapsedSidebar.tsx  # 접힌 상태
@@ -231,7 +231,7 @@ MDI(Multiple Document Interface) 탭바 컴포넌트입니다.
 - **Home 탭**: 항상 첫 번째, 닫기 불가, 아이콘만 표시
 - **일반 탭**: 제목 + 닫기 버튼
 - **스크롤**: 탭이 많으면 좌우 화살표로 스크롤
-- **최대 탭 수**: 10개 (초과 시 가장 오래된 탭 자동 닫힘)
+- **최대 탭 수**: 16개 (초과 시 가장 오래된 탭 자동 닫힘)
 
 ---
 
@@ -306,7 +306,7 @@ const pageComponents = {
 ### 컴포넌트
 
 - `apps/web/pms/src/components/layout/AppLayout.tsx`
-- `apps/web/pms/src/components/layout/MainSidebar/`
+- `apps/web/pms/src/components/layout/sidebar/`
 - `apps/web/pms/src/components/layout/Header.tsx`
 - `apps/web/pms/src/components/layout/TabBar.tsx`
 - `apps/web/pms/src/components/layout/ContentArea.tsx`
@@ -347,6 +347,7 @@ const pageComponents = {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-02 | 최대 탭 수 16으로 수정, sidebar/ 폴더 경로 정합 |
 | 2026-01-22 | 사이드바/탭바 치수 및 플로팅 패널 설정 정합화 |
 | 2026-01-21 | 레이아웃 시스템 문서 최초 작성 |
 | 2026-01-21 | 사이드바 스크롤 영역 검색란 아래로 한정 |

@@ -45,7 +45,7 @@ Level 4: 도메인 페이지 (pages/)
 
 ### Level 3: 페이지 템플릿 (templates/)
 - 레이아웃/구조 표준화
-- 예: `ListPageTemplate`, `FormPageTemplate`, `DetailPageTemplate`
+- 예: `ListPageTemplate`, `FormPageTemplate`
 - 상태/비즈니스 로직은 주입 받는 형태로 제한
 
 ### Level 4: 도메인 페이지 (pages/)
@@ -60,11 +60,21 @@ Level 4: 도메인 페이지 (pages/)
 ```
 apps/web/pms/src/
   components/
-    ui/            # Level 1
-    common/        # Level 2
-    templates/     # Level 3
-  app/
-    (main)/...     # Level 4
+    ui/            # Level 1 - shadcn/ui 래퍼 컴포넌트
+    common/        # Level 2 - 공통 복합 컴포넌트
+      ├── ConfirmDialog.tsx   # 확인 대화상자
+      ├── StateDisplay.tsx    # 상태 표시
+      ├── datagrid/           # 데이터그리드 관련
+      ├── form/               # 폼 관련
+      └── page/               # 페이지 공통
+    templates/     # Level 3 - 페이지 템플릿
+    pages/         # Level 4 - 도메인 페이지
+      ├── home/               # 홈 대시보드
+      ├── request/            # 요청 관련
+      ├── proposal/           # 제안 관련
+      ├── execution/          # 실행 관련
+      └── transition/         # 전환 관련
+    layout/        # 레이아웃 컴포넌트 (AppLayout, sidebar 등)
 ```
 
 > 실제 경로는 리팩토링 과정에서 변경될 수 있습니다. 변경 시 본 문서를 업데이트합니다.
@@ -101,3 +111,11 @@ Domain Page (Level 4)
 - [README.md](./README.md) - UI 디자인 문서 인덱스
 - [page-layouts.md](./page-layouts.md) - 템플릿 레이아웃 기준
 - [design-system.md](./design-system.md) - 디자인 토큰/컴포넌트 규칙
+
+---
+
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-02-02 | 디렉토리 매핑 섹션 실제 코드 구조 반영 (components/pages/, common/ 세부구조) |

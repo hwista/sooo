@@ -2,6 +2,7 @@
 # PMS vs DMS 비교 분석 보고서
 
 > 📅 작성일: 2026-01-29
+> 📌 최종 업데이트: 2026-02-02
 > 📌 목적: 리팩터링 후 PMS-DMS 간 차이점 종합 분석
 > 📂 분석 대상: `apps/web/pms/`, `apps/web/dms/`
 
@@ -123,36 +124,48 @@ components/
 #### DMS components/
 ```
 components/
-├── common/           # ❌ 비어 있음
-├── editor/           # Tiptap 에디터 (DMS 전용)
-├── layout/           # 레이아웃 (PMS와 동일 구조)
+├── common/           # 공통 UI 컴포넌트
+├── index.ts          # 배럴 export
+├── layout/           # 레이아웃
+│   ├── AppLayout.tsx
+│   ├── ContentArea.tsx
+│   ├── Header.tsx
+│   ├── TabBar.tsx
+│   └── sidebar/      # 사이드바 컴포넌트
+│       ├── Sidebar.tsx
+│       ├── Search.tsx
+│       ├── Bookmarks.tsx
+│       ├── OpenTabs.tsx
+│       ├── FileTree.tsx
+│       └── Section.tsx
 ├── pages/            # 페이지별 (ai/, wiki/)
-├── ui/               # 기본 UI
-├── wiki/             # 컨텍스트 메뉴 (DMS 전용)
-└── 루트 레벨 컴포넌트   # ⚠️ 정리 필요
+├── templates/        # 페이지 템플릿
+└── ui/               # 기본 UI
 ```
 
-### 2.3 루트 레벨 컴포넌트 이슈 (DMS)
+### 2.3 사이드바 컴포넌트 구조
 
-**⚠️ 정리 필요 파일 목록:**
-| 파일 | 권장 위치 |
-|------|----------|
-| `WikiApp.tsx` | 삭제 (AppLayout으로 대체됨) |
-| `WikiSidebar.tsx` | 삭제 (MainSidebar로 대체됨) |
-| `WikiEditor.tsx` | `editor/WikiEditor.tsx` |
-| `WikiModals.tsx` | `common/WikiModals.tsx` |
-| `AIChat.tsx` | `pages/ai/AIChat.tsx` |
-| `GeminiChat.tsx` | `pages/ai/GeminiChat.tsx` |
-| `SearchPanel.tsx` | `layout/sidebar/SearchPanel.tsx` |
-| `TextSearch.tsx` | `layout/sidebar/TextSearch.tsx` |
-| `ThemeToggle.tsx` | `common/ThemeToggle.tsx` |
-| `TreeComponent.tsx` | `layout/sidebar/TreeComponent.tsx` |
-| `CreateFileModal.tsx` | `common/CreateFileModal.tsx` |
-| `FileUpload.tsx` | `common/FileUpload.tsx` |
-| `ImageModal.tsx` | `common/ImageModal.tsx` |
-| `LinkModal.tsx` | `common/LinkModal.tsx` |
-| `MarkdownToolbar.tsx` | `editor/MarkdownToolbar.tsx` |
-| `MessageModal.tsx` | `common/MessageModal.tsx` |
+**PMS MainSidebar/**
+```
+components/layout/
+├── MainSidebar.tsx       # 메인 컨테이너
+├── CollapsedSidebar.tsx  # 접힌 상태 (아이콘만)
+├── ExpandedSidebar.tsx   # 펼친 상태
+├── FloatingPanel.tsx     # hover 플로팅
+└── SidebarSection.tsx    # 공통 섹션
+```
+
+**DMS sidebar/**
+```
+components/layout/sidebar/
+├── Sidebar.tsx           # 메인 컨테이너
+├── Search.tsx            # 검색
+├── Bookmarks.tsx         # 책갈피
+├── OpenTabs.tsx          # 열린 탭
+├── FileTree.tsx          # 파일 트리
+├── Section.tsx           # 공통 섹션
+└── constants.ts          # 상수
+```
 
 ### 2.4 stores/ 비교
 
@@ -167,19 +180,16 @@ stores/
 └── tab.store.ts       # 탭
 ```
 
-#### DMS stores/ (10개)
+#### DMS stores/ (6개)
 ```
 stores/
-├── gemini.store.ts    # Gemini AI (DMS 전용)
+├── confirm.store.ts    # 확인 모달 (DMS 전용)
+├── editor.store.ts     # 에디터 상태 (DMS 전용)
+├── file.store.ts       # 파일 트리 (DMS 전용)
 ├── index.ts
-├── layout.store.ts    # 레이아웃
-├── tab.store.ts       # 탭
-├── theme.store.ts     # 테마 (DMS 전용)
-├── tree.store.ts      # 파일 트리 (DMS 전용)
-├── user.store.ts      # 사용자 (DMS 전용)
-├── wiki-editor.store.ts  # 에디터 (DMS 전용)
-├── wiki-items.store.ts   # 위키 아이템 (DMS 전용)
-└── wiki-ui.store.ts      # 위키 UI (DMS 전용)
+├── layout.store.ts     # 레이아웃
+├── sidebar.store.ts    # 사이드바 UI 상태 (DMS 전용)
+└── tab.store.ts        # 탭
 ```
 
 **공통 Store:**
@@ -192,11 +202,10 @@ stores/
 - `sidebar.store.ts` - 사이드바 상태
 
 **DMS 전용:**
-- `gemini.store.ts` - AI 기능
-- `theme.store.ts` - 테마 전환
-- `tree.store.ts` - 파일 시스템
-- `user.store.ts` - 사용자 설정
-- `wiki-*.store.ts` (3개) - 위키 도메인
+- `confirm.store.ts` - 확인 모달
+- `editor.store.ts` - 에디터 상태
+- `file.store.ts` - 파일 시스템
+- `sidebar.store.ts` - 사이드바 UI 상태
 
 ### 2.5 types/ 비교
 
@@ -210,19 +219,14 @@ types/
 └── tab.ts
 ```
 
-#### DMS types/ (10개)
+#### DMS types/ (5개)
 ```
 types/
-├── api.ts          # API 관련 (DMS 전용)
-├── common.ts       # 공통 (DMS 전용)
-├── components.ts   # 컴포넌트 (DMS 전용)
-├── fileSystem.ts   # 파일 시스템 (DMS 전용)
-├── hooks.ts        # 훅 (DMS 전용)
+├── file.ts         # 파일 시스템 (PMS menu.ts 대응)
 ├── index.ts
 ├── layout.ts       # 레이아웃 (공통)
-├── tab.ts          # 탭 (공통)
-├── ui.ts           # UI (DMS 전용)
-└── wiki.ts         # 위키 (DMS 전용)
+├── sidebar.ts      # 사이드바 (공통)
+└── tab.ts          # 탭 (공통)
 ```
 
 ### 2.6 lib/ 비교
@@ -239,17 +243,21 @@ lib/
 #### DMS lib/
 ```
 lib/
-├── embeddings.ts      # 벡터 임베딩 (DMS 전용)
+├── index.ts
 ├── markdownConverter.ts  # MD 변환 (DMS 전용)
-├── toast.ts           # 토스트 유틸
-├── users.ts           # 사용자 유틸 (DMS 전용)
-├── utils/             # 유틸리티
-└── vectorStore.ts     # 벡터 스토어 (DMS 전용)
+├── toast.ts              # 토스트 유틸
+└── utils/                # 유틸리티
+    ├── apiClient.ts      # API 클라이언트
+    ├── constants.ts
+    ├── errorUtils.ts
+    ├── fileUtils.ts
+    ├── index.ts
+    └── pathUtils.ts
 ```
 
 **차이점:**
 - PMS: `api/`, `validations/` 디렉토리 구조
-- DMS: 파일 단위, AI/벡터 관련 파일
+- DMS: 파일 단위, 마크다운 관련 파일
 
 ### 2.7 hooks/ 비교
 
@@ -261,20 +269,12 @@ hooks/
 └── useAuth.ts      # 인증 훅
 ```
 
-#### DMS hooks/ (12개)
+#### DMS hooks/ (2개)
 ```
 hooks/
 ├── index.ts
-├── services/       # 서비스 훅 (apiClient)
-├── useAutoScroll.ts
-├── useContextMenu.ts
-├── useEditor.ts
-├── useFileOperations.ts
-├── useFileSystem.ts
-├── useMessage.ts
-├── useNotification.ts
-├── useResize.ts
-└── useTreeData.ts
+├── useEditor.ts           # 에디터 훅
+└── useOpenTabWithConfirm.ts  # 탭 열기 확인
 ```
 
 ---

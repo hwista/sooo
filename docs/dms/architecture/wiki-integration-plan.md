@@ -158,7 +158,7 @@ apps/server/src/
 
 ### Phase 1: 통합 구조 구성
 
-1. `apps/web-dms` 디렉토리 준비
+1. `apps/web/dms` 디렉토리 준비
 2. Git submodule 연결
 3. `pnpm-workspace.yaml` 반영
 4. Turborepo 파이프라인 추가 (DMS 빌드/린트)

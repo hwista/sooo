@@ -27,6 +27,7 @@ Radix UI Primitives + shadcn/ui 기반의 커스텀 컴포넌트입니다.
 
 ```
 apps/web/pms/src/components/ui/
+├── alert-dialog.tsx    # 알림 대화상자
 ├── button.tsx
 ├── card.tsx
 ├── checkbox.tsx
@@ -497,6 +498,7 @@ PMS는 공통 로딩 컴포넌트를 기준으로 사용합니다.
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-02 | alert-dialog.tsx 파일 구조에 추가 |
 | 2026-01-21 | UI 컴포넌트 문서 최초 작성 |
 | 2026-01-21 | 커스텀 스크롤바 디자인 시스템 추가 |
 | 2026-01-21 | ScrollArea 컴포넌트 추가 |

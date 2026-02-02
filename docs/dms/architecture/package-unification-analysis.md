@@ -2,7 +2,8 @@
 
 > **문서 목적**: 장기적 관점에서 PMS와 DMS의 공통 모듈을 모노레포 패키지로 통합하기 위한 분석  
 > **작성일**: 2026-01-29  
-> **상태**: 📋 분석 완료 (DMS Phase 5 리팩터링 반영)  
+> **최종 업데이트**: 2026-02-02  
+> **상태**: 📋 분석 완료 (DMS Phase 7 리팩터링 반영)  
 > **관련 문서**: [PMS-DMS 비교 분석](./pms-dms-comparison-analysis.md) | [통합 리팩터링 계획](./package-integration-plan.md)
 
 ---
@@ -42,9 +43,9 @@ hwista-ssoo/
 | Store | PMS | DMS | 차이점 |
 |-------|-----|-----|--------|
 | **Tab Store** | `menuCode`, `menuId`, `params` 기반 | `id`, `path` 기반 | 🔴 탭 식별 방식 다름 |
-| **Layout Store** | `deviceType`, `isMobileMenuOpen` | + `documentType`, `expandedFolders` | 🟡 DMS가 더 많은 상태 |
-| **Sidebar Store** | 별도 존재 | Layout Store에 통합 | 🔴 분리 vs 통합 |
-| **Auth Store** | JWT 기반 인증 | 간단한 로컬 사용자 | 🔴 복잡도 다름 |
+| **Layout Store** | `deviceType`, `isMobileMenuOpen` | `deviceType`, `documentType`, `expandedFolders` | 🟡 DMS가 더 많은 상태 |
+| **Sidebar Store** | 별도 존재 | 별도 존재 (`sidebar.store.ts`) | ✅ 동일 패턴 |
+| **Auth Store** | JWT 기반 인증 | 없음 (로컨/내부용) | 🔴 복잡도 다름 |
 
 #### Tab 타입 비교
 
@@ -98,11 +99,13 @@ PMS MainSidebar/
 └── SidebarSection.tsx    # 공통 섹션
 
 DMS sidebar/
-├── SidebarSection.tsx    # 공통 섹션 ✅
-├── SidebarBookmarks.tsx  # 책갈피
-├── SidebarOpenTabs.tsx   # 열린 탭 ✅
-├── SidebarFileTree.tsx   # 파일 트리
-└── SidebarSearch.tsx     # 검색
+├── Sidebar.tsx           # 메인 컨테이너 (Sidebar로 export)
+├── Search.tsx            # 검색
+├── Bookmarks.tsx         # 책갈피 ✅
+├── OpenTabs.tsx          # 열린 탭 ✅
+├── FileTree.tsx          # 파일 트리
+├── Section.tsx           # 공통 섹션 ✅
+└── constants.ts          # 상수
 ```
 
 ### 2.5 API 레이어 (✅ Phase 4 이후)

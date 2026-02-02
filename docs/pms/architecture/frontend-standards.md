@@ -1,6 +1,6 @@
-﻿# SSOO 프론트엔드 표준
+# SSOO 프론트엔드 표준
 
-> 최종 업데이트: 2026-01-30
+> 최종 업데이트: 2026-02-02
 
 프론트엔드 개발 시 준수해야 할 표준 구조와 패턴을 정의합니다.
 
@@ -22,31 +22,46 @@ components/
 
 ## Level 2 공통 컴포넌트 (common/)
 
+### 폴더 구조
+
+```
+common/
+├── ConfirmDialog.tsx   # 전역 Confirm Dialog (useConfirmStore 연동)
+├── StateDisplay.tsx    # LoadingState, ErrorState, EmptyState 통합
+├── datagrid/           # 데이터 그리드 컴포넌트
+│   ├── DataGrid.tsx    # DataTable + Pagination 통합
+│   ├── Toolbar.tsx     # 그리드 툴바
+│   ├── Body.tsx        # 그리드 본문
+│   ├── Footer.tsx      # 그리드 푸터
+│   ├── Pagination.tsx  # 페이지 네비게이션
+│   └── utils.tsx       # 유틸리티
+├── form/               # 폼 컴포넌트
+│   ├── FormSection.tsx
+│   ├── FormActions.tsx
+│   └── FormField.tsx
+├── page/               # 페이지 전용 컴포넌트
+│   ├── Breadcrumb.tsx
+│   ├── Header.tsx
+│   ├── Content.tsx
+│   └── FilterBar.tsx
+└── index.ts            # 통합 export
+```
+
+### 컴포넌트 목록
+
 | 컴포넌트 | 용도 | Props |
 |----------|------|-------|
-| `Breadcrumb` | 페이지 경로 표시 | items |
-| `Header` | 페이지 제목 + 액션 + 필터 | title, actions, filters |
-| `Content` | 페이지 본문 래퍼 | children, className |
+| `ConfirmDialog` | 전역 확인 대화상자 | useConfirmStore 연동 |
+| `StateDisplay` | 로딩/에러/빈 상태 통합 | loading, error, empty |
 | `DataGrid` | DataTable + Pagination 통합 | columns, data, pagination |
-| `FilterBar` | 필터 입력 영역 | filters, onFilterChange |
-| `DataTable` | 정렬/선택/페이지네이션 테이블 | columns, data, loading, pagination |
 | `Pagination` | 페이지 네비게이션 | page, pageSize, total, onChange |
 | `FormSection` | 폼 섹션 제목 + 필드 그룹 | title, description, children |
 | `FormActions` | 저장/취소/삭제 버튼 | onSubmit, onCancel, loading |
 | `FormField` | 라벨 + 에러 래퍼 | label, required, error, hint |
-| `EmptyState` | 데이터 없음 표시 | icon, title, description, action |
-| `LoadingState` | 로딩 상태 표시 | message |
-| `ErrorState` | 에러 상태 표시 | error, onRetry |
-
-### Page 전용 컴포넌트 (common/page/)
-
-| 컴포넌트 | 용도 |
-|----------|------|
-| `Breadcrumb` | 페이지 경로 (Home > 메뉴 > 서브메뉴) |
-| `Header` | 액션 + 필터 통합 헤더 (표준) |
-| `Content` | 본문 레이아웃 래퍼 |
-| `DataGrid` | DataTable + Pagination 묶음 |
-| `FilterBar` | 필터 입력 영역 |
+| `Breadcrumb` | 페이지 경로 표시 | items |
+| `Header` | 페이지 제목 + 액션 + 필터 | title, actions, filters |
+| `Content` | 페이지 본문 래퍼 | children, className |
+| `FilterBar` | 필터 입력 영역 | filters, onFilterChange |
 
 ---
 
@@ -89,11 +104,12 @@ const result = await api.projects.list({ page: 1 });
 ```
 stores/
 ├── auth.store.ts    # 인증 상태 (persist)
+├── confirm.store.ts # 전역 Confirm Dialog
 ├── menu.store.ts    # 메뉴 트리, 즐겨찾기
 ├── tab.store.ts     # MDI 탭 (persist, sessionStorage)
 ├── sidebar.store.ts # 사이드바 UI 상태
 ├── layout.store.ts  # 디바이스 타입 감지
-└── index.ts
+└── index.ts         # 배럴 export
 ```
 
 ---
@@ -130,13 +146,9 @@ hooks/
 │   ├── useProjects.ts  # useProjectList, useProjectDetail, useCreateProject...
 │   ├── useMenus.ts     # useMyMenus
 │   └── index.ts
-└── index.ts
-
-추가 훅:
-```
-hooks/
-└── useAuth.ts       # 인증 헬퍼 훅
-```
+├── useAuth.ts          # 인증 헬퍼 훅
+├── useOpenTabWithConfirm.ts  # 탭 초과 시 확인 대화상자 (useConfirmStore 연동)
+└── index.ts            # 통합 export
 ```
 
 ### 사용 패턴

@@ -29,49 +29,36 @@ apps/server/
 │   ├── main.ts              # 엔트리포인트
 │   ├── app.module.ts        # 루트 모듈
 │   │
-│   ├── auth/                # 인증 모듈
-│   │   ├── auth.module.ts
-│   │   ├── auth.controller.ts
-│   │   ├── auth.service.ts
-│   │   ├── dto/
-│   │   │   ├── login.dto.ts
-│   │   │   └── refresh-token.dto.ts
-│   │   ├── strategies/
-│   │   │   └── jwt.strategy.ts
-│   │   ├── guards/
-│   │   │   └── jwt-auth.guard.ts
-│   │   └── decorators/
-│   │       ├── current-user.decorator.ts
-│   │       └── public.decorator.ts
-│   │
-│   ├── user/                # 사용자 모듈
-│   │   ├── user.module.ts
-│   │   ├── user.controller.ts
-│   │   └── user.service.ts
-│   │
+│   ├── common/              # 공통 유틸리티
+│   ├── config/              # 환경 설정
 │   ├── database/            # 데이터베이스 모듈
 │   │   ├── database.module.ts
 │   │   └── database.service.ts
 │   │
-│   ├── health/              # Health Check 모듈
-│   │   └── health.controller.ts
-│   │
-│   └── project/             # Project 모듈
-│       ├── project.module.ts
-│       ├── project.controller.ts
-│       └── project.service.ts
+│   └── modules/             # 기능 모듈
+│       ├── common/          # 공통 모듈
+│       │   ├── common.module.ts
+│       │   ├── auth/        # 인증
+│       │   ├── health/      # Health Check
+│       │   └── user/        # 사용자
+│       │
+│       ├── pms/             # PMS 전용 모듈
+│       │   ├── pms.module.ts
+│       │   ├── menu/        # 메뉴
+│       │   └── project/     # 프로젝트
+│       │
+│       └── dms/             # DMS 전용 모듈 (예약)
 │
 ├── scripts/
 │   └── seed-admin.ts        # 관리자 계정 생성 스크립트
-│
-├── prisma/
-│   └── schema.prisma        # Prisma 스키마
 │
 ├── dist/                    # 빌드 결과물
 ├── package.json
 ├── tsconfig.json
 └── nest-cli.json
 ```
+
+> **Note**: Prisma 스키마는 `packages/database/prisma/`에 위치합니다.
 
 ---
 

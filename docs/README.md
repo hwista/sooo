@@ -31,6 +31,8 @@ docs/
 | 문서 | 설명 |
 |------|------|
 | [공용 README](./common/README.md) | 공용 문서 인덱스 |
+| [**AGENTS 가이드**](./common/AGENTS.md) | 모노레포 에이전트 학습 가이드 |
+| [리팩토링 표준](./common/architecture/refactoring-audit-prompt.md) | 리팩토링 감사 기준 |
 | [공통 기술 스택](./common/architecture/tech-stack.md) | 백엔드, 데이터베이스, 공통 도구 |
 | [개발 표준](./common/architecture/development-standards.md) | 코딩 규칙 및 표준 |
 | [보안 표준](./common/architecture/security-standards.md) | 보안 정책 |
@@ -48,11 +50,14 @@ docs/
 
 ### DMS (Document Management System)
 
+> ⚠️ **DMS 정본 문서는 `apps/web/dms/docs/development/`에 있습니다.**  
+> DMS는 독립 프로젝트로, npm을 사용하며 `@ssoo/*` 패키지를 참조하지 않습니다.
+
 | 문서 | 설명 |
 |------|------|
-| [DMS README](./dms/README.md) | DMS 문서 인덱스 |
-| [DMS 기술 스택](./dms/architecture/tech-stack.md) | DMS 기술 스택 |
-| [통합 계획](./dms/architecture/package-integration-plan.md) | DMS-PMS 패키지 통합 |
+| [DMS AGENTS](../apps/web/dms/docs/development/AGENTS.md) | DMS 에이전트 가이드 (정본) |
+| [DMS 기술 스택](../apps/web/dms/docs/development/architecture/tech-stack.md) | DMS 기술 스택 |
+| [DMS 패키지 명세](../apps/web/dms/docs/development/architecture/package-spec.md) | DMS 패키지 구조 |
 
 ## 📋 문서 카테고리 설명
 

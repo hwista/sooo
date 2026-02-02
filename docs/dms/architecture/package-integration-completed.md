@@ -1,7 +1,8 @@
 # DMS 통합 리팩터링 완료 기록
 
 > 📅 작성일: 2026-01-29  
-> 📌 목적: Phase 0~6 완료 내역 아카이브  
+> � 최종 업데이트: 2026-02-02  
+> 📌 목적: Phase 0~7 완료 내역 아카이브  
 > 📂 현재 진행 문서: `package-integration-plan.md`  
 > 📊 비교 분석: `pms-dms-comparison-analysis.md`
 
@@ -27,7 +28,7 @@
 
 ## 📦 패키지 비교표 (완료 시점 스냅샷)
 
-> 📅 최종 업데이트: 2026-01-28
+> 📅 최종 업데이트: 2026-02-02
 
 ### Dependencies (런타임)
 
@@ -143,16 +144,20 @@ apps/web/dms/
 - ✅ `zustand` ^5.0.10
 - ✅ `sonner` ^1.7.4
 
-### 생성된 Stores (7개)
-| Store | 파일 | 역할 |
-|-------|------|------|
-| gemini-store | `stores/gemini-store.ts` | AI 채팅 상태 |
-| layout-store | `stores/layout-store.ts` | 레이아웃 상태 |
-| tab-store | `stores/tab-store.ts` | 탭 + 북마크 |
-| theme-store | `stores/theme-store.ts` | 테마 |
-| tree-store | `stores/tree-store.ts` | 파일 트리 |
-| user-store | `stores/user-store.ts` | 사용자 |
-| wiki-editor-store | `stores/wiki-editor-store.ts` | 에디터 상태 |
+### 생성된 Stores (Phase 1 당시 7개, 현재 6개)
+
+> ⚠️ **역사 기록**: 아래는 Phase 1 당시 생성된 Store 목록입니다.  
+> Phase 6~7에서 대부분 삭제/병합되어 현재는 `confirm`, `editor`, `file`, `layout`, `sidebar`, `tab` 6개만 유지됩니다.
+
+| Store | 파일 (당시) | 역할 | 현재 상태 |
+|-------|------|------|------|
+| gemini-store | `stores/gemini-store.ts` | AI 채팅 상태 | ❌ 삭제됨 |
+| layout-store | `stores/layout-store.ts` | 레이아웃 상태 | ✅ 유지 (`layout.store.ts`) |
+| tab-store | `stores/tab-store.ts` | 탭 + 북마크 | ✅ 유지 (`tab.store.ts`) |
+| theme-store | `stores/theme-store.ts` | 테마 | ❌ 삭제됨 |
+| tree-store | `stores/tree-store.ts` | 파일 트리 | ✅ 병합됨 (`file.store.ts`) |
+| user-store | `stores/user-store.ts` | 사용자 | ❌ 삭제됨 |
+| wiki-editor-store | `stores/wiki-editor-store.ts` | 에디터 상태 | ✅ 병합됨 (`editor.store.ts`) |
 
 ---
 
@@ -281,27 +286,36 @@ apps/web/dms/
 > **완료일**: 2026-01-29  
 > **목적**: DMS를 PMS의 `pageComponents` 패턴과 동기화
 
-### 생성된 페이지 컴포넌트 (3개)
+### 생성된 페이지 컴포넌트 (Phase 3 당시)
 
-| 컴포넌트 | 경로 | 역할 |
-|----------|------|------|
-| WikiHomePage | `components/pages/wiki/WikiHomePage.tsx` | 홈 대시보드 |
-| WikiViewerPage | `components/pages/wiki/WikiViewerPage.tsx` | 문서 뷰어/에디터 + loadFile 자동 호출 |
-| AISearchPage | `components/pages/ai/AISearchPage.tsx` | AI 검색 |
+> ⚠️ **역사 기록**: 아래는 Phase 3 당시 생성된 페이지 컴포넌트입니다.  
+> Phase 7에서 리팩터링되어 현재는:
+> - `WikiHomePage` → `HomeDashboardPage` (`pages/home/`)
+> - `WikiViewerPage` → `MarkdownViewerPage` (`pages/markdown/`)
+> - `AISearchPage` → 삭제됨 (Header에서 AI 검색 처리)
 
-### ContentArea 리팩토링
+| 컴포넌트 (당시) | 경로 (당시) | 역할 | 현재 상태 |
+|----------|------|------|------|
+| WikiHomePage | `components/pages/wiki/WikiHomePage.tsx` | 홈 대시보드 | → `HomeDashboardPage` |
+| WikiViewerPage | `components/pages/wiki/WikiViewerPage.tsx` | 문서 뷰어/에디터 | → `MarkdownViewerPage` |
+| AISearchPage | `components/pages/ai/AISearchPage.tsx` | AI 검색 | ❌ 삭제됨 |
+
+### ContentArea 리팩터링 (Phase 3 당시)
+
+> ⚠️ **역사 기록**: 아래는 Phase 3 당시 코드입니다. 현재는 `home`, `markdown` 2개 페이지만 사용합니다.
 
 ```typescript
-// 변경 전: if/else 분기
-if (activeTab.id === HOME_TAB.id) return <HomeJSX />;
-if (activeTab.path.startsWith('/ai-search')) return <AISearchJSX />;
-return <>{children}</>;
-
-// 변경 후: pageComponents 패턴 + React.lazy + Suspense
+// Phase 3 당시: pageComponents 패턴 도입
 const pageComponents = {
   home: lazy(() => import('@/components/pages/wiki/WikiHomePage')),
   'ai-search': lazy(() => import('@/components/pages/ai/AISearchPage')),
   wiki: lazy(() => import('@/components/pages/wiki/WikiViewerPage')),
+};
+
+// 현재 (Phase 7 이후):
+const pageComponents = {
+  home: lazy(() => import('@/components/pages/home/HomeDashboardPage')),
+  markdown: lazy(() => import('@/components/pages/markdown/MarkdownViewerPage')),
 };
 ```
 
@@ -317,18 +331,22 @@ openTab({ ... });
 openTab({ ... });
 ```
 
-### wiki-editor-store 확장
+### editor.store 확장 (Phase 3 당시 wiki-editor-store)
+
+> ⚠️ **현재**: `wiki-editor-store.ts` → `editor.store.ts`로 리네이밍됨
 
 | 필드 | 설명 |
 |------|------|
 | `currentFilePath` | 현재 로드된 파일 경로 (하이라이트 상태용) |
 
-### 커밋 이력
+### 커밋 이력 (Phase 3)
 
 | 커밋 | 내용 |
 |------|------|
-| `d0f152b` | pageComponents 패턴, WikiHomePage, WikiViewerPage, AISearchPage |
+| `d0f152b` | pageComponents 패턴 도입 (당시 WikiHomePage, WikiViewerPage, AISearchPage) |
 | `7037c7e` | currentFilePath 추가로 파일 로딩/하이라이트 버그 수정 |
+
+> 📌 Phase 7에서 페이지 컴포넌트 구조 리팩터링됨
 
 ---
 
@@ -344,13 +362,13 @@ openTab({ ... });
 | 파일 | 이유 |
 |------|------|
 | `WikiApp.tsx` | AppLayout으로 대체, 아무도 import 안함 |
-| `WikiSidebar.tsx` | MainSidebar + SidebarFileTree로 대체 |
+| `WikiSidebar.tsx` | Sidebar + FileTree로 대체 |
 | `WikiModals.tsx` | sonner toast로 대체 |
 | `AIChat.tsx` | AISearchPage로 대체 |
 | `GeminiChat.tsx` | 레거시 전용 |
 | `SearchPanel.tsx` | 미사용 |
 | `TextSearch.tsx` | 미사용 |
-| `TreeComponent.tsx` | SidebarFileTree로 대체 |
+| `TreeComponent.tsx` | FileTree로 대체 |
 | `CreateFileModal.tsx` | 레거시 전용, 재구현 예정 |
 | `FileUpload.tsx` | 레거시 전용 |
 | `MessageModal.tsx` | sonner로 대체 |
@@ -402,8 +420,8 @@ openTab({ ... });
 
 | 파일 | 변경 |
 |------|------|
-| `hooks/index.ts` | useEditor만 남김 |
-| `stores/index.ts` | layout, tab, tree, wiki-editor만 남김 |
+| `hooks/index.ts` | useEditor, useOpenTabWithConfirm만 남김 |
+| `stores/index.ts` | confirm, editor, file, layout, sidebar, tab만 남김 |
 
 ### 검증
 

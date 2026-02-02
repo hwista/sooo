@@ -31,11 +31,16 @@
 ```
 packages/types/
 ├── src/
-│   ├── index.ts        # 엔트리포인트 (모든 타입 re-export)
-│   ├── common.ts       # 공통 타입 (ApiResponse, Pagination 등)
-│   ├── user.ts         # 사용자 관련 타입/DTO
-│   ├── customer.ts     # 고객 관련 타입/DTO
-│   └── project.ts      # 프로젝트 관련 타입/DTO
+│   ├── index.ts        # 엔트리포인트 (common, pms re-export)
+│   ├── common/         # 공통 타입
+│   │   ├── index.ts
+│   │   ├── api.ts      # API 관련 (ApiResponse, Pagination)
+│   │   └── user.ts     # 사용자 관련 타입
+│   ├── pms/            # PMS 전용 타입
+│   │   ├── index.ts
+│   │   ├── customer.ts # 고객 관련 타입
+│   │   └── project.ts  # 프로젝트 관련 타입
+│   └── dms/            # DMS 전용 타입 (예약)
 ├── dist/               # 빌드 결과물 (JS + d.ts)
 ├── package.json
 └── tsconfig.json
@@ -45,10 +50,12 @@ packages/types/
 
 ## 🔧 포함된 타입
 
-### common.ts — 공통 타입
+### common — 공통 타입
 
 ```typescript
-// API 응답 래퍼
+// common/api.ts - API 응답 래퍼
+import { ApiResponse, PaginationParams } from '@ssoo/types/common';
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -56,16 +63,7 @@ interface ApiResponse<T> {
   meta?: { page?: number; limit?: number; total?: number };
 }
 
-// 페이지네이션 파라미터
-interface PaginationParams {
-  page?: number;
-  limit?: number;
-}
-```
-
-### user.ts — 사용자
-
-```typescript
+// common/user.ts - 사용자
 type UserRole = 'admin' | 'manager' | 'user' | 'viewer';
 
 interface User {
