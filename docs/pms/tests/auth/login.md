@@ -1,7 +1,7 @@
 ﻿# 테스트 케이스 — 로그인 (Login)
 
 **관련 액션**: [user_login.md](../../domain/actions/user_login.md)  
-**마지막 업데이트**: 2026-01-17  
+**마지막 업데이트**: 2026-02-02  
 **테스트 상태**: ✅ 수동 테스트 완료
 
 ---
@@ -23,7 +23,7 @@
 | 항목 | 내용 |
 |------|------|
 | **우선순위** | P0 (Critical) |
-| **전제조건** | 활성 사용자 존재 (`status_code = 'active'`) |
+| **전제조건** | 활성 사용자 존재 (`userStatusCode = 'active'`) |
 | **입력** | `{ "loginId": "admin", "password": "admin123!" }` |
 | **실행 단계** | 1. POST /api/auth/login 요청 |
 | **예상 결과** | 200 OK, accessToken + refreshToken 반환 |
@@ -90,7 +90,7 @@
 | 항목 | 내용 |
 |------|------|
 | **우선순위** | P1 (High) |
-| **전제조건** | 사용자의 `status_code = 'inactive'` |
+| **전제조건** | 사용자의 `userStatusCode = 'inactive'` |
 | **입력** | `{ "loginId": "inactive_user", "password": "correct" }` |
 | **실행 단계** | 1. POST /api/auth/login 요청 |
 | **예상 결과** | 401 Unauthorized |

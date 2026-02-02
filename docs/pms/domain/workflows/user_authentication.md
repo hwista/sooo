@@ -2,10 +2,12 @@
 
 ## 구현 상태
 
-- 상태: 부분 구현
+- 상태: ✅ 구현 완료
+- 최종 검증일: 2026-02-02
 - 현재 기준:
-  - AuthController 기준 로그인/토큰/로그아웃 구현됨.
-  - 문서 내 일부 정책/리다이렉트 규칙은 UI 확인 필요.
+  - AuthController/Service 기준 로그인/토큰/로그아웃/me 구현됨
+  - 계정 잠금: 5회 실패 시 30분 잠금 (UserService.incrementLoginFailCount)
+  - UI 리다이렉트: (main)/layout.tsx에서 처리
 
 
 ## 1. 개요
@@ -186,7 +188,8 @@ Response:
     "userId": "1",
     "loginId": "admin",
     "roleCode": "admin",
-    "userTypeCode": "internal"
+    "userTypeCode": "internal",
+    "isAdmin": true
   },
   "message": "사용자 정보 조회 성공"
 }

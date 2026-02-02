@@ -1,8 +1,8 @@
 # 테스트 케이스 — 토큰 갱신 (Refresh Token)
 
 **관련 액션**: [user_login.md](../../domain/actions/user_login.md)  
-**마지막 업데이트**: 2026-01-17  
-**테스트 상태**: 🔲 대기
+**마지막 업데이트**: 2026-02-02  
+**테스트 상태**: ✅ 수동 테스트 완료 (AuthService.refreshTokens 구현됨)
 
 ---
 
