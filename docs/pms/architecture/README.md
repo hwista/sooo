@@ -1,40 +1,59 @@
-# 아키텍처 문서
+# PMS 아키텍처 문서
+
+> 최종 업데이트: 2026-02-02
 
 PMS 시스템의 아키텍처 및 개발 기준 문서입니다.
+
+---
 
 ## 핵심 문서
 
 | 문서 | 설명 |
 |------|------|
-| [modular-monolith.md](modular-monolith.md) | **모듈러 모놀리스 아키텍처** - 모듈 구조, 의존성 규칙, 확장 가이드 |
-| [frontend-package-strategy.md](frontend-package-strategy.md) | **프론트엔드 패키지 전략** - PMS/DMS 공용화 계획, 이원화 관리 |
-| [tech-stack.md](tech-stack.md) | 기술 스택 - 사용 기술 및 버전 |
-| [auth-system.md](../../common/architecture/auth-system.md) | 인증 시스템 - JWT, 토큰 갱신, 보안 정책 (공용) |
+| [tech-stack.md](tech-stack.md) | 기술 스택 - 프론트엔드 기술 및 버전 |
+| [tech-decisions.md](tech-decisions.md) | 기술 결정 기록 (ADR) |
+| [frontend-package-strategy.md](frontend-package-strategy.md) | **프론트엔드 패키지 전략** - PMS/DMS 공용화 계획 |
+| [package-spec.md](package-spec.md) | 패키지 명세서 - 의존성 상세 |
 
 ## 개발 표준
 
 | 문서 | 설명 |
 |------|------|
-| [development-standards.md](development-standards.md) | 개발 표준 - 코딩 컨벤션, 커밋 규칙 |
-| [frontend-standards.md](frontend-standards.md) | 프론트엔드 표준 - Next.js, 컴포넌트 구조 |
-| [security-standards.md](security-standards.md) | 보안 표준 - 비밀번호 정책, 레이트 리밋 |
+| [frontend-standards.md](frontend-standards.md) | 프론트엔드 표준 - 컴포넌트 계층, API 클라이언트 |
+| [development-standards.md](../../common/architecture/development-standards.md) | 개발 표준 (공용) |
+| [security-standards.md](../../common/architecture/security-standards.md) | 보안 표준 (공용) |
+
+## 상태 관리 & 라우팅
+
+| 문서 | 설명 |
+|------|------|
+| [state-management.md](state-management.md) | 상태 관리 - Zustand Store 구조 |
+| [page-routing.md](page-routing.md) | 페이지 라우팅 - 보안 라우팅 전략 |
+| [app-initialization-flow.md](app-initialization-flow.md) | 앱 초기화 흐름 |
+| [utilities.md](utilities.md) | 유틸리티 함수 - API 클라이언트, 헬퍼 |
 
 ## UI/레이아웃
 
-| 문서 | 설명 |
-|------|------|
-| [layout-system.md](layout-system.md) | 레이아웃 시스템 - 사이드바, 탭, 컨텐츠 영역 |
-| [page-routing.md](page-routing.md) | 페이지 라우팅 - Next.js App Router 구조 |
-| [state-management.md](state-management.md) | 상태 관리 - Zustand, TanStack Query |
-| [ui-components.md](ui-components.md) | UI 컴포넌트 - shadcn/ui 기반 |
-| [scrollbar.md](scrollbar.md) | 스크롤바 - 커스텀 스크롤바 구현 |
-
-## 기타
+> UI 및 레이아웃 관련 문서는 [design/](../design/README.md) 폴더로 이동했습니다.
 
 | 문서 | 설명 |
 |------|------|
-| [utilities.md](utilities.md) | 유틸리티 함수 |
-| [tech-decisions.md](tech-decisions.md) | 기술 결정 기록 (ADR) |
-| [workflow-process.md](workflow-process.md) | 워크플로우 프로세스 |
-| [docs-structure-plan.md](../../common/architecture/docs-structure-plan.md) | 문서 구조 계획 (공용) |
-| [wiki-integration-plan.md](../../dms/architecture/wiki-integration-plan.md) | DMS 통합 계획 (DMS) |
+| [design-system.md](../design/design-system.md) | 디자인 시스템 - 색상, 타이포그래피 |
+| [layout-system.md](../design/layout-system.md) | 레이아웃 시스템 - 사이드바, 탭, 컨텐츠 |
+| [ui-components.md](../design/ui-components.md) | UI 컴포넌트 - shadcn/ui 기반 |
+| [scrollbar.md](../design/scrollbar.md) | 스크롤바 - 커스텀 스크롤바 |
+
+## 공용 문서 (common/)
+
+| 문서 | 설명 |
+|------|------|
+| [modular-monolith.md](../../common/architecture/modular-monolith.md) | 모듈러 모놀리스 아키텍처 (백엔드) |
+| [auth-system.md](../../common/architecture/auth-system.md) | 인증 시스템 - JWT, 토큰 갱신 |
+| [workflow-process.md](../../common/architecture/workflow-process.md) | 개발 작업 프로세스 |
+| [docs-structure-plan.md](../../common/architecture/docs-structure-plan.md) | 문서 구조 계획 |
+
+## DMS 연동
+
+| 문서 | 설명 |
+|------|------|
+| [wiki-integration-plan.md](../../dms/architecture/wiki-integration-plan.md) | DMS 통합 계획 |

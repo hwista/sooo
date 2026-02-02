@@ -28,13 +28,13 @@ SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 
 | 작업 유형 | 업데이트 대상 문서 |
 |----------|-------------------|
-| API 변경 | `docs/pms/api/README.md` |
-| 레이아웃/UI 변경 | `docs/pms/architecture/layout-system.md` |
+| API 변경 | `docs/common/guides/api-guide.md` |
+| 레이아웃/UI 변경 | `docs/pms/design/layout-system.md` |
 | Store 변경 | `docs/pms/architecture/state-management.md` |
-| 컴포넌트 변경 | `docs/pms/architecture/ui-components.md` |
+| 컴포넌트 변경 | `docs/pms/design/ui-components.md` |
 | 유틸리티 변경 | `docs/pms/architecture/utilities.md` |
-| 인증 변경 | `docs/pms/architecture/auth-system.md` |
-| DB 변경 | `docs/pms/database/README.md` |
+| 인증 변경 | `docs/common/architecture/auth-system.md` |
+| DB 변경 | `docs/common/guides/database-guide.md` |
 
 ### 3단계: Git 커밋
 
