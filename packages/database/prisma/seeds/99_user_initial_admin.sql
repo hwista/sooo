@@ -1,18 +1,19 @@
 -- =========================================================
 -- Seed: 99_user_initial_admin.sql
--- ?�스??초기 관리자 계정 ?�성
--- 주의: ?�행 ??password_hash�??�제 bcrypt ?�시값으�?교체 ?�요!
+-- 시스템 초기 관리자 계정 생성
+-- 주의: 실행 전 password_hash를 실제 bcrypt 해시값으로 교체 필요!
 -- =========================================================
 
 begin;
 
 -- 초기 관리자 계정
--- password_hash ?�시??'admin123!' ??bcrypt ?�시 (?�제 배포 ??변�??�수)
--- ?�성 방법: node -e "console.log(require('bcrypt').hashSync('your_password', 12))"
+-- password_hash 예시는 'admin123!'의 bcrypt 해시 (실제 배포 시 변경 필수)
+-- 생성 방법: node -e "console.log(require('bcryptjs').hashSync('your_password', 12))"
 
 insert into common.cm_user_m (
     -- System Access Control
     is_system_user,
+    is_admin,
     user_type_code,
     
     -- Authentication
@@ -44,17 +45,18 @@ insert into common.cm_user_m (
 )
 values (
     -- System Access Control
-    true,                   -- is_system_user: ?�스???�용 가??
-    'internal',             -- user_type_code: ?��? 직원
+    true,                   -- is_system_user: 시스템 사용 가능
+    true,                   -- is_admin: 관리자 (관리자 메뉴 접근 가능)
+    'internal',             -- user_type_code: 내부 직원
     
     -- Authentication
     'admin',                -- login_id
-    '$2b$12$PLACEHOLDER_HASH_REPLACE_WITH_REAL_BCRYPT_HASH',  -- password_hash (반드??교체!)
+    '$2b$12$PLACEHOLDER_HASH_REPLACE_WITH_REAL_BCRYPT_HASH',  -- password_hash (반드시 교체!)
     
     -- Profile
-    '?�스?��?리자',          -- user_name
+    '시스템관리자',          -- user_name
     'Admin',                -- display_name
-    'admin@company.com',    -- email (?�제 ?�메?�로 변�?
+    'admin@company.com',    -- email (실제 이메일로 변경)
     
     -- Organization
     'ADMIN',                -- department_code
@@ -65,22 +67,15 @@ values (
     'admin',                -- role_code: 관리자
     
     -- Status
-    'active',               -- user_status_code: ?�성
+    'active',               -- user_status_code: 활성
     
     -- Common
     true,                   -- is_active
-    '?�스??초기 관리자 계정. 배포 ??비�?번호 변�??�수.',
-    null,                   -- created_by: ?�스???�성
+    '시스템 초기 관리자 계정. 배포 후 비밀번호 변경 필수.',
+    null,                   -- created_by: 시스템 생성
     'SEED',                 -- last_source
     'user_initial_admin.sql'
 )
-on conflict (email) do nothing;  -- ?��? 존재?�면 skip
+on conflict (email) do nothing;  -- 이미 존재하면 skip
 
 commit;
-
--- =========================================================
--- ?�인 쿼리
--- =========================================================
--- select user_id, login_id, user_name, email, role_code, user_status_code 
--- from cm_user_m 
--- where login_id = 'admin';
