@@ -94,7 +94,7 @@ function MenuTreeNode({ item, level }: MenuTreeNodeProps) {
         {!isFolder && (
           <button
             onClick={handleFavoriteToggle}
-            className={`opacity-0 group-hover:opacity-100 p-0.5 hover:bg-gray-200 rounded transition-opacity ${
+            className={`opacity-0 group-hover:opacity-100 h-control-h-sm w-control-h-sm flex items-center justify-center hover:bg-gray-200 rounded transition-opacity ${
               isFavorite(item.menuId) ? 'opacity-100' : ''
             }`}
           >

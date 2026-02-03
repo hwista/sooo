@@ -38,7 +38,7 @@ export function Header() {
 
         {/* 알림 */}
         <button
-          className="relative p-2 hover:bg-white/10 rounded-md transition-colors"
+          className="relative h-control-h w-control-h flex items-center justify-center hover:bg-white/10 rounded-md transition-colors"
           title="알림"
         >
           <Bell className="w-5 h-5 text-white" />
@@ -47,7 +47,7 @@ export function Header() {
         </button>
 
         {/* 사용자 프로필 */}
-        <button className="flex items-center gap-2 px-2 py-1.5 hover:bg-white/10 rounded-md transition-colors">
+        <button className="flex items-center gap-2 h-control-h px-2 hover:bg-white/10 rounded-md transition-colors">
           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
             <User className="w-4 h-4 text-white" />
           </div>

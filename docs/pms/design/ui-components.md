@@ -54,6 +54,15 @@ SSOO UI는 일관된 컨트롤 높이를 사용합니다.
 
 ---
 
+## 컨트롤 컨테이너 규격
+
+- 표준 컨트롤(36px)을 담는 바/패널은 `min-h-[52px] px-4 py-2` 기준으로 맞춥니다. (36px + 상하 8px)
+- 적용 대상: PageHeader(ActionBar/FilterBar), DataGrid Pagination Footer, 기타 툴바류.
+- 예외: TabBar 컨테이너는 레이아웃 규칙(53px)을 따릅니다.
+- 인라인 아이콘 버튼(닫기/즐겨찾기/클리어 등)은 `h-control-h-sm w-control-h-sm` 기준.
+
+---
+
 ## Button
 
 버튼 컴포넌트입니다.

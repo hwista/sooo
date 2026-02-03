@@ -42,7 +42,7 @@ export function ExpandedSidebar({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="p-2 hover:bg-ssoo-sitemap-bg rounded-lg transition-colors disabled:opacity-50"
+            className="h-control-h w-control-h flex items-center justify-center hover:bg-ssoo-sitemap-bg rounded-lg transition-colors disabled:opacity-50"
             title="새로고침"
           >
             <RefreshCw

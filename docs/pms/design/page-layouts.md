@@ -135,6 +135,8 @@ Page
 | **FilterBar** | 검색 조건 입력 필드 | ❌ (옵션) |
 | **CollapseToggle** | 헤더 접기/펼치기 버튼 | ✅ |
 
+- **컨테이너 높이/패딩**: ActionBar/FilterBar 영역은 `min-h-[52px] px-4 py-2` 기준 (컨트롤 36px 기준).
+
 ```tsx
 // PageHeader 예시
 <PageHeader
@@ -208,6 +210,8 @@ Page
 | **Chart** | 차트 | ❌ |
 | **Custom** | 커스텀 컴포넌트 | ❌ |
 | **Pagination** | 페이지네이션 | ❌ (DataTable인 경우 필수) |
+
+- **Pagination 컨테이너**: `min-h-[52px] px-4 py-2` 기준 (컨트롤 36px 기준).
 
 ```tsx
 // DataGrid Props

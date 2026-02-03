@@ -381,6 +381,16 @@ hover:underline
 | 즐겨찾기 항목 | `h-control-h` | 36px |
 | 열린 탭 항목 | `h-control-h` | 36px |
 
+### 인라인 아이콘 버튼
+
+- 닫기/즐겨찾기/검색 클리어 등 인라인 아이콘은 `h-control-h-sm w-control-h-sm` 기준.
+
+### 컨트롤 컨테이너
+
+- 표준 컨트롤(36px)을 담는 바/패널: `min-h-[52px] px-4 py-2` (36px + 상하 8px)
+- 적용 대상: PageHeader(ActionBar/FilterBar), DataGrid Pagination Footer, 기타 툴바류
+- 예외: TabBar 컨테이너는 레이아웃 규칙(53px)
+
 ### 사용 예시
 
 ```tsx
