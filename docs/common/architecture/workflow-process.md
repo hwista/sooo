@@ -1,6 +1,6 @@
 # 개발 작업 프로세스 가이드
 
-> 최종 업데이트: 2026-02-02
+> 최종 업데이트: 2026-02-03
 
 SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 
@@ -109,8 +109,12 @@ SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 | `docs` | 문서 변경 | `docs: API 명세서 작성` |
 | `style` | 코드 포맷팅 | `style: 린트 오류 수정` |
 | `refactor` | 리팩터링 | `refactor: DataTable 컴포넌트 분리` |
+| `perf` | 성능 개선 | `perf: 쿼리 최적화` |
 | `test` | 테스트 | `test: 로그인 API 테스트 추가` |
-| `chore` | 빌드/설정 | `chore: ESLint 설정 변경` |
+| `build` | 빌드 설정 | `build: vite 설정 변경` |
+| `ci` | CI 설정 | `ci: GitHub Actions 워크플로 추가` |
+| `chore` | 기타 변경 | `chore: 의존성 업데이트` |
+| `revert` | 커밋 되돌리기 | `revert: feat: 즐겨찾기 기능` |
 
 ### Scope (선택)
 
@@ -219,10 +223,12 @@ pnpm run lint
 > commitlint는 필요 시 `wslpath -w`로 변환한 경로를 사용합니다.
 
 ```json
-// lint-staged.config.js
+// package.json의 lint-staged 필드
 {
-  "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
-  "*.{json,md}": ["prettier --write"]
+  "lint-staged": {
+    "apps/**/*.{ts,tsx}": "pnpm run lint",
+    "packages/**/*.{ts,tsx}": "pnpm run lint"
+  }
 }
 ```
 
@@ -263,6 +269,8 @@ npx --no -- commitlint --edit "$1"
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-03 | commitlint Type 종류 현행화 (perf, build, ci, revert 추가) |
+| 2026-02-03 | lint-staged 설정 위치를 package.json으로 현행화 |
 | 2026-01-21 | scope 명칭을 web-pms로 정리 |
 | 2026-01-21 | 개발 표준 문서 위치를 architecture로 이동 |
 | 2026-01-21 | Husky hook에서 Windows 경로 변환 처리 추가 |
