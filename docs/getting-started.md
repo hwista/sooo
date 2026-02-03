@@ -2,7 +2,7 @@
 
 > SSOO 프로젝트 로컬 개발 환경 구성 방법
 
-**마지막 업데이트**: 2026-01-19
+**마지막 업데이트**: 2026-02-02
 
 ---
 
@@ -127,10 +127,10 @@ cd apps/server
 pnpm run seed
 
 # 메뉴 데이터 입력 (SQL)
-psql -U postgres -d ssoo -f ../../docs/pms/database/tables/seeds/menu_data.sql
-psql -U postgres -d ssoo -f ../../docs/pms/database/tables/seeds/role_menu_permission.sql
-psql -U postgres -d ssoo -f ../../docs/pms/database/tables/seeds/user_code.sql
-psql -U postgres -d ssoo -f ../../docs/pms/database/tables/seeds/user_initial_admin.sql
+psql -U postgres -d ssoo -f ../../packages/database/prisma/seeds/menu_data.sql
+psql -U postgres -d ssoo -f ../../packages/database/prisma/seeds/role_menu_permission.sql
+psql -U postgres -d ssoo -f ../../packages/database/prisma/seeds/user_code.sql
+psql -U postgres -d ssoo -f ../../packages/database/prisma/seeds/user_initial_admin.sql
 ```
 
 **기본 관리자 계정:**
@@ -307,8 +307,8 @@ pnpm --filter server build
 
 2. **문서 확인**:
    - [backlog.md](./pms/planning/backlog.md) - 진행 상황
-   - [UI Design](./pms/design/README.md) - UI 가이드
    - [Design System](./pms/design/design-system.md) - 디자인 표준
+   - [UI Components](./pms/design/ui-components.md) - UI 컴포넌트
 
 3. **개발 시작**:
    - 새 기능 개발 전 BACKLOG 확인
