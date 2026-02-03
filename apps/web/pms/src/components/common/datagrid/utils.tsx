@@ -79,7 +79,8 @@ export function createActionsColumn<TData>(
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="h-8 w-8 p-0"
+              size="icon"
+              className="h-control-h-sm w-control-h-sm"
               onClick={(e) => e.stopPropagation()}
             >
               <span className="sr-only">메뉴 열기</span>

@@ -196,16 +196,22 @@ export function DataGrid<TData, TValue>({
     );
   }
 
+  const showToolbar = enableSearch || enableColumnVisibility;
+
   return (
-    <div className={cn('w-full space-y-4', className)}>
+    <div className={cn('flex h-full min-h-0 w-full flex-col', className)}>
       {/* 상단 툴바 */}
-      <Toolbar
-        table={table}
-        enableSearch={enableSearch}
-        searchField={searchField}
-        searchPlaceholder={searchPlaceholder}
-        enableColumnVisibility={enableColumnVisibility}
-      />
+      {showToolbar && (
+        <div className="mb-4">
+          <Toolbar
+            table={table}
+            enableSearch={enableSearch}
+            searchField={searchField}
+            searchPlaceholder={searchPlaceholder}
+            enableColumnVisibility={enableColumnVisibility}
+          />
+        </div>
+      )}
 
       {/* 테이블 본문 */}
       <Body

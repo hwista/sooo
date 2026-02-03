@@ -36,16 +36,16 @@ export function Footer<TData>({
     return null;
   }
 
+  const showSelectionInfo = enableRowSelection;
+
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center bg-gray-50 px-4 py-2 min-h-[52px]">
       {/* 선택 정보 */}
-      {enableRowSelection ? (
-        <div className="text-sm text-muted-foreground">
+      {showSelectionInfo && (
+        <div className="text-sm text-muted-foreground whitespace-nowrap">
           {table.getFilteredSelectedRowModel().rows.length}개 선택됨 /{' '}
           {table.getFilteredRowModel().rows.length}개
         </div>
-      ) : (
-        <div />
       )}
 
       {/* 서버 사이드 페이지네이션 */}
@@ -57,15 +57,16 @@ export function Footer<TData>({
           onPageChange={pagination.onPageChange}
           onPageSizeChange={pagination.onPageSizeChange}
           showTotal={!enableRowSelection}
+          className={showSelectionInfo ? 'flex-1 ml-4 px-0' : 'flex-1 px-0'}
         />
       )}
 
       {/* 클라이언트 사이드 페이지네이션 */}
       {enableClientPagination && !pagination && (
-        <div className="flex items-center space-x-2">
+        <div className={showSelectionInfo ? 'flex items-center space-x-2 ml-4' : 'flex items-center space-x-2 ml-auto'}>
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -77,7 +78,7 @@ export function Footer<TData>({
           </span>
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >

@@ -74,7 +74,7 @@ export function Content({
   return (
     <div
       className={cn(
-        'flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden',
+        'flex-1 min-h-0 bg-white border border-gray-200 rounded-lg overflow-hidden',
         layoutStyles[layout],
         className
       )}

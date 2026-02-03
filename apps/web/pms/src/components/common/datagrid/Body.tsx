@@ -37,13 +37,13 @@ export function Body<TData, TValue>({
   tableClassName,
 }: BodyProps<TData, TValue>) {
   return (
-    <div className={cn('rounded-md border', tableClassName)}>
+    <div className={cn('flex-1 min-h-0 rounded-md border [&>div]:h-full', tableClassName)}>
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-gray-50 shadow-sm">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead key={header.id} className="sticky top-0 z-10 bg-gray-50">
                   {header.isPlaceholder
                     ? null
                     : flexRender(
