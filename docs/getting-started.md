@@ -2,7 +2,7 @@
 
 > SSOO 프로젝트 로컬 개발 환경 구성 방법
 
-**마지막 업데이트**: 2026-02-02
+**마지막 업데이트**: 2026-02-03
 
 ---
 
@@ -62,20 +62,41 @@ nvm use
 cp .env.example .env
 ```
 
-**필수 환경 변수:** (미설정 시 서버 부팅 실패 - Joi 검증 적용)
+루트 `.env` 내용:
 
 ```env
 # Database (PostgreSQL)
-DATABASE_URL="postgresql://user:password@localhost:5432/ssoo"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ssoo_dev?schema=public"
 
-# JWT (필수)
-JWT_SECRET="your-jwt-secret-key"
-JWT_REFRESH_SECRET="your-jwt-refresh-secret"
-JWT_ACCESS_EXPIRES_IN="15m"
-JWT_REFRESH_EXPIRES_IN="7d"
+# Server
+PORT=4000
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:3000
 ```
 
-### 2. 웹 애플리케이션 환경 변수
+### 2. 서버 환경 변수 (필수)
+
+`apps/server/.env` 생성 **(미설정 시 서버 부팅 실패 - Joi 검증 적용)**:
+
+```env
+# Server Configuration
+PORT=4000
+CORS_ORIGIN=http://localhost:3000
+
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ssoo_dev?schema=public"
+
+# JWT Configuration (필수)
+JWT_SECRET=your-jwt-secret-key
+JWT_REFRESH_SECRET=your-jwt-refresh-secret
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Environment
+NODE_ENV=development
+```
+
+### 3. 웹 애플리케이션 환경 변수
 
 `apps/web/pms/.env.local` 생성:
 
@@ -114,28 +135,52 @@ pnpm prisma generate
 
 # 데이터베이스 푸시
 pnpm prisma db push
-
-# 히스토리 트리거 설치
-pnpm run apply-triggers
 ```
 
-### 3. 초기 데이터 Seed
+### 3. 히스토리 트리거 설치
 
 ```bash
-# 관리자 계정 생성
-cd apps/server
-pnpm run seed
-
-# 메뉴 데이터 입력 (SQL)
-psql -U postgres -d ssoo -f ../../packages/database/prisma/seeds/menu_data.sql
-psql -U postgres -d ssoo -f ../../packages/database/prisma/seeds/role_menu_permission.sql
-psql -U postgres -d ssoo -f ../../packages/database/prisma/seeds/user_code.sql
-psql -U postgres -d ssoo -f ../../packages/database/prisma/seeds/user_initial_admin.sql
+# 트리거 SQL 직접 실행
+cd packages/database/prisma/triggers
+psql -U postgres -d ssoo -f apply_all_triggers.sql
 ```
+
+### 4. 초기 데이터 Seed
+
+시드 파일 위치: `packages/database/prisma/seeds/`
+
+```bash
+cd packages/database/prisma/seeds
+
+# 방법 1: 전체 시드 한번에 적용 (권장)
+psql -U postgres -d ssoo -f apply_all_seeds.sql
+
+# 방법 2: 개별 실행
+psql -U postgres -d ssoo -f 00_user_code.sql
+psql -U postgres -d ssoo -f 01_project_status_code.sql
+psql -U postgres -d ssoo -f 02_project_deliverable_status.sql
+psql -U postgres -d ssoo -f 03_project_close_condition.sql
+psql -U postgres -d ssoo -f 04_project_handoff_type.sql
+psql -U postgres -d ssoo -f 05_menu_data.sql
+psql -U postgres -d ssoo -f 06_role_menu_permission.sql
+psql -U postgres -d ssoo -f 07_user_menu_permission.sql
+psql -U postgres -d ssoo -f 99_user_initial_admin.sql
+```
+
+**⚠️ 관리자 비밀번호 해시 설정:**
+
+`99_user_initial_admin.sql`의 `PLACEHOLDER_HASH`를 실제 bcrypt 해시로 교체해야 합니다:
+
+```bash
+# bcrypt 해시 생성 (admin123! 기준)
+node -e "console.log(require('bcryptjs').hashSync('admin123!', 12))"
+```
+
+생성된 해시값을 SQL 파일의 `password_hash` 컬럼에 입력 후 실행하세요.
 
 **기본 관리자 계정:**
 - ID: `admin`
-- Password: `admin123!`
+- Password: `admin123!` (해시 설정 후)
 
 ---
 
