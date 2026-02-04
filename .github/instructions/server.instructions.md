@@ -279,6 +279,55 @@ app.enableCors({
 });
 ```
 
+### CSRF 보호
+
+```typescript
+// POST/PUT/DELETE 요청 시 CSRF 토큰 검증
+// SPA에서는 SameSite 쿠키 + CORS로 대체 가능
+app.use(csurf({ cookie: { sameSite: 'strict', httpOnly: true } }));
+```
+
+### 보안 헤더 (Helmet)
+
+```typescript
+// main.ts - Helmet 적용 필수
+import helmet from 'helmet';
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  },
+  hsts: { maxAge: 31536000, includeSubDomains: true },
+}));
+```
+
+### 로깅 및 모니터링
+
+```typescript
+// ✅ 보안 이벤트 로깅 필수
+// - 로그인 시도 (성공/실패)
+// - 비밀번호 변경
+// - 권한 변경
+// - 민감 데이터 접근
+
+// ❌ 금지 - 민감정보 로깅
+logger.log(`User password: ${password}`); // 절대 금지
+logger.log(`JWT Token: ${token}`);         // 절대 금지
+```
+
+### 토큰 저장 권장사항
+
+| 저장 위치 | 권장 | 설명 |
+|----------|------|------|
+| HttpOnly Cookie | ✅ | XSS 공격 방지 |
+| LocalStorage | ⚠️ | XSS 취약, 비권장 |
+| SessionStorage | ⚠️ | XSS 취약, 비권장 |
+| 메모리 (Zustand) | ✅ | 새로고침 시 재인증 필요 |
+
 ### 보안 체크리스트
 
 - ✅ bcrypt로 비밀번호 해싱 (salt 포함)
@@ -286,6 +335,27 @@ app.enableCors({
 - ✅ @Exclude()로 민감정보 응답 제외
 - ✅ class-validator로 입력 검증
 - ✅ Prisma ORM으로 SQL Injection 방지
+- ✅ Helmet으로 보안 헤더 설정
+- ✅ CORS 화이트리스트 설정
+- ✅ Rate Limiting 적용
+- ✅ 보안 이벤트 로깅
+
+---
+
+## 히스토리 테이블 연동
+
+새 마스터 테이블 추가 시 반드시 히스토리 추적 연동:
+
+```typescript
+// 1. Prisma 스키마에 히스토리 모델 정의 (packages/database/prisma/schema.prisma)
+// 2. Prisma 클라이언트 Extension으로 자동 히스토리 기록 (권장)
+// 또는 PostgreSQL 트리거로 자동 기록
+
+// event_type 값
+// C: Create (생성)
+// U: Update (수정) 
+// D: Delete (삭제)
+```
 
 ---
 

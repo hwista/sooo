@@ -140,7 +140,32 @@ model CmUserM {
 
 ---
 
+## 새 테이블 추가 체크리스트
+
+새 마스터 테이블 추가 시 **8가지 필수 작업**:
+
+| # | 작업 | 파일/위치 |
+|---|------|----------|
+| 1 | Prisma 마스터 모델 정의 | `prisma/schema.prisma` |
+| 2 | Prisma 히스토리 모델 정의 | `prisma/schema.prisma` (같은 파일) |
+| 3 | DB에 스키마 적용 | `pnpm db:push` |
+| 4 | 트리거 SQL 작성 | `prisma/triggers/{스키마}/tr_{테이블명}.sql` |
+| 5 | apply-triggers.ts에 등록 | `scripts/apply-triggers.ts` |
+| 6 | 트리거 설치 실행 | `pnpm db:triggers` |
+| 7 | 문서 업데이트 | `docs/common/reference/db/` |
+| 8 | README Changelog 추가 | `packages/database/README.md` |
+
+---
+
 ## 히스토리 테이블 패턴
+
+### event_type 값
+
+| 값 | 의미 | 발생 시점 |
+|---|------|----------|
+| `C` | Create | INSERT 트리거 |
+| `U` | Update | UPDATE 트리거 |
+| `D` | Delete | DELETE 트리거 |
 
 ```prisma
 // 원본 테이블의 모든 필드 복사 + 히스토리 전용 필드
@@ -151,7 +176,7 @@ model PrProjectMH {
   // 원본 필드들...
   
   // 히스토리 전용 필드
-  historyAction String    @map("history_action") @db.VarChar(10)  // INSERT/UPDATE/DELETE
+  eventType     String    @map("event_type") @db.Char(1)  // C/U/D
   historyAt     DateTime  @default(now()) @map("history_at") @db.Timestamptz(6)
   historyById   BigInt?   @map("history_by_id")
   

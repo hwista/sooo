@@ -204,6 +204,91 @@ const form = useForm<CreateProjectInput>({
 
 ---
 
+## 색상 시스템
+
+### LS CI (Corporate Identity) 팔레트
+
+| 변수 | 용도 |
+|------|------|
+| `ls-blue` | LS 브랜드 블루 - 주요 강조 |
+| `ls-red` | LS 브랜드 레드 - 경고, 중요 |
+
+### SSOO 테마 색상
+
+| 변수 | 용도 |
+|------|------|
+| `ssoo-primary` | 주요 액션 버튼, 링크 |
+| `ssoo-secondary` | 보조 요소 |
+| `ssoo-accent` | 강조, 포커스 |
+
+### 색상 사용 규칙
+
+```typescript
+// ✅ CSS 변수 사용
+className="bg-ssoo-primary text-white"
+className="text-ls-blue"
+className="border-ssoo-accent"
+
+// ❌ 하드코딩 금지
+className="bg-[#1E40AF]"  // 금지!
+style={{ color: '#DC2626' }}  // 금지!
+```
+
+---
+
+## 페이지 보안 패턴
+
+### Middleware 인증
+
+```typescript
+// middleware.ts - allowedPaths 설정
+export const config = {
+  matcher: ['/((?!_next|api/auth|login|favicon).*)'],
+};
+
+const allowedPaths = ['/login', '/register', '/forgot-password'];
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('accessToken')?.value;
+
+  if (!allowedPaths.includes(pathname) && !token) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+}
+```
+
+### 페이지 컴포넌트 패턴 (Thin Wrapper)
+
+```typescript
+// app/(main)/projects/page.tsx
+// ✅ Thin Wrapper - page.tsx는 라우팅만, 로직은 pages/ 컴포넌트에
+export default function ProjectsPage() {
+  return <ProjectListPage />;
+}
+
+// ❌ 금지 - page.tsx에 직접 로직 작성
+export default function ProjectsPage() {
+  const { data } = useProjects(); // 금지!
+  return <div>...</div>;
+}
+```
+
+### ContentArea 동적 로딩
+
+```typescript
+// 대시보드 등에서 ContentArea 사용 시
+<ContentArea
+  loading={isLoading}
+  error={error}
+  fallback={<EmptyState message="데이터가 없습니다" />}
+>
+  {children}
+</ContentArea>
+```
+
+---
+
 ## Button Variants
 
 | variant | 용도 |
