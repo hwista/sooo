@@ -1,16 +1,16 @@
 ﻿import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, NotFoundException } from "@nestjs/common";
 import { ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
-import { JwtAuthGuard } from "../../common/auth/guards/jwt-auth.guard";
-import { RolesGuard } from "../../common/auth/guards/roles.guard";
-import { ProjectService } from "./project.service";
-import { success, paginated, deleted } from "../../../common";
+import { JwtAuthGuard } from '../../common/auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
+import { ProjectService } from './project.service.js';
+import { success, paginated, deleted } from '../../../common/index.js';
 import type {
   CreateProjectDto,
   UpdateProjectDto,
   PaginationParams,
 } from "@ssoo/types";
-import { ProjectDto, ProjectListDto } from "./dto/project.dto";
-import { ApiError } from "../../../common/swagger/api-response.dto";
+import { ProjectDto, ProjectListDto } from './dto/project.dto.js';
+import { ApiError } from '../../../common/swagger/api-response.dto.js';
 
 @ApiTags("projects")
 @ApiBearerAuth()

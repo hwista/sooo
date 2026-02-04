@@ -1,13 +1,13 @@
 ﻿import { Controller, Get, Post, Delete, Body, Param, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
-import { MenuService } from "./menu.service";
-import { JwtAuthGuard } from "../../common/auth/guards/jwt-auth.guard";
-import { RolesGuard } from "../../common/auth/guards/roles.guard";
-import { CurrentUser } from "../../common/auth/decorators/current-user.decorator";
-import { TokenPayload } from "../../common/auth/interfaces/auth.interface";
-import { success } from "../../../common";
-import { MenuResponseDto } from "./dto/menu-tree.dto";
-import { ApiError } from "../../../common/swagger/api-response.dto";
+import { MenuService } from './menu.service.js';
+import { JwtAuthGuard } from '../../common/auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
+import { CurrentUser } from '../../common/auth/decorators/current-user.decorator.js';
+import { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
+import { success } from '../../../common/index.js';
+import { MenuResponseDto } from './dto/menu-tree.dto.js';
+import { ApiError } from '../../../common/swagger/api-response.dto.js';
 
 @ApiTags("menus")
 @ApiBearerAuth()

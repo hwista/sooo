@@ -7,8 +7,9 @@
 begin;
 
 -- 초기 관리자 계정
--- password_hash 예시는 'admin123!'의 bcrypt 해시 (실제 배포 시 변경 필수)
--- 생성 방법: node -e "console.log(require('bcryptjs').hashSync('your_password', 12))"
+-- 비밀번호 규칙: 8자 이상, 대소문자/숫자/특수문자 각 1개 이상 포함
+-- 기본 비밀번호: Admin123@ (개발 환경용, 운영 환경에서는 반드시 변경!)
+-- 해시 생성: cd apps/server && node -e "console.log(require('bcryptjs').hashSync('Admin123@', 12))"
 
 insert into common.cm_user_m (
     -- System Access Control
@@ -41,7 +42,8 @@ insert into common.cm_user_m (
     memo,
     created_by,
     last_source,
-    last_activity
+    last_activity,
+    updated_at
 )
 values (
     -- System Access Control
@@ -51,7 +53,7 @@ values (
     
     -- Authentication
     'admin',                -- login_id
-    '$2b$12$PLACEHOLDER_HASH_REPLACE_WITH_REAL_BCRYPT_HASH',  -- password_hash (반드시 교체!)
+    '$2b$12$ZPWR08FG2GqcXIA5Wix21.g30nk6IZyik6kj7S5yD645dn0tRFED6',  -- Admin123@
     
     -- Profile
     '시스템관리자',          -- user_name
@@ -74,7 +76,8 @@ values (
     '시스템 초기 관리자 계정. 배포 후 비밀번호 변경 필수.',
     null,                   -- created_by: 시스템 생성
     'SEED',                 -- last_source
-    'user_initial_admin.sql'
+    'user_initial_admin.sql',
+    CURRENT_TIMESTAMP       -- updated_at
 )
 on conflict (email) do nothing;  -- 이미 존재하면 skip
 

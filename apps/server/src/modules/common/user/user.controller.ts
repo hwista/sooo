@@ -1,13 +1,13 @@
 ﻿import { Controller, Get, UseGuards, NotFoundException } from "@nestjs/common";
 import { ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
-import { UserService } from "./user.service";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { RolesGuard } from "../auth/guards/roles.guard";
-import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import { TokenPayload } from "../auth/interfaces/auth.interface";
-import { success } from "../../../common";
-import { UserProfileDto } from "./dto/user-profile.dto";
-import { ApiError } from "../../../common/swagger/api-response.dto";
+import { UserService } from './user.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import { TokenPayload } from '../auth/interfaces/auth.interface.js';
+import { success } from '../../../common/index.js';
+import { UserProfileDto } from './dto/user-profile.dto.js';
+import { ApiError } from '../../../common/swagger/api-response.dto.js';
 
 @ApiTags("users")
 @ApiBearerAuth()

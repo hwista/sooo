@@ -1,4 +1,4 @@
-# 📚 HWISTA-SSOO Documentation Hub
+# 📚 SOOO Documentation Hub
 
 > 프로젝트 전체 문서 허브 - PMS(Project Management System)와 DMS(Document Management System)를 위한 통합 문서 저장소
 

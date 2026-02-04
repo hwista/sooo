@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..'); // packages/database
-const workspaceRoot = join(root, '..', '..'); // hwista-ssoo
+const workspaceRoot = join(root, '..', '..'); // sooo
 
 const targets = [
   { schema: 'common', outDir: ['docs', 'common', 'reference', 'db'] },

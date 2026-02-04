@@ -52,13 +52,13 @@
 \echo 'Applying 06_role_menu_permission.sql...'
 \i 06_role_menu_permission.sql
 
--- 07: 사용자별 메뉴 권한
-\echo 'Applying 07_user_menu_permission.sql...'
-\i 07_user_menu_permission.sql
-
--- 99: 초기 관리자 계정 (마지막 실행)
+-- 99: 초기 관리자 계정 (07번 전에 실행해야 함)
 \echo 'Applying 99_user_initial_admin.sql...'
 \i 99_user_initial_admin.sql
+
+-- 07: 사용자별 메뉴 권한 (admin 사용자 생성 후 실행)
+\echo 'Applying 07_user_menu_permission.sql...'
+\i 07_user_menu_permission.sql
 
 \echo '=========================================='
 \echo 'Seed Data Application Complete!'

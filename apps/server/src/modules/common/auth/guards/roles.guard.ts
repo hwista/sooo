@@ -1,9 +1,9 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '@ssoo/types';
-import { ROLES_KEY } from '../decorators/roles.decorator';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { TokenPayload } from '../interfaces/auth.interface';
+import { ROLES_KEY } from '../decorators/roles.decorator.js';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
+import { TokenPayload } from '../interfaces/auth.interface.js';
 
 /**
  * 역할 기반 접근 제어 가드

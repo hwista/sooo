@@ -9,15 +9,20 @@
 -- 
 -- 현재: Role 미정의 상태이므로 사용자에게 직접 권한 부여
 -- 추후: Role 정의 후 cm_role_menu_r 사용, cm_user_menu_r는 예외 처리용으로 전환
+--
+-- 주의: 99_user_initial_admin.sql 실행 이후에 실행되어야 합니다.
 
 begin;
 
 -- ============================================
--- admin 사용자(user_id=1) - 모든 메뉴 full 접근
+-- admin 사용자 - 모든 메뉴 full 접근
+-- (user_id를 login_id로 조회하여 동적으로 처리)
 -- ============================================
 INSERT INTO pms.cm_user_menu_r (user_id, menu_id, access_type, override_type, updated_at)
-SELECT 1, menu_id, 'full', 'grant', CURRENT_TIMESTAMP 
-FROM pms.cm_menu_m WHERE is_active = true
+SELECT u.user_id, m.menu_id, 'full', 'grant', CURRENT_TIMESTAMP 
+FROM pms.cm_menu_m m
+CROSS JOIN common.cm_user_m u
+WHERE m.is_active = true AND u.login_id = 'admin'
 ON CONFLICT (user_id, menu_id) DO NOTHING;
 
 -- ============================================

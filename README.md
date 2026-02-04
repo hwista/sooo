@@ -82,7 +82,7 @@
 ## 📁 프로젝트 구조
 
 ```
-hwista-ssoo/
+sooo/
 │
 ├── apps/                        # 실행 가능한 애플리케이션
 │   ├── server/                  # NestJS 백엔드 API
@@ -249,7 +249,7 @@ $env:NODE_TLS_REJECT_UNAUTHORIZED=0
 
 ```powershell
 # 1. 프로젝트 폴더로 이동
-cd c:\WorkSpace\dev\source\hwista-ssoo
+cd c:\WorkSpace\dev\source\sooo
 
 # 2. 의존성 설치 (빌드 스크립트 무시)
 pnpm install --ignore-scripts
@@ -278,7 +278,7 @@ node ./node_modules/typescript/lib/tsc.js --project tsconfig.json
 node dist/main.js
 
 # 9. 웹 실행 (새 터미널에서)
-cd c:\WorkSpace\dev\source\hwista-ssoo\apps\web-pms
+cd c:\WorkSpace\dev\source\sooo\apps\web-pms
 node ./node_modules/next/dist/bin/next dev --port 3000
 ```
 

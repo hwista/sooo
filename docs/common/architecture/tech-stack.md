@@ -16,7 +16,7 @@ SSOO는 **pnpm + Turborepo** 기반 모노레포 구조로 구성되어 있습�
 ## 프로젝트 구조
 
 ```
-hwista-ssoo/
+sooo/
 ├── apps/
 │   ├── server/          # NestJS 백엔드 (공용)
 │   └── web/

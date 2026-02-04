@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 // Environment variable validation schema
 export const configValidationSchema = Joi.object({

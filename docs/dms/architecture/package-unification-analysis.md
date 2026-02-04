@@ -17,7 +17,7 @@
 
 ### 1.2 현재 구조
 ```
-hwista-ssoo/
+sooo/
 ├── apps/
 │   ├── web/pms/          # 프로젝트 관리 시스템
 │   └── web/dms/          # 문서 관리 시스템

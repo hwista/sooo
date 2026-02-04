@@ -7,7 +7,7 @@
 
 ## 1. 개요
 
-DMS(Document Management System)는 별도 개발 조직에서 GitLab으로 독립 개발되며, 통합 모노레포(hwista-ssoo)는 GitHub로 관리된다. Git Subtree를 사용하여 두 저장소를 연결하고 이원화 운영한다.
+DMS(Document Management System)는 별도 개발 조직에서 GitLab으로 독립 개발되며, 통합 모노레포(sooo)는 GitHub로 관리된다. Git Subtree를 사용하여 두 저장소를 연결하고 이원화 운영한다.
 
 ### 1.1 저장소 정보
 
@@ -33,7 +33,7 @@ DMS(Document Management System)는 별도 개발 조직에서 GitLab으로 독�
 │          ▼                                                  │
 │   ┌─────────────────────────────────────────┐              │
 │   │         로컬 워크스페이스 (조율자)         │              │
-│   │  hwista-ssoo/apps/web/dms               │              │
+│   │  sooo/apps/web/dms                     │              │
 │   │                                          │              │
 │   │  - GitLab 최신 pull                      │              │
 │   │  - 디자인 시스템/통합 작업                 │              │
@@ -57,7 +57,7 @@ DMS(Document Management System)는 별도 개발 조직에서 GitLab으로 독�
 
 ```bash
 # 워크스페이스 루트에서 실행
-cd C:\WorkSpace\dev\source\hwista-ssoo
+cd C:\WorkSpace\dev\source\sooo
 
 # remote 추가
 git remote add gitlab-dms http://10.125.31.72:8010/LSITC_WEB/LSWIKI.git
@@ -90,7 +90,7 @@ git subtree add --prefix=apps/web/dms gitlab-dms main --squash
 
 ```bash
 # 워크스페이스 루트에서 실행
-cd C:\WorkSpace\dev\source\hwista-ssoo
+cd C:\WorkSpace\dev\source\sooo
 
 # DMS 최신 소스 가져오기
 git subtree pull --prefix=apps/web/dms gitlab-dms main --squash

@@ -12,7 +12,7 @@ values
 ('PROJECT_STATUS','proposal','제안','Proposal','견적/제안서 작성 및 계약 협상 단계.',20,now(),now()),
 ('PROJECT_STATUS','execution','수행','Execution','계약 체결 후 프로젝트 수행 단계.',30,now(),now()),
 ('PROJECT_STATUS','transition','전환','Transition','프로젝트 완료 후 운영/유지보수 전환 단계.',40,now(),now())
-on conflict on constraint ux_cm_code_m_group_value do update
+on conflict (code_group, code_value) do update
 set display_name_ko=excluded.display_name_ko,
     display_name_en=excluded.display_name_en,
     description=excluded.description,
@@ -25,7 +25,7 @@ values
 ('PROJECT_STAGE','waiting','대기','Waiting','아직 본격 작업 전 대기.',10,now(),now()),
 ('PROJECT_STAGE','in_progress','진행','In Progress','작업 진행 중.',20,now(),now()),
 ('PROJECT_STAGE','done','완료','Done','해당 상태가 종료.',30,now(),now())
-on conflict on constraint ux_cm_code_m_group_value do update
+on conflict (code_group, code_value) do update
 set display_name_ko=excluded.display_name_ko,
     display_name_en=excluded.display_name_en,
     description=excluded.description,
@@ -52,7 +52,7 @@ values
 ('PROJECT_DONE_RESULT','transferred','전환완료','Transferred','운영/유지보수 전환 완료.',40,now(),now()),
 -- 공통
 ('PROJECT_DONE_RESULT','hold','보류','Hold','보류 (추후 재개 가능).',50,now(),now())
-on conflict on constraint ux_cm_code_m_group_value do update
+on conflict (code_group, code_value) do update
 set display_name_ko=excluded.display_name_ko,
     display_name_en=excluded.display_name_en,
     description=excluded.description,

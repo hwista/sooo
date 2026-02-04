@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { HealthController } from './health/health.controller';
+import { AuthModule } from './auth/auth.module.js';
+import { UserModule } from './user/user.module.js';
+import { HealthController } from './health/health.controller.js';
 
 @Module({
   imports: [AuthModule, UserModule],

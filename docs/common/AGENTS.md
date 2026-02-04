@@ -1,7 +1,7 @@
 # SSOO 모노레포 에이전트 가이드 (AGENTS)
 
 > 최종 업데이트: 2026-02-03  
-> 범위: SSOO 모노레포 전체 (`hwista-ssoo/`)
+> 범위: SSOO 모노레포 전체 (`sooo/`)
 
 ---
 
@@ -49,7 +49,7 @@
 ### 앱/패키지 구성
 
 ```
-hwista-ssoo/
+sooo/
 ├── apps/
 │   ├── server/              # NestJS 백엔드 API 서버
 │   └── web/

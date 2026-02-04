@@ -8,14 +8,14 @@
 } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { ApiBearerAuth, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from "@nestjs/swagger";
-import { AuthService } from "./auth.service";
-import { LoginDto } from "./dto/login.dto";
-import { RefreshTokenDto } from "./dto/refresh-token.dto";
-import { JwtAuthGuard } from "./guards/jwt-auth.guard";
-import { CurrentUser } from "./decorators/current-user.decorator";
-import { TokenPayload } from "./interfaces/auth.interface";
-import { success } from "../../../common";
-import { ApiSuccess, ApiError } from "../../../common/swagger/api-response.dto";
+import { AuthService } from './auth.service.js';
+import { LoginDto } from './dto/login.dto.js';
+import { RefreshTokenDto } from './dto/refresh-token.dto.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { CurrentUser } from './decorators/current-user.decorator.js';
+import { TokenPayload } from './interfaces/auth.interface.js';
+import { success } from '../../../common/index.js';
+import { ApiSuccess, ApiError } from '../../../common/swagger/api-response.dto.js';
 
 @ApiTags("auth")
 @Controller("auth")
