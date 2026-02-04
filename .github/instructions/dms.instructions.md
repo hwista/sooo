@@ -197,6 +197,122 @@ export * from './components';
 
 ---
 
+## Tiptap 에디터 설정
+
+DMS의 핵심 컴포넌트인 Tiptap 에디터 규칙:
+
+### 필수 익스텐션
+
+```typescript
+import { useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
+import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+
+const editor = useEditor({
+  extensions: [
+    StarterKit,
+    Placeholder.configure({ placeholder: '내용을 입력하세요...' }),
+    Link.configure({ openOnClick: false }),
+    Image,
+    CodeBlockLowlight.configure({ lowlight }),
+  ],
+});
+```
+
+### 에디터 상태 관리
+
+```typescript
+// useEditor 훅과 editorStore 연동
+// - content: 현재 내용
+// - hasUnsavedChanges: 저장 필요 여부
+// - autoSave: 자동 저장 (5초 디바운스)
+```
+
+### 금지 사항
+
+- ❌ 에디터 내용 직접 DOM 조작
+- ❌ innerHTML 직접 설정
+- ✅ editor.commands 사용
+
+---
+
+## MUI Tree View 패턴
+
+```typescript
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
+
+// ✅ 파일 트리 구현
+<SimpleTreeView
+  expandedItems={expandedFolders}
+  onExpandedItemsChange={(_, ids) => setExpandedFolders(ids)}
+  selectedItems={selectedFile}
+  onSelectedItemsChange={(_, id) => handleFileSelect(id)}
+>
+  {renderTree(fileNodes)}
+</SimpleTreeView>
+```
+
+---
+
+## 파일 시스템 서비스
+
+```typescript
+// server/services/fileSystemService.ts
+// ✅ 실제 파일 시스템 접근은 서버 사이드에서만
+// ✅ API Route를 통해 클라이언트에 데이터 제공
+
+class FileSystemService {
+  private basePath: string;
+
+  async getFileTree(): Promise<ServiceResult<FileNode[]>> {
+    // fs.readdir 등 사용
+  }
+
+  async readFile(path: string): Promise<ServiceResult<string>> {
+    // fs.readFile 사용
+  }
+
+  async writeFile(path: string, content: string): Promise<ServiceResult<void>> {
+    // fs.writeFile 사용
+  }
+}
+```
+
+---
+
+## 탭 관리 규칙
+
+```typescript
+// 최대 탭 수: 16개 (MAX_TABS)
+// 초과 시: useOpenTabWithConfirm 훅으로 확인 다이얼로그
+
+const { openTabWithConfirm } = useOpenTabWithConfirm();
+
+// 탭 열기
+const tabId = await openTabWithConfirm({
+  title: '새 문서',
+  path: '/docs/new.md',
+  type: 'markdown',
+});
+```
+
+---
+
+## 레이아웃 치수
+
+| 영역 | 값 | 비고 |
+|------|-----|------|
+| Header | 56px | 상단 고정 |
+| Sidebar (펼침) | 280px | 확장 상태 |
+| Sidebar (접힘) | 48px | 컴팩트 상태 |
+| TabBar | 40px | 탭 컨테이너 |
+
+---
+
 ## 컴포넌트 크기 가이드
 
 | 유형 | 권장 라인 | 초과 시 조치 |

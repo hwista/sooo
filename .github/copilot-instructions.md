@@ -214,6 +214,35 @@ export * from './components';
 - `dms.instructions.md` - DMS 프론트엔드 규칙
 - `database.instructions.md` - 데이터베이스/Prisma 규칙
 - `types.instructions.md` - 타입 패키지 규칙
+- `testing.instructions.md` - 테스트 작성 규칙
+
+---
+
+## 📖 문서 관리 규칙
+
+### 자동 vs 수동 문서
+
+| 영역 | 자동 도구 | ❌ 수동 작성 금지 |
+|------|----------|-----------------|
+| API 명세 | OpenAPI/Redoc | 엔드포인트 상세 |
+| 테이블 구조 | Prisma DBML/ERD | 테이블 스펙 문서 |
+| 코드 API | TypeDoc | 함수/클래스 시그니처 |
+| UI 컴포넌트 | Storybook | Props, 사용 예시 |
+
+### 수동 문서 영역 (작성 가능)
+
+- `architecture/` - 아키텍처 결정, 개발 표준
+- `domain/` - 비즈니스 개념, 워크플로우
+- `design/` - UI/UX 설계 원칙
+- `guides/` - 사용 가이드라인
+- `planning/` - 프로젝트 관리
+
+### reference/ 폴더 규칙
+
+`docs/**/reference/` 폴더는 **자동 생성 전용**:
+- 직접 수정 금지
+- 코드 변경 → 생성 명령어로 재생성
+- `pnpm docs:all` 또는 개별 명령어 사용
 
 ---
 
@@ -221,4 +250,4 @@ export * from './components';
 
 | 날짜 | 변경 내용 |
 |------|----------|
-| 2026-02-04 | 초기 생성 (기존 AGENTS.md 기반) |
+| 2026-02-04 | 테스트 규칙, 문서 관리 규칙 추가 |

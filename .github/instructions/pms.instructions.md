@@ -289,6 +289,57 @@ export default function ProjectsPage() {
 
 ---
 
+## 기술 결정 사항
+
+### UI 라이브러리: TanStack Table + shadcn/ui
+
+| 선택 | 이유 |
+|------|------|
+| ✅ TanStack Table | 무료, MIT, React 네이티브 |
+| ✅ shadcn/ui | Radix 기반, 커스터마이징 용이 |
+| ❌ DevExtreme | 라이선스 비용 ($899.99/년/개발자) |
+| ❌ AG Grid | 고급 기능 유료 |
+
+### 라우팅 전략: 하이브리드 (URL 고정 + 동적 로딩)
+
+```
+URL: http://localhost:3000/ (항상 고정)
+└── ContentArea가 메뉴 path 기반으로 lazy load
+└── 직접 URL 접근 시 → 로그인 페이지로 리다이렉트
+```
+
+**장점:**
+- 라우팅 구조 숨김 (보안)
+- 권한 기반 메뉴 DB 제어
+- MDI 탭 시스템과 통합
+
+### 권한 관리: UNION 방식
+
+```
+최종 권한 = 역할 권한 (cm_role_menu_r)
+           ∪ 사용자 추가 권한 (override_type = 'grant')
+           - 사용자 권한 박탈 (override_type = 'revoke')
+```
+
+---
+
+## 컴포넌트 레벨 규칙
+
+| 레벨 | 위치 | 책임 | 비즈니스 로직 |
+|------|------|------|-------------|
+| 0 | shadcn/ui | 외부 라이브러리 | ❌ |
+| 1 | ui/ | 프로젝트 스타일 래퍼 | ❌ |
+| 2 | common/ | 재사용 복합 컴포넌트 | ❌ |
+| 3 | templates/ | 페이지 레이아웃 표준화 | ⚠️ 주입만 |
+| 4 | pages/ | 실제 화면 | ✅ API, 상태, 권한 |
+
+**규칙:**
+- 레벨 역전 금지 (상위 → 하위만 의존)
+- Level 2 이하에 도메인/권한 로직 금지
+- 같은 패턴 2회 이상 → 공통화 검토
+
+---
+
 ## Button Variants
 
 | variant | 용도 |
