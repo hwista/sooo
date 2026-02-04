@@ -239,6 +239,56 @@ export const validationSchema = Joi.object({
 
 ---
 
+## 보안 규칙
+
+### 인증 토큰
+
+| 토큰 | 만료 시간 | 용도 |
+|------|----------|------|
+| Access Token | 15분 | API 요청 인증 |
+| Refresh Token | 7일 | Access Token 갱신 |
+
+### 비밀번호 정책
+
+```typescript
+// ✅ 최소 8자, 대소문자 + 숫자 + 특수문자 조합
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+export const passwordSchema = z.string()
+  .min(8, '비밀번호는 8자 이상')
+  .regex(passwordRegex, '대소문자, 숫자, 특수문자 포함 필수');
+```
+
+### Rate Limiting
+
+```typescript
+// app.module.ts
+ThrottlerModule.forRoot([{
+  ttl: 60000,  // 1분
+  limit: 100,  // 100회
+}])
+```
+
+### CORS 설정
+
+```typescript
+// main.ts
+app.enableCors({
+  origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+  credentials: true,
+});
+```
+
+### 보안 체크리스트
+
+- ✅ bcrypt로 비밀번호 해싱 (salt 포함)
+- ✅ JWT Guard로 API 보호
+- ✅ @Exclude()로 민감정보 응답 제외
+- ✅ class-validator로 입력 검증
+- ✅ Prisma ORM으로 SQL Injection 방지
+
+---
+
 ## 금지 사항
 
 1. **Controller에서 직접 Prisma 사용** - Service를 통해서만 접근
@@ -246,6 +296,8 @@ export const validationSchema = Joi.object({
 3. **BaseService 등 불필요한 추상화** - 직접 구현
 4. **로직 없는 Service 래퍼** - Controller에서 직접 호출 가능하면 Service 불필요
 5. **환경 변수 하드코딩** - ConfigService 사용
+6. **비밀번호 평문 저장/전송** - 반드시 bcrypt 해싱
+7. **토큰 만료 시간 하드코딩** - 환경 변수 사용
 
 ---
 
