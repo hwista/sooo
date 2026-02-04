@@ -346,6 +346,18 @@ const tabId = await openTabWithConfirm({
 
 ## 관련 문서
 
-- [apps/web/dms/docs/development/AGENTS.md](apps/web/dms/docs/development/AGENTS.md) - DMS 에이전트 가이드
-- [apps/web/dms/docs/development/architecture/](apps/web/dms/docs/development/architecture/) - 아키텍처
-- [apps/web/dms/docs/development/guides/](apps/web/dms/docs/development/guides/) - 개발 가이드
+**에이전트/온보딩**:
+- [DMS 에이전트 가이드](../../apps/web/dms/docs/development/AGENTS.md) - 작업 프로세스, 체크리스트
+
+**아키텍처**:
+- [기술 스택](../../apps/web/dms/docs/development/architecture/tech-stack.md)
+- [패키지 구조](../../apps/web/dms/docs/development/architecture/package-spec.md)
+- [상태 관리](../../apps/web/dms/docs/development/architecture/state-management.md)
+
+**개발 가이드**:
+- [컴포넌트 가이드](../../apps/web/dms/docs/development/guides/components.md)
+- [훅 가이드](../../apps/web/dms/docs/development/guides/hooks.md)
+- [API 가이드](../../apps/web/dms/docs/development/guides/api.md)
+
+**디자인**:
+- [디자인 시스템](../../apps/web/dms/docs/development/design/design-system.md)

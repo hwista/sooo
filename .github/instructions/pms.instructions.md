@@ -383,6 +383,8 @@ import { ProjectCard } from './ProjectCard';
 
 ## 관련 문서
 
-- [layout-system.md](../docs/pms/design/layout-system.md) - 레이아웃 상세
-- [ui-components.md](../docs/pms/design/ui-components.md) - UI 컴포넌트
-- [state-management.md](../docs/pms/architecture/state-management.md) - 상태 관리
+- [layout-system.md](../../docs/pms/design/layout-system.md) - 레이아웃 다이어그램, 치수 상세
+- [design-system.md](../../docs/pms/design/design-system.md) - LS CI/SSOO 색상 상세, 타이포그래피
+- [state-management.md](../../docs/pms/architecture/state-management.md) - 각 스토어 API 상세
+- [frontend-standards.md](../../docs/pms/architecture/frontend-standards.md) - 폴더 구조, React Query 패턴
+- [component-hierarchy.md](../../docs/pms/design/component-hierarchy.md) - 컴포넌트 레벨 상세

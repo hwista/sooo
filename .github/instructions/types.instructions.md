@@ -226,4 +226,5 @@ export interface Pagination {
 
 ## 관련 문서
 
-- [docs/common/architecture/types-package-spec.md](docs/common/architecture/types-package-spec.md)
+**아키텍처**:
+- [Types 패키지 명세서](../../docs/common/architecture/types-package-spec.md) - Export 구조, 의존성, 스크립트

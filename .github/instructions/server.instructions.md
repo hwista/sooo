@@ -373,6 +373,6 @@ logger.log(`JWT Token: ${token}`);         // 절대 금지
 
 ## 관련 문서
 
-- [api-guide.md](../docs/common/guides/api-guide.md) - API 응답 형식
-- [auth-system.md](../docs/common/architecture/auth-system.md) - 인증 시스템
-- [security-standards.md](../docs/common/architecture/security-standards.md) - 보안 표준
+- [api-guide.md](../../docs/common/guides/api-guide.md) - API 응답 형식, 에러 코드 상세
+- [auth-system.md](../../docs/common/architecture/auth-system.md) - 인증 흐름 다이어그램, 클라이언트 구현
+- [security-standards.md](../../docs/common/architecture/security-standards.md) - 보안 체크리스트 상세

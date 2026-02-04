@@ -278,6 +278,14 @@ pnpm --filter @ssoo/database docs:db
 
 ## 관련 문서
 
-- [docs/common/guides/database-guide.md](docs/common/guides/database-guide.md)
-- [docs/common/guides/bigint-guide.md](docs/common/guides/bigint-guide.md)
-- [docs/common/architecture/database-package-spec.md](docs/common/architecture/database-package-spec.md)
+**가이드**:
+- [데이터베이스 가이드](../../docs/common/guides/database-guide.md) - 환경 설정, Prisma 명령어, Seed 데이터
+- [BigInt 처리 가이드](../../docs/common/guides/bigint-guide.md) - BigInt 직렬화 상세
+- [히스토리 관리 가이드](../../docs/common/guides/history-management.md) - 트리거 동작 상세
+
+**아키텍처**:
+- [Database 패키지 스펙](../../docs/common/architecture/database-package-spec.md) - 패키지 구조, API
+
+**레퍼런스 (자동 생성)**:
+- [Common ERD](../../docs/common/reference/db/erd.svg)
+- [PMS ERD](../../docs/pms/reference/db/erd.svg)

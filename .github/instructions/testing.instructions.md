@@ -305,5 +305,6 @@ jobs:
 
 ## 관련 문서
 
-- [docs/pms/tests/README.md](docs/pms/tests/README.md) - 테스트 문서 인덱스
-- [docs/pms/tests/auth/](docs/pms/tests/auth/) - 인증 테스트 케이스
+**테스트 케이스**:
+- [테스트 문서 인덱스](../../docs/pms/tests/README.md) - 테스트 상태 추적, 자동화 계획
+- [인증 테스트](../../docs/pms/tests/auth/) - 로그인, 로그아웃, 토큰 갱신
