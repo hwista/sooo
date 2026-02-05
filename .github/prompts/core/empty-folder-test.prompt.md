@@ -114,7 +114,7 @@ User 엔티티와 CRUD API를 구현해줘.
 
 ```bash
 # 구조 검증
-node scripts/sdd-verify.js
+node .github/scripts/sdd-verify.js
 
 # 빌드 검증
 pnpm install

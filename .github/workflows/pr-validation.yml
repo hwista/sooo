@@ -78,7 +78,7 @@ jobs:
             echo "검증할 파일:"
             echo "$CHANGED_FILES"
             echo ""
-            node scripts/check-patterns.js $CHANGED_FILES
+            node .github/scripts/check-patterns.js $CHANGED_FILES
           else
             echo "검증할 TypeScript 파일 없음"
           fi
@@ -92,7 +92,7 @@ jobs:
             echo "검증할 문서:"
             echo "$CHANGED_DOCS"
             echo ""
-            node scripts/check-docs.js $CHANGED_DOCS
+            node .github/scripts/check-docs.js $CHANGED_DOCS
           else
             echo "검증할 문서 파일 없음"
           fi

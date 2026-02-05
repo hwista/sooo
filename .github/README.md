@@ -65,7 +65,7 @@ node .github/scripts/sdd-verify.js        # 전체 검증
 node .github/scripts/sdd-verify.js --quick  # 빠른 검증
 
 # 또는 레포 루트의 래퍼 사용 (하위 호환)
-node scripts/sdd-verify.js --quick
+node .github/scripts/sdd-verify.js --quick
 ```
 
 ---
@@ -77,7 +77,9 @@ node scripts/sdd-verify.js --quick
 ├── copilot-instructions.md      # 전역 Copilot 지침 (🔶 레포 특화)
 │
 ├── scripts/                      # 🆕 검증 스크립트 (✅ 코어)
-│   └── sdd-verify.js             # SDD Framework 검증
+│   ├── sdd-verify.js             # SDD Framework 통합 검증
+│   ├── check-patterns.js         # 코드 패턴 검증 (any, export *)
+│   └── check-docs.js             # 문서 구조 검증 (Diátaxis)
 │
 ├── agents/                       # 🤖 에이전트 (✅ 코어)
 │   ├── common-workflow.md        # 공통 워크플로우 정의
@@ -460,7 +462,7 @@ node .github/scripts/sdd-verify.js --quick
 
 ```bash
 # 수동 실행
-node scripts/check-patterns.js [files...]
+node .github/scripts/check-patterns.js [files...]
 
 # 자동 실행 (pre-commit)
 # → lint-staged에 의해 자동 호출
@@ -486,6 +488,7 @@ node scripts/check-patterns.js [files...]
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-05 | 코어 스크립트를 .github/scripts/로 통일 (check-patterns.js, check-docs.js 추가) |
 | 2026-02-05 | 작업 완료 프로토콜 순서 수정 (검증→문서 최신화→커밋), 문서 전수 최신화 강조 |
 | 2026-02-05 | 작업 완료 프로토콜 추가 (매 작업 후 필수 실행: 문서 업데이트, 커밋 제안, 검증) |
 | 2026-02-05 | templates/config/ 기술 스택별 분리 (typescript-monorepo, typescript-npm, python-poetry, dotnet) |

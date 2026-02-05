@@ -6,10 +6,10 @@
  * .github 문서의 규칙과 코드베이스의 일치 여부를 검증합니다.
  * 
  * 사용법:
- *   node scripts/sdd-verify.js           # 전체 검증
- *   node scripts/sdd-verify.js --quick   # 빠른 검증 (필수 항목만)
- *   node scripts/sdd-verify.js --report  # JSON 리포트 생성
- *   node scripts/sdd-verify.js --fix     # 자동 수정 가능한 항목 수정
+ *   node .github/scripts/sdd-verify.js           # 전체 검증
+ *   node .github/scripts/sdd-verify.js --quick   # 빠른 검증 (필수 항목만)
+ *   node .github/scripts/sdd-verify.js --report  # JSON 리포트 생성
+ *   node .github/scripts/sdd-verify.js --fix     # 자동 수정 가능한 항목 수정
  * 
  * 품질 수렴 루프:
  *   측정 → 분석 → 개선 → 재측정 → 100% 수렴

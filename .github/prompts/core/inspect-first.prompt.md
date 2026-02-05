@@ -205,7 +205,7 @@ pnpm typecheck
 
 ```bash
 # SDD 구조 검증
-node scripts/sdd-verify.js
+node .github/scripts/sdd-verify.js
 
 # 의존성 그래프
 pnpm why [package]

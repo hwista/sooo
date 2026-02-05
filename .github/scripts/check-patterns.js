@@ -7,7 +7,7 @@
  * 2. any 타입 사용 금지 (타입 정의 제외)
  * 3. console.log 잔류 금지 (개발용)
  * 
- * @usage node scripts/check-patterns.js [files...]
+ * @usage node .github/scripts/check-patterns.js [files...]
  */
 
 const fs = require('fs');
@@ -35,7 +35,7 @@ const RULES = [
     pattern: /console\.(log|debug|info)\(/g,
     message: 'console.log 잔류: 커밋 전 제거 또는 logger 사용',
     severity: 'warning',
-    exclude: ['node_modules', 'dist', '.next', 'scripts/', '*.config.*'],
+    exclude: ['node_modules', 'dist', '.next', 'scripts/', '.github/scripts/', '*.config.*'],
     filePattern: /\.(ts|tsx|js|jsx)$/,
   },
 ];

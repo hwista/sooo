@@ -1039,7 +1039,7 @@ pnpm exec husky init
   "lint-staged": {
     "**/*.{ts,tsx}": [
       "eslint --fix",
-      "node scripts/check-patterns.js"
+      "node .github/scripts/check-patterns.js"
     ]
   }
 }
@@ -1187,13 +1187,13 @@ jobs:
         run: |
           CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' || true)
           if [ -n "$CHANGED" ]; then
-            node scripts/check-patterns.js $CHANGED
+            node .github/scripts/check-patterns.js $CHANGED
           fi
       - name: Docs Check
         run: |
           CHANGED_DOCS=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^docs/.*\.md$' || true)
           if [ -n "$CHANGED_DOCS" ]; then
-            node scripts/check-docs.js $CHANGED_DOCS
+            node .github/scripts/check-docs.js $CHANGED_DOCS
           fi
 ```
 
@@ -1270,10 +1270,10 @@ function validateFile(filePath) {
   "lint-staged": {
     "**/*.{ts,tsx}": [
       "eslint --fix",
-      "node scripts/check-patterns.js"
+      "node .github/scripts/check-patterns.js"
     ],
     "docs/**/*.md": [
-      "node scripts/check-docs.js"
+      "node .github/scripts/check-docs.js"
     ]
   }
 }

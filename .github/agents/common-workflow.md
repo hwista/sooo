@@ -208,7 +208,7 @@
 측정 → 분석 → 개선 → 재측정 → ... → 100% 수렴
 ```
 
-**측정 도구**: `node scripts/sdd-verify.js`
+**측정 도구**: `node .github/scripts/sdd-verify.js`
 
 **수렴 판정**:
 | 점수 | 상태 | 조치 |

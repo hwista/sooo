@@ -266,12 +266,12 @@ node .github/scripts/sdd-verify.js --quick
 
 ```bash
 # 검증 스크립트 실행
-node scripts/sdd-verify.js --quick
+node .github/scripts/sdd-verify.js --quick
 
 # package.json에 추가
 "scripts": {
-  "sdd:verify": "node scripts/sdd-verify.js",
-  "sdd:verify:quick": "node scripts/sdd-verify.js --quick"
+  "sdd:verify": "node .github/scripts/sdd-verify.js",
+  "sdd:verify:quick": "node .github/scripts/sdd-verify.js --quick"
 }
 ```
 
@@ -289,7 +289,7 @@ echo 'npx lint-staged' > .husky/pre-commit
 "lint-staged": {
   "*.{ts,tsx}": [
     "eslint --fix",
-    "node scripts/sdd-verify.js --quick"
+    "node .github/scripts/sdd-verify.js --quick"
   ]
 }
 ```
@@ -407,7 +407,7 @@ docs/
 ### Phase 2 완료 기준
 
 - [ ] ESLint 규칙에 any 금지 추가
-- [ ] `node scripts/sdd-verify.js --quick` 실행 가능
+- [ ] `node .github/scripts/sdd-verify.js --quick` 실행 가능
 - [ ] Git hooks 설정됨
 
 ### Phase 3 완료 기준
@@ -426,7 +426,7 @@ docs/
 
 ```bash
 # 전체 검증
-node scripts/sdd-verify.js
+node .github/scripts/sdd-verify.js
 
 # 기대 결과: 품질 점수 95% 이상
 ```

@@ -497,7 +497,7 @@ pnpm --filter server exec tsc --noEmit
 pnpm --filter web-pms exec tsc --noEmit
 
 # 패턴 검증 (특정 파일)
-node scripts/check-patterns.js apps/server/src/modules/pms/project/project.service.ts
+node .github/scripts/check-patterns.js apps/server/src/modules/pms/project/project.service.ts
 ```
 
 ### AI와 협업 시 가이드

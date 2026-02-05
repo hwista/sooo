@@ -35,10 +35,10 @@
 
 ```bash
 # 전체 측정
-node scripts/sdd-verify.js
+node .github/scripts/sdd-verify.js
 
 # 빠른 측정 (빌드 제외)
-node scripts/sdd-verify.js --quick
+node .github/scripts/sdd-verify.js --quick
 
 # 개별 측정
 pnpm build        # 빌드 검증

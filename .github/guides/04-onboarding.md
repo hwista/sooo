@@ -77,7 +77,7 @@ pnpm lint
 
 ```bash
 # 프로젝트 상태 확인
-node scripts/sdd-verify.js --quick
+node .github/scripts/sdd-verify.js --quick
 ```
 
 예상 결과:
@@ -333,7 +333,7 @@ grep -r "interface User" packages/types/
 4. **검증**
    ```bash
    pnpm lint && pnpm build
-   node scripts/sdd-verify.js --quick
+   node .github/scripts/sdd-verify.js --quick
    ```
 
 5. **문서 업데이트**
