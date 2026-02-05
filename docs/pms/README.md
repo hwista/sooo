@@ -18,10 +18,11 @@
 
 | 폴더 | 설명 | 주요 내용 |
 |------|------|----------|
-| **[architecture/](architecture/)** | 아키텍처/개발 표준 | 기술 스택, 모듈 구조, 보안 정책 |
-| **[domain/](domain/)** | 비즈니스 개념 | 서비스 개요, 워크플로우, 액션 |
-| **[design/](design/)** | UI/UX 설계 | 디자인 시스템, 레이아웃, 컴포넌트 계층 |
-| **[guides/](guides/)** | 사용 가이드 | API, DB, BigInt 처리 가이드 |
+| **[explanation/architecture/](explanation/architecture/)** | 아키텍처/개발 표준 | 기술 스택, 모듈 구조, 보안 정책 |
+| **[explanation/domain/](explanation/domain/)** | 비즈니스 개념 | 서비스 개요, 워크플로우, 액션 |
+| **[explanation/design/](explanation/design/)** | UI/UX 설계 | 디자인 시스템, 레이아웃, 컴포넌트 계층 |
+| **[guides/](guides/)** | 사용 가이드 (How-to) | API, DB, BigInt 처리 가이드 |
+| **[tutorials/](tutorials/)** | 학습 자료 | 튜토리얼 |
 | **[planning/](planning/)** | 프로젝트 관리 | 백로그, 로드맵, 변경 이력 |
 | **[tests/](tests/)** | 테스트 시나리오 | 인증 테스트 케이스 |
 
@@ -40,10 +41,10 @@
 
 | 문서 | 설명 |
 |------|------|
-| [docs-management.md](../common/architecture/docs-management.md) | **문서 관리 전략** - 자동/수동 구분, 중복 방지 (공용) |
-| [tech-stack.md](architecture/tech-stack.md) | PMS 기술 스택 |
-| [modular-monolith.md](../common/architecture/modular-monolith.md) | 모듈러 모놀리스 아키텍처 (공용) |
-| [service-overview.md](domain/service-overview.md) | 서비스 개요 |
+| [docs-management.md](../common/explanation/architecture/docs-management.md) | **문서 관리 전략** - 자동/수동 구분, 중복 방지 (공용) |
+| [tech-stack.md](explanation/architecture/tech-stack.md) | PMS 기술 스택 |
+| [modular-monolith.md](../common/explanation/architecture/modular-monolith.md) | 모듈러 모놀리스 아키텍처 (공용) |
+| [service-overview.md](explanation/domain/service-overview.md) | 서비스 개요 |
 
 ---
 

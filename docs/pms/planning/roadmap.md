@@ -76,4 +76,4 @@
 ## 관련 문서
 
 - [BACKLOG.md](BACKLOG.md) - 상세 백로그
-- [../domain/service-overview.md](../domain/service-overview.md) - 서비스 개요
+- [../domain/service-overview.md](../explanation/domain/service-overview.md) - 서비스 개요

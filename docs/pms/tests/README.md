@@ -99,6 +99,6 @@ pnpm test:e2e
 
 ## 7. 관련 문서
 
-- [서비스 액션 문서](../domain/actions/)
-- [워크플로우 문서](../domain/workflows/)
+- [서비스 액션 문서](../explanation/domain/actions/)
+- [워크플로우 문서](../explanation/domain/workflows/)
 - [데이터베이스 가이드](../../common/guides/database-guide.md) (공용)

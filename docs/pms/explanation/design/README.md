@@ -105,4 +105,4 @@
 
 - [../planning/backlog.md](../planning/backlog.md) - 전체 개발 백로그
 - [../guides/database-guide.md](../guides/database-guide.md) - 데이터베이스 가이드
-- [../domain/service-overview.md](../domain/service-overview.md) - 서비스 개요
+- [../domain/service-overview.md](../explanation/domain/service-overview.md) - 서비스 개요

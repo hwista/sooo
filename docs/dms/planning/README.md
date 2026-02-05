@@ -16,5 +16,5 @@
 
 ## 🔗 관련 문서
 
-- [DMS 아키텍처](../architecture/)
+- [DMS 아키텍처](../explanation/architecture/)
 - [DMS README](../README.md)

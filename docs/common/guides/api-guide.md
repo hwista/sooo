@@ -147,8 +147,8 @@ Authorization: Bearer <access_token>
 
 ## 관련 문서
 
-- [인증 시스템 아키텍처](../architecture/auth-system.md) - 인증 흐름 (공용)
-- [보안 표준](../architecture/security-standards.md)
+- [인증 시스템 아키텍처](../explanation/architecture/auth-system.md) - 인증 흐름 (공용)
+- [보안 표준](../explanation/architecture/security-standards.md)
 
 ---
 

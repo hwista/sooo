@@ -445,8 +445,8 @@ function MyComponent() {
 
 ## 관련 문서
 
-- [인증 시스템](../../common/architecture/auth-system.md)
-- [메뉴 구조](../domain/menu-structure.md)
+- [인증 시스템](../../common/explanation/architecture/auth-system.md)
+- [메뉴 구조](../explanation/domain/menu-structure.md)
 - [레이아웃 시스템](./layout-system.md)
 
 ---

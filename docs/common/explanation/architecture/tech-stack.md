@@ -127,7 +127,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api
 
 각 시스템의 상세 기술 스택은 아래 문서를 참조하세요:
 
-- [PMS 기술 스택](../../pms/architecture/tech-stack.md)
-- [DMS 기술 스택](../../dms/architecture/tech-stack.md)
+- [PMS 기술 스택](../../pms/explanation/architecture/tech-stack.md)
+- [DMS 기술 스택](../../dms/explanation/architecture/tech-stack.md)
 
 ````

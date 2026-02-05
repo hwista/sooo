@@ -509,7 +509,7 @@ GitHub Copilot 또는 AI 에이전트와 작업할 때:
 3. **검증 실행**: 커밋 전 `pnpm lint` 실행
 
 👉 **AI 에이전트 가이드**: [.github/README.md](../.github/README.md)  
-👉 **개발 표준**: [development-standards.md](./common/architecture/development-standards.md)
+👉 **개발 표준**: [development-standards.md](./common/explanation/architecture/development-standards.md)
 
 ---
 
@@ -652,8 +652,8 @@ cat .npmrc
 
 - [README.md](../README.md) - 프로젝트 개요
 - [AGENTS.md](./common/AGENTS.md) - 에이전트 학습 가이드
-- [tech-stack.md](./common/architecture/tech-stack.md) - 기술 스택
-- [development-standards.md](./common/architecture/development-standards.md) - 개발 표준
+- [tech-stack.md](./common/explanation/architecture/tech-stack.md) - 기술 스택
+- [development-standards.md](./common/explanation/architecture/development-standards.md) - 개발 표준
 
 ### 지원
 
@@ -687,8 +687,8 @@ cat .npmrc
 
 2. **문서 확인**:
    - [backlog.md](./pms/planning/backlog.md) - 진행 상황
-   - [Design System](./pms/design/design-system.md) - 디자인 표준
-   - [UI Components](./pms/design/ui-components.md) - UI 컴포넌트
+   - [Design System](./pms/explanation/design/design-system.md) - 디자인 표준
+   - [UI Components](./pms/explanation/design/ui-components.md) - UI 컴포넌트
 
 3. **개발 시작**:
    - 새 기능 개발 전 BACKLOG 확인

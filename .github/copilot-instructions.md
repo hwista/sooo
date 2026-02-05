@@ -349,17 +349,23 @@ export * from './components';
 ### 📚 Diátaxis 문서 구조 (필수)
 
 > **Diátaxis Framework**: 문서를 4가지 유형으로 분류하는 표준 체계
+> **하이브리드 구조**: Diátaxis 4분류 + explanation 하위 세분화
 
 | 분류 | 목적 | 독자 상태 | docs/ 폴더 매핑 |
 |------|------|----------|-----------------|
-| **Tutorials** | 학습 (step-by-step) | 배우는 중 | `getting-started.md`, `tutorials/` |
+| **Tutorials** | 학습 (step-by-step) | 배우는 중 | `tutorials/`, `getting-started.md` |
 | **How-to Guides** | 문제 해결 | 작업 수행 중 | `guides/` |
 | **Reference** | 기술 명세 | 정보 탐색 중 | `reference/` (자동 생성) |
-| **Explanation** | 개념 이해 | 이해하려는 중 | `architecture/`, `domain/`, `design/` |
+| **Explanation** | 개념 이해 | 이해하려는 중 | `explanation/` (하위 세분화) |
+
+**Explanation 하위 세분화:**
+- `explanation/architecture/` - 아키텍처 결정, 기술 표준
+- `explanation/domain/` - 비즈니스 개념, 워크플로우
+- `explanation/design/` - UI/UX 설계 원칙
 
 **문서 작성 시 반드시 분류 결정:**
 1. 새 문서 생성 전 → "이 문서는 4가지 중 어디에 해당하는가?"
-2. 분류 결정 → 해당 폴더에 배치
+2. Explanation인 경우 → "architecture/domain/design 중 어디인가?"
 3. 분류 불명확 → `[NEEDS CLARIFICATION: 문서 분류]`
 
 **폴더 구조 표준:**
@@ -370,21 +376,25 @@ docs/
 ├── getting-started.md     # Tutorial: 빠른 시작
 │
 ├── common/                # 공통 문서
-│   ├── architecture/      # Explanation: 아키텍처 결정
+│   ├── tutorials/         # Tutorial: 학습 자료
 │   ├── guides/            # How-to: 개발 가이드
-│   └── reference/         # Reference: 자동 생성 (API, DB)
+│   ├── reference/         # Reference: 자동 생성 (API, DB)
+│   └── explanation/       # Explanation: 개념 이해
+│       └── architecture/  # 아키텍처 결정
 │
-└── [domain]/              # 도메인별 문서
-    ├── architecture/      # Explanation: 기술 결정
-    ├── domain/            # Explanation: 비즈니스 개념
-    │   ├── concepts.md
-    │   ├── workflows/
-    │   └── actions/
-    ├── design/            # Explanation: UI/UX 설계
+└── [domain]/              # 도메인별 문서 (pms, dms)
+    ├── tutorials/         # Tutorial: 학습 자료
     ├── guides/            # How-to: 사용 가이드
-    ├── planning/          # (관리 문서: 백로그, 로드맵)
     ├── reference/         # Reference: 자동 생성
-    └── tests/             # Reference: 테스트 시나리오
+    ├── explanation/       # Explanation: 개념 이해
+    │   ├── architecture/  # 기술 결정
+    │   ├── domain/        # 비즈니스 개념
+    │   │   ├── concepts.md
+    │   │   ├── workflows/
+    │   │   └── actions/
+    │   └── design/        # UI/UX 설계
+    ├── planning/          # (관리 문서: 백로그, 로드맵)
+    └── tests/             # (테스트 시나리오)
 ```
 
 ### 자동 vs 수동 문서
@@ -398,10 +408,11 @@ docs/
 
 ### 수동 문서 영역 (작성 가능)
 
-- `architecture/` - 아키텍처 결정, 개발 표준 (Explanation)
-- `domain/` - 비즈니스 개념, 워크플로우 (Explanation)
-- `design/` - UI/UX 설계 원칙 (Explanation)
+- `explanation/architecture/` - 아키텍처 결정, 개발 표준
+- `explanation/domain/` - 비즈니스 개념, 워크플로우
+- `explanation/design/` - UI/UX 설계 원칙
 - `guides/` - 사용 가이드라인 (How-to)
+- `tutorials/` - 학습 자료 (Tutorial)
 - `planning/` - 프로젝트 관리 (관리 문서)
 
 ### reference/ 폴더 규칙
@@ -417,6 +428,7 @@ docs/
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-05 | Diátaxis 하이브리드 구조 적용 (explanation/ 하위에 architecture/domain/design/) |
 | 2026-02-05 | 점검 우선 원칙 추가 (원칙 5), 원칙 번호 재정렬 (1-9) |
 | 2026-02-05 | Diátaxis Framework 문서 구조 표준 추가 (4분류 + 폴더 매핑) |
 | 2026-02-05 | 문서 역할 구분 명확화 (.github = 프로세스 정본, docs = 결과물 정본) |

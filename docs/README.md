@@ -16,29 +16,34 @@
 
 ---
 
-## 📖 문서 구조
+## 📖 문서 구조 (Diátaxis 하이브리드)
 
 ```
 docs/
-├── common/              # 🔗 공용 문서 (PMS/DMS 공통)
-│   ├── architecture/    # 공통 아키텍처 및 표준
-│   ├── guides/          # 공통 가이드
-│   └── reference/       # 자동 생성 문서 (API, ERD, TypeDoc)
-├── pms/                 # 📋 PMS 문서
-│   ├── architecture/    # PMS 아키텍처 (상태관리, 라우팅, 유틸리티)
-│   ├── design/          # UI/UX 설계 (디자인 시스템, 레이아웃)
-│   ├── domain/          # 도메인 모델링 (actions, workflows)
-│   ├── guides/          # 개발 가이드
-│   ├── planning/        # 기획 및 로드맵 (backlog, changelog)
-│   ├── reference/       # 자동 생성 문서 (Storybook, TypeDoc, DB)
-│   └── tests/           # 테스트 문서
-└── dms/                 # 📄 DMS 문서 (모노레포 통합용)
-    ├── architecture/    # DMS 통합 계획
-    ├── planning/        # DMS 로드맵/변경이력
-    └── reference/       # DMS 참조 자료
+├── common/                 # 🔗 공용 문서 (PMS/DMS 공통)
+│   ├── tutorials/          # Tutorial: 학습 자료
+│   ├── guides/             # How-to: 공통 가이드
+│   ├── reference/          # Reference: 자동 생성 (API, ERD, TypeDoc)
+│   └── explanation/        # Explanation: 개념 이해
+│       └── architecture/   # 공통 아키텍처 및 표준
+├── pms/                    # 📋 PMS 문서
+│   ├── tutorials/          # Tutorial: 학습 자료
+│   ├── guides/             # How-to: 개발 가이드
+│   ├── reference/          # Reference: 자동 생성 (Storybook, TypeDoc, DB)
+│   ├── explanation/        # Explanation: 개념 이해
+│   │   ├── architecture/   # PMS 아키텍처 (상태관리, 라우팅, 유틸리티)
+│   │   ├── domain/         # 도메인 모델링 (actions, workflows)
+│   │   └── design/         # UI/UX 설계 (디자인 시스템, 레이아웃)
+│   ├── planning/           # 기획 및 로드맵 (backlog, changelog)
+│   └── tests/              # 테스트 문서
+└── dms/                    # 📄 DMS 문서 (모노레포 통합용)
+    ├── explanation/        # Explanation: 개념 이해
+    │   └── architecture/   # DMS 통합 계획
+    ├── planning/           # DMS 로드맵/변경이력
+    └── reference/          # DMS 참조 자료
 ```
 
-> ⚠️ **DMS 정본 문서**: `apps/web/dms/docs/development/`에 있습니다.
+> ⚠️ **DMS 정본 문서**: `apps/web/dms/docs/`에 있습니다.
 
 ## 🔗 문서 바로가기
 
@@ -48,33 +53,33 @@ docs/
 |------|------|
 | [공용 README](./common/README.md) | 공용 문서 인덱스 |
 | [**AGENTS 가이드**](./common/AGENTS.md) | 모노레포 에이전트 학습 가이드 |
-| [리팩토링 표준](./common/architecture/refactoring-audit-prompt.md) | 리팩토링 감사 기준 |
-| [공통 기술 스택](./common/architecture/tech-stack.md) | 백엔드, 데이터베이스, 공통 도구 |
-| [개발 표준](./common/architecture/development-standards.md) | 코딩 규칙 및 표준 |
-| [보안 표준](./common/architecture/security-standards.md) | 보안 정책 |
-| [워크플로우](./common/architecture/workflow-process.md) | 개발 프로세스 |
+| [리팩토링 표준](./common/explanation/architecture/refactoring-audit-prompt.md) | 리팩토링 감사 기준 |
+| [공통 기술 스택](./common/explanation/architecture/tech-stack.md) | 백엔드, 데이터베이스, 공통 도구 |
+| [개발 표준](./common/explanation/architecture/development-standards.md) | 코딩 규칙 및 표준 |
+| [보안 표준](./common/explanation/architecture/security-standards.md) | 보안 정책 |
+| [워크플로우](./common/explanation/architecture/workflow-process.md) | 개발 프로세스 |
 
 ### PMS (Project Management System)
 
 | 문서 | 설명 |
 |------|------|
 | [PMS README](./pms/README.md) | PMS 문서 인덱스 |
-| [PMS 기술 스택](./pms/architecture/tech-stack.md) | PMS 프론트엔드 기술 |
+| [PMS 기술 스택](./pms/explanation/architecture/tech-stack.md) | PMS 프론트엔드 기술 |
 | [개발 환경 설정](./getting-started.md) | 개발 환경 설정 가이드 |
-| [디자인 시스템](./pms/design/design-system.md) | UI/UX 디자인 표준 |
+| [디자인 시스템](./pms/explanation/design/design-system.md) | UI/UX 디자인 표준 |
 | [변경 이력](./pms/planning/changelog.md) | 최신 변경사항 |
 | [백로그](./pms/planning/backlog.md) | 작업 현황 |
 
 ### DMS (Document Management System)
 
-> ⚠️ **DMS 정본 문서는 `apps/web/dms/docs/development/`에 있습니다.**  
+> ⚠️ **DMS 정본 문서는 `apps/web/dms/docs/`에 있습니다.**  
 > DMS는 독립 프로젝트로, npm을 사용하며 `@ssoo/*` 패키지를 참조하지 않습니다.
 
 | 문서 | 설명 |
 |------|------|
-| [DMS AGENTS](../apps/web/dms/docs/development/AGENTS.md) | DMS 에이전트 가이드 (정본) |
-| [DMS 기술 스택](../apps/web/dms/docs/development/architecture/tech-stack.md) | DMS 기술 스택 |
-| [DMS 패키지 명세](../apps/web/dms/docs/development/architecture/package-spec.md) | DMS 패키지 구조 |
+| [DMS AGENTS](../apps/web/dms/docs/AGENTS.md) | DMS 에이전트 가이드 (정본) |
+| [DMS 기술 스택](../apps/web/dms/docs/explanation/architecture/tech-stack.md) | DMS 기술 스택 |
+| [DMS 패키지 명세](../apps/web/dms/docs/explanation/architecture/package-spec.md) | DMS 패키지 구조 |
 
 ## 📋 문서 카테고리 설명
 
@@ -82,14 +87,14 @@ docs/
 
 PMS와 DMS에서 공통으로 적용되는 문서들:
 
-- **architecture/**: 개발 표준, 보안 정책, 백엔드 아키텍처, 패키지 명세
+- **explanation/architecture/**: 개발 표준, 보안 정책, 백엔드 아키텍처, 패키지 명세
 - **guides/**: API 사용법, 데이터베이스 가이드, 코딩 규칙
 
 ### 📋 PMS (프로젝트 관리)
 
-- **architecture/**: PMS 프론트엔드 아키텍처 (상태관리, 라우팅, 유틸리티)
-- **design/**: UI/UX 설계 (디자인 시스템, 레이아웃, 컴포넌트)
-- **domain/**: 비즈니스 도메인 (actions, workflows)
+- **explanation/architecture/**: PMS 프론트엔드 아키텍처 (상태관리, 라우팅, 유틸리티)
+- **explanation/design/**: UI/UX 설계 (디자인 시스템, 레이아웃, 컴포넌트)
+- **explanation/domain/**: 비즈니스 도메인 (actions, workflows)
 - **guides/**: PMS 개발 가이드 (history-management 등)
 - **planning/**: 백로그, 로드맵, 변경 이력
 - **reference/**: TypeDoc, Storybook, DB ERD 등 자동 생성 문서
@@ -97,9 +102,9 @@ PMS와 DMS에서 공통으로 적용되는 문서들:
 
 ### 📄 DMS (문서 관리)
 
-> DMS 정본 문서는 `apps/web/dms/docs/development/`에 있습니다.
+> DMS 정본 문서는 `apps/web/dms/docs/`에 있습니다.
 
-- **architecture/**: DMS 통합 계획 및 비교 분석
+- **explanation/architecture/**: DMS 통합 계획 및 비교 분석
 - **planning/**: DMS 로드맵, 백로그, 변경 이력
 - **reference/**: DMS 참조 자료 (DB 스키마 등)
 
@@ -129,7 +134,7 @@ PMS와 DMS에서 공통으로 적용되는 문서들:
 
 ## 🚀 빠른 시작
 
-1. **신규 개발자**: [개발 환경 설정](./getting-started.md) → [개발 표준](./common/architecture/development-standards.md)
+1. **신규 개발자**: [개발 환경 설정](./getting-started.md) → [개발 표준](./common/explanation/architecture/development-standards.md)
 2. **API 개발**: [API 가이드](./common/guides/api-guide.md) → [API 명세](./pms/api/README.md)
 3. **데이터베이스 작업**: [DB 가이드](./common/guides/database-guide.md) → [DB 규칙](./common/guides/rules.md)
-4. **프론트엔드 개발**: [PMS 기술 스택](./pms/architecture/tech-stack.md) → [UI 설계](./pms/design/README.md)
+4. **프론트엔드 개발**: [PMS 기술 스택](./pms/explanation/architecture/tech-stack.md) → [UI 설계](./pms/explanation/design/README.md)

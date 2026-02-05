@@ -325,7 +325,7 @@ const pageComponents = {
 
 - [상태 관리](./state-management.md)
 - [스크롤바 시스템](./scrollbar.md)
-- [메뉴 구조](../domain/menu-structure.md)
+- [메뉴 구조](../explanation/domain/menu-structure.md)
 
 ---
 

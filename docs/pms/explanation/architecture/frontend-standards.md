@@ -239,7 +239,7 @@ types/
 
 - [tech-stack.md](tech-stack.md) - 기술 스택
 - [tech-decisions.md](tech-decisions.md) - 기술 결정 사항
-- [../design/design-system.md](../design/design-system.md) - 디자인 시스템
+- [../design/design-system.md](../explanation/design/design-system.md) - 디자인 시스템
 
 ---
 

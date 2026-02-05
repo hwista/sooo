@@ -347,17 +347,17 @@ const tabId = await openTabWithConfirm({
 ## 관련 문서
 
 **에이전트/온보딩**:
-- [DMS 에이전트 가이드](../../apps/web/dms/docs/development/AGENTS.md) - 작업 프로세스, 체크리스트
+- [DMS 에이전트 가이드](../../apps/web/dms/docs/AGENTS.md) - 작업 프로세스, 체크리스트
 
 **아키텍처**:
-- [기술 스택](../../apps/web/dms/docs/development/architecture/tech-stack.md)
-- [패키지 구조](../../apps/web/dms/docs/development/architecture/package-spec.md)
-- [상태 관리](../../apps/web/dms/docs/development/architecture/state-management.md)
+- [기술 스택](../../apps/web/dms/docs/explanation/architecture/tech-stack.md)
+- [패키지 구조](../../apps/web/dms/docs/explanation/architecture/package-spec.md)
+- [상태 관리](../../apps/web/dms/docs/explanation/architecture/state-management.md)
 
 **개발 가이드**:
-- [컴포넌트 가이드](../../apps/web/dms/docs/development/guides/components.md)
-- [훅 가이드](../../apps/web/dms/docs/development/guides/hooks.md)
-- [API 가이드](../../apps/web/dms/docs/development/guides/api.md)
+- [컴포넌트 가이드](../../apps/web/dms/docs/guides/components.md)
+- [훅 가이드](../../apps/web/dms/docs/guides/hooks.md)
+- [API 가이드](../../apps/web/dms/docs/guides/api.md)
 
 **디자인**:
-- [디자인 시스템](../../apps/web/dms/docs/development/design/design-system.md)
+- [디자인 시스템](../../apps/web/dms/docs/explanation/design/design-system.md)

@@ -33,7 +33,7 @@ SSOO 프로젝트의 표준 개발 작업 프로세스입니다.
 | Store 변경 | `docs/pms/architecture/state-management.md` |
 | 컴포넌트 변경 | `docs/pms/design/ui-components.md` |
 | 유틸리티 변경 | `docs/pms/architecture/utilities.md` |
-| 인증 변경 | `docs/common/architecture/auth-system.md` |
+| 인증 변경 | `docs/common/explanation/architecture/auth-system.md` |
 | DB 변경 | `docs/common/guides/database-guide.md` |
 
 ### 3단계: Git 커밋
@@ -212,7 +212,7 @@ npx --no -- commitlint --edit "$1"
 ## 관련 문서
 
 - [개발 표준](./development-standards.md)
-- [프론트엔드 표준](../../pms/architecture/frontend-standards.md) - PMS 프론트엔드 표준
+- [프론트엔드 표준](../../pms/explanation/architecture/frontend-standards.md) - PMS 프론트엔드 표준
 - [DB 규칙](../guides/rules.md)
 
 ---

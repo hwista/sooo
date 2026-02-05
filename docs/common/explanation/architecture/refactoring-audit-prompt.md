@@ -138,7 +138,7 @@ docs/
 
 ### 6. 문서 관리 전략
 
-**참조**: `docs/common/architecture/docs-management.md`
+**참조**: `docs/common/explanation/architecture/docs-management.md`
 
 | 구분 | 위치 | 규칙 |
 |------|------|------|
@@ -152,16 +152,16 @@ docs/
 
 | 문서 | 경로 | 역할 |
 |------|------|------|
-| **기술 스택** | `docs/common/architecture/tech-stack.md` | 기술 선택 기준 |
-| **개발 표준** | `docs/common/architecture/development-standards.md` | 코딩 규칙 |
-| **모듈러 모놀리스** | `docs/common/architecture/modular-monolith.md` | 아키텍처 원칙 |
-| **문서 관리** | `docs/common/architecture/docs-management.md` | 문서화 규칙 |
-| **보안 표준** | `docs/common/architecture/security-standards.md` | 보안 규칙 |
-| **인증 시스템** | `docs/common/architecture/auth-system.md` | 인증/인가 설계 |
-| **DB 패키지 스펙** | `docs/common/architecture/database-package-spec.md` | DB 설계 규칙 |
-| **서버 패키지 스펙** | `docs/common/architecture/server-package-spec.md` | 백엔드 설계 규칙 |
-| **타입 패키지 스펙** | `docs/common/architecture/types-package-spec.md` | 타입 정의 규칙 |
-| **워크플로우** | `docs/common/architecture/workflow-process.md` | 개발 프로세스 |
+| **기술 스택** | `docs/common/explanation/architecture/tech-stack.md` | 기술 선택 기준 |
+| **개발 표준** | `docs/common/explanation/architecture/development-standards.md` | 코딩 규칙 |
+| **모듈러 모놀리스** | `docs/common/explanation/architecture/modular-monolith.md` | 아키텍처 원칙 |
+| **문서 관리** | `docs/common/explanation/architecture/docs-management.md` | 문서화 규칙 |
+| **보안 표준** | `docs/common/explanation/architecture/security-standards.md` | 보안 규칙 |
+| **인증 시스템** | `docs/common/explanation/architecture/auth-system.md` | 인증/인가 설계 |
+| **DB 패키지 스펙** | `docs/common/explanation/architecture/database-package-spec.md` | DB 설계 규칙 |
+| **서버 패키지 스펙** | `docs/common/explanation/architecture/server-package-spec.md` | 백엔드 설계 규칙 |
+| **타입 패키지 스펙** | `docs/common/explanation/architecture/types-package-spec.md` | 타입 정의 규칙 |
+| **워크플로우** | `docs/common/explanation/architecture/workflow-process.md` | 개발 프로세스 |
 
 ### 8. CI/CD 현황
 

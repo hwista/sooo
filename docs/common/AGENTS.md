@@ -61,11 +61,11 @@ sooo/
 
 | 문서 | 경로 | 내용 |
 |------|------|------|
-| 개발 표준 | [development-standards.md](architecture/development-standards.md) | 계층 구조, 코드 재사용 |
-| 작업 프로세스 | [workflow-process.md](architecture/workflow-process.md) | 커밋, 브랜치, PR |
-| 보안 표준 | [security-standards.md](architecture/security-standards.md) | 인증, 암호화 상세 |
-| 인증 시스템 | [auth-system.md](architecture/auth-system.md) | JWT, 토큰 갱신 |
-| 모듈러 모놀리스 | [modular-monolith.md](architecture/modular-monolith.md) | 모듈 분리 원칙 |
+| 개발 표준 | [development-standards.md](explanation/architecture/development-standards.md) | 계층 구조, 코드 재사용 |
+| 작업 프로세스 | [workflow-process.md](explanation/architecture/workflow-process.md) | 커밋, 브랜치, PR |
+| 보안 표준 | [security-standards.md](explanation/architecture/security-standards.md) | 인증, 암호화 상세 |
+| 인증 시스템 | [auth-system.md](explanation/architecture/auth-system.md) | JWT, 토큰 갱신 |
+| 모듈러 모놀리스 | [modular-monolith.md](explanation/architecture/modular-monolith.md) | 모듈 분리 원칙 |
 
 ### 가이드
 
@@ -81,7 +81,7 @@ sooo/
 | 도메인 | 위치 | 설명 |
 |--------|------|------|
 | **PMS** | `docs/pms/` | PMS 설계, 디자인, 도메인 |
-| **DMS** | `apps/web/dms/docs/development/` | DMS 정본 (독립) |
+| **DMS** | `apps/web/dms/docs/` | DMS 정본 (독립) |
 | **DMS 통합** | `docs/dms/` | 모노레포 통합 관련만 |
 
 ---

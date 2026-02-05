@@ -6,7 +6,7 @@ SSOO 프론트엔드의 공통 UI 컴포넌트 문서입니다.
 
 > **컴포넌트의 시각적 예시, Props, 인터랙티브 데모는 Storybook에서 확인하세요.**
 >
-> ### **[📚 Storybook - UI 컴포넌트 카탈로그](../design/../reference/storybook/index.html)**
+> ### **[📚 Storybook - UI 컴포넌트 카탈로그](../explanation/design/../reference/storybook/index.html)**
 >
 > 이 문서는 기술 스택과 아키텍처 결정을 설명합니다.
 

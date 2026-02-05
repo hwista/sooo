@@ -37,24 +37,30 @@ const CHANGELOG_EXEMPT_PATHS = [
   /\/reference\//,    // 자동 생성 폴더
 ];
 
-// 허용된 디렉토리 구조
+// 허용된 디렉토리 구조 (Diátaxis 하이브리드)
 const ALLOWED_DIRECTORIES = {
   // 도메인별 (pms, dms, common)
   domain: [
-    'architecture',  // 아키텍처 결정, 표준
-    'design',        // UI/UX 설계
-    'domain',        // 비즈니스 개념
-    'guides',        // 가이드라인
-    'planning',      // 백로그, 로드맵, 체인지로그
+    'tutorials',     // Tutorial: 학습 자료
+    'guides',        // How-to: 가이드라인
+    'reference',     // Reference: 자동 생성 (api, db, typedoc, storybook)
+    'explanation',   // Explanation: 개념 이해 (하위: architecture, domain, design)
+    'planning',      // 관리 문서: 백로그, 로드맵, 체인지로그
     'tests',         // 테스트 시나리오
-    'reference',     // 자동 생성 (api, db, typedoc, storybook)
     '_archive',      // 아카이브
   ],
   // 공통 (common 전용)
   common: [
-    'architecture',
+    'tutorials',
     'guides', 
     'reference',
+    'explanation',
+  ],
+  // explanation 하위 디렉토리
+  explanation: [
+    'architecture',  // 아키텍처 결정, 표준
+    'domain',        // 비즈니스 개념, 워크플로우
+    'design',        // UI/UX 설계
   ],
 };
 
@@ -206,7 +212,7 @@ function checkLocation(filePath) {
   }
 
   const domain = parts[0]; // common, pms, dms
-  const directory = parts[1]; // architecture, design, etc.
+  const directory = parts[1]; // tutorials, guides, explanation, etc.
 
   // 도메인 확인
   if (!['common', 'pms', 'dms'].includes(domain)) {
@@ -229,6 +235,20 @@ function checkLocation(filePath) {
       message: `허용되지 않은 디렉토리: ${directory} (허용: ${allowedDirs.join(', ')})`,
       severity: 'error',
     });
+    return errors;
+  }
+
+  // explanation 하위 디렉토리 확인 (explanation/architecture, explanation/domain, explanation/design)
+  if (directory === 'explanation' && parts.length >= 3) {
+    const subDirectory = parts[2];
+    // 파일 직접 배치도 허용 (explanation/some-file.md)
+    if (!subDirectory.endsWith('.md') && !ALLOWED_DIRECTORIES.explanation.includes(subDirectory)) {
+      errors.push({
+        type: 'location',
+        message: `허용되지 않은 explanation 하위 디렉토리: ${subDirectory} (허용: ${ALLOWED_DIRECTORIES.explanation.join(', ')})`,
+        severity: 'error',
+      });
+    }
   }
 
   return errors;

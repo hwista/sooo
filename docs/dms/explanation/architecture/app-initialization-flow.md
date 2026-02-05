@@ -419,7 +419,7 @@ src/
 
 ## 🔗 관련 문서
 
-- [PMS 앱 초기화 흐름](../../pms/architecture/app-initialization-flow.md) - 참조 패턴
+- [PMS 앱 초기화 흐름](../../pms/explanation/architecture/app-initialization-flow.md) - 참조 패턴
 - [통합 리팩터링 계획서](./package-integration-plan.md) - Phase 6~7 상세
 - [완료 내역 아카이브](./package-integration-completed.md) - Phase 0~5
 - [PMS-DMS 비교 분석](./pms-dms-comparison-analysis.md) - 4관점 비교
