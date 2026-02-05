@@ -149,7 +149,7 @@ node .github/scripts/sdd-verify.js --quick
 
 ### 참조 (기존 패턴)
 - 유사 기능: UserController.findOne (기존 사용자 조회)
-- 참조 파일: apps/server/src/modules/common/user/
+- 참조 파일: [backend-path]/modules/[module]/user/
 
 ### 완료 조건
 1. ✅ API 구현
