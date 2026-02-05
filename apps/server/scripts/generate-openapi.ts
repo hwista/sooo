@@ -1,11 +1,15 @@
 import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from '../src/app.module';
-import { CommonModule } from '../src/modules/common/common.module';
-import { PmsModule } from '../src/modules/pms/pms.module';
+import { AppModule } from '../dist/app.module.js';
+import { CommonModule } from '../dist/modules/common/common.module.js';
+import { PmsModule } from '../dist/modules/pms/pms.module.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function generate() {
   const app = await NestFactory.create(AppModule, { logger: false });
