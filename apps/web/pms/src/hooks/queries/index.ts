@@ -19,9 +19,24 @@
  * ```
  */
 
-export * from './useProjects';
-export * from './useMenus';
+// Projects
+export {
+  projectKeys,
+  useProjectList,
+  useProjectDetail,
+  useCreateProject,
+  useUpdateProject,
+  useDeleteProject,
+} from './useProjects';
+
+// Menus
+export {
+  menuKeys,
+  useMyMenus,
+  useAddFavorite,
+  useRemoveFavorite,
+} from './useMenus';
 
 // 추후 추가
-// export * from './useCustomers';
-// export * from './useUsers';
+// export { customerKeys, useCustomerList, ... } from './useCustomers';
+// export { userKeys, useUserList, ... } from './useUsers';

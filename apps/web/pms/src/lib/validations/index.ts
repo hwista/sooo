@@ -14,12 +14,49 @@
  */
 
 // 공통 필드 스키마
-export * from './common';
+export {
+  requiredString,
+  optionalString,
+  requiredStringMax,
+  optionalStringMax,
+  emailField,
+  requiredEmail,
+  phoneField,
+  optionalId,
+  amountField,
+  dateField,
+  checkboxField,
+  requiredSelect,
+  optionalSelect,
+} from './common';
 
-// 도메인별 스키마
-export * from './auth';
-export * from './project';
+// 인증 스키마
+export {
+  loginSchema,
+  changePasswordSchema,
+  acceptInvitationSchema,
+} from './auth';
+export type {
+  LoginInput,
+  ChangePasswordInput,
+  AcceptInvitationInput,
+} from './auth';
+
+// 프로젝트 스키마
+export {
+  projectStatusCodeSchema,
+  projectStageCodeSchema,
+  projectDoneResultCodeSchema,
+  createProjectSchema,
+  updateProjectSchema,
+  createCustomerRequestSchema,
+} from './project';
+export type {
+  CreateProjectInput,
+  UpdateProjectInput,
+  CreateCustomerRequestInput,
+} from './project';
 
 // 추후 추가
-// export * from './customer';
-// export * from './user';
+// export { customerSchema } from './customer';
+// export { userSchema } from './user';

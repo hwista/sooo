@@ -15,8 +15,8 @@
 사용자 인증 워크플로우는 로그인, 토큰 갱신, 로그아웃을 포함합니다.
 
 **관련 액션:**
-- [user_login.md](../actions/user_login.md) - 로그인 상세 로직
-- [user_invitation.md](../actions/user_invitation.md) - 초대 플로우
+- [user-login.md](../actions/user-login.md) - 로그인 상세 로직
+- [user-invitation.md](../actions/user-invitation.md) - 초대 플로우
 
 ---
 

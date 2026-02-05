@@ -1,3 +1,18 @@
 // PMS Domain Types
-export * from './project';
-export * from './customer';
+
+// Project
+export type {
+  ProjectStatusCode,
+  ProjectStageCode,
+  DoneResultCode,
+  Project,
+  CreateProjectDto,
+  UpdateProjectDto,
+} from './project';
+
+// Customer
+export type {
+  Customer,
+  CreateCustomerDto,
+  UpdateCustomerDto,
+} from './customer';

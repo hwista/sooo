@@ -1,6 +1,6 @@
 # 테스트 케이스 — 로그아웃 (Logout)
 
-**관련 액션**: [user_login.md](../../domain/actions/user_login.md)  
+**관련 액션**: [user-login.md](../../domain/actions/user-login.md)  
 **마지막 업데이트**: 2026-02-02  
 **테스트 상태**: ✅ 수동 테스트 완료 (AuthService.logout 구현됨)
 

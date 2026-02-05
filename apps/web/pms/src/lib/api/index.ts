@@ -6,13 +6,37 @@
 
 // Core
 export { apiClient } from './client';
-export * from './types';
+export type {
+  ApiResponse,
+  PaginatedResponse,
+  PaginationParams,
+  SortParams,
+  ListParams,
+} from './types';
+export { ApiError } from './types';
 
 // Auth (기존)
 export { authApi } from './auth';
 
 // Endpoints
-export * from './endpoints';
+export {
+  projectsApi,
+  menusApi,
+} from './endpoints';
+export type {
+  Project,
+  ProjectFilters,
+  CreateProjectRequest,
+  UpdateProjectRequest,
+  ProjectStatusCode,
+  ProjectStageCode,
+  ProjectDoneResultCode,
+  MenuItem,
+  FavoriteMenu,
+  MyMenuResponse,
+  MenuType,
+  AccessType,
+} from './endpoints';
 
 // 편의를 위한 통합 객체
 import { authApi } from './auth';

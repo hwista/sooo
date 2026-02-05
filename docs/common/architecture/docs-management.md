@@ -80,6 +80,331 @@ pnpm docs:verify     # 산출물 존재 확인
 2. **Why/How 중심**: "무엇"보다 "왜 이렇게 결정했는지" 기록
 3. **Changelog 섹션**: 각 문서 하단에 변경 이력 섹션 유지
 
+### 3.3 Diátaxis Framework 적용
+
+우리 문서는 [Diátaxis Framework](https://diataxis.fr/)를 기반으로 분류합니다.
+
+| Diátaxis 카테고리 | 목적 | SSOO 폴더 매핑 |
+|------------------|------|---------------|
+| **Tutorials** | 학습 중심 (초보자 대상 단계별 가이드) | `tutorials/`, `getting-started.md` |
+| **How-to Guides** | 목표 중심 (특정 작업 수행법) | `guides/` |
+| **Reference** | 정보 중심 (API, 스키마, 정확한 사실) | `reference/` |
+| **Explanation** | 이해 중심 (배경, Why, 개념 설명) | `architecture/`, `domain/` |
+
+### 3.4 문서 파일 템플릿
+
+#### 일반 문서 템플릿
+
+```markdown
+# [문서 제목]
+
+> 최종 업데이트: YYYY-MM-DD  
+> 상태: [초안|검토중|승인됨|폐기]
+
+---
+
+## 개요
+
+[1-2문장으로 문서 목적 설명]
+
+---
+
+## [섹션 1]
+
+[내용]
+
+---
+
+## [섹션 2]
+
+[내용]
+
+---
+
+## 관련 문서
+
+- [관련 문서 1](./path/to/doc1.md)
+- [관련 자동 문서](./reference/api/)
+
+---
+
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| YYYY-MM-DD | 초기 작성 |
+```
+
+#### 아키텍처 결정 문서 (ADR) 템플릿
+
+```markdown
+# ADR-NNN: [결정 제목]
+
+> 상태: [제안됨|승인됨|폐기됨|대체됨]  
+> 날짜: YYYY-MM-DD
+
+---
+
+## 컨텍스트
+
+[결정이 필요한 배경과 상황]
+
+---
+
+## 결정
+
+[내린 결정 내용]
+
+---
+
+## 결과
+
+### 장점
+- [장점 1]
+- [장점 2]
+
+### 단점
+- [단점 1]
+- [단점 2]
+
+---
+
+## 대안
+
+| 대안 | 채택 여부 | 이유 |
+|------|----------|------|
+| [대안 1] | ❌ | [이유] |
+| [대안 2] | ❌ | [이유] |
+
+---
+
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| YYYY-MM-DD | 초기 작성 |
+```
+
+#### 가이드 문서 템플릿
+
+```markdown
+# [작업명] 가이드
+
+> 최종 업데이트: YYYY-MM-DD
+
+---
+
+## 목표
+
+이 가이드를 완료하면:
+- [달성 목표 1]
+- [달성 목표 2]
+
+---
+
+## 사전 요구사항
+
+- [필수 조건 1]
+- [필수 조건 2]
+
+---
+
+## 단계별 진행
+
+### 1. [첫 번째 단계]
+
+```bash
+# 명령어 또는 코드
+```
+
+### 2. [두 번째 단계]
+
+[설명]
+
+### 3. [세 번째 단계]
+
+[설명]
+
+---
+
+## 문제 해결
+
+### [일반적인 문제 1]
+
+**증상**: [증상 설명]
+
+**해결**: [해결 방법]
+
+---
+
+## 관련 문서
+
+- [관련 문서](./path/to/doc.md)
+
+---
+
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| YYYY-MM-DD | 초기 작성 |
+```
+
+### 3.5 문서 위치 결정 가이드
+
+새 문서를 어디에 만들지 결정하는 플로우차트입니다.
+
+```
+새 문서 작성?
+    │
+    ▼
+코드에서 자동 추출 가능? ──YES──▶ 자동 문서 사용 (reference/)
+    │                           ❌ 수동 작성 금지
+    NO
+    │
+    ▼
+공통인가 도메인 특화인가?
+    │
+    ├── 공통 (모든 도메인) ──▶ docs/common/
+    │                           ├── architecture/ : 전체 아키텍처, 표준
+    │                           └── guides/ : 공통 가이드
+    │
+    └── 도메인 특화 ──▶ docs/{pms|dms}/
+            │
+            ▼
+        문서의 목적은?
+            │
+            ├── "왜 이렇게 설계했나?" ──▶ architecture/
+            ├── "비즈니스 개념이 뭔가?" ──▶ domain/
+            ├── "어떻게 하는가?" ──▶ guides/
+            ├── "UI/UX 설계 원칙?" ──▶ design/
+            ├── "프로젝트 관리 (백로그, 로드맵)?" ──▶ planning/
+            ├── "테스트 시나리오?" ──▶ tests/
+            └── "더 이상 사용 안 함?" ──▶ _archive/
+```
+
+#### 빠른 결정 테이블
+
+| 문서 내용 | 위치 | 예시 |
+|----------|------|------|
+| 기술 스택, 아키텍처 결정 | `architecture/` | tech-stack.md, adr-001-xxx.md |
+| 보안 표준, 개발 표준 | `architecture/` | security-standards.md |
+| 비즈니스 용어, 워크플로우 | `domain/` | concepts.md, workflows.md |
+| 작업 방법, 설정 가이드 | `guides/` | quick-start.md, api-guide.md |
+| 디자인 시스템, 컴포넌트 계층 | `design/` | design-system.md |
+| 백로그, 로드맵, 릴리스 | `planning/` | backlog.md, roadmap.md |
+| API 명세, DB 스키마 | `reference/` | ❌ 자동 생성만 |
+| 과거 문서, 완료된 계획 | `_archive/` | old-backlog.md |
+
+#### 도메인 선택 기준
+
+| 조건 | 도메인 |
+|------|--------|
+| 백엔드 + 프론트엔드 공통 | `common/` |
+| 패키지 레벨 (database, types) | `common/` |
+| 전체 프로젝트 표준 | `common/` |
+| PMS 앱 전용 | `pms/` |
+| DMS 앱 전용 | `dms/` |
+
+### 3.6 문서 디렉토리 템플릿
+
+#### 도메인별 문서 구조 (pms, dms 등)
+
+```
+docs/{domain}/
+├── README.md              # 도메인 문서 인덱스
+│
+├── architecture/          # Explanation (이해 중심)
+│   ├── README.md          # 아키텍처 개요
+│   ├── tech-stack.md      # 기술 스택
+│   ├── folder-structure.md # 폴더 구조
+│   └── decisions/         # ADR (선택)
+│       └── adr-001-xxx.md
+│
+├── domain/                # Explanation (비즈니스)
+│   ├── README.md          # 도메인 개요
+│   ├── concepts.md        # 핵심 개념
+│   └── workflows.md       # 업무 흐름
+│
+├── guides/                # How-to Guides
+│   ├── README.md          # 가이드 목록
+│   ├── quick-start.md     # 빠른 시작
+│   └── [task]-guide.md    # 작업별 가이드
+│
+├── design/                # UI/UX (프론트엔드 전용)
+│   ├── README.md
+│   ├── design-system.md
+│   └── components.md
+│
+├── planning/              # 프로젝트 관리
+│   ├── README.md
+│   ├── backlog.md
+│   ├── roadmap.md
+│   └── changelog.md
+│
+├── tests/                 # 테스트 (선택)
+│   └── test-scenarios.md
+│
+└── reference/             # Reference (자동 생성)
+    ├── api/               # OpenAPI/Redoc
+    ├── db/                # DBML/ERD
+    └── typedoc/           # TypeDoc
+```
+
+#### 공통 문서 구조 (common)
+
+```
+docs/common/
+├── README.md              # 공통 문서 인덱스
+├── AGENTS.md              # AI 에이전트 가이드
+│
+├── architecture/          # 프로젝트 전체 표준
+│   ├── development-standards.md
+│   ├── security-standards.md
+│   ├── docs-management.md
+│   └── ...
+│
+├── guides/                # 공통 가이드
+│   ├── api-guide.md
+│   ├── database-guide.md
+│   └── ...
+│
+└── reference/             # 공통 자동 문서
+    ├── api/
+    ├── db/
+    └── typedoc/
+```
+
+### 3.6 파일 네이밍 규칙
+
+| 규칙 | 예시 | 설명 |
+|------|------|------|
+| 케밥 케이스 | `design-system.md` | 소문자 + 하이픈 |
+| 명확한 이름 | `user-authentication.md` | 축약 금지 |
+| 인덱스 파일 | `README.md` | 폴더별 인덱스 |
+| ADR 번호 | `adr-001-database-choice.md` | 3자리 번호 |
+
+### 3.7 Changelog 형식 (Keep a Changelog 표준)
+
+```markdown
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| YYYY-MM-DD | [Added] 새 기능 추가 |
+| YYYY-MM-DD | [Changed] 기존 기능 변경 |
+| YYYY-MM-DD | [Fixed] 버그 수정 |
+| YYYY-MM-DD | [Removed] 기능 삭제 |
+```
+
+**변경 유형:**
+- `[Added]` - 새 기능
+- `[Changed]` - 기존 기능 변경
+- `[Deprecated]` - 곧 삭제될 기능
+- `[Removed]` - 삭제된 기능
+- `[Fixed]` - 버그 수정
+- `[Security]` - 보안 관련
+
 ---
 
 ## 4. 하이브리드 문서 (자동 + 수동 연계)
@@ -251,5 +576,7 @@ DMS (apps/web/dms)
 
 | 날짜 | 변경 내용 |
 |------|----------|
-| 2026-01-25 | 최초 작성 - 문서 자동화 도입에 따른 관리 전략 수립 |
-| 2026-01-25 | Storybook 활용 가이드 추가, DMS 연동 방식 섹션 추가 |
+| 2026-02-05 | [Added] 문서 위치 결정 가이드 (섹션 3.5), 문서 검증 자동화 (check-docs.js) |
+| 2026-02-05 | [Added] Diátaxis Framework 적용, 문서 파일/디렉토리 템플릿, 파일 네이밍 규칙, Changelog 형식 추가 |
+| 2026-01-25 | [Added] 최초 작성 - 문서 자동화 도입에 따른 관리 전략 수립 |
+| 2026-01-25 | [Added] Storybook 활용 가이드 추가, DMS 연동 방식 섹션 추가 |

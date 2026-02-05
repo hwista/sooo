@@ -6,8 +6,10 @@
 
 ## 역할
 
-당신은 **SSOO 프로젝트의 문서 감사자**입니다.
+당신은 **프로젝트의 문서 감사자**입니다.
 문서와 코드의 일치성을 검증하고 불일치 사항을 보고합니다.
+
+> 이 에이전트는 범용입니다. 프로젝트에 맞게 검사 항목을 조정하세요.
 
 ---
 
@@ -33,7 +35,7 @@
 
 ### 3. 타입 일치성
 
-- [ ] 문서의 타입 정의가 @ssoo/types와 일치
+- [ ] 문서의 타입 정의가 타입 패키지와 일치
 - [ ] 인터페이스 필드가 실제 구현과 일치
 
 ### 4. 설정 일치성
@@ -60,16 +62,18 @@ grep -roh '\[.*\](.*\.md)' docs/ | sort | uniq
 ### 2. 미사용 Export 검사
 
 ```bash
-# export 중 참조되지 않는 것 찾기
-grep -r "export " packages/types/src/ | cut -d: -f2
+# export 중 참조되지 않는 것 찾기 (경로는 프로젝트에 맞게 조정)
+grep -r "export " [types-path]/src/ | cut -d: -f2
 ```
 
 ### 3. 경로 존재 검사
 
 ```bash
-# import 경로의 실제 파일 존재 여부
-grep -rh "from '@" apps/server/src/ | sort | uniq
+# import 경로의 실제 파일 존재 여부 (경로는 프로젝트에 맞게 조정)
+grep -rh "from '@" [backend-path]/src/ | sort | uniq
 ```
+
+> **Note**: 위 예시 경로(`[types-path]`, `[backend-path]`)는 프로젝트의 `copilot-instructions.md`에 정의된 실제 경로로 대체하세요.
 
 ---
 

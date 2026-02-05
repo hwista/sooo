@@ -56,7 +56,9 @@ export function runWithContext<T>(context: RequestContext, fn: () => T): T {
 
 /**
  * 공통 컬럼 데이터 준비 (create용)
+ * @remarks Prisma 타입과의 호환성을 위해 any 사용
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function prepareCreateData(data: any, modelName: string) {
   const ctx = getRequestContext();
   const now = new Date();
@@ -75,7 +77,9 @@ function prepareCreateData(data: any, modelName: string) {
 
 /**
  * 공통 컬럼 데이터 준비 (update용)
+ * @remarks Prisma 타입과의 호환성을 위해 any 사용
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function prepareUpdateData(data: any, modelName: string, action: string = 'update') {
   const ctx = getRequestContext();
   const now = new Date();

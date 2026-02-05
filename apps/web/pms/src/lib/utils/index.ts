@@ -13,8 +13,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export * from './icons';
+// Icons
+export { getIconComponent, hasIcon } from './icons';
 
 // 추후 추가
-// export * from './format';      // 날짜, 숫자, 금액 포맷
-// export * from './debounce';    // 디바운스
+// export { formatDate, formatNumber, formatCurrency } from './format';
+// export { debounce } from './debounce';

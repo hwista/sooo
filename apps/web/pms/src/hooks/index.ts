@@ -5,7 +5,20 @@
  */
 
 // React Query 훅 (데이터 페칭)
-export * from './queries';
+export {
+  // Projects
+  projectKeys,
+  useProjectList,
+  useProjectDetail,
+  useCreateProject,
+  useUpdateProject,
+  useDeleteProject,
+  // Menus
+  menuKeys,
+  useMyMenus,
+  useAddFavorite,
+  useRemoveFavorite,
+} from './queries';
 
 // 인증 및 권한
 export { useAuth } from './useAuth';
@@ -14,6 +27,6 @@ export { useAuth } from './useAuth';
 export { useOpenTabWithConfirm } from './useOpenTabWithConfirm';
 
 // 추후 추가
-// export * from './useDebounce';
-// export * from './useLocalStorage';
-// export * from './useMediaQuery';
+// export { useDebounce } from './useDebounce';
+// export { useLocalStorage } from './useLocalStorage';
+// export { useMediaQuery } from './useMediaQuery';

@@ -1,0 +1,241 @@
+# PR 검증 워크플로우
+#
+# PR 생성/업데이트 시 자동으로 실행되어 코드 품질을 검증합니다.
+# - 린트 검사
+# - 타입 체크
+# - 빌드 검증
+# - 패턴 검증
+
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type Check (Server)
+        run: pnpm --filter server exec tsc --noEmit
+
+      - name: Type Check (PMS)
+        run: pnpm --filter web-pms exec tsc --noEmit
+
+      - name: Build Database Package
+        run: pnpm --filter @ssoo/database build
+
+      - name: Build Types Package
+        run: pnpm --filter @ssoo/types build
+
+      - name: Pattern Check
+        run: |
+          # 변경된 파일 목록
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' || true)
+          
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "검증할 파일:"
+            echo "$CHANGED_FILES"
+            echo ""
+            node scripts/check-patterns.js $CHANGED_FILES
+          else
+            echo "검증할 TypeScript 파일 없음"
+          fi
+
+      - name: Docs Check
+        run: |
+          # 변경된 문서 파일 목록
+          CHANGED_DOCS=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^docs/.*\.md$' || true)
+          
+          if [ -n "$CHANGED_DOCS" ]; then
+            echo "검증할 문서:"
+            echo "$CHANGED_DOCS"
+            echo ""
+            node scripts/check-docs.js $CHANGED_DOCS
+          else
+            echo "검증할 문서 파일 없음"
+          fi
+
+  # 변경 범위 분석
+  analyze-changes:
+    name: Analyze Changes
+    runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.filter.outputs.server }}
+      pms: ${{ steps.filter.outputs.pms }}
+      dms: ${{ steps.filter.outputs.dms }}
+      database: ${{ steps.filter.outputs.database }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Filter paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            server:
+              - 'apps/server/**'
+            pms:
+              - 'apps/web/pms/**'
+            dms:
+              - 'apps/web/dms/**'
+            database:
+              - 'packages/database/**'
+
+  # 서버 빌드 (서버 변경 시에만)
+  build-server:
+    name: Build Server
+    needs: [validate, analyze-changes]
+    if: needs.analyze-changes.outputs.server == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build:server
+
+  # PMS 빌드 (PMS 변경 시에만)
+  build-pms:
+    name: Build PMS
+    needs: [validate, analyze-changes]
+    if: needs.analyze-changes.outputs.pms == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build:web-pms
+
+  # PR 코멘트
+  pr-comment:
+    name: PR Summary
+    needs: [validate, analyze-changes]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Post Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const validate = '${{ needs.validate.result }}';
+            const server = '${{ needs.analyze-changes.outputs.server }}';
+            const pms = '${{ needs.analyze-changes.outputs.pms }}';
+            const dms = '${{ needs.analyze-changes.outputs.dms }}';
+            const database = '${{ needs.analyze-changes.outputs.database }}';
+            
+            let body = '## 🔍 PR 검증 결과\n\n';
+            
+            if (validate === 'success') {
+              body += '✅ **검증 통과**\n\n';
+            } else {
+              body += '❌ **검증 실패**\n\n';
+            }
+            
+            body += '### 변경 영역\n\n';
+            body += `| 영역 | 변경 여부 |\n`;
+            body += `|------|----------|\n`;
+            body += `| Server | ${server === 'true' ? '✅' : '➖'} |\n`;
+            body += `| PMS | ${pms === 'true' ? '✅' : '➖'} |\n`;
+            body += `| DMS | ${dms === 'true' ? '✅' : '➖'} |\n`;
+            body += `| Database | ${database === 'true' ? '✅' : '➖'} |\n`;
+            
+            // 기존 코멘트 찾기
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes('PR 검증 결과')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }

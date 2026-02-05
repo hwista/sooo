@@ -69,9 +69,10 @@ async function main() {
       await client.query(sql);
       console.log(`✅ ${file} - OK`);
       successCount++;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error(`❌ ${file} - FAILED`);
-      console.error(`   Error: ${error.message}`);
+      console.error(`   Error: ${message}`);
       failCount++;
     }
   }

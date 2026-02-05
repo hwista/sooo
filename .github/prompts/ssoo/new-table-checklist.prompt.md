@@ -57,7 +57,8 @@ pnpm --filter @ssoo/database db:push
 ```
 
 ### 4. 트리거 SQL 작성
-- 파일: `packages/database/prisma/triggers/{스키마}/tr_{테이블명}.sql`
+- 파일: `packages/database/prisma/triggers/{번호}_{테이블명}_h_trigger.sql`
+- 번호는 순차적으로 할당 (기존 파일 확인 후 다음 번호 사용)
 
 ```sql
 CREATE OR REPLACE FUNCTION pms.tr_pr_project_m_history()

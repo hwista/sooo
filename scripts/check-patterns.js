@@ -1,0 +1,153 @@
+#!/usr/bin/env node
+/**
+ * 코드 패턴 검증 스크립트
+ * 
+ * pre-commit hook에서 실행되어 다음을 검증:
+ * 1. 와일드카드 export 금지
+ * 2. any 타입 사용 금지 (타입 정의 제외)
+ * 3. console.log 잔류 금지 (개발용)
+ * 
+ * @usage node scripts/check-patterns.js [files...]
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const RULES = [
+  {
+    name: 'wildcard-export',
+    pattern: /export\s+\*\s+from/g,
+    message: '와일드카드 export 금지: 명시적 re-export를 사용하세요',
+    severity: 'error',
+    exclude: ['node_modules', 'dist', '.next'],
+    filePattern: /\.(ts|tsx|js|jsx)$/,
+  },
+  {
+    name: 'any-type',
+    pattern: /:\s*any\b(?!\s*\))/g, // `: any` but not in comments
+    message: 'any 타입 금지: unknown 또는 구체적 타입을 사용하세요',
+    severity: 'warning',
+    exclude: ['node_modules', 'dist', '.next', '*.d.ts', 'types/'],
+    filePattern: /\.(ts|tsx)$/,
+  },
+  {
+    name: 'console-log',
+    pattern: /console\.(log|debug|info)\(/g,
+    message: 'console.log 잔류: 커밋 전 제거 또는 logger 사용',
+    severity: 'warning',
+    exclude: ['node_modules', 'dist', '.next', 'scripts/', '*.config.*'],
+    filePattern: /\.(ts|tsx|js|jsx)$/,
+  },
+];
+
+function shouldExclude(filePath, excludePatterns) {
+  return excludePatterns.some(pattern => {
+    if (pattern.includes('*')) {
+      const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+      return regex.test(filePath);
+    }
+    return filePath.includes(pattern);
+  });
+}
+
+function checkFile(filePath, rules) {
+  const issues = [];
+  
+  if (!fs.existsSync(filePath)) {
+    return issues;
+  }
+
+  const content = fs.readFileSync(filePath, 'utf8');
+  const lines = content.split('\n');
+
+  for (const rule of rules) {
+    // 파일 패턴 확인
+    if (!rule.filePattern.test(filePath)) {
+      continue;
+    }
+
+    // 제외 패턴 확인
+    if (shouldExclude(filePath, rule.exclude)) {
+      continue;
+    }
+
+    // 라인별 검사
+    lines.forEach((line, index) => {
+      // 주석 무시
+      const trimmed = line.trim();
+      if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) {
+        return;
+      }
+
+      const matches = line.match(rule.pattern);
+      if (matches) {
+        issues.push({
+          file: filePath,
+          line: index + 1,
+          rule: rule.name,
+          severity: rule.severity,
+          message: rule.message,
+          code: line.trim(),
+        });
+      }
+    });
+  }
+
+  return issues;
+}
+
+function main() {
+  const args = process.argv.slice(2);
+  
+  // 인자가 없으면 staged 파일 없음으로 처리
+  if (args.length === 0) {
+    console.log('✅ 검증할 파일 없음');
+    process.exit(0);
+  }
+
+  const allIssues = [];
+
+  for (const filePath of args) {
+    const issues = checkFile(filePath, RULES);
+    allIssues.push(...issues);
+  }
+
+  // 결과 출력
+  const errors = allIssues.filter(i => i.severity === 'error');
+  const warnings = allIssues.filter(i => i.severity === 'warning');
+
+  if (allIssues.length > 0) {
+    console.log('\n📋 패턴 검증 결과\n');
+
+    if (errors.length > 0) {
+      console.log('❌ 오류 (커밋 차단):\n');
+      errors.forEach(issue => {
+        console.log(`  ${issue.file}:${issue.line}`);
+        console.log(`    ${issue.message}`);
+        console.log(`    > ${issue.code}\n`);
+      });
+    }
+
+    if (warnings.length > 0) {
+      console.log('⚠️ 경고:\n');
+      warnings.forEach(issue => {
+        console.log(`  ${issue.file}:${issue.line}`);
+        console.log(`    ${issue.message}`);
+        console.log(`    > ${issue.code}\n`);
+      });
+    }
+
+    console.log(`\n총: ${errors.length} 오류, ${warnings.length} 경고\n`);
+  }
+
+  // 오류가 있으면 exit 1
+  if (errors.length > 0) {
+    console.log('❌ 패턴 검증 실패: 오류를 수정 후 다시 시도하세요\n');
+    process.exit(1);
+  }
+
+  console.log('✅ 패턴 검증 통과\n');
+  process.exit(0);
+}
+
+main();

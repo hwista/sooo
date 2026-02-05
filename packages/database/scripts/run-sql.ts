@@ -43,11 +43,12 @@ async function main() {
           try {
             await prisma.$executeRawUnsafe(statement);
             successCount++;
-          } catch (err: any) {
+          } catch (err: unknown) {
             // Ignore duplicate key errors for ON CONFLICT
-            if (!err.message?.includes('duplicate key')) {
+            const message = err instanceof Error ? err.message : String(err);
+            if (!message.includes('duplicate key')) {
               console.error(`Error in statement: ${statement.substring(0, 100)}...`);
-              console.error(err.message);
+              console.error(message);
             }
           }
         }

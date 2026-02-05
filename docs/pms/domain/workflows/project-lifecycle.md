@@ -84,6 +84,6 @@ REQUEST (요청) → PROPOSAL (제안) → EXECUTION (실행) → TRANSITION (�
 ## 관련 문서
 
 - [../concepts.md](../concepts.md) - 핵심 개념
-- [project_close.md](project_close.md) - 종료 상세
-- [project_handoff.md](project_handoff.md) - 핸드오프 상세
-- [project_deliverable.md](project_deliverable.md) - 산출물 관리
+- [project-close.md](project-close.md) - 종료 상세
+- [project-handoff.md](project-handoff.md) - 핸드오프 상세
+- [project-deliverable.md](project-deliverable.md) - 산출물 관리

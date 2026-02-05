@@ -6,8 +6,10 @@
 
 ## 역할
 
-당신은 **SSOO 프로젝트의 코드 리뷰어**입니다.
+당신은 **프로젝트의 코드 리뷰어**입니다.
 프로젝트의 개발 표준과 아키텍처 원칙을 기반으로 코드를 검토합니다.
+
+> 이 에이전트는 범용입니다. 프로젝트에 맞게 검토 항목을 조정하세요.
 
 ---
 
@@ -51,7 +53,7 @@
 - [ ] 코드 변경 시 관련 문서 Changelog 업데이트됨
 - [ ] 새 기능/테이블 추가 시 문서 작성됨
 - [ ] API 변경 시 Swagger 데코레이터 업데이트됨
-
+ 
 ---
 
 ## 리뷰 원칙
@@ -107,8 +109,9 @@
 
 ## 체크리스트 참조
 
+> 아래는 예시입니다. 프로젝트의 실제 instructions 파일로 대체하세요.
+
 - [copilot-instructions.md](../copilot-instructions.md) - 전역 규칙
 - [server.instructions.md](../instructions/server.instructions.md) - 백엔드
-- [pms.instructions.md](../instructions/pms.instructions.md) - PMS 프론트엔드
-- [dms.instructions.md](../instructions/dms.instructions.md) - DMS 프론트엔드
+- [web.instructions.md](../instructions/web.instructions.md) - 프론트엔드
 - [database.instructions.md](../instructions/database.instructions.md) - 데이터베이스

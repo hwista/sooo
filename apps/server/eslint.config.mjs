@@ -32,13 +32,22 @@ export default [
       '@typescript-eslint/interface-name-prefix': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       
       // General rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'off', // Use @typescript-eslint/no-unused-vars instead
       'no-undef': 'off', // TypeScript handles this
+
+      // Export rules - 와일드카드 export 금지
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ExportAllDeclaration',
+          message: '와일드카드 export(export * from) 금지: 명시적 re-export를 사용하세요.',
+        },
+      ],
 
       // Layered dependency boundaries
       'import/no-restricted-paths': [
