@@ -32,6 +32,7 @@ import { DmsFeatureGuard } from '../access/dms-feature.guard.js';
 import { RequireDmsFeature } from '../access/require-dms-feature.decorator.js';
 import { contentService } from '../runtime/content.service.js';
 import type { StorageProvider } from '../runtime/dms-config.service.js';
+import { normalizeDmsFileName } from '../runtime/file-utils.js';
 import {
   formatContentDisposition,
   getMimeType,
@@ -204,6 +205,7 @@ export class StorageController {
         return;
       }
 
+      response.setHeader('Cache-Control', 'private, no-store');
       response.redirect(302, result.openUrl);
     } catch (error) {
       this.throwStorageError(error);
@@ -226,9 +228,10 @@ export class StorageController {
     }
 
     const fileBuffer = fs.readFileSync(resolved.fullPath);
-    const fileName = originalName?.trim() || path.basename(resolved.fullPath) || 'download.bin';
-    const disposition = resolveAttachmentDisposition(fileName, download);
-    response.setHeader('Content-Type', getMimeType(fileName));
+    const actualFileName = path.basename(resolved.fullPath) || path.basename(result.path) || 'download.bin';
+    const fileName = normalizeDmsFileName(originalName?.trim() || actualFileName);
+    const disposition = resolveAttachmentDisposition(actualFileName, download);
+    response.setHeader('Content-Type', getMimeType(actualFileName));
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Content-Length', String(fileBuffer.length));
     response.setHeader('Cache-Control', 'private, no-store');

@@ -1,4 +1,6 @@
 const DEFAULT_AUTH_FORWARD_HEADERS = ['authorization', 'cookie', 'origin', 'referer'] as const;
+const BINARY_PROXY_RESPONSE_HEADERS = ['cache-control', 'content-disposition', 'content-length', 'content-type', 'x-content-type-options'] as const;
+const REDIRECT_PROXY_RESPONSE_HEADERS = ['cache-control'] as const;
 const SSE_PROXY_RETRY_DELAY_MS = 30000;
 
 export interface CreateServerApiProxyHelpersOptions {
@@ -33,6 +35,45 @@ function appendSetCookieHeader(headers: Headers, response: Response): void {
   if (setCookie) {
     headers.append('set-cookie', setCookie);
   }
+}
+
+function appendAllowedResponseHeaders(
+  targetHeaders: Headers,
+  response: Response,
+  allowedHeaders: readonly string[],
+): void {
+  for (const headerName of allowedHeaders) {
+    const value = response.headers.get(headerName);
+    if (value) {
+      targetHeaders.set(headerName, value);
+    }
+  }
+}
+
+function isRedirectResponse(response: Response): boolean {
+  return response.status >= 300 && response.status < 400;
+}
+
+function resolveSafeRedirectLocation(location: string | null): string | null {
+  const trimmed = location?.trim();
+  if (!trimmed || trimmed.startsWith('//')) {
+    return null;
+  }
+
+  if (trimmed.startsWith('/')) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }
 
 function createSseRetryFrame(): Uint8Array {
@@ -133,6 +174,7 @@ export function createServerApiProxyHelpers({
   const buildServerApiProxyHeaders = (
     requestHeaders: Headers,
     initialHeaders?: HeadersInit,
+    forwardedHeaders: readonly string[] = forwardHeaders,
   ): Headers => {
     const headers = new Headers(defaultHeaders);
     const initialHeaderBag = new Headers(initialHeaders);
@@ -140,7 +182,7 @@ export function createServerApiProxyHelpers({
       headers.set(key, value);
     });
 
-    for (const headerName of forwardHeaders) {
+    for (const headerName of forwardedHeaders) {
       const headerValue = requestHeaders.get(headerName);
       if (headerValue && !headers.has(headerName)) {
         headers.set(headerName, headerValue);
@@ -150,10 +192,14 @@ export function createServerApiProxyHelpers({
     return headers;
   };
 
-  const createServerApiProxyInit = (request: Request, init: RequestInit = {}): RequestInit => ({
+  const createServerApiProxyInit = (
+    request: Request,
+    init: RequestInit = {},
+    forwardedHeaders: readonly string[] = forwardHeaders,
+  ): RequestInit => ({
     ...init,
     cache: init.cache ?? 'no-store',
-    headers: buildServerApiProxyHeaders(request.headers, init.headers),
+    headers: buildServerApiProxyHeaders(request.headers, init.headers, forwardedHeaders),
     signal: init.signal ?? request.signal,
   });
 
@@ -227,10 +273,40 @@ export function createServerApiProxyHelpers({
       createServerApiUrl(pathname),
       createServerApiProxyInit(request, {
         headers: upstreamHeaders,
-      }),
+        redirect: 'manual',
+      }, incomingAuthorization ? forwardHeaders : []),
     );
 
-    const responseHeaders = new Headers(response.headers);
+    if (isRedirectResponse(response)) {
+      const location = resolveSafeRedirectLocation(response.headers.get('location'));
+      const responseHeaders = new Headers();
+      appendAllowedResponseHeaders(responseHeaders, response, REDIRECT_PROXY_RESPONSE_HEADERS);
+      responseHeaders.set('Cache-Control', responseHeaders.get('cache-control') ?? 'private, no-store');
+      if (sessionResponse) {
+        appendSetCookieHeader(responseHeaders, sessionResponse);
+      }
+
+      if (!location) {
+        return Response.json(
+          { error: '허용되지 않은 저장소 리디렉션입니다.' },
+          {
+            status: 502,
+            headers: responseHeaders,
+          },
+        );
+      }
+
+      responseHeaders.set('Location', location);
+      return new Response(null, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      });
+    }
+
+    const responseHeaders = new Headers();
+    appendAllowedResponseHeaders(responseHeaders, response, BINARY_PROXY_RESPONSE_HEADERS);
+    responseHeaders.set('Cache-Control', responseHeaders.get('cache-control') ?? 'private, no-store');
     if (sessionResponse) {
       appendSetCookieHeader(responseHeaders, sessionResponse);
     }

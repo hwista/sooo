@@ -142,6 +142,7 @@ reset_database() {
   log "resetting local playwright database"
   dropdb --if-exists -h 127.0.0.1 -p "$PG_PORT" -U "$DB_USER" "$DB_NAME" >/dev/null 2>&1 || true
   createdb -h 127.0.0.1 -p "$PG_PORT" -U "$DB_USER" "$DB_NAME"
+  psql "$DATABASE_URL_BASE" -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS vector;' >/dev/null
 
   env DATABASE_URL="$DATABASE_URL" pnpm --filter @ssoo/database db:generate
   env DATABASE_URL="$DATABASE_URL" pnpm --filter @ssoo/database db:push

@@ -43,7 +43,7 @@ import { CollaborationService } from '../collaboration/collaboration.service.js'
 import { configService, type StorageProvider } from '../runtime/dms-config.service.js';
 import { contentService } from '../runtime/content.service.js';
 import { createDmsLogger } from '../runtime/dms-logger.js';
-import { isMarkdownFile } from '../runtime/file-utils.js';
+import { isMarkdownFile, normalizeDmsFileName } from '../runtime/file-utils.js';
 import {
   formatContentDisposition,
   ATTACHMENT_ALLOWED_EXTENSIONS,
@@ -300,9 +300,10 @@ export class FileController {
     }
 
     const buffer = fs.readFileSync(resolvedAbsolutePath);
-    const displayName = originalName || path.basename(filePath);
-    const disposition = resolveAttachmentDisposition(displayName, download);
-    response.setHeader('Content-Type', getMimeType(displayName));
+    const actualFileName = path.basename(resolvedAbsolutePath) || path.basename(filePath) || 'download.bin';
+    const displayName = normalizeDmsFileName(originalName || actualFileName);
+    const disposition = resolveAttachmentDisposition(actualFileName, download);
+    response.setHeader('Content-Type', getMimeType(actualFileName));
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Content-Length', String(buffer.length));
     response.setHeader('Cache-Control', 'private, no-store');
@@ -568,7 +569,10 @@ export class FileController {
       throw new BadRequestException('파일이 필요합니다.');
     }
 
-    return file;
+    return {
+      ...file,
+      originalname: normalizeDmsFileName(file.originalname),
+    };
   }
 
   private resolveUploadProvider(provider?: string): StorageProvider | undefined {

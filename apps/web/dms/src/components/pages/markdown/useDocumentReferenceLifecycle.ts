@@ -6,6 +6,7 @@ import type { InlineSummaryFileItem } from '@/components/common/assistant/refere
 import type { TemplateItem, TemplateReferenceDoc } from '@/types/template';
 import type { ConfirmOptions } from '@/stores/confirm.store';
 import { fetchWithSharedAuth } from '@/lib/api/sharedAuth';
+import { syncSummaryFileIssueWarnings } from '@/lib/summaryFileStatus';
 
 interface FailedRestoreFile {
   id: string;
@@ -93,9 +94,13 @@ export function useDocumentReferenceLifecycle(
       if (!confirmed) return;
       setPendingDeletedFileIds((prev) => new Set(prev).add(id));
     } else {
-      setInlineSummaryFiles((prev) => prev.filter((item) => item.id !== id));
+      setInlineSummaryFiles((prev) => {
+        const next = prev.filter((item) => item.id !== id);
+        setInlineRelevanceWarnings((prevWarnings) => syncSummaryFileIssueWarnings(prevWarnings, next));
+        return next;
+      });
     }
-  }, [inlineSummaryFiles, usedSummaryFileIds, confirm, setPendingDeletedFileIds, setInlineSummaryFiles]);
+  }, [inlineSummaryFiles, usedSummaryFileIds, confirm, setPendingDeletedFileIds, setInlineSummaryFiles, setInlineRelevanceWarnings]);
 
   const handleRestoreSummaryFile = useCallback((id: string) => {
     setPendingDeletedFileIds((prev) => {
@@ -143,7 +148,11 @@ export function useDocumentReferenceLifecycle(
 
     removeTemplateReference(path);
     if (ref.storage === 'inline' && ref.tempId) {
-      setInlineSummaryFiles((prev) => prev.filter((item) => item.id !== ref.tempId));
+      setInlineSummaryFiles((prev) => {
+        const next = prev.filter((item) => item.id !== ref.tempId);
+        setInlineRelevanceWarnings((prevWarnings) => syncSummaryFileIssueWarnings(prevWarnings, next));
+        return next;
+      });
     }
   }, [
     confirm,
@@ -152,6 +161,7 @@ export function useDocumentReferenceLifecycle(
     usedTemplateRefPaths,
     setPendingDeletedRefPaths,
     setInlineSummaryFiles,
+    setInlineRelevanceWarnings,
   ]);
 
   const handleRestoreTemplateReference = useCallback((path: string) => {

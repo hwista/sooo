@@ -4,7 +4,7 @@ import { AssistantComposer } from '@/components/common/assistant/Composer';
 import { Editor } from './editor';
 import { Viewer } from '@/components/common/viewer';
 import { ErrorState, LoadingState } from '@/components/common/StateDisplay';
-import { isSummaryFileExtracting } from '@/lib/summaryFileStatus';
+import { isSummaryFileExtracting, syncSummaryFileIssueWarnings } from '@/lib/summaryFileStatus';
 import { Lock } from 'lucide-react';
 import type { InlineSummaryFileItem } from '@/components/common/assistant/reference/Picker';
 import type { TocItem } from '@/components/templates/page-frame';
@@ -130,7 +130,9 @@ export function InlineComposerPanel({
       setInlineSummaryFiles((prev) => {
         const map = new Map(prev.map((item) => [item.id, item]));
         for (const file of files) map.set(file.id, file);
-        return Array.from(map.values());
+        const next = Array.from(map.values());
+        setInlineRelevanceWarnings((prevWarnings) => syncSummaryFileIssueWarnings(prevWarnings, next));
+        return next;
       });
       for (const file of files) {
         addTemplateReference({
@@ -150,7 +152,9 @@ export function InlineComposerPanel({
       setInlineSummaryFiles((prev) => {
         const map = new Map(prev.map((item) => [item.id, item]));
         for (const file of files) map.set(file.id, file);
-        return Array.from(map.values());
+        const next = Array.from(map.values());
+        setInlineRelevanceWarnings((prevWarnings) => syncSummaryFileIssueWarnings(prevWarnings, next));
+        return next;
       });
     };
 
@@ -250,7 +254,11 @@ export function InlineComposerPanel({
         if (onRemoveSummaryFile) {
           onRemoveSummaryFile(id);
         } else {
-          setInlineSummaryFiles((prev) => prev.filter((item) => item.id !== id));
+          setInlineSummaryFiles((prev) => {
+            const next = prev.filter((item) => item.id !== id);
+            setInlineRelevanceWarnings((prevWarnings) => syncSummaryFileIssueWarnings(prevWarnings, next));
+            return next;
+          });
         }
       }}
       onInlineRestoreTemplate={onRestoreTemplate}
