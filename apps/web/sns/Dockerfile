@@ -14,7 +14,7 @@ RUN pnpm install --filter web-sns... --frozen-lockfile
 
 FROM base AS builder
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000/api
-ARG NEXT_PUBLIC_SNS_APP_URL=http://localhost:3004
+ARG NEXT_PUBLIC_SNS_APP_URL=http://localhost:3002
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_SNS_APP_URL=${NEXT_PUBLIC_SNS_APP_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -33,9 +33,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3004
+ENV PORT=3002
 ENV HOSTNAME=0.0.0.0
-ENV NEXT_PUBLIC_SNS_APP_URL=http://localhost:3004
+ENV NEXT_PUBLIC_SNS_APP_URL=http://localhost:3002
 
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 --gid 1001 nextjs
@@ -46,6 +46,6 @@ COPY --from=builder /app/apps/web/sns/.next/static ./apps/web/sns/.next/static
 USER nextjs
 WORKDIR /app/apps/web/sns
 
-EXPOSE 3004
+EXPOSE 3002
 
 CMD ["node", "server.js"]

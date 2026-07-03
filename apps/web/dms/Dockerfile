@@ -19,7 +19,7 @@ COPY packages/types/tsconfig.json packages/types/tsconfig.json
 RUN pnpm install --filter web-dms... --frozen-lockfile
 
 FROM base AS builder
-ARG NEXT_PUBLIC_SNS_APP_URL=http://localhost:3004
+ARG NEXT_PUBLIC_SNS_APP_URL=http://localhost:3002
 COPY --from=deps /app/ ./
 COPY . .
 
@@ -36,9 +36,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3003
+ENV PORT=3001
 ENV HOSTNAME=0.0.0.0
-ENV NEXT_PUBLIC_SNS_APP_URL=http://localhost:3004
+ENV NEXT_PUBLIC_SNS_APP_URL=http://localhost:3002
 
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 --gid 1001 nextjs
@@ -49,6 +49,6 @@ COPY --from=builder /app/apps/web/dms/.next/static ./apps/web/dms/.next/static
 USER nextjs
 WORKDIR /app/apps/web/dms
 
-EXPOSE 3003
+EXPOSE 3001
 
 CMD ["node", "server.js"]

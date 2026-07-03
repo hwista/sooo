@@ -185,7 +185,7 @@ cp .env.example .env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ssoo_dev?schema=public"
 PORT=4000
 NODE_ENV=development
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004
 ```
 
 선택적으로 DMS runtime env도 준비합니다:
@@ -211,11 +211,11 @@ Docker compose는 컨테이너 내부 DB 연결에 `DOCKER_DATABASE_URL`/`DOCKER
 
 - `postgres` (`5432`)
 - `server` (`4000`)
-- `admin` (`3000`)
-- `crm` (`3001`)
-- `pms` (`3002`)
-- `dms` (`3003`)
-- `sns` (`3004`)
+- `pms` (`3000`)
+- `dms` (`3001`)
+- `sns` (`3002`)
+- `admin` (`3003`)
+- `crm` (`3004`)
 
 ### 4. 대안: 직접 개발 서버 실행
 
@@ -225,11 +225,11 @@ pnpm dev
 
 # 또는 개별 실행
 pnpm dev:server   # 백엔드: http://localhost:4000
-pnpm dev:web-admin  # Admin: http://localhost:3000
-pnpm dev:web-crm    # CRM:   http://localhost:3001
-pnpm dev:web-pms    # PMS:   http://localhost:3002
-pnpm dev:web-dms    # DMS:   http://localhost:3003
-pnpm dev:web-sns    # SNS:   http://localhost:3004
+pnpm dev:web-pms    # PMS:   http://localhost:3000
+pnpm dev:web-dms    # DMS:   http://localhost:3001
+pnpm dev:web-sns    # SNS:   http://localhost:3002
+pnpm dev:web-admin  # Admin: http://localhost:3003
+pnpm dev:web-crm    # CRM:   http://localhost:3004
 ```
 
 ### 5. 동작 확인
@@ -239,7 +239,7 @@ pnpm dev:web-sns    # SNS:   http://localhost:3004
 curl http://localhost:4000/api/health
 
 # 웹 브라우저에서 확인
-open http://localhost:3002
+open http://localhost:3000
 ```
 
 ---
@@ -310,7 +310,7 @@ node dist/main.js
 
 # 9. 웹 실행 (새 터미널에서)
 cd c:\WorkSpace\dev\source\sooo\apps\web-pms
-node ./node_modules/next/dist/bin/next dev --port 3002
+node ./node_modules/next/dist/bin/next dev --port 3000
 ```
 
 ### 실행 확인
@@ -319,7 +319,7 @@ node ./node_modules/next/dist/bin/next dev --port 3002
 ✅ Server: http://localhost:4000/api/health
    → {"success":true,"data":{"status":"ok","service":"ssoo-server","version":"0.0.1"}}
 
-✅ Web PMS: http://localhost:3002
+✅ Web PMS: http://localhost:3000
    → SSOO 메인 페이지 + Server Status 연동 확인
 ```
 

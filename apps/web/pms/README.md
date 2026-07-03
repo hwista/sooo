@@ -203,7 +203,7 @@ interface AuthState {
 pnpm dev:web-pms
 
 # 개발 서버 실행 (보안 환경)
-node ./node_modules/next/dist/bin/next dev --port 3002
+node ./node_modules/next/dist/bin/next dev --port 3000
 
 # 프로덕션 빌드
 pnpm build:web-pms
