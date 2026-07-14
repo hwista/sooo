@@ -29,39 +29,7 @@ const buildFileMap = (nodes: FileNode[]): Map<string, FileNode> => {
   return map;
 };
 
-const FORCE_SYNC_EMPTY_RETRY_COUNT = 2;
-const FORCE_SYNC_EMPTY_RETRY_DELAY_MS = 700;
-
 type FileTreeLoadResult = { success: boolean; error?: string };
-
-function waitForFileTreeRetry(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, FORCE_SYNC_EMPTY_RETRY_DELAY_MS);
-  });
-}
-
-async function requestFileTree(options: GetFileTreeOptions): Promise<Awaited<ReturnType<typeof filesApi.getFileTree>>> {
-  const maxAttempt = options.forceSync ? FORCE_SYNC_EMPTY_RETRY_COUNT + 1 : 1;
-
-  for (let attempt = 1; attempt <= maxAttempt; attempt += 1) {
-    const result = await filesApi.getFileTree(options);
-    const files = toFileNodes(result.data);
-    const shouldRetryEmptyForceSync = Boolean(
-      options.forceSync
-      && result.success
-      && files.length === 0
-      && attempt < maxAttempt,
-    );
-
-    if (!shouldRetryEmptyForceSync) {
-      return result;
-    }
-
-    await waitForFileTreeRetry();
-  }
-
-  return filesApi.getFileTree(options);
-}
 
 const resolveBookmarkTitle = (
   bookmark: Pick<BookmarkItem, 'path' | 'title'>,
@@ -205,7 +173,7 @@ export const useFileStore = create<FileStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          const result = await requestFileTree(options);
+          const result = await filesApi.getFileTree(options);
           const nextFiles = toFileNodes(result.data);
 
           if (result.success) {
@@ -267,7 +235,7 @@ export const useFileStore = create<FileStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          const result = await requestFileTree(options);
+          const result = await filesApi.getFileTree(options);
           const nextFiles = toFileNodes(result.data);
 
           if (result.success) {

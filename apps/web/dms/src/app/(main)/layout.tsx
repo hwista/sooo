@@ -91,18 +91,16 @@ function getDocumentPathFromTabPath(tabPath: string): string | null {
 
 interface DocumentTreeBootstrapScreenProps {
   error: string | null;
-  isEmpty: boolean;
   isLoading: boolean;
   onRetry: () => void;
 }
 
 function DocumentTreeBootstrapScreen({
   error,
-  isEmpty,
   isLoading,
   onRetry,
 }: DocumentTreeBootstrapScreenProps) {
-  if (isLoading || (!error && !isEmpty)) {
+  if (isLoading || !error) {
     return <AuthLoadingScreen message="문서 목록을 동기화하는 중..." />;
   }
 
@@ -111,7 +109,7 @@ function DocumentTreeBootstrapScreen({
       <div className="rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
         <h1 className="text-xl font-semibold text-slate-950">문서 목록을 준비하지 못했습니다.</h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          {error ?? '문서 저장소 동기화 결과가 비어 있습니다. 저장소와 권한 정보를 다시 확인하세요.'}
+          {error}
         </p>
         <Button variant="plain" size="plain"
           type="button"
@@ -149,7 +147,6 @@ export default function MainLayout({
   const hydrateAccess = useAccessStore((state) => state.hydrate);
   const resetAccess = useAccessStore((state) => state.reset);
   const refreshFileTree = useFileStore((state) => state.refreshFileTree);
-  const fileTreeFiles = useFileStore((state) => state.files);
   const fileTreeOwnerUserId = useFileStore((state) => state.filesOwnerUserId);
   const fileTreeIsInitialized = useFileStore((state) => state.isInitialized);
   const fileTreeIsLoading = useFileStore((state) => state.isLoading);
@@ -379,10 +376,9 @@ export default function MainLayout({
     && fileTreeOwnerUserId === currentUserId
     && fileTreeIsInitialized,
   );
-  const isDocumentTreeEmpty = isCurrentDocumentTreeReady && fileTreeFiles.length === 0;
   const shouldBlockForDocumentTree = Boolean(
     shouldPrepareDocumentTree
-    && (!isCurrentDocumentTreeReady || isDocumentTreeEmpty || fileTreeError),
+    && (!isCurrentDocumentTreeReady || fileTreeError),
   );
   const retryFileTreeBootstrap = useCallback(() => {
     if (!shouldPrepareDocumentTree) {
@@ -455,7 +451,6 @@ export default function MainLayout({
     return (
       <DocumentTreeBootstrapScreen
         error={fileTreeError}
-        isEmpty={isDocumentTreeEmpty}
         isLoading={fileTreeIsLoading || (!isCurrentDocumentTreeReady && !fileTreeError)}
         onRetry={retryFileTreeBootstrap}
       />
