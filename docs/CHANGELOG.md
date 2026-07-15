@@ -28,6 +28,8 @@
 
 ### Bug Fixes
 
+* **ci, scripts, docs:** persistent shell runner에 보존된 운영자 `.env.*`/`compose.yaml.bak*` 백업 때문에 exact-SHA source 검증이 실패하던 문제를 수정했다. 해당 백업 패턴만 Git status와 Docker build context에서 명시적으로 제외하고, 그 외 non-ignored 잔여 파일은 계속 build 전에 차단한다.
+
 * **ci, scripts, docs:** GitLab shell runner가 정확한 pipeline commit 대신 persistent `/opt/ssoo/app`의 stale `origin/development`로 Docker image를 만들던 문제를 수정했다. 자동 verify/AI/build와 수동 deploy 경계는 유지하면서 host `flock`으로 APP_DIR/Docker job을 직렬화하고 exact `CI_COMMIT_SHA` fetch/reset/assert를 강제했으며, 실제 preflight/lint/server test, 실행 중 image 백업, health fail-closed, commit-tagged image/container ID parity 검증을 추가했다.
 
 * **web-auth, web-shell, scripts, docs:** 공용 사용자 프로필 surface가 `neutral` page tone으로 렌더링되어 다른 표준 content page와 배경 톤이 어긋나던 문제를 수정했다. `SsooContentPageTemplate`에 `profile` semantic tone을 추가하고, `@ssoo/web-auth` user-surface content-page helper가 프로필은 `profile`, 계정 설정은 `settings` tone으로 중앙 선택하도록 고정했으며, `verify:ssoo-frame`/`verify:auth-commonization`이 profile tone의 `neutral` 회귀를 차단한다.

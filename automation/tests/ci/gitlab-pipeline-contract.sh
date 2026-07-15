@@ -6,6 +6,8 @@ pipeline="$repo_root/.gitlab-ci.yml"
 source_sync="$repo_root/scripts/ci/prepare-app-source.sh"
 image_provenance="$repo_root/scripts/ci/image-provenance.sh"
 job_runner="$repo_root/scripts/ci/run-app-job.sh"
+gitignore="$repo_root/.gitignore"
+dockerignore="$repo_root/.dockerignore"
 test_root="$(mktemp -d)"
 
 cleanup() {
@@ -59,6 +61,10 @@ assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh prepare-deplo
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh verify-deploy'
 assert_contains "$job_runner" 'docker compose -p "$COMPOSE_PROJECT_NAME" up -d --no-build'
 assert_contains "$job_runner" '[[ "$health_failed" == "0" ]]'
+assert_contains "$gitignore" '.env.*'
+assert_contains "$gitignore" 'compose.yaml.bak*'
+assert_contains "$dockerignore" '.env.*'
+assert_contains "$dockerignore" 'compose.yaml.bak*'
 
 if grep -Fq 'git reset --hard "origin/$CI_COMMIT_REF_NAME"' "$pipeline"; then
   fail "pipeline still resets to an unfetched mutable remote ref"
@@ -72,8 +78,9 @@ git init --bare "$remote" >/dev/null
 git init -b development "$seed" >/dev/null
 git -C "$seed" config user.name "CI Contract Test"
 git -C "$seed" config user.email "ci-contract@example.invalid"
+cp "$gitignore" "$seed/.gitignore"
 printf 'first\n' > "$seed/version.txt"
-git -C "$seed" add version.txt
+git -C "$seed" add .gitignore version.txt
 git -C "$seed" commit -m "first" >/dev/null
 git -C "$seed" remote add origin "$remote"
 git -C "$seed" push -u origin development >/dev/null
@@ -91,6 +98,11 @@ APP_DIR="$app" CI_COMMIT_REF_NAME=development CI_COMMIT_SHA="$second_sha" \
 
 [[ "$(git -C "$app" rev-parse HEAD)" == "$second_sha" ]] || fail "source sync did not select CI_COMMIT_SHA"
 [[ "$(<"$app/version.txt")" == "second" ]] || fail "source sync left stale file content"
+
+printf 'operator backup\n' > "$app/.env.bak.contract"
+printf 'operator backup\n' > "$app/compose.yaml.bak.contract"
+APP_DIR="$app" CI_COMMIT_REF_NAME=development CI_COMMIT_SHA="$second_sha" \
+  bash "$source_sync" >/dev/null
 
 printf 'unexpected\n' > "$app/untracked.txt"
 if APP_DIR="$app" CI_COMMIT_REF_NAME=development CI_COMMIT_SHA="$second_sha" \

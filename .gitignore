@@ -13,6 +13,9 @@ out/
 
 # Environment
 .env
+.env.*
+!.env.example
+!**/.env.example
 .env.local
 .env.local-test
 .env.*.local
@@ -48,6 +51,7 @@ prisma/*.db-journal
 *.tsbuildinfo
 .runtime/
 .hermes/
+compose.yaml.bak*
 
 # DMS runtime state / retired data
 .dms-collaboration-state.json

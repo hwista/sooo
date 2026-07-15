@@ -22,6 +22,9 @@ coverage
 !.env.example
 !**/.env.example
 
+# Operator backups beside the persistent checkout
+compose.yaml.bak*
+
 # Runtime data / local overrides
 .runtime/
 apps/web/dms/data/
