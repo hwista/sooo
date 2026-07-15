@@ -15,6 +15,7 @@
     "test": "turbo test",
     "test:server": "turbo test --filter=server",
     "test:e2e:dms": "playwright test --config automation/playwright.config.ts",
+    "verify:gitlab-pipeline": "bash automation/tests/ci/gitlab-pipeline-contract.sh",
     "playwright:install": "playwright install chromium",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",

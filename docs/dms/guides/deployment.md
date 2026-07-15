@@ -223,6 +223,17 @@ server:
 - Docker DMS는 workspace 빌드(`pnpm`, `@ssoo/types`, `@ssoo/web-auth`)를 전제로 합니다.
 - 기본 compose는 DMS 단독이 아니라 **모노레포 full-stack**을 띄웁니다.
 
+### GitLab pipeline 배포 계약
+
+- `development` push는 `verify -> ai_review -> build`를 자동 실행하고, `deploy_dev`는 `when: manual`로 유지합니다.
+- shell runner의 persistent checkout은 각 job 시작 시 remote ref를 fetch한 뒤 exact `CI_COMMIT_SHA`로 reset하며, HEAD 불일치나 non-ignored 잔여 파일이 있으면 build/deploy 전에 실패합니다.
+- `verify`는 `pnpm install --frozen-lockfile`, GitLab pipeline contract, Codex preflight, root lint, server test를 실제로 실행합니다.
+- build image는 `app-<service>:<CI_COMMIT_SHA>` 태그로 보존합니다. 수동 deploy는 선택한 pipeline SHA의 image를 `latest`로 복원한 뒤 기존 Compose stack을 `--no-build`로 올립니다.
+- deploy 직전 backup tag는 mutable `latest`가 아니라 실제 실행 중인 `ssoo-<service>` container image ID를 가리킵니다. 첫 배포처럼 기존 container가 없을 때만 현재 `latest`를 fallback으로 보존합니다.
+- build/deploy trace에는 commit image ID와 배포된 `ssoo-<service>` container image ID가 남고, 하나라도 다르면 deploy job이 실패합니다.
+- 60초 후 PostgreSQL과 전체 web/server container가 모두 `healthy`가 아니면 deploy job도 실패합니다.
+- persistent worktree와 shared Docker tag를 사용하는 job은 shell runner host의 `/tmp/ssoo-app-runtime.lock` `flock`으로 직렬화됩니다. 더 최신 pipeline이 `latest`를 갱신한 뒤 과거 pipeline의 manual deploy를 실행해도 선택한 commit tag가 배포 기준입니다.
+
 ---
 
 ## 트러블슈팅
@@ -266,6 +277,7 @@ docker compose up -d --build
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-15 | 현재 GitLab 버전과 호환되는 host `flock`, exact `CI_COMMIT_SHA` source alignment, 실제 자동 verify, commit-tagged image와 deployed container ID parity 계약을 추가 |
 | 2026-06-19 | local compose 에서 `apps/web/dms/.env.local` 의 DMS/Azure 값을 `web-dms`와 `server`가 함께 읽도록 정리해 로컬 요약 경로가 UI 설정과 어긋나지 않게 수정 |
 | 2026-06-19 | `compose.yaml` 의 Compose project name 을 `ssoo` 로 고정하고, Docker Desktop 에 남아 있는 이전 project 충돌을 위한 1회 정리 절차를 추가 |
 | 2026-04-22 | 데이터 경로 트러블슈팅을 server-owned external runtime mount(`DMS_MARKDOWN_ROOT`, `DMS_TEMPLATE_ROOT`, `DMS_INGEST_QUEUE_PATH`, `DMS_STORAGE_LOCAL_BASE_PATH`) 기준으로 정리 |
