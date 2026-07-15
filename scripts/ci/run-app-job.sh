@@ -38,11 +38,25 @@ case "$job" in
     echo "푸시한 사람 ${GITLAB_USER_NAME:-unknown}"
     echo "브랜치 $CI_COMMIT_REF_NAME"
     echo "커밋 ${CI_COMMIT_SHORT_SHA:-${CI_COMMIT_SHA:0:8}}"
-    pnpm install --frozen-lockfile
-    pnpm run verify:gitlab-pipeline
-    pnpm run codex:preflight
-    pnpm lint
-    pnpm test:server
+    verify_image="app-ci-verify:$CI_COMMIT_SHA"
+    cleanup_verify_image() {
+      docker image rm "$verify_image" >/dev/null 2>&1 || true
+    }
+    trap cleanup_verify_image EXIT
+    docker build \
+      --file docker/ci-verify.Dockerfile \
+      --label "com.ssoo.ci.commit=$CI_COMMIT_SHA" \
+      --tag "$verify_image" \
+      .
+    docker run --rm \
+      --volume "$APP_DIR/.git:/app/.git:ro" \
+      "$verify_image" \
+      bash -lc '
+        pnpm run verify:gitlab-pipeline
+        pnpm run codex:preflight
+        pnpm lint
+        pnpm test:server
+      '
     ;;
   ai-review)
     bash scripts/ci/ai-review.sh

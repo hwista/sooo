@@ -227,7 +227,7 @@ server:
 
 - `development` push는 `verify -> ai_review -> build`를 자동 실행하고, `deploy_dev`는 `when: manual`로 유지합니다.
 - shell runner의 persistent checkout은 각 job 시작 시 remote ref를 fetch한 뒤 exact `CI_COMMIT_SHA`로 reset하며, HEAD 불일치나 non-ignored 잔여 파일이 있으면 build/deploy 전에 실패합니다. 운영자가 checkout 옆에 보존하는 `.env.*`/`compose.yaml.bak*` 백업은 Git과 Docker build context에서 제외되며, 이 명시 패턴 밖의 임의 파일은 허용하지 않습니다.
-- `verify`는 `pnpm install --frozen-lockfile`, GitLab pipeline contract, Codex preflight, root lint, server test를 실제로 실행합니다.
+- `verify`는 shell runner host의 전역 Node/pnpm에 의존하지 않습니다. exact commit source와 `pnpm install --frozen-lockfile` 의존성을 담은 `node:20`/`pnpm@10.28.0` CI image에서 GitLab pipeline contract, Codex preflight, root lint, server test를 실제로 실행하고 Git metadata만 read-only mount합니다.
 - build image는 `app-<service>:<CI_COMMIT_SHA>` 태그로 보존합니다. 수동 deploy는 선택한 pipeline SHA의 image를 `latest`로 복원한 뒤 기존 Compose stack을 `--no-build`로 올립니다.
 - deploy 직전 backup tag는 mutable `latest`가 아니라 실제 실행 중인 `ssoo-<service>` container image ID를 가리킵니다. 첫 배포처럼 기존 container가 없을 때만 현재 `latest`를 fallback으로 보존합니다.
 - build/deploy trace에는 commit image ID와 배포된 `ssoo-<service>` container image ID가 남고, 하나라도 다르면 deploy job이 실패합니다.

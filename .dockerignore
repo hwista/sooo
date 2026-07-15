@@ -34,8 +34,10 @@ apps/web/dms/dms.personal.config.json
 
 # VCS / editors
 .git
-.gitignore
-.vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/mcp.json
 .idea
 
 # Development tooling

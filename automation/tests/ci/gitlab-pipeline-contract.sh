@@ -6,6 +6,7 @@ pipeline="$repo_root/.gitlab-ci.yml"
 source_sync="$repo_root/scripts/ci/prepare-app-source.sh"
 image_provenance="$repo_root/scripts/ci/image-provenance.sh"
 job_runner="$repo_root/scripts/ci/run-app-job.sh"
+ci_verify_dockerfile="$repo_root/docker/ci-verify.Dockerfile"
 gitignore="$repo_root/.gitignore"
 dockerignore="$repo_root/.dockerignore"
 test_root="$(mktemp -d)"
@@ -51,6 +52,8 @@ if grep -Fq 'resource_group:' "$pipeline"; then
 fi
 
 assert_contains "$job_runner" 'flock -w "$lock_timeout" 9'
+assert_contains "$job_runner" 'docker/ci-verify.Dockerfile'
+assert_contains "$job_runner" '--volume "$APP_DIR/.git:/app/.git:ro"'
 assert_contains "$job_runner" 'pnpm run verify:gitlab-pipeline'
 assert_contains "$job_runner" 'pnpm run codex:preflight'
 assert_contains "$job_runner" 'pnpm lint'
@@ -65,6 +68,13 @@ assert_contains "$gitignore" '.env.*'
 assert_contains "$gitignore" 'compose.yaml.bak*'
 assert_contains "$dockerignore" '.env.*'
 assert_contains "$dockerignore" 'compose.yaml.bak*'
+assert_contains "$ci_verify_dockerfile" 'FROM node:20'
+assert_contains "$ci_verify_dockerfile" 'corepack prepare pnpm@10.28.0 --activate'
+assert_contains "$ci_verify_dockerfile" 'pnpm install --frozen-lockfile'
+
+if grep -Fxq '.gitignore' "$dockerignore"; then
+  fail "CI verify image excludes the tracked Git ignore contract"
+fi
 
 if grep -Fq 'git reset --hard "origin/$CI_COMMIT_REF_NAME"' "$pipeline"; then
   fail "pipeline still resets to an unfetched mutable remote ref"
