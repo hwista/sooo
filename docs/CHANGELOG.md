@@ -28,6 +28,8 @@
 
 ### Bug Fixes
 
+* **ci, docker, scripts:** clean verify image에서 Prisma client가 생성되지 않아 server test가 초기화 전에 실패하던 문제를 수정했다. lockfile install 직후 `@ssoo/database db:generate`를 실행해 host의 기존 generated client에 의존하지 않도록 했다.
+
 * **ci, docker, scripts, docs:** GitLab shell runner host에 `pnpm`이 없어 실제 verify가 시작되지 못하던 문제를 수정했다. verify는 exact commit source와 lockfile 의존성을 담은 고정 `node:20`/`pnpm@10.28.0` 이미지에서 contract/preflight/lint/server test를 실행하고, Git metadata만 read-only mount해 host 전역 패키지 설치에 의존하지 않는다.
 
 * **ci, scripts, docs:** persistent shell runner에 보존된 운영자 `.env.*`/`compose.yaml.bak*` 백업 때문에 exact-SHA source 검증이 실패하던 문제를 수정했다. 해당 백업 패턴만 Git status와 Docker build context에서 명시적으로 제외하고, 그 외 non-ignored 잔여 파일은 계속 build 전에 차단한다.

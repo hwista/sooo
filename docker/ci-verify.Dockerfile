@@ -11,3 +11,5 @@ COPY . .
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
+
+RUN pnpm --filter @ssoo/database db:generate

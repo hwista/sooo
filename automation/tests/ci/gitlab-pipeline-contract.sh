@@ -71,6 +71,7 @@ assert_contains "$dockerignore" 'compose.yaml.bak*'
 assert_contains "$ci_verify_dockerfile" 'FROM node:20'
 assert_contains "$ci_verify_dockerfile" 'corepack prepare pnpm@10.28.0 --activate'
 assert_contains "$ci_verify_dockerfile" 'pnpm install --frozen-lockfile'
+assert_contains "$ci_verify_dockerfile" 'pnpm --filter @ssoo/database db:generate'
 
 if grep -Fxq '.gitignore' "$dockerignore"; then
   fail "CI verify image excludes the tracked Git ignore contract"
