@@ -6,6 +6,8 @@ import type {
   AiIndexChunkProjection,
   AiIndexEmbeddingSyncSnapshot,
   AiIndexJobErrorKind,
+  AiIndexJobQueueMetric,
+  AiIndexJobQueueMetrics,
   AiIndexJobRequest,
   AiIndexJobRunResult,
   AiIndexJobRunSummary,
@@ -24,6 +26,7 @@ import { DatabaseService } from '../../../database/database.service.js';
 import type { TokenPayload } from '../auth/interfaces/auth.interface.js';
 import { AiEmbeddingProviderService } from './ai-embedding-provider.service.js';
 import type { AiIndexAdapter } from './ai-index-adapter.js';
+import { assertAiIndexObjectProjection } from './ai-index-projection.validator.js';
 import { AiIndexRegistryService } from './ai-index-registry.service.js';
 
 const DEFAULT_JOB_PRIORITY = 100;
@@ -89,6 +92,19 @@ interface JobRow {
   metadata_jsonb: unknown;
 }
 
+interface JobQueueMetricRow {
+  source_app_code: string;
+  job_type_code: string;
+  job_status_code: string;
+  job_count: bigint | number;
+  runnable_count: bigint | number;
+  retry_waiting_count: bigint | number;
+  exhausted_count: bigint | number;
+  oldest_requested_at: Date | null;
+  next_retry_at: Date | null;
+  last_error_message: string | null;
+}
+
 type AiEmbeddingSyncSummary = AiIndexEmbeddingSyncSnapshot;
 
 class AiEmbeddingSyncError extends Error {
@@ -104,6 +120,8 @@ class AiEmbeddingSyncError extends Error {
 interface SourceStatusRow {
   source_app_code: string;
   source_name: string;
+  source_kind_code: string;
+  adapter_code: string;
   source_status_code: string;
   indexing_enabled: boolean;
   keyword_search_enabled: boolean;
@@ -122,6 +140,14 @@ interface SourceStatusRow {
   last_indexed_at: Date | null;
   last_failed_at: Date | null;
 }
+
+const AI_INDEX_SOURCE_BASELINES: Record<AiIndexSourceApp, { label: string; sourceKind: string }> = {
+  admin: { label: 'Admin', sourceKind: 'system' },
+  crm: { label: 'CRM', sourceKind: 'domain' },
+  pms: { label: 'PMS', sourceKind: 'domain' },
+  dms: { label: 'DMS', sourceKind: 'file' },
+  sns: { label: 'SNS', sourceKind: 'domain' },
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -305,6 +331,8 @@ export class AiIndexingService {
       SELECT
         s.source_app_code,
         s.source_name,
+        s.source_kind_code,
+        s.adapter_code,
         s.source_status_code,
         s.indexing_enabled,
         s.keyword_search_enabled,
@@ -336,27 +364,43 @@ export class AiIndexingService {
       sourceApp ?? null,
     );
 
-    return rows.map((row) => ({
-      sourceApp: row.source_app_code as AiIndexSourceApp,
-      label: row.source_name,
-      registered: true,
-      active: row.is_active && row.source_status_code === 'active',
-      indexingEnabled: row.indexing_enabled,
-      keywordSearchEnabled: row.keyword_search_enabled,
-      metadataSearchEnabled: row.metadata_search_enabled,
-      semanticSearchEnabled: row.semantic_search_enabled,
-      vectorSearchEnabled: row.vector_search_enabled,
-      ragContextEnabled: row.rag_context_enabled,
-      objectCount: toNumber(row.object_count),
-      pendingCount: toNumber(row.pending_count),
-      indexedCount: toNumber(row.indexed_count),
-      skippedCount: toNumber(row.skipped_count),
-      failedCount: toNumber(row.failed_count),
-      staleCount: toNumber(row.stale_count),
-      deletedCount: toNumber(row.deleted_count),
-      lastIndexedAt: toIsoString(row.last_indexed_at),
-      lastFailedAt: toIsoString(row.last_failed_at),
-    }));
+    const registeredSourceApps = new Set(
+      this.registry.list().map((adapter) => adapter.sourceApp),
+    );
+    const registeredStatuses = rows
+      .filter((row) => registeredSourceApps.has(row.source_app_code as AiIndexSourceApp))
+      .map((row) => ({
+        sourceApp: row.source_app_code as AiIndexSourceApp,
+        label: row.source_name,
+        registered: true,
+        registrationStatus: 'registered' as const,
+        sourceKind: row.source_kind_code,
+        adapterCode: row.adapter_code,
+        active: row.is_active && row.source_status_code === 'active',
+        indexingEnabled: row.indexing_enabled,
+        keywordSearchEnabled: row.keyword_search_enabled,
+        metadataSearchEnabled: row.metadata_search_enabled,
+        semanticSearchEnabled: row.semantic_search_enabled,
+        vectorSearchEnabled: row.vector_search_enabled,
+        ragContextEnabled: row.rag_context_enabled,
+        objectCount: toNumber(row.object_count),
+        pendingCount: toNumber(row.pending_count),
+        indexedCount: toNumber(row.indexed_count),
+        skippedCount: toNumber(row.skipped_count),
+        failedCount: toNumber(row.failed_count),
+        staleCount: toNumber(row.stale_count),
+        deletedCount: toNumber(row.deleted_count),
+        lastIndexedAt: toIsoString(row.last_indexed_at),
+        lastFailedAt: toIsoString(row.last_failed_at),
+      }));
+
+    const plannedSourceApps = sourceApp ? [sourceApp] : Object.keys(AI_INDEX_SOURCE_BASELINES) as AiIndexSourceApp[];
+    const missingStatuses = plannedSourceApps
+      .filter((plannedSourceApp) => !registeredSourceApps.has(plannedSourceApp))
+      .map((plannedSourceApp) => this.createMissingSourceStatus(plannedSourceApp));
+
+    return [...registeredStatuses, ...missingStatuses]
+      .sort((left, right) => left.sourceApp.localeCompare(right.sourceApp));
   }
 
   async queueJob(request: AiIndexJobRequest, currentUser?: TokenPayload): Promise<AiIndexJobSnapshot> {
@@ -426,6 +470,76 @@ export class AiIndexingService {
     );
 
     return this.toJobSnapshot(rows[0]);
+  }
+
+  async getJobQueueMetrics(sourceApp?: AiIndexSourceApp): Promise<AiIndexJobQueueMetrics> {
+    const rows = await this.db.client.$queryRawUnsafe<JobQueueMetricRow[]>(
+      `
+      SELECT
+        source_app_code,
+        job_type_code,
+        job_status_code,
+        COUNT(*) AS job_count,
+        COUNT(*) FILTER (
+          WHERE job_status_code = 'pending'
+            AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+        ) AS runnable_count,
+        COUNT(*) FILTER (
+          WHERE job_status_code = 'pending'
+            AND next_retry_at > NOW()
+        ) AS retry_waiting_count,
+        COUNT(*) FILTER (
+          WHERE job_status_code = 'failed'
+            AND attempt_count >= max_attempts
+        ) AS exhausted_count,
+        MIN(requested_at) AS oldest_requested_at,
+        MIN(next_retry_at) FILTER (
+          WHERE job_status_code = 'pending'
+            AND next_retry_at > NOW()
+        ) AS next_retry_at,
+        MAX(last_error_message) FILTER (
+          WHERE last_error_message IS NOT NULL
+        ) AS last_error_message
+      FROM common.cm_ai_index_job_m
+      WHERE is_active = true
+        AND ($1::text IS NULL OR source_app_code = $1::text)
+      GROUP BY source_app_code, job_type_code, job_status_code
+      ORDER BY source_app_code ASC, job_status_code ASC, job_type_code ASC
+      `,
+      sourceApp ?? null,
+    );
+
+    const metrics = rows.map((row): AiIndexJobQueueMetric => ({
+      sourceApp: row.source_app_code as AiIndexSourceApp,
+      jobType: normalizeJobType(row.job_type_code as AiIndexJobType),
+      jobStatus: normalizeJobStatus(row.job_status_code),
+      count: toNumber(row.job_count),
+      runnableCount: toNumber(row.runnable_count),
+      retryWaitingCount: toNumber(row.retry_waiting_count),
+      exhaustedCount: toNumber(row.exhausted_count),
+      oldestRequestedAt: toIsoString(row.oldest_requested_at),
+      nextRetryAt: toIsoString(row.next_retry_at),
+      lastErrorMessage: row.last_error_message ?? undefined,
+    }));
+
+    return {
+      generatedAt: new Date().toISOString(),
+      sourceApp,
+      totalCount: metrics.reduce((sum, metric) => sum + metric.count, 0),
+      pendingCount: metrics
+        .filter((metric) => metric.jobStatus === 'pending')
+        .reduce((sum, metric) => sum + metric.count, 0),
+      runnableCount: metrics.reduce((sum, metric) => sum + metric.runnableCount, 0),
+      retryWaitingCount: metrics.reduce((sum, metric) => sum + metric.retryWaitingCount, 0),
+      runningCount: metrics
+        .filter((metric) => metric.jobStatus === 'running')
+        .reduce((sum, metric) => sum + metric.count, 0),
+      failedCount: metrics
+        .filter((metric) => metric.jobStatus === 'failed')
+        .reduce((sum, metric) => sum + metric.count, 0),
+      exhaustedCount: metrics.reduce((sum, metric) => sum + metric.exhaustedCount, 0),
+      metrics,
+    };
   }
 
   async runPendingJobs(limit = DEFAULT_BATCH_LIMIT): Promise<AiIndexJobRunSummary> {
@@ -649,6 +763,7 @@ export class AiIndexingService {
     status: AiIndexObjectStatus,
     safety: AiIndexJobSafetySnapshot,
   ): Promise<AiIndexApplyResult> {
+    assertAiIndexObjectProjection(projection);
     const adapter = this.requireAdapter(projection.sourceApp);
     const sourceId = await this.ensureSource(adapter, projection);
     const objectId = await this.upsertObject(sourceId, projection);
@@ -1368,6 +1483,31 @@ export class AiIndexingService {
       throw new NotFoundException(`AI index adapter not registered: ${sourceApp}`);
     }
     return adapter;
+  }
+
+  private createMissingSourceStatus(sourceApp: AiIndexSourceApp): AiIndexSourceStatus {
+    const baseline = AI_INDEX_SOURCE_BASELINES[sourceApp];
+    return {
+      sourceApp,
+      label: baseline.label,
+      registered: false,
+      registrationStatus: 'missing_adapter',
+      sourceKind: baseline.sourceKind,
+      active: false,
+      indexingEnabled: false,
+      keywordSearchEnabled: false,
+      metadataSearchEnabled: false,
+      semanticSearchEnabled: false,
+      vectorSearchEnabled: false,
+      ragContextEnabled: false,
+      objectCount: 0,
+      pendingCount: 0,
+      indexedCount: 0,
+      skippedCount: 0,
+      failedCount: 0,
+      staleCount: 0,
+      deletedCount: 0,
+    };
   }
 
   private toJobSnapshot(row: JobRow): AiIndexJobSnapshot {

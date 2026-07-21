@@ -17,9 +17,10 @@ const SNS_APP_IDENTITY = getSsooAppIdentity('sns');
 interface SidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  toggleLabel?: string;
 }
 
-export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggleCollapse, toggleLabel }: SidebarProps) {
   const router = useRouter();
   const tabs = useTabStore((state) => state.tabs);
   const activeTabId = useTabStore((state) => state.activeTabId);
@@ -35,6 +36,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
       expanded={!isCollapsed}
       onToggleCollapse={onToggleCollapse}
       toggleIcon={Menu}
+      toggleLabel={toggleLabel}
       brandTitle={SNS_APP_IDENTITY.brandTitle}
       search={{
         value: searchQuery,

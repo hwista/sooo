@@ -1,0 +1,7 @@
+services:
+  server:
+    environment:
+      # The local full-stack uses production builds on localhost. This bypass is
+      # intentionally confined to the explicit local overlay.
+      AUTH_ALLOW_INSECURE_PRODUCTION_DEFAULTS: "true"
+      DMS_INSTANCE_ENV: ${DMS_INSTANCE_ENV:-dev}

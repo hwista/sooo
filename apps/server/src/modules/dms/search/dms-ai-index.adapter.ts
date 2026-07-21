@@ -12,6 +12,7 @@ import type {
 } from '@ssoo/types/common';
 import { DatabaseService } from '../../../database/database.service.js';
 import type { AiIndexAdapter } from '../../common/ai-index/ai-index-adapter.js';
+import { AiEmbeddingProviderService } from '../../common/ai-index/ai-embedding-provider.service.js';
 import { AiIndexRegistryService } from '../../common/ai-index/ai-index-registry.service.js';
 import { configService } from '../runtime/dms-config.service.js';
 import {
@@ -130,19 +131,25 @@ export class DmsAiIndexAdapter implements AiIndexAdapter, OnModuleInit {
   readonly label = 'DMS';
   readonly sourceKind = 'domain';
   readonly adapterCode = 'dms.markdown.ai-index';
-  readonly capabilities = {
-    keyword: true,
-    metadata: true,
-    semantic: false,
-    vector: false,
-    ragContext: false,
-    indexing: true,
-  };
+
+  get capabilities() {
+    const embeddingReady = this.embeddingProvider.getStatus('default').ready;
+
+    return {
+      keyword: true,
+      metadata: true,
+      semantic: embeddingReady,
+      vector: embeddingReady,
+      ragContext: embeddingReady,
+      indexing: true,
+    };
+  }
 
   constructor(
     private readonly db: DatabaseService,
     private readonly runtime: SearchRuntimeService,
     private readonly registry: AiIndexRegistryService,
+    private readonly embeddingProvider: AiEmbeddingProviderService,
   ) {}
 
   onModuleInit(): void {

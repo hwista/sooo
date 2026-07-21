@@ -48,7 +48,7 @@ export function RuntimePathSurface({
 
   return (
     <section className="mb-3 space-y-3">
-      <article className="rounded-lg border border-ssoo-content-border bg-white px-4 py-3">
+      <article className="rounded-lg border border-ssoo-content-border bg-card px-4 py-3">
         <div className="flex items-start gap-2">
           <FolderOpen className="mt-0.5 h-4 w-4 text-ssoo-primary/70" />
           <div>
@@ -63,7 +63,7 @@ export function RuntimePathSurface({
         {entries.map(({ key, label, description: entryDescription, binding }) => {
           const healthy = binding.exists;
           return (
-            <article key={key} className="rounded-lg border border-ssoo-content-border bg-white px-4 py-3">
+            <article key={key} className="rounded-lg border border-ssoo-content-border bg-card px-4 py-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-label-strong text-ssoo-primary">{label}</p>
@@ -72,8 +72,8 @@ export function RuntimePathSurface({
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-badge ${
                     healthy
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                      : 'border-amber-200 bg-amber-50 text-amber-700'
+                      ? 'ssoo-tone-success-surface'
+                      : 'ssoo-tone-warning-surface'
                   }`}
                 >
                   {healthy ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}

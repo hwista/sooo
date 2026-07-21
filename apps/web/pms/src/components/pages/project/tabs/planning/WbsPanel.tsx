@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { GitBranch, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import {
   useProjectWbs,
   useUpdateWbs,
 } from '@/hooks/queries/useProjects';
+import type { WbsItem } from '@/lib/api/endpoints/projects';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
 
 const NO_OBJECTIVE = '__none__';
@@ -59,6 +60,47 @@ const INITIAL_FORM: WbsFormState = {
   statusCode: 'not_started',
   description: '',
 };
+
+interface WbsMetaFieldProps {
+  label: string;
+  children: ReactNode;
+}
+
+function WbsMetaField({ label, children }: WbsMetaFieldProps) {
+  return (
+    <div className="space-y-1">
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div className="text-sm">{children}</div>
+    </div>
+  );
+}
+
+interface WbsStatusSelectProps {
+  wbs: WbsItem;
+  canManageWbs: boolean;
+  onChange: (wbsId: string, statusCode: string) => void;
+}
+
+function WbsStatusSelect({ wbs, canManageWbs, onChange }: WbsStatusSelectProps) {
+  return (
+    <Select
+      value={wbs.statusCode}
+      onValueChange={(value) => onChange(String(wbs.id), value)}
+      disabled={!canManageWbs}
+    >
+      <SelectTrigger className="h-8 w-full text-xs md:mx-auto md:h-7 md:w-24">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {STATUS_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 interface Props {
   projectId: number;
@@ -130,13 +172,13 @@ export function WbsPanel({ projectId, canManageWbs }: Props) {
 
   return (
     <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h4 className="flex items-center gap-2 text-sm font-semibold">
           <GitBranch className="h-4 w-4" />
           WBS ({wbsItems.length})
         </h4>
         {canManageWbs && (
-          <Button size="sm" variant="outline" onClick={handleOpenDialog}>
+          <Button size="sm" variant="outline" onClick={handleOpenDialog} className="w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             WBS 추가
           </Button>
@@ -148,7 +190,54 @@ export function WbsPanel({ projectId, canManageWbs }: Props) {
       ) : wbsItems.length === 0 ? (
         <div className="text-sm text-muted-foreground">아직 등록된 WBS가 없습니다.</div>
       ) : (
-        <div className="overflow-hidden rounded-md border bg-white">
+        <>
+        <div className="space-y-3 md:hidden">
+          {wbsItems.map((wbs) => {
+            const objective = wbs.objectiveId ? objectiveMap.get(String(wbs.objectiveId)) : null;
+            const parentWbs = wbs.parentWbsId ? wbsMap.get(String(wbs.parentWbsId)) : null;
+
+            return (
+              <div key={String(wbs.id)} className="rounded-lg border bg-card p-3 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1">
+                    <div className="font-mono text-xs text-muted-foreground">{wbs.wbsCode}</div>
+                    <div className="break-words text-sm font-semibold">{wbs.wbsName}</div>
+                  </div>
+                  {canManageWbs && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDelete(String(wbs.id))}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                <div className="mt-3 grid gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <WbsMetaField label="목표">
+                      <span className="text-muted-foreground">
+                        {objective ? `${objective.objectiveCode} · ${objective.objectiveName}` : '-'}
+                      </span>
+                    </WbsMetaField>
+                    <WbsMetaField label="상위WBS">
+                      <span className="text-muted-foreground">
+                        {parentWbs ? `${parentWbs.wbsCode} · ${parentWbs.wbsName}` : '-'}
+                      </span>
+                    </WbsMetaField>
+                  </div>
+                  <WbsMetaField label="상태">
+                    <WbsStatusSelect wbs={wbs} canManageWbs={canManageWbs} onChange={handleStatusChange} />
+                  </WbsMetaField>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="hidden overflow-hidden rounded-md border bg-card md:block">
           <Table className="w-full text-sm">
             <TableHeader className="bg-muted/40">
               <TableRow>
@@ -178,22 +267,7 @@ export function WbsPanel({ projectId, canManageWbs }: Props) {
                       {parentWbs ? `${parentWbs.wbsCode} · ${parentWbs.wbsName}` : '-'}
                     </TableCell>
                     <TableCell className="p-3 text-center">
-                      <Select
-                        value={wbs.statusCode}
-                        onValueChange={(value) => handleStatusChange(String(wbs.id), value)}
-                        disabled={!canManageWbs}
-                      >
-                        <SelectTrigger className="mx-auto h-7 w-24 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STATUS_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <WbsStatusSelect wbs={wbs} canManageWbs={canManageWbs} onChange={handleStatusChange} />
                     </TableCell>
                     <TableCell className="p-3 text-center">
                       {canManageWbs && (
@@ -213,17 +287,18 @@ export function WbsPanel({ projectId, canManageWbs }: Props) {
             </TableBody>
           </Table>
         </div>
+        </>
       )}
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>WBS 추가</DialogTitle>
             <DialogDescription>태스크가 연결될 planning WBS를 등록합니다.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">코드 *</label>
                 <Input
@@ -242,7 +317,7 @@ export function WbsPanel({ projectId, canManageWbs }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium">목표</label>
                 <Select
@@ -313,12 +388,13 @@ export function WbsPanel({ projectId, canManageWbs }: Props) {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">
               취소
             </Button>
             <Button
               onClick={handleCreate}
               disabled={!canManageWbs || !formData.wbsCode.trim() || !formData.wbsName.trim() || createWbs.isPending}
+              className="w-full sm:w-auto"
             >
               {createWbs.isPending ? '저장 중...' : '저장'}
             </Button>

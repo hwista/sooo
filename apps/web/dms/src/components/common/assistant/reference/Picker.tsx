@@ -270,7 +270,7 @@ export function AssistantReferencePicker({
         <Button variant="plain" size="plain"
           type="button"
           disabled={disabled}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ssoo-primary text-white shadow-sm transition-colors hover:bg-ssoo-primary/90 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 [&_svg]:h-4 [&_svg]:w-4"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ssoo-primary text-primary-foreground shadow-sm transition-colors hover:bg-ssoo-primary/90 focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-60 [&_svg]:h-4 [&_svg]:w-4"
           title="컨텍스트 첨부"
           aria-label="컨텍스트 첨부"
         >
@@ -280,7 +280,7 @@ export function AssistantReferencePicker({
       <DropdownMenuContent
         align="start"
         sideOffset={6}
-        className="w-[380px] border-ssoo-primary/20 bg-white p-2 text-ssoo-primary shadow-lg"
+        className="w-[380px] border-ssoo-primary/20 bg-card p-2 text-ssoo-primary shadow-lg"
         data-assistant-dropdown="true"
       >
         <div className="space-y-2">
@@ -327,7 +327,7 @@ export function AssistantReferencePicker({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={searchPlaceholder}
-              className="h-9 w-full rounded-md border border-ssoo-primary/25 bg-white pl-7 pr-2 text-caption text-ssoo-primary shadow-none placeholder:text-ssoo-primary/45 focus:border-ssoo-primary/50 focus:outline-none focus-visible:ring-0"
+              className="h-9 w-full rounded-md border border-ssoo-primary/25 bg-card pl-7 pr-2 text-caption text-ssoo-primary shadow-none placeholder:text-ssoo-primary/45 focus:border-ssoo-primary/50 focus:outline-none focus-visible:ring-0"
             />
           </div>
 

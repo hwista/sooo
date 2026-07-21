@@ -79,6 +79,7 @@ async function readExpectedTitles() {
 
 async function verifyCanonicalDocs() {
   const doc = await readText('docs/common/explanation/architecture/ssoo-frame-system.md');
+  const contentAssemblyDoc = await readText('docs/common/explanation/architecture/content-page-assembly-standard.md');
   assertIncludes(doc, '## PMS 100% 기준', 'frame doc defines PMS 100% criteria');
   assertIncludes(doc, '공용 frame + 도메인 slot/data', 'frame doc states shared frame/domain slot contract');
   assertIncludes(doc, '턴 종료 전 affected Docker 서비스를 rebuild/up', 'frame doc records Docker closeout contract');
@@ -95,6 +96,8 @@ async function verifyCanonicalDocs() {
   assertIncludes(doc, '눈으로 다른 shell surface가 남아 있으면 공용화 미완료', 'frame doc records visual shell parity rule');
   assertIncludes(doc, 'header/sidebar/tabbar 표면은 실제 shared primitive를 소비', 'frame doc requires shared surface primitives, not only frame slots');
   assertIncludes(doc, '5개 앱의 header entrypoint는 `SsooAppHeader`다', 'frame doc records shared app header entrypoint');
+  assertIncludes(doc, '`SsooMobileSidebarOverlay`', 'frame doc records the shared mobile sidebar overlay contract');
+  assertIncludes(doc, 'Escape 닫기', 'frame doc records mobile sidebar keyboard dismissal');
   assertIncludes(doc, '`useSsooGlobalHeaderSearch`가 소유', 'frame doc records shared ownership of header global search state and submit handling');
   assertIncludes(doc, '앱은 검색 가능 여부와 통합 검색 탭을 여는 navigation adapter만 주입', 'frame doc records app-owned header search navigation adapter boundary');
   assertIncludes(doc, 'header 내부 button/input/icon size, action spacing, 사용자 메뉴 폭 측정, notification trigger/badge shape를 직접 소유하지 않는다', 'frame doc records app headers do not own internal header shape');
@@ -134,11 +137,17 @@ async function verifyCanonicalDocs() {
   assertIncludes(doc, '앱 메인 header는 검색/새로 만들기/알림/사용자 메뉴 surface를 같은 순서와 크기로 노출', 'frame doc records main app header surface parity');
   assertIncludes(doc, '설정 컨텍스트는 앱 상단 header slot을 유지하되 header 내부 content를 비우고, 설정 sidebar brand 영역의 뒤로가기 action과 `설정` title만 노출한다', 'frame doc records settings context with empty app header content and sidebar brand-only title');
   assertIncludes(doc, '`SsooPageBreadcrumb`, `SsooPageHeader`, `SsooPageChromeStack`, `SsooContentPageTemplate`', 'frame doc records shared page breadcrumb/header/content template primitives');
+  assertIncludes(doc, '`SsooWorkspacePage`', 'frame doc records shared workspace page recipe');
+  assertIncludes(doc, '`SsooDataWorkspacePage`는 `SsooWorkspacePage` 위에 얹는 데이터/grid preset', 'frame doc records data workspace as a workspace page preset');
   assertIncludes(doc, '`SsooSectionedShell`, `SsooPanelFrame`, `SsooCollapsibleSection`', 'frame doc records shared sectioned shell and panel primitives');
   assertIncludes(doc, '최종 도메인 페이지는 소비 앱이 소유하지만, 도메인 로직 없이 slot만 조립하는 페이지 template/recipe는 `web-shell` 소유로 승격', 'frame doc records page template ownership boundary');
   assertIncludes(doc, 'breadcrumb/header/top-stack과 content page slot의 폭, gap, padding, border, overflow, page tone/state는 `web-shell`이 소유', 'frame doc records shared ownership of content page render metrics');
   assertIncludes(doc, '`SSOO_PAGE_CHROME_METRICS`, `SSOO_PAGE_CHROME_CLASSES`, `SSOO_CONTENT_PAGE_METRICS`, `SSOO_CONTENT_PAGE_TONE_CLASSES`가 플랫폼 전역 page render metric source', 'frame doc records platform-wide page render metric source');
   assertIncludes(doc, 'Breadcrumb row는 24px, page header는 54px 기준', 'frame doc records exact shared page chrome height metrics');
+  assertIncludes(contentAssemblyDoc, '`SsooWorkspacePage`', 'content assembly doc records shared workspace page recipe');
+  assertIncludes(contentAssemblyDoc, '`SsooDataWorkspacePage`는 `SsooWorkspacePage`를 소비하는 데이터 화면 preset', 'content assembly doc records data workspace as a workspace preset');
+  assertIncludes(contentAssemblyDoc, 'header 는 플랫폼 page chrome 의 full-width 흐름을 따르며', 'content assembly doc keeps data workspace header full-width');
+  assertIncludes(contentAssemblyDoc, '`contentWidth`는 grid/form/chart 가 들어가는 main content lane 에만 적용한다', 'content assembly doc limits contentWidth to the main content lane');
 }
 
 async function verifyCurrentLayoutDocs() {
@@ -208,6 +217,7 @@ async function verifyCurrentLayoutDocs() {
 async function verifySharedFrameSource() {
   const appFrame = await readText('packages/web-shell/src/app-frame.tsx');
   const workbenchShell = await readText('packages/web-shell/src/workbench-shell.tsx');
+  const mobileShell = await readText('packages/web-shell/src/mobile-shell.tsx');
   const index = await readText('packages/web-shell/src/index.ts');
 
   await assertMissing('packages/web-shell/src/shell-frame.tsx', 'legacy ShellFrame source is removed');
@@ -225,6 +235,16 @@ async function verifySharedFrameSource() {
     assertExcludes(appFrame, needle, `shared app frame does not expose or consume metric override ${needle}`);
     assertExcludes(workbenchShell, needle, `shared workbench shell does not expose metric override ${needle}`);
   }
+  assertIncludes(index, 'SsooMobileSidebarOverlay', 'web-shell exports the canonical mobile sidebar overlay');
+  assertIncludes(index, 'useSsooMobileViewport', 'web-shell exports the canonical mobile viewport hook');
+  assertIncludes(mobileShell, 'useSyncExternalStore', 'mobile viewport hook uses a hydration-safe external store subscription');
+  assertIncludes(mobileShell, 'SSOO_SHELL_METRICS.breakpoint.mobile', 'mobile viewport hook consumes the shared breakpoint metric');
+  assertIncludes(mobileShell, 'role="dialog"', 'mobile sidebar overlay exposes dialog semantics');
+  assertIncludes(mobileShell, 'aria-modal="true"', 'mobile sidebar overlay exposes modal semantics');
+  assertIncludes(mobileShell, "event.key === 'Escape'", 'mobile sidebar overlay owns Escape dismissal');
+  assertIncludes(mobileShell, "document.body.style.overflow = 'hidden'", 'mobile sidebar overlay owns body scroll lock');
+  assertIncludes(mobileShell, 'POPUP_BACKDROP_TONE_CLASS', 'mobile sidebar overlay consumes the semantic shared backdrop tone');
+  assertIncludes(mobileShell, '<Button', 'mobile sidebar overlay consumes the platform button primitive');
 }
 
 async function verifySharedGlobalCss() {
@@ -623,6 +643,8 @@ async function verifySharedPageFrameSource() {
   const pageChrome = await readText('packages/web-shell/src/page-chrome.tsx');
   const pageChromeMetrics = await readText('packages/web-shell/src/page-chrome-metrics.ts');
   const contentPageTemplate = await readText('packages/web-shell/src/content-page-template.tsx');
+  const workspacePage = await readText('packages/web-shell/src/workspace-page.tsx');
+  const dataWorkspacePage = await readText('packages/web-shell/src/data-workspace-page.tsx');
   const sharedSurfaceContentPage = await readText('packages/web-shell/src/shared-surface-content-page.tsx');
   const accountCenter = await readText('packages/web-auth/src/account-center.ts');
   const userSurfaceRouting = await readText('packages/web-auth/src/user-surface-routing.ts');
@@ -642,6 +664,8 @@ async function verifySharedPageFrameSource() {
     'SsooPageHeader',
     'SsooPageChromeStack',
     'SsooContentPageTemplate',
+    'SsooWorkspacePage',
+    'SSOO_WORKSPACE_PAGE_CONTENT_WIDTH_PX',
     'createSsooSharedSurfaceContentPageElement',
     'useSsooSharedSurfacePageHeaderActions',
     'SsooSharedSurfacePageHeaderActions',
@@ -664,8 +688,8 @@ async function verifySharedPageFrameSource() {
 
   assertIncludes(pageChromeMetrics, 'breadcrumbHeightPx: 24', 'shared page chrome metrics fix breadcrumb row height');
   assertIncludes(pageChromeMetrics, 'headerMinHeightPx: 54', 'shared page chrome metrics fix page header minimum height');
-  assertIncludes(pageChromeMetrics, "breadcrumb: 'flex h-6 min-h-6 items-center overflow-x-auto text-body-sm text-[color:#4b5563] scrollbar-none'", 'shared page chrome classes own breadcrumb row typography');
-  assertIncludes(pageChromeMetrics, "header: 'flex min-h-[54px] items-center justify-between rounded-lg border border-ssoo-content-border bg-white px-4 py-2 text-ssoo-primary'", 'shared page chrome classes own header surface');
+  assertIncludes(pageChromeMetrics, "breadcrumb: 'flex h-6 min-h-6 items-center overflow-x-auto text-body-sm ssoo-text-primary-70 scrollbar-none'", 'shared page chrome classes own breadcrumb row typography');
+  assertIncludes(pageChromeMetrics, "header: 'flex min-h-[54px] items-center justify-between rounded-lg border border-ssoo-content-border bg-card px-4 py-2 text-ssoo-primary'", 'shared page chrome classes own header surface');
   assertIncludes(breadcrumb, 'rootIconSlot?: ReactNode', 'shared page breadcrumb receives root icon through a slot');
   assertIncludes(breadcrumb, 'SSOO_PAGE_CHROME_CLASSES.breadcrumb', 'shared page breadcrumb consumes the platform page chrome class contract');
   assertIncludes(breadcrumb, 'SSOO_PAGE_CHROME_METRICS.breadcrumbHeightPx', 'shared page breadcrumb consumes the platform page chrome metric contract');
@@ -717,6 +741,17 @@ async function verifySharedPageFrameSource() {
   ]) {
     assertExcludes(contentPageTemplate, needle, `shared content page template does not expose raw page layout escape prop ${needle}`);
   }
+  assertIncludes(workspacePage, 'SsooContentPageTemplate', 'shared workspace page composes the canonical content page template');
+  assertIncludes(workspacePage, 'headerSlot={headerSlot ?? null}', 'shared workspace page forwards header chrome without content-width wrapping');
+  assertIncludes(workspacePage, 'pageVariant="fluid"', 'shared workspace page keeps page chrome full-width');
+  assertIncludes(workspacePage, 'contentSurface="plain"', 'shared workspace page does not add an extra main surface');
+  assertIncludes(workspacePage, 'sidecarMode="hidden"', 'shared workspace page is a main-slot recipe, not a sidecar recipe');
+  assertIncludes(workspacePage, 'data-ssoo-workspace-content-lane', 'shared workspace page marks the standard main content lane');
+  assertIncludes(workspacePage, 'style={getWorkspaceContentWidthStyle(contentWidth)}', 'shared workspace page applies contentWidth only to the main content lane');
+  assertIncludes(dataWorkspacePage, 'SsooWorkspacePage', 'data workspace page composes the shared workspace page recipe');
+  assertIncludes(dataWorkspacePage, "contentDataAttributes={{ 'data-ssoo-data-workspace': true }}", 'data workspace page preserves its browser verification marker through the workspace lane');
+  assertIncludes(dataWorkspacePage, "breadcrumbAriaLabel={breadcrumbAriaLabel ?? '데이터 화면 경로'}", 'data workspace page keeps its data-specific breadcrumb label');
+  assertExcludes(dataWorkspacePage, 'SsooContentPageTemplate', 'data workspace page does not bypass the shared workspace page recipe');
   assertIncludes(sharedSurfaceContentPage, 'createSsooContentPageTemplateElement', 'shared surface content page helper returns the typed content page template element');
   assertIncludes(sharedSurfaceContentPage, 'SsooPageBreadcrumb', 'shared surface content page helper owns shared breadcrumb assembly');
   assertIncludes(sharedSurfaceContentPage, 'SsooPageHeader', 'shared surface content page helper owns shared page header assembly');
@@ -981,6 +1016,8 @@ async function verifyPmsSource() {
   assertIncludes(layout, 'headerSlot={<Header />}', 'PMS injects header through shell slot');
   assertIncludes(layout, 'tabBarSlot={<TabBar />}', 'PMS injects tabbar through shell slot');
   assertIncludes(layout, 'contentSlot={<ContentArea />}', 'PMS injects keep-alive content through shell slot');
+  assertIncludes(layout, 'SsooMobileSidebarOverlay', 'PMS consumes the canonical mobile sidebar overlay');
+  assertIncludes(layout, 'label="PMS 모바일 메뉴"', 'PMS labels the mobile sidebar dialog');
 
   assertUsesSharedSidebarSurface(sidebar, 'PMS');
   assertUsesSharedMainSidebarBrandIdentity(sidebar, 'PMS', 'pms');
@@ -1055,6 +1092,8 @@ async function verifyCrmSource() {
   assertUsesSharedAppHeader(header, 'CRM');
   assertIncludes(layout, 'tabBarSlot={<TabBar />}', 'CRM injects full MDI tabbar through the frame tabbar slot');
   assertIncludes(layout, 'contentSlot={<ContentArea />}', 'CRM injects full MDI content through the frame content slot');
+  assertIncludes(layout, 'SsooMobileSidebarOverlay', 'CRM consumes the canonical mobile sidebar overlay');
+  assertIncludes(layout, 'useSsooMobileViewport', 'CRM consumes the canonical mobile viewport hook');
   assertIncludes(layout, 'openTab({', 'CRM syncs route entry into the MDI tab store');
   assertIncludes(tabbar, 'SsooMdiTabBar', 'CRM consumes shared full MDI tabbar');
   assertIncludes(tabbar, 'onReorderTabs={reorderTabs}', 'CRM exposes full MDI reorder behavior');
@@ -1173,6 +1212,8 @@ async function verifySnsSource() {
   assertIncludes(tabStore, 'reorderTabs:', 'SNS tab store supports tab reordering');
 
   assertUsesSharedAppHeader(header, 'SNS');
+  assertIncludes(layout, 'SsooMobileSidebarOverlay', 'SNS consumes the canonical mobile sidebar overlay');
+  assertIncludes(layout, 'useSsooMobileViewport', 'SNS consumes the canonical mobile viewport hook');
 
   assertUsesSharedSidebarSurface(sidebar, 'SNS');
   assertUsesSharedMainSidebarBrandIdentity(sidebar, 'SNS', 'sns');
@@ -1233,6 +1274,8 @@ async function verifyAdminSource() {
   assertExcludes(sidebar, 'SsooSidebarListItem', 'Admin navigation rows do not use separate list item rows in the main sidebar');
   assertExcludes(sidebar, 'SsooSidebarItem', 'Admin no longer uses legacy sidebar item rows for internal navigation');
   assertUsesSharedAppHeader(header, 'Admin');
+  assertIncludes(layout, 'SsooMobileSidebarOverlay', 'Admin consumes the canonical mobile sidebar overlay');
+  assertIncludes(layout, 'useSsooMobileViewport', 'Admin consumes the canonical mobile viewport hook');
   assertIncludes(header, 'SsooHeaderUserMenuLoadingState', 'Admin header consumes shared user menu loading state typography');
   assertExcludes(header, '<span className="text-sm text-white/70">로딩 중...</span>', 'Admin header does not own user menu loading typography');
   assertIncludes(headerNotifications, 'useCommonNotificationCenter', 'Admin notification slot consumes the shared notification data hook');
@@ -1576,7 +1619,11 @@ function assertUsesSharedAppHeader(source, app) {
   assertIncludes(source, 'notificationSlot={<HeaderNotifications />}', `${app} main header reserves the shared notification slot`);
   assertIncludes(source, 'useSsooGlobalHeaderSearch', `${app} main header delegates global search state and submit behavior to the shared hook`);
   assertIncludes(source, 'const globalHeaderSearch = useSsooGlobalHeaderSearch', `${app} main header creates the shared global search adapter`);
-  assertIncludes(source, 'search={globalHeaderSearch.search}', `${app} main header injects only the shared search config into SsooAppHeader`);
+  assertIncludesOneOf(
+    source,
+    ['search={globalHeaderSearch.search}', 'search={mobile ? null : globalHeaderSearch.search}'],
+    `${app} main header injects only the shared search config into SsooAppHeader and may hide it on mobile`
+  );
   assertIncludes(source, 'onOpenSearch:', `${app} main header keeps only the navigation adapter for the shared global search tab`);
   assertIncludes(source, 'iconSlot: <Plus />', `${app} main header primary CTA is a create/new domain action surface`);
   assertIncludes(source, 'dropdownWidth={dropdownWidth}', `${app} header user menu consumes the shared dropdown width`);
@@ -1737,6 +1784,12 @@ function extractHtmlTitle(html) {
 
 function assertIncludes(content, needle, label) {
   if (!content.includes(needle)) {
+    throw new Error(`SSOO frame check failed: ${label}`);
+  }
+}
+
+function assertIncludesOneOf(content, needles, label) {
+  if (!needles.some((needle) => content.includes(needle))) {
     throw new Error(`SSOO frame check failed: ${label}`);
   }
 }

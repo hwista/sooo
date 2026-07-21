@@ -32,12 +32,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
+        uses: pnpm/action-setup@v4
 
       - name: Get pnpm store directory
         shell: bash
@@ -55,6 +53,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Production Dependency Audit
+        run: pnpm security:audit
+
       - name: Codex Sync Verify
         run: pnpm run codex:verify-sync
 
@@ -70,8 +71,14 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Verify Documentation
+        run: pnpm docs:verify
+
       - name: Type Check (Server)
         run: pnpm --filter server exec tsc --noEmit
+
+      - name: Type Check (CRM)
+        run: pnpm --filter web-crm exec tsc --noEmit
 
       - name: Type Check (PMS)
         run: pnpm --filter web-pms exec tsc --noEmit
@@ -123,12 +130,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
+        uses: pnpm/action-setup@v4
 
       - name: Get pnpm store directory
         shell: bash
@@ -153,28 +158,30 @@ jobs:
             status=$?
 
             if [[ "$status" -ne 0 ]]; then
-              docker compose logs server || true
+              docker compose -f compose.yaml -f compose.local.yaml logs server || true
             fi
 
             trap - EXIT
-            docker compose down --volumes --remove-orphans || true
+            docker compose -f compose.yaml -f compose.local.yaml down --volumes --remove-orphans || true
             exit "$status"
           }
           trap cleanup EXIT
 
-          docker compose down --volumes --remove-orphans || true
-          docker compose up -d postgres
+          docker compose -f compose.yaml -f compose.local.yaml down --volumes --remove-orphans || true
+          docker compose -f compose.yaml -f compose.local.yaml up -d postgres
 
-          until docker compose exec -T postgres pg_isready -U ssoo -d ssoo_dev >/dev/null 2>&1; do
+          until docker compose -f compose.yaml -f compose.local.yaml exec -T postgres pg_isready -U ssoo -d ssoo_dev >/dev/null 2>&1; do
             sleep 2
           done
 
           pnpm --filter @ssoo/database db:generate
-          pnpm --filter @ssoo/database db:push
+          pnpm db:baseline:verify
+          pnpm db:migrate:deploy
+          pnpm db:migrate:status
           bash .codex/scripts/db-seed.sh
           pnpm --filter @ssoo/database exec ts-node --project tsconfig.json scripts/apply-triggers.ts
 
-          docker compose up -d --build server
+          docker compose -f compose.yaml -f compose.local.yaml up -d --build server
 
           for _ in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then
@@ -198,6 +205,7 @@ jobs:
       sns: ${{ steps.filter.outputs.sns }}
       database: ${{ steps.filter.outputs.database }}
       admin: ${{ steps.filter.outputs.admin }}
+      crm: ${{ steps.filter.outputs.crm }}
     
     steps:
       - name: Checkout
@@ -220,6 +228,8 @@ jobs:
               - 'apps/web/sns/**'
             admin:
               - 'apps/web/admin/**'
+            crm:
+              - 'apps/web/crm/**'
 
   # 서버 빌드 (서버 변경 시에만)
   build-server:
@@ -235,18 +245,41 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm build:server
+
+  # CRM 빌드 (CRM 변경 시에만)
+  build-crm:
+    name: Build CRM
+    needs: [validate, analyze-changes]
+    if: needs.analyze-changes.outputs.crm == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build:web-crm
 
   # PMS 빌드 (PMS 변경 시에만)
   build-pms:
@@ -262,12 +295,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -289,12 +320,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -316,12 +345,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -343,12 +370,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -359,7 +384,7 @@ jobs:
   # PR 코멘트
   pr-comment:
     name: PR Summary
-    needs: [validate, access-verification, analyze-changes]
+    needs: [validate, access-verification, analyze-changes, build-server, build-crm, build-pms, build-dms, build-sns, build-admin]
     runs-on: ubuntu-latest
     if: always()
     
@@ -370,7 +395,14 @@ jobs:
           script: |
             const validate = '${{ needs.validate.result }}';
             const accessVerification = '${{ needs.access-verification.result }}';
+            const buildServer = '${{ needs.build-server.result }}';
+            const buildCrm = '${{ needs.build-crm.result }}';
+            const buildPms = '${{ needs.build-pms.result }}';
+            const buildDms = '${{ needs.build-dms.result }}';
+            const buildSns = '${{ needs.build-sns.result }}';
+            const buildAdmin = '${{ needs.build-admin.result }}';
             const server = '${{ needs.analyze-changes.outputs.server }}';
+            const crm = '${{ needs.analyze-changes.outputs.crm }}';
             const pms = '${{ needs.analyze-changes.outputs.pms }}';
             const dms = '${{ needs.analyze-changes.outputs.dms }}';
             const sns = '${{ needs.analyze-changes.outputs.sns }}';
@@ -381,7 +413,17 @@ jobs:
               if (result === 'skipped') return '➖';
               return '❌';
             };
-            const overallSuccess = validate === 'success' && accessVerification === 'success';
+            const gatePassed = (result) => result === 'success' || result === 'skipped';
+            const overallSuccess = [
+              validate,
+              accessVerification,
+              buildServer,
+              buildCrm,
+              buildPms,
+              buildDms,
+              buildSns,
+              buildAdmin,
+            ].every(gatePassed);
             
             let body = '## 🔍 PR 검증 결과\n\n';
             
@@ -395,12 +437,19 @@ jobs:
             body += `| 게이트 | 결과 |\n`;
             body += `|--------|------|\n`;
             body += `| Validate PR | ${formatResult(validate)} ${validate} |\n`;
-            body += `| Access Verification | ${formatResult(accessVerification)} ${accessVerification} |\n\n`;
+            body += `| Access Verification | ${formatResult(accessVerification)} ${accessVerification} |\n`;
+            body += `| Build Server | ${formatResult(buildServer)} ${buildServer} |\n`;
+            body += `| Build CRM | ${formatResult(buildCrm)} ${buildCrm} |\n`;
+            body += `| Build PMS | ${formatResult(buildPms)} ${buildPms} |\n`;
+            body += `| Build DMS | ${formatResult(buildDms)} ${buildDms} |\n`;
+            body += `| Build SNS | ${formatResult(buildSns)} ${buildSns} |\n`;
+            body += `| Build Admin | ${formatResult(buildAdmin)} ${buildAdmin} |\n\n`;
             
             body += '### 변경 영역\n\n';
             body += `| 영역 | 변경 여부 |\n`;
             body += `|------|----------|\n`;
             body += `| Server | ${server === 'true' ? '✅' : '➖'} |\n`;
+            body += `| CRM | ${crm === 'true' ? '✅' : '➖'} |\n`;
             body += `| PMS | ${pms === 'true' ? '✅' : '➖'} |\n`;
             body += `| DMS | ${dms === 'true' ? '✅' : '➖'} |\n`;
             body += `| SNS | ${sns === 'true' ? '✅' : '➖'} |\n`;

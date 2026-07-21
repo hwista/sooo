@@ -8,10 +8,11 @@ import { ObjectiveService } from './objective.service.js';
 import { WbsController } from './wbs.controller.js';
 import { WbsService } from './wbs.service.js';
 import { DatabaseModule } from '../../../database/database.module.js';
+import { CommonAiIndexModule } from '../../common/ai-index/ai-index.module.js';
 import { ProjectModule } from '../project/project.module.js';
 
 @Module({
-  imports: [DatabaseModule, ProjectModule],
+  imports: [DatabaseModule, ProjectModule, CommonAiIndexModule],
   controllers: [TaskController, MilestoneController, ObjectiveController, WbsController],
   providers: [TaskService, MilestoneService, ObjectiveService, WbsService],
   exports: [TaskService, MilestoneService, ObjectiveService, WbsService],

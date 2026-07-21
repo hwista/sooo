@@ -117,7 +117,7 @@
 - 환경 변수: `apps/web/dms/.env.local` (Azure/OpenAI + 선택 `DATABASE_URL` / `DMS_SERVER_API_URL`)
 - 시스템 설정: `dm_config_m` 테이블 (DB) — 시드 기본값은 `20_dms_config_foundation.sql`, Settings UI 또는 DB 직접 수정으로 오버라이드
 - 개인 설정: `dm_config_m` 테이블 (DB, `scopeCode='personal'`) — Settings UI에서 저장
-- Docker 경로: repo root `compose.yaml` 이 `apps/web/dms/.env.local` 을 선택적으로 읽고, `DOCKER_DATABASE_URL` / `DOCKER_DMS_DATABASE_URL` / `DMS_SERVER_API_URL` 기준으로 컨테이너 runtime 값을 주입
+- Docker 경로: 로컬은 repo root `compose.yaml + compose.local.yaml`이 `apps/web/dms/.env.local`을 선택적으로 읽고, 프로덕션은 `compose.yaml + compose.production.yaml`이 local env_file을 reset한 뒤 검증된 `.env.production`의 DB/API/절대 runtime path만 주입
 
 ### 프론트엔드 데이터 계층
 

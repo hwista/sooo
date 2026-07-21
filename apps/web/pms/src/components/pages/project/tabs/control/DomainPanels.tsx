@@ -190,8 +190,8 @@ function PanelFrame({
   children,
 }: PanelFrameProps) {
   return (
-    <div className="rounded-lg border bg-white">
-      <div className="flex items-center justify-between border-b px-4 py-3">
+    <div className="rounded-lg border bg-card">
+      <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h4 className="flex items-center gap-2 text-sm font-semibold">
             <Icon className="h-4 w-4" />
@@ -202,13 +202,55 @@ function PanelFrame({
           ) : null}
         </div>
         {canManage && (
-          <Button size="sm" variant="outline" onClick={onCreateClick}>
+          <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={onCreateClick}>
             <Plus className="h-4 w-4" />
             {createLabel}
           </Button>
         )}
       </div>
       <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
+function ControlMetaField({
+  label,
+  children,
+  className = '',
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`min-w-0 ${className}`}>
+      <p className="text-caption-2xs font-medium text-muted-foreground">{label}</p>
+      <div className="mt-1 text-sm text-foreground">{children}</div>
+    </div>
+  );
+}
+
+function ControlMobileCard({
+  code,
+  title,
+  children,
+  action,
+}: {
+  code: string;
+  title: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-3 rounded-md border bg-card p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-caption-2xs text-muted-foreground">{code}</p>
+          <p className="mt-1 truncate text-sm font-semibold text-foreground">{title}</p>
+        </div>
+        {action}
+      </div>
+      {children}
     </div>
   );
 }
@@ -351,7 +393,67 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
     }
 
     return (
-      <div className="overflow-hidden rounded-md border">
+      <>
+      <div className="space-y-3 md:hidden">
+        {items.map((item) => (
+          <ControlMobileCard
+            key={String(item.projectIssueId)}
+            code={item.issueCode}
+            title={item.issueTitle}
+            action={
+              canManage ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() =>
+                    deleteProjectIssue.mutateAsync({
+                      projectId,
+                      projectIssueId: String(item.projectIssueId),
+                    })
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              ) : undefined
+            }
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <ControlMetaField label="유형">
+                {PROJECT_ISSUE_TYPE_LABELS[item.issueTypeCode] || item.issueTypeCode}
+              </ControlMetaField>
+              <ControlMetaField label="우선순위">
+                {PRIORITY_LABELS[item.priorityCode] || item.priorityCode}
+              </ControlMetaField>
+              <ControlMetaField label="상태" className="col-span-2">
+                <Select
+                  value={item.statusCode}
+                  onValueChange={(statusCode) =>
+                    updateProjectIssue.mutateAsync({
+                      projectId,
+                      projectIssueId: String(item.projectIssueId),
+                      data: { statusCode },
+                    })
+                  }
+                  disabled={!canManage}
+                >
+                  <SelectTrigger className="h-8 w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PROJECT_ISSUE_STATUS_LABELS).map(([code, label]) => (
+                      <SelectItem key={code} value={code}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ControlMetaField>
+            </div>
+          </ControlMobileCard>
+        ))}
+      </div>
+      <div className="hidden overflow-hidden rounded-md border md:block">
         <Table className="w-full text-sm">
           <TableHeader className="bg-muted/40">
             <TableRow>
@@ -422,6 +524,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
           </TableBody>
         </Table>
       </div>
+      </>
     );
   };
 
@@ -435,7 +538,64 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
     }
 
     return (
-      <div className="overflow-hidden rounded-md border">
+      <>
+      <div className="space-y-3 md:hidden">
+        {items.map((item) => (
+          <ControlMobileCard
+            key={String(item.requirementId)}
+            code={item.requirementCode}
+            title={item.requirementTitle}
+            action={
+              canManage ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() =>
+                    deleteRequirement.mutateAsync({
+                      projectId,
+                      requirementId: String(item.requirementId),
+                    })
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              ) : undefined
+            }
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <ControlMetaField label="우선순위">
+                {PRIORITY_LABELS[item.priorityCode] || item.priorityCode}
+              </ControlMetaField>
+              <ControlMetaField label="상태">
+                <Select
+                  value={item.statusCode}
+                  onValueChange={(statusCode) =>
+                    updateRequirement.mutateAsync({
+                      projectId,
+                      requirementId: String(item.requirementId),
+                      data: { statusCode },
+                    })
+                  }
+                  disabled={!canManage}
+                >
+                  <SelectTrigger className="h-8 w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(REQUIREMENT_STATUS_LABELS).map(([code, label]) => (
+                      <SelectItem key={code} value={code}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ControlMetaField>
+            </div>
+          </ControlMobileCard>
+        ))}
+      </div>
+      <div className="hidden overflow-hidden rounded-md border md:block">
         <Table className="w-full text-sm">
           <TableHeader className="bg-muted/40">
             <TableRow>
@@ -502,6 +662,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
           </TableBody>
         </Table>
       </div>
+      </>
     );
   };
 
@@ -515,7 +676,67 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
     }
 
     return (
-      <div className="overflow-hidden rounded-md border">
+      <>
+      <div className="space-y-3 md:hidden">
+        {items.map((item) => (
+          <ControlMobileCard
+            key={String(item.riskId)}
+            code={item.riskCode}
+            title={item.riskTitle}
+            action={
+              canManage ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() =>
+                    deleteRisk.mutateAsync({
+                      projectId,
+                      riskId: String(item.riskId),
+                    })
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              ) : undefined
+            }
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <ControlMetaField label="영향">
+                {SCALE_LABELS[item.impactCode] || item.impactCode}
+              </ControlMetaField>
+              <ControlMetaField label="가능성">
+                {SCALE_LABELS[item.likelihoodCode] || item.likelihoodCode}
+              </ControlMetaField>
+              <ControlMetaField label="상태" className="col-span-2">
+                <Select
+                  value={item.statusCode}
+                  onValueChange={(statusCode) =>
+                    updateRisk.mutateAsync({
+                      projectId,
+                      riskId: String(item.riskId),
+                      data: { statusCode },
+                    })
+                  }
+                  disabled={!canManage}
+                >
+                  <SelectTrigger className="h-8 w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(RISK_STATUS_LABELS).map(([code, label]) => (
+                      <SelectItem key={code} value={code}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ControlMetaField>
+            </div>
+          </ControlMobileCard>
+        ))}
+      </div>
+      <div className="hidden overflow-hidden rounded-md border md:block">
         <Table className="w-full text-sm">
           <TableHeader className="bg-muted/40">
             <TableRow>
@@ -582,6 +803,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
           </TableBody>
         </Table>
       </div>
+      </>
     );
   };
 
@@ -595,7 +817,64 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
     }
 
     return (
-      <div className="overflow-hidden rounded-md border">
+      <>
+      <div className="space-y-3 md:hidden">
+        {items.map((item) => (
+          <ControlMobileCard
+            key={String(item.changeRequestId)}
+            code={item.changeCode}
+            title={item.changeTitle}
+            action={
+              canManage ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() =>
+                    deleteChangeRequest.mutateAsync({
+                      projectId,
+                      changeRequestId: String(item.changeRequestId),
+                    })
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              ) : undefined
+            }
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <ControlMetaField label="우선순위">
+                {PRIORITY_LABELS[item.priorityCode] || item.priorityCode}
+              </ControlMetaField>
+              <ControlMetaField label="상태">
+                <Select
+                  value={item.statusCode}
+                  onValueChange={(statusCode) =>
+                    updateChangeRequest.mutateAsync({
+                      projectId,
+                      changeRequestId: String(item.changeRequestId),
+                      data: { statusCode },
+                    })
+                  }
+                  disabled={!canManage}
+                >
+                  <SelectTrigger className="h-8 w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(CHANGE_STATUS_LABELS).map(([code, label]) => (
+                      <SelectItem key={code} value={code}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ControlMetaField>
+            </div>
+          </ControlMobileCard>
+        ))}
+      </div>
+      <div className="hidden overflow-hidden rounded-md border md:block">
         <Table className="w-full text-sm">
           <TableHeader className="bg-muted/40">
             <TableRow>
@@ -662,6 +941,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
           </TableBody>
         </Table>
       </div>
+      </>
     );
   };
 
@@ -675,7 +955,68 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
     }
 
     return (
-      <div className="overflow-hidden rounded-md border">
+      <>
+      <div className="space-y-3 md:hidden">
+        {items.map((item) => (
+          <ControlMobileCard
+            key={String(item.eventId)}
+            code={item.eventCode}
+            title={item.eventName}
+            action={
+              canManage ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() =>
+                    deleteEvent.mutateAsync({
+                      projectId,
+                      eventId: String(item.eventId),
+                    })
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              ) : undefined
+            }
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <ControlMetaField label="유형">
+                {EVENT_TYPE_LABELS[item.eventTypeCode] || item.eventTypeCode}
+              </ControlMetaField>
+              <ControlMetaField label="상태">
+                <Select
+                  value={item.statusCode}
+                  onValueChange={(statusCode) =>
+                    updateEvent.mutateAsync({
+                      projectId,
+                      eventId: String(item.eventId),
+                      data: { statusCode },
+                    })
+                  }
+                  disabled={!canManage}
+                >
+                  <SelectTrigger className="h-8 w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(EVENT_STATUS_LABELS).map(([code, label]) => (
+                      <SelectItem key={code} value={code}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ControlMetaField>
+            </div>
+            {item.summary && (
+              <p className="text-xs text-muted-foreground">{item.summary}</p>
+            )}
+            <EventRollupSummary rollup={item.rollup} showByStatus />
+          </ControlMobileCard>
+        ))}
+      </div>
+      <div className="hidden overflow-hidden rounded-md border md:block">
         <Table className="w-full text-sm">
           <TableHeader className="bg-muted/40">
             <TableRow>
@@ -752,6 +1093,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
           </TableBody>
         </Table>
       </div>
+      </>
     );
   };
 
@@ -815,7 +1157,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
       </PanelFrame>
 
       <Dialog open={showProjectIssueDialog} onOpenChange={setShowProjectIssueDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>이슈 등록</DialogTitle>
             <DialogDescription>
@@ -837,7 +1179,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
                 setProjectIssueForm({ ...projectIssueForm, issueTitle: event.target.value })
               }
             />
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Select
                 value={projectIssueForm.issueTypeCode}
                 onValueChange={(value) =>
@@ -900,10 +1242,15 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowProjectIssueDialog(false)}>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowProjectIssueDialog(false)}
+            >
               취소
             </Button>
             <Button
+              className="w-full sm:w-auto"
               onClick={handleCreateProjectIssue}
               disabled={
                 !projectIssueForm.issueCode.trim()
@@ -918,7 +1265,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
       </Dialog>
 
       <Dialog open={showRequirementDialog} onOpenChange={setShowRequirementDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>요구사항 등록</DialogTitle>
             <DialogDescription>프로젝트 요구사항을 등록합니다.</DialogDescription>
@@ -938,7 +1285,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
                 setRequirementForm({ ...requirementForm, requirementTitle: event.target.value })
               }
             />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Select
                 value={requirementForm.statusCode}
                 onValueChange={(value) => setRequirementForm({ ...requirementForm, statusCode: value })}
@@ -982,10 +1329,15 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRequirementDialog(false)}>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowRequirementDialog(false)}
+            >
               취소
             </Button>
             <Button
+              className="w-full sm:w-auto"
               onClick={handleCreateRequirement}
               disabled={
                 !requirementForm.requirementCode.trim()
@@ -1000,7 +1352,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
       </Dialog>
 
       <Dialog open={showRiskDialog} onOpenChange={setShowRiskDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>리스크 등록</DialogTitle>
             <DialogDescription>프로젝트 리스크를 등록합니다.</DialogDescription>
@@ -1016,7 +1368,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
               value={riskForm.riskTitle}
               onChange={(event) => setRiskForm({ ...riskForm, riskTitle: event.target.value })}
             />
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Select
                 value={riskForm.statusCode}
                 onValueChange={(value) => setRiskForm({ ...riskForm, statusCode: value })}
@@ -1077,10 +1429,15 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRiskDialog(false)}>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowRiskDialog(false)}
+            >
               취소
             </Button>
             <Button
+              className="w-full sm:w-auto"
               onClick={handleCreateRisk}
               disabled={!riskForm.riskCode.trim() || !riskForm.riskTitle.trim() || createRisk.isPending}
             >
@@ -1091,7 +1448,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
       </Dialog>
 
       <Dialog open={showChangeDialog} onOpenChange={setShowChangeDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>변경요청 등록</DialogTitle>
             <DialogDescription>프로젝트 변경요청을 등록합니다.</DialogDescription>
@@ -1109,7 +1466,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
                 setChangeForm({ ...changeForm, changeTitle: event.target.value })
               }
             />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Select
                 value={changeForm.statusCode}
                 onValueChange={(value) => setChangeForm({ ...changeForm, statusCode: value })}
@@ -1151,10 +1508,15 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowChangeDialog(false)}>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowChangeDialog(false)}
+            >
               취소
             </Button>
             <Button
+              className="w-full sm:w-auto"
               onClick={handleCreateChange}
               disabled={
                 !changeForm.changeCode.trim()
@@ -1169,7 +1531,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
       </Dialog>
 
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>이벤트 등록</DialogTitle>
             <DialogDescription>프로젝트 이벤트/보고/미팅을 등록합니다.</DialogDescription>
@@ -1185,7 +1547,7 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
               value={eventForm.eventName}
               onChange={(event) => setEventForm({ ...eventForm, eventName: event.target.value })}
             />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Select
                 value={eventForm.eventTypeCode}
                 onValueChange={(value) => setEventForm({ ...eventForm, eventTypeCode: value })}
@@ -1232,10 +1594,15 @@ export function ControlDomainPanels({ projectId, canManage }: ControlDomainPanel
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEventDialog(false)}>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setShowEventDialog(false)}
+            >
               취소
             </Button>
             <Button
+              className="w-full sm:w-auto"
               onClick={handleCreateEvent}
               disabled={!eventForm.eventCode.trim() || !eventForm.eventName.trim() || createEvent.isPending}
             >

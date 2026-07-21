@@ -1,14 +1,10 @@
 import {
   Building2,
-  FileText,
   KeyRound,
   LayoutDashboard,
-  Settings,
   Shield,
   Search,
   Users,
-  GitBranch,
-  FileStack,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -24,14 +20,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: '/organizations', label: '조직 관리', icon: Building2 },
   { href: '/roles', label: '역할 & 권한', icon: Shield },
   { href: '/auth', label: '인증 정책', icon: KeyRound },
-  { href: '/dms', label: 'DMS 관측', icon: FileText },
-];
-
-const ADMIN_DMS_NAV_ITEMS: AdminNavItem[] = [
-  { href: '/dms/documents', label: 'DMS 문서 현황', icon: FileText },
-  { href: '/dms/templates', label: 'DMS 템플릿 현황', icon: FileStack },
-  { href: '/dms/git', label: 'DMS Git 관측', icon: GitBranch },
-  { href: '/dms/settings', label: 'DMS 설정 관측', icon: Settings },
 ];
 
 const ADMIN_SYSTEM_NAV_ITEMS: AdminNavItem[] = [
@@ -42,9 +30,6 @@ export function getAdminNavItem(path: string): AdminNavItem {
   const pathname = path.split('?')[0] || '/';
   const systemItem = ADMIN_SYSTEM_NAV_ITEMS.find((item) => pathname === item.href);
   if (systemItem) return systemItem;
-
-  const dmsItem = ADMIN_DMS_NAV_ITEMS.find((item) => pathname === item.href);
-  if (dmsItem) return dmsItem;
 
   return ADMIN_NAV_ITEMS.find((item) => (
     item.href === '/' ? pathname === '/' : pathname === item.href || pathname.startsWith(`${item.href}/`)

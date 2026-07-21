@@ -1,6 +1,6 @@
 # 레이아웃 시스템
 
-> 최종 업데이트: 2026-06-18
+> 최종 업데이트: 2026-07-06
 
 DMS의 레이아웃 구조와 컴포넌트를 정의합니다.
 
@@ -136,13 +136,14 @@ Settings mode
 - 설정 모드의 sidebar는 별도 shell sidebar가 아니라 기존 `Sidebar` adapter의 settings variant입니다.
 - settings sidebar brand 영역은 뒤로가기 버튼과 `설정` 단일 title만 표시하고 보조문구를 노출하지 않습니다.
 - `SsooSidebarSurface`, `SsooSidebarSearchBox`, `SsooSidebarTree`, `SsooSidebarTreeStatusBadge`, `SsooSidebarState` 같은 기존 공용 primitive를 재사용하고, settings 검색 결과 section/설정 메뉴 section 조립은 `@ssoo/web-shell`의 `createSsooSettingsSidebarSections`가 담당합니다.
-- sidebar 본문은 설정 범위(`시스템 설정`, `내 설정`)를 담당하고, 검색은 `searchSettingEntries()` 결과를 사용해 section/field로 이동합니다.
+- sidebar 본문은 DMS 설정 surface(`문서 운영·진단`, `문서 시스템 설정`, `문서 관리`, `내 문서 환경 설정`)를 담당하고, 검색은 `searchSettingEntries()` 결과를 사용해 section/field로 이동합니다.
 - 검색은 registry 기반 `searchSettingEntries()` 결과를 사용하고, 결과 row와 section/field status badge는 `createSsooSettingsSidebarSections`가 `SsooSidebarTree` leaf node로 렌더링합니다.
 - 설정 검색 입력의 placeholder/clear/rail 표면은 workspace sidebar와 같은 `SsooSidebarSurface` 공용 기본값을 사용합니다.
 - 설정 sidebar도 문서 sidebar와 같은 collapse toggle, collapsed hover reveal, search toolbar, refresh action, section chevron을 유지합니다.
 - 설정 메뉴 section과 검색 결과 section은 `SsooSidebarSurface`의 section expand/collapse 상태를 사용하고, 설정 group node는 `SsooSidebarTree`의 folder expand/collapse 상태를 사용합니다.
 - 별도의 설정 전용 sidebar primitive, 별도 frame-level settings sidebar, `SsooSidebarListItem` 직접 조립은 만들지 않습니다.
 - 권한 도입 기준은 `canManageSystem`, `canManagePersonal` 로 group/search 결과 노출을 분리합니다.
+- 런타임 관측 section 은 `문서 운영·진단`에 두며 저장 action 없이 상태 카드만 렌더링합니다. 저장 가능한 DB-backed policy section 은 `문서 시스템 설정`과 `내 문서 환경 설정`에 둡니다.
 
 ### Settings Menu Tabs
 
@@ -154,9 +155,9 @@ Settings mode
 ### SettingsPage 본문 구조
 
 - `SettingsPage`는 `PageTemplate`의 breadcrumb/header를 유지하고, `leftSubContentSlot`을 현재 section 내부 색인 rail로 사용합니다.
-- 색인 목록은 현재 section의 개요, field anchor, `SETTING_SECTIONS.indexItems` 로 선언한 custom slot anchor를 표시하고, 변경/오류 상태를 보조 메타로 보여 줍니다.
-- 본문: 활성 section의 detail surface (`structured`, `json`, `diff`, `templates`)
-- 목적: 설정/제어/운영 표준을 settings context 안의 탭형 화면으로 고정하고, `SettingsPage` 는 현재 section 내부 탐색, 저장/검증 상태만 소유하도록 제한
+- 색인 목록은 field anchor와 `SETTING_SECTIONS.indexItems` 로 선언한 custom slot anchor만 표시합니다. `항목` title, section 설명, scope badge, `개요`, 변경/오류 보조 메타는 기본 화면에 노출하지 않습니다.
+- 본문: 활성 section의 detail surface (`fields`, `templates`, access management 등 custom slot)
+- 목적: 설정/제어/운영 표준을 settings context 안의 탭형 화면으로 고정하고, `SettingsPage` 는 현재 section 내부 탐색, structured form 저장/검증 상태만 소유하도록 제한
 
 ---
 
@@ -398,6 +399,7 @@ DMS Tailwind 확장은 도메인 콘텐츠 유틸리티에 한정합니다. `h-h
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-06 | settings sidebar group 을 문서 운영·진단/문서 시스템 설정/문서 관리/내 문서 환경 설정 surface 기준으로 현행화 |
 | 2026-06-17 | `SsooContentPageTemplate` 기준으로 content page slot 폭/padding/border/overflow 책임을 `web-shell`에 고정하고, 설정 내부 색인을 `leftSubContentSlot` rail로 정렬 |
 | 2026-06-18 | 설정 모드 top header slot은 유지하되 내부 content를 비우고, settings sidebar brand 영역을 뒤로가기 버튼과 `설정` 단일 title로 제한 |
 | 2026-06-17 | Header 검색을 DMS 검색 기준을 반영한 `/ssoo/search` 통합 검색으로 전환하고, sidebar 목록 검색 placeholder/필터링을 공용 `SsooSidebarSearchableTree`, settings sidebar section 조립을 `createSsooSettingsSidebarSections` 기준으로 정렬 |

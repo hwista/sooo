@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatPmsNumber } from '@/lib/pms-format';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -98,7 +99,7 @@ export function Pagination({
         
         {showTotal && total > 0 && (
           <span>
-            {startItem}-{endItem} / 총 {total.toLocaleString()}개
+            {startItem}-{endItem} / 총 {formatPmsNumber(total)}개
           </span>
         )}
       </div>

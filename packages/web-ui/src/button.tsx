@@ -9,11 +9,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-ssoo-primary text-white shadow hover:bg-ssoo-primary-hover',
-        secondary: 'bg-ssoo-secondary text-white shadow-sm hover:bg-ssoo-primary',
+        default: 'bg-ssoo-primary text-primary-foreground shadow hover:bg-ssoo-primary-hover',
+        secondary: 'bg-ssoo-secondary text-primary-foreground shadow-sm hover:bg-ssoo-primary',
         outline:
-          'border border-ssoo-content-border bg-white text-ssoo-primary shadow-sm hover:bg-ssoo-sitemap-bg',
-        destructive: 'bg-ls-red text-white shadow-sm hover:bg-ls-red-hover',
+          'border border-ssoo-content-border bg-card text-ssoo-primary shadow-sm hover:bg-ssoo-sitemap-bg',
+        destructive: 'bg-ls-red text-primary-foreground shadow-sm hover:bg-ls-red-hover',
         ghost: 'text-ssoo-primary hover:bg-ssoo-content-bg',
         link: 'text-ssoo-sitemap-title underline-offset-4 hover:underline',
         plain: '',
@@ -23,6 +23,7 @@ const buttonVariants = cva(
         xs: 'h-7 min-w-7 px-2 text-xs font-normal leading-4 [&_svg]:size-3.5',
         xsIcon: 'h-7 min-w-7 px-1 text-xs font-normal leading-4 [&_svg]:size-3.5',
         sm: 'h-control-h-sm px-3 text-caption',
+        pageAction: 'h-control-h gap-1.5 px-3 text-action-md [&_svg]:size-4',
         lg: 'h-control-h-lg px-6 text-control-lg',
         icon: 'h-control-h w-control-h',
         plain: '',

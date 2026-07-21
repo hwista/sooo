@@ -73,7 +73,7 @@ export function SsooAiSearchToolbar({
                 variant="ghost"
                 type="button"
                 onClick={assistant.onAttach}
-                className="gap-1.5 px-3 text-[0.8125rem] hover:bg-gray-100"
+                className="gap-1.5 px-3 text-body-xs hover:bg-muted"
                 title={assistant.title ?? '현재 문서를 AI에 첨부하고 질문하기'}
               >
                 <Bot className="h-4 w-4" />

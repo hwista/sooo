@@ -7,6 +7,8 @@ import {
 import type { ExtendedPrismaClient } from '@ssoo/database';
 import type {
   CreateProjectOrgDto,
+  FindProjectOrgLookupDto,
+  ProjectOrgLookup,
   ProjectOrgRoleCode,
   UpdateProjectOrgDto,
 } from '@ssoo/types';
@@ -53,6 +55,52 @@ export class ProjectOrgService {
   async findByProject(projectId: bigint) {
     await this.syncCompatibilityProjectOrgs(projectId);
     return this.loadProjectOrgs(projectId);
+  }
+
+  async findOrganizationLookup(params: FindProjectOrgLookupDto = {}): Promise<ProjectOrgLookup[]> {
+    const search = params.search?.trim();
+    const limit = this.normalizeLookupLimit(params.limit);
+    const scope = params.scope === 'internal' || params.scope === 'external'
+      ? params.scope
+      : 'external';
+
+    const organizations = await this.db.client.organization.findMany({
+      where: {
+        isActive: true,
+        scope,
+        ...(search
+          ? {
+              OR: [
+                { orgCode: { contains: search, mode: 'insensitive' } },
+                { orgName: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+      },
+      select: {
+        orgId: true,
+        orgCode: true,
+        orgName: true,
+        orgType: true,
+        orgClass: true,
+        scope: true,
+        levelType: true,
+        isActive: true,
+      },
+      orderBy: [{ orgName: 'asc' }, { orgCode: 'asc' }],
+      take: limit,
+    });
+
+    return organizations.map((organization) => ({
+      organizationId: organization.orgId.toString(),
+      organizationCode: organization.orgCode,
+      organizationName: organization.orgName,
+      organizationType: organization.orgType,
+      organizationClass: organization.orgClass,
+      organizationScope: organization.scope,
+      levelType: organization.levelType,
+      isActive: organization.isActive,
+    }));
   }
 
   async create(projectId: bigint, dto: CreateProjectOrgDto) {
@@ -236,6 +284,15 @@ export class ProjectOrgService {
     } catch {
       throw new BadRequestException('조직 ID 형식이 올바르지 않습니다.');
     }
+  }
+
+  private normalizeLookupLimit(limit?: number): number {
+    const numericLimit = Number(limit);
+    if (!Number.isFinite(numericLimit) || numericLimit <= 0) {
+      return 20;
+    }
+
+    return Math.min(Math.trunc(numericLimit), 50);
   }
 
   private parseCustomerId(customerId?: string | null): bigint | null {

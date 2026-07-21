@@ -25,15 +25,37 @@ export interface Issue {
   assigneeName?: string;
 }
 
-export interface CreateIssueDto {
-  issueCode: string;
-  issueTitle: string;
-  description?: string;
+export interface LegacyIssueCleanupStatusCount {
+  statusCode: string;
+  count: number;
+}
+
+export interface LegacyIssueCleanupTypeCount {
   issueTypeCode: string;
-  priorityCode?: string;
-  assigneeUserId?: string;
-  dueAt?: string;
-  memo?: string;
+  count: number;
+}
+
+export interface LegacyIssueCleanupSummary {
+  projectId: string;
+  activeCleanupCount: number;
+  pendingCleanupCount: number;
+  terminalCleanupCount: number;
+  archivedCleanupCount: number;
+  readyForPhysicalRemoval: boolean;
+  statusCounts: LegacyIssueCleanupStatusCount[];
+  issueTypeCounts: LegacyIssueCleanupTypeCount[];
+  generatedAt: string;
+}
+
+export interface LegacyIssueCleanupArchiveResult extends LegacyIssueCleanupSummary {
+  archivedCount: number;
+}
+
+export interface LegacyIssueCleanupCanonicalizeResult extends LegacyIssueCleanupSummary {
+  convertedCount: number;
+  projectIssueCount: number;
+  riskCount: number;
+  changeRequestCount: number;
 }
 
 export interface UpdateIssueDto {

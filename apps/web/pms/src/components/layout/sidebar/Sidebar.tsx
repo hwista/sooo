@@ -12,7 +12,11 @@ import {
   Star,
   X,
 } from 'lucide-react';
-import { getSsooAppIdentity, SsooSidebarSurface } from '@ssoo/web-shell';
+import {
+  getSsooAppIdentity,
+  SsooSidebarSurface,
+  type SsooSidebarIcon,
+} from '@ssoo/web-shell';
 import { useAccessStore, useMenuStore, useSidebarStore } from '@/stores';
 import { Favorites } from './Favorites';
 import { OpenTabs } from './OpenTabs';
@@ -21,12 +25,30 @@ import { AdminMenu } from './AdminMenu';
 
 const PMS_APP_IDENTITY = getSsooAppIdentity('pms');
 
+interface SidebarProps {
+  expanded?: boolean;
+  width?: number | string;
+  collapsedWidth?: number | string;
+  toggleIcon?: SsooSidebarIcon;
+  toggleLabel?: string;
+  onToggleCollapse?: () => void;
+  variant?: 'desktop' | 'mobile';
+}
+
 /**
  * 사이드바 컴포넌트
  * - 펼침: 검색 + 즐겨찾기 + 열린탭 + 메뉴트리 + 관리자
  * - 접힘: 아이콘만 + hover 시 플로트 패널
  */
-export function Sidebar() {
+export function Sidebar({
+  expanded,
+  width,
+  collapsedWidth,
+  toggleIcon,
+  toggleLabel,
+  onToggleCollapse,
+  variant = 'desktop',
+}: SidebarProps) {
   const {
     isCollapsed,
     expandedSections,
@@ -42,12 +64,18 @@ export function Sidebar() {
   const { adminMenus } = useMenuStore();
 
   const showAdminSection = adminMenus.length > 0;
+  const resolvedExpanded = expanded ?? !isCollapsed;
+  const resolvedToggleCollapse = onToggleCollapse ?? toggleCollapse;
+  const ToggleIcon = toggleIcon ?? (variant === 'mobile' ? X : Menu);
 
   return (
     <SsooSidebarSurface
-      expanded={!isCollapsed}
-      onToggleCollapse={toggleCollapse}
-      toggleIcon={Menu}
+      expanded={resolvedExpanded}
+      onToggleCollapse={resolvedToggleCollapse}
+      toggleIcon={ToggleIcon}
+      toggleLabel={toggleLabel}
+      width={width}
+      collapsedWidth={collapsedWidth}
       brandTitle={PMS_APP_IDENTITY.brandTitle}
       search={{
         value: searchQuery,

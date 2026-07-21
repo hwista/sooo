@@ -32,13 +32,14 @@ SSOO(삼삼오오)는 SI/SM 조직의 **Opportunity -> Project -> System** 흐�
 
 ### 기본 세팅 및 실행
 
-- 요구사항은 Node.js 20 이상, pnpm 9 이상, PostgreSQL 15 이상입니다. Docker compose를 사용할 때 루트 `.env`의 `DATABASE_URL`은 host CLI 기준(`localhost`)으로 유지하고, 컨테이너 내부 연결은 `DOCKER_*` 환경변수로 분리합니다.
+- 요구사항은 Node.js 22.13 이상, Corepack으로 고정한 pnpm 11.13.1, PostgreSQL 15 이상입니다. Docker compose를 사용할 때 루트 `.env`의 `DATABASE_URL`은 host CLI 기준(`localhost`)으로 유지하고, 컨테이너 내부 연결은 `DOCKER_*` 환경변수로 분리합니다.
 
 | 작업 | 명령 | 비고 |
 |------|------|------|
 | 초기 세팅 | `cp .env.example .env && pnpm install` | 루트 워크스페이스 설치 |
 | DMS 로컬 env | `cp apps/web/dms/.env.example apps/web/dms/.env.local` | DMS runtime env가 필요할 때 |
-| Docker 전체 스택 | `pnpm docker:up` | postgres + db-init + server + Admin + CRM + PMS + DMS + SNS |
+| Docker 로컬 전체 스택 | `pnpm docker:up` | `compose.yaml + compose.local.yaml`, postgres + db-init + server + Admin + CRM + PMS + DMS + SNS |
+| Docker 프로덕션 gate/실행 | `pnpm docker:production:verify-env` → `pnpm docker:production:config` → `pnpm docker:production:up` | `.env.production + compose.production.yaml`, fail-closed 보안/경로 검증 선행 |
 | DB 부트스트랩 | `pnpm db:setup` | DB 생성/스키마/시드/트리거 초기화 |
 | 전체 개발 서버 | `pnpm dev` | Turborepo 개발 서버 |
 | 서버 개발 서버 | `pnpm dev:server` | `http://localhost:4000` |
@@ -74,9 +75,12 @@ SSOO(삼삼오오)는 SI/SM 조직의 **Opportunity -> Project -> System** 흐�
 | Web Shell 패키지 빌드 | `pnpm --filter @ssoo/web-shell build` | |
 | Web UI 패키지 빌드 | `pnpm --filter @ssoo/web-ui build` | |
 | DB 시작 | `pnpm db:up` | Docker Compose postgres |
-| DB 스키마 반영 | `pnpm db:push` | Prisma `db push` |
+| 개발 DB 스키마 동기화 | `pnpm db:push` | 임시 개발용 Prisma `db push`; 배포 이력 대체 금지 |
+| Launch migration 적용/상태 | `pnpm db:migrate:deploy` / `pnpm db:migrate:status` | 새 DB와 launch-managed DB |
+| Launch baseline 검증 | `pnpm db:baseline:verify` | 일회용 DB deploy/status/schema parity |
 | DB 시드 | `pnpm db:seed` | `.codex/scripts/db-seed.sh` |
 | DB 트리거 설치 | `pnpm db:triggers` | 히스토리 트리거 적용 |
+| Production 의존성 감사 | `pnpm security:audit` | 관측형 wrapper, high/critical 발견 또는 registry 미검증 시 실패 |
 
 - `turbo.json`에서 `build`는 의존 패키지의 `^build`를 먼저 실행하고, `lint`/`test`도 `^build` 이후 실행됩니다. 특정 워크스페이스만 볼 때는 루트 alias나 `turbo <task> --filter=<workspace>`를 사용합니다.
 
@@ -103,7 +107,9 @@ SSOO(삼삼오오)는 SI/SM 조직의 **Opportunity -> Project -> System** 흐�
 | Sync 검증 | `pnpm run codex:verify-sync` | `.github` <-> `.codex`/`CLAUDE` marker 확인 |
 | Push guard | `pnpm run codex:push-guard` | push 전 게이트 |
 | DMS 가드 | `pnpm run codex:dms-guard` | DMS 변경 시 |
+| Production 의존성 감사 | `pnpm security:audit` | `pnpm audit --prod --audit-level high`, 공개 전 registry evidence 필수 |
 | SSOO frame/page recipe 검증 | `pnpm run verify:ssoo-frame -- --skip-runtime` | 내부 페이지 `contentPage` route contract, 저수준 MDI content primitive 우회, shell/page recipe 회귀 차단 |
+| UI style boundary 검증 | `pnpm run verify:ui-style-boundary` | 공용 원자/페이지 템플릿/auth surface, 앱 globals/Tailwind, domain reusable surface, 최종 페이지 내부의 font/theme/raw visual token 재정의 차단(`white`/`black` 포함) |
 | 문서 검증 | `node .github/scripts/check-docs.js --all` | 문서/규칙 변경 시 |
 | 패턴 검증 | `node .github/scripts/check-patterns.js [파일경로]` | `export *`, `any`, 패턴 금지 검사 |
 | 디자인 검증 | `node .github/scripts/check-design.js [파일경로]` | UI 변경 시 |
@@ -124,6 +130,14 @@ CI 기준선: `.github/workflows/pr-validation.yml`
 4. **기존 결과 보존**: 새 작업이 기존 기능, 동작, UI 외형을 훼손하면 안 됩니다.
 5. **코드-문서 동기화**: 규칙이나 동작을 바꾸면 관련 `.github/` 또는 `docs/` 문서도 함께 갱신합니다.
 6. **관측성 포함 작업**: 의미 있는 repo-scoped 작업은 루트의 관측형 script(`build`, `lint`, `codex:preflight` 등)를 우선 사용합니다. `*:observed` 엔트리는 `scripts/run-observed-command.sh`를 통해 machine-local observer가 있으면 연결하고, 없으면 raw 명령으로 바로 fallback 합니다.
+
+### Behavior Impact Gate
+
+- 이미 구현되어 사용자가 볼 수 있는 화면, 버튼, 안내 문구, 오류/빈 상태, 수동 복구 동선, 권한 fallback 은 모두 사용자-visible 기능입니다.
+- 사용자-visible 기능은 단순 미사용 코드나 dead code로 간주하지 않는다.
+- 사용자가 명시적으로 지시하지 않은 삭제, 축소, 대체, 자동 병합, 다른 UI로 흡수하는 작업은 실행 전 사용자 확정 게이트를 거칩니다.
+- 게이트 요청 시 기존 동작, 변경/제거 이유, 대체 사용자 동선, 실패 영향, 회귀 검증 방법을 함께 제시합니다.
+- 코드 정리 원칙과 충돌하면 기존 결과 보존과 사용자 확정 게이트가 우선합니다.
 
 ---
 
@@ -194,12 +208,12 @@ packages/*    -> never import apps/*
 | DMS API 패턴 | 브라우저 로직은 `src/`에 두고, 서버 접근은 `src/app/api/*/route.ts -> serverApiProxy -> apps/server/src/modules/dms/*` 경계를 유지합니다. |
 | Auth 공통화 | 앱별 auth store/login/logout/checkAuth 흐름을 새로 만들기보다 `@ssoo/web-auth` adapter/store/bootstrap을 확장합니다. |
 | Shell 공통화 | 앱 프레임 레이아웃은 `@ssoo/web-shell`의 `SsooAppFrame`/`SsooWorkbenchShell`, `SsooAppHeader`, `SsooHeaderNotificationCenter`, `SsooSidebarSurface`, `SsooMdiTabBar`, `SsooMdiTabbedContentArea`, `SsooContentAreaState`를 우선 사용합니다. 알림센터 panel/filter chip/read-state 표면은 공용 primitive가 소유하고 앱은 현재 앱 chip 우선순위와 열기 action만 주입합니다. shell metric은 `SSOO_SHELL_METRICS`, 앱별 light/dark theme token은 `SSOO_THEME_PRESETS`/`body[data-ssoo-theme]`가 소유하며 앱은 데이터, 도메인 action, 사용자 preference key만 소유합니다. |
-| UI 공통화 | Tailwind theme extension과 Button/Badge/Card/Input/Table/SegmentedControl 같은 반복 primitive는 `@ssoo/web-ui`를 사용합니다. 앱 로컬 `components/ui/*`는 `@ssoo/web-ui` named re-export adapter만 허용하며, raw 원자 태그/pseudo-control/primitive recipe className 재정의는 검증에서 실패합니다. |
+| UI 공통화 | Tailwind theme extension과 Button/Badge/Card/Input/Table/SegmentedControl 같은 반복 primitive는 `@ssoo/web-ui`를 사용합니다. 앱 로컬 `components/ui/*`는 `@ssoo/web-ui` named re-export adapter만 허용하며, raw 원자 태그/pseudo-control/primitive recipe className 재정의는 검증에서 실패합니다. `cn()` class merge는 `@ssoo/web-ui` 정본을 재사용해 SSOO typography/color token을 동시에 보존하고, DMS 문서 page action 리듬(36px control, 12px horizontal padding, 13px medium label)은 Button role size 기준선으로 둡니다. 공용 원자/페이지 템플릿/auth surface, 앱 globals/Tailwind/domain reusable surface, 최종 페이지 내부의 font/theme/raw visual token 재정의(`white`/`black` 포함)도 `verify:ui-style-boundary`에서 실패합니다. |
 | 서버 접근 | Controller에서 Prisma를 직접 쓰지 않고 `DatabaseService`를 통해 접근합니다. |
 | 서버 응답 형식 | 서버는 공통 response helper 형식을 유지하고, BigInt ID는 문자열로 내보냅니다. |
 | 공유 타입 | `packages/types`에는 런타임 로직을 넣지 않고, 명시적 re-export만 사용합니다. |
 | DMS GitLab workspace | DMS workspace를 외부 공유할 때는 일반 `git push`보다 `pnpm run codex:workspace-publish`를 우선 사용하고, GitLab branch가 앞서 있으면 `pnpm run codex:workspace-sync-from-gitlab`로 먼저 재통합합니다. |
-| 관측형 루트 스크립트 | `pnpm build`, `pnpm lint`, `pnpm run codex:preflight`, `pnpm run docs:verify`, `pnpm run verify:access-*`는 `scripts/run-observed-command.sh` 관측 wrapper를 사용합니다. local observer가 없으면 raw 명령으로 fallback 합니다. raw 실행이 필요하면 `*:raw` 스크립트를 사용합니다. |
+| 관측형 루트 스크립트 | `pnpm build`, `pnpm lint`, `pnpm security:audit`, `pnpm run codex:preflight`, `pnpm run docs:verify`, `pnpm run verify:access-*`는 `scripts/run-observed-command.sh` 관측 wrapper를 사용합니다. local observer가 없으면 raw 명령으로 fallback 합니다. raw 실행이 필요하면 `*:raw` 스크립트를 사용합니다. |
 
 ---
 
@@ -246,6 +260,7 @@ packages/*    -> never import apps/*
 9. BaseService 같은 불필요한 추상화와 미사용 코드 추가
 10. Prisma schema에서 스키마 간 직접 FK를 추가하기
 11. `.github` 규칙 변경 후 `pnpm run codex:verify-sync` 누락
+12. 사용자-visible 기능, 화면, 버튼, 복구 동선, empty/error state를 명시 지시와 Behavior Impact Gate 없이 제거하거나 대체하기
 
 ---
 

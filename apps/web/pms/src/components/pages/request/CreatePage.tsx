@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,6 +18,8 @@ import {
 import { useTabStore } from '@/stores';
 import { useCreateProject, useUpsertRequestDetail } from '@/hooks/queries/useProjects';
 import { useCustomerList } from '@/hooks/queries/useCustomers';
+import { usePlantSites, useSystemInstances } from '@/hooks/queries/usePmsMaster';
+import { formatCustomerLookupCaption } from '@/lib/project-display';
 
 const REQUEST_SOURCE_OPTIONS = [
   { value: 'RFP', label: 'RFP' },
@@ -48,6 +50,8 @@ const createRequestSchema = z.object({
     .min(2, '프로젝트명은 2자 이상이어야 합니다')
     .max(100, '프로젝트명은 100자 이하여야 합니다'),
   customerId: z.string().optional(),
+  plantId: z.string().optional(),
+  systemInstanceId: z.string().optional(),
   requestSourceCode: z.string().optional(),
   requestChannelCode: z.string().optional(),
   requestPriorityCode: z.string().optional(),
@@ -72,6 +76,8 @@ export function RequestCreatePage() {
     defaultValues: {
       projectName: '',
       customerId: '',
+      plantId: '',
+      systemInstanceId: '',
       requestSourceCode: '',
       requestChannelCode: '',
       requestPriorityCode: 'normal',
@@ -80,6 +86,41 @@ export function RequestCreatePage() {
     },
     mode: 'onChange',
   });
+
+  const selectedCustomerId = form.watch('customerId');
+  const selectedPlantId = form.watch('plantId');
+  const siteFilters = useMemo(() => ({
+    page: 1,
+    pageSize: 100,
+    ...(selectedCustomerId && { customerId: selectedCustomerId }),
+  }), [selectedCustomerId]);
+  const instanceFilters = useMemo(() => ({
+    page: 1,
+    pageSize: 100,
+    ...(selectedCustomerId && { customerId: selectedCustomerId }),
+    ...(selectedPlantId && { siteId: selectedPlantId }),
+  }), [selectedCustomerId, selectedPlantId]);
+  const siteQuery = usePlantSites(siteFilters);
+  const instanceQuery = useSystemInstances(instanceFilters);
+  const sites = useMemo(() => siteQuery.data?.data?.items ?? [], [siteQuery.data]);
+  const instances = useMemo(() => instanceQuery.data?.data?.items ?? [], [instanceQuery.data]);
+
+  useEffect(() => {
+    const selectedSite = form.getValues('plantId');
+    if (!selectedSite || siteQuery.isLoading) return;
+    if (!sites.some((site) => site.siteId === selectedSite)) {
+      form.setValue('plantId', '');
+      form.setValue('systemInstanceId', '');
+    }
+  }, [form, siteQuery.isLoading, sites]);
+
+  useEffect(() => {
+    const selectedInstance = form.getValues('systemInstanceId');
+    if (!selectedInstance || instanceQuery.isLoading) return;
+    if (!instances.some((instance) => instance.systemInstanceId === selectedInstance)) {
+      form.setValue('systemInstanceId', '');
+    }
+  }, [form, instanceQuery.isLoading, instances]);
 
   const loading = createProject.isPending || upsertRequestDetail.isPending;
 
@@ -101,6 +142,8 @@ export function RequestCreatePage() {
         statusCode: 'request',
         stageCode: 'waiting',
         customerId: data.customerId || undefined,
+        plantId: data.plantId || undefined,
+        systemInstanceId: data.systemInstanceId || undefined,
         description: data.description || undefined,
       });
 
@@ -182,7 +225,7 @@ export function RequestCreatePage() {
                           </SelectItem>
                           {customers.map((c) => (
                             <SelectItem key={c.id} value={c.id}>
-                              {c.customerName}
+                              {c.customerName} · {formatCustomerLookupCaption(c)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -212,6 +255,66 @@ export function RequestCreatePage() {
                           {REQUEST_PRIORITY_OPTIONS.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>
                               {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField label="플랜트/사이트">
+                  <Controller
+                    name="plantId"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || EMPTY_SELECT_VALUE}
+                        onValueChange={(v) =>
+                          field.onChange(v === EMPTY_SELECT_VALUE ? '' : v)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="플랜트/사이트를 선택하세요" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={EMPTY_SELECT_VALUE}>
+                            선택 안함
+                          </SelectItem>
+                          {sites.map((site) => (
+                            <SelectItem key={site.siteId} value={site.siteId}>
+                              {site.siteName} · {site.siteCode}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </FormField>
+
+                <FormField label="시스템 인스턴스">
+                  <Controller
+                    name="systemInstanceId"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || EMPTY_SELECT_VALUE}
+                        onValueChange={(v) =>
+                          field.onChange(v === EMPTY_SELECT_VALUE ? '' : v)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="시스템 인스턴스를 선택하세요" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={EMPTY_SELECT_VALUE}>
+                            선택 안함
+                          </SelectItem>
+                          {instances.map((instance) => (
+                            <SelectItem key={instance.systemInstanceId} value={instance.systemInstanceId}>
+                              {instance.instanceName} · {instance.instanceCode}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -317,11 +420,11 @@ export function RequestCreatePage() {
                 </div>
               )}
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-blue-800 mb-2">
+              <div className="bg-ssoo-info-bg border border-ssoo-info-border rounded-lg p-4">
+                <p className="text-sm font-medium text-ssoo-info mb-2">
                   📌 등록 시 자동 설정되는 값
                 </p>
-                <ul className="text-sm text-blue-700 space-y-1">
+                <ul className="text-sm text-ssoo-info space-y-1">
                   <li>• 상태: <strong>요청 (Request)</strong></li>
                   <li>• 단계: <strong>대기 (Waiting)</strong></li>
                 </ul>

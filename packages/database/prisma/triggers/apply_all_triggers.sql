@@ -104,11 +104,17 @@
 \echo 'Installing: pr_task_h trigger...'
 \i 20_pr_task_h_trigger.sql
 
+\echo 'Installing: pr_task_effort_log_h trigger...'
+\i 78_pr_task_effort_log_h_trigger.sql
+
 \echo 'Installing: pr_milestone_h trigger...'
 \i 21_pr_milestone_h_trigger.sql
 
 \echo 'Installing: pr_issue_h trigger...'
 \i 22_pr_issue_h_trigger.sql
+
+\echo 'Installing: pr_legacy_issue_archive_h trigger...'
+\i 77_pr_legacy_issue_archive_h_trigger.sql
 
 \echo 'Installing: cm_user_auth_h trigger...'
 \i 23_cm_user_auth_h_trigger.sql
@@ -183,6 +189,21 @@
 \echo 'Installing: pr_project_issue_h trigger...'
 \i 54_pr_project_issue_h_trigger.sql
 
+\echo 'Installing: pr_site_h trigger...'
+\i 68_pr_site_h_trigger.sql
+
+\echo 'Installing: pr_system_catalog_h trigger...'
+\i 69_pr_system_catalog_h_trigger.sql
+
+\echo 'Installing: pr_system_instance_h trigger...'
+\i 70_pr_system_instance_h_trigger.sql
+
+\echo 'Installing: pr_integration_h trigger...'
+\i 71_pr_integration_h_trigger.sql
+
+\echo 'Installing: pr_master_import_profile_h trigger...'
+\i 72_pr_master_import_profile_h_trigger.sql
+
 \echo ''
 \echo '-- DMS (Document Management System) --'
 \echo ''
@@ -209,6 +230,28 @@
 \i 56_dm_template_h_trigger.sql
 
 \echo ''
+\echo '-- CRM --'
+\echo ''
+
+\echo 'Installing: crm_opportunity_h trigger...'
+\i 66_crm_opportunity_h_trigger.sql
+
+\echo 'Installing: crm_opportunity_line_h trigger...'
+\i 67_crm_opportunity_line_h_trigger.sql
+
+\echo 'Installing: crm_customer_h trigger...'
+\i 75_crm_customer_h_trigger.sql
+
+\echo 'Installing: crm_customer_activity_h trigger...'
+\i 76_crm_customer_activity_h_trigger.sql
+
+\echo 'Installing: crm_quote_seller_profile_h trigger...'
+\i 73_crm_quote_seller_profile_h_trigger.sql
+
+\echo 'Installing: crm_business_plan_h trigger...'
+\i 74_crm_business_plan_h_trigger.sql
+
+\echo ''
 \echo '-- SNS --'
 \echo ''
 
@@ -228,8 +271,11 @@
 \echo 'All triggers installed successfully!'
 \echo '=========================================='
 
--- 설치된 트리거 확인
+-- 애플리케이션 스키마의 non-internal 트리거 전체 확인.
+-- trg_*_h 외에도 CRM migration-managed *_h_record와 PMS legacy-compatible
+-- tr_*_history 이름을 포함해야 실제 설치 상태와 총계가 일치합니다.
 SELECT 
+    n.nspname AS schema_name,
     tgname AS trigger_name,
     relname AS table_name,
     CASE tgenabled 
@@ -239,5 +285,17 @@ SELECT
     END AS status
 FROM pg_trigger t
 JOIN pg_class c ON t.tgrelid = c.oid
-WHERE tgname LIKE 'trg_%_h'
-ORDER BY relname;
+JOIN pg_namespace n ON c.relnamespace = n.oid
+WHERE NOT t.tgisinternal
+  AND n.nspname IN ('common', 'pms', 'dms', 'crm', 'sns')
+ORDER BY n.nspname, relname, tgname;
+
+SELECT
+    COUNT(*) AS total_app_triggers,
+    COUNT(*) FILTER (WHERE t.tgenabled = 'O') AS enabled_app_triggers,
+    COUNT(*) FILTER (WHERE t.tgenabled = 'D') AS disabled_app_triggers
+FROM pg_trigger t
+JOIN pg_class c ON t.tgrelid = c.oid
+JOIN pg_namespace n ON c.relnamespace = n.oid
+WHERE NOT t.tgisinternal
+  AND n.nspname IN ('common', 'pms', 'dms', 'crm', 'sns');

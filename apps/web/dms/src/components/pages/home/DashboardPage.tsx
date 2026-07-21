@@ -52,7 +52,7 @@ export function DashboardPage() {
   const disabledActionCardClassName = `${actionCardClassName} cursor-not-allowed opacity-60`;
 
   return (
-    <main className="min-h-full flex-1 overflow-auto bg-white p-6">
+    <main className="min-h-full flex-1 overflow-auto bg-card p-6">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-title-section text-ssoo-primary mb-4">
           문서 관리 시스템
@@ -100,11 +100,11 @@ export function DashboardPage() {
         </div>
 
         <section className="mt-8">
-          <h2 className="text-title-card text-gray-900 mb-4 flex items-center gap-2">
+          <h2 className="text-title-card text-foreground mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5" />
             최근 열어본 문서
           </h2>
-          <div className="text-gray-500 text-body-sm p-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+          <div className="text-muted-foreground text-body-sm p-4 bg-muted rounded-lg border border-dashed border-border">
             최근 문서 기록이 없습니다.
           </div>
         </section>

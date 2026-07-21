@@ -387,7 +387,9 @@ export class AuthController {
   @Post("session")
   @Public()
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  // A single browser can restore the shared session across all five SSOO apps.
+  // Keep this bounded, but do not exhaust the budget during a normal multi-app bootstrap.
+  @Throttle({ default: { limit: 60, ttl: 60000 } })
   @ApiOperation({ summary: "공유 세션 복원", description: "HttpOnly shared session cookie 로 Access Token 재발급" })
   @ApiOkResponse({ type: ApiSuccess })
   @ApiUnauthorizedResponse({ type: ApiError, description: "세션 없음 또는 만료" })

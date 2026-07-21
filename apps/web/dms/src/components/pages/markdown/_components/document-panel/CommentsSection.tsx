@@ -100,8 +100,8 @@ function CommentItem({
           isReply && 'ml-6',
         )}
       >
-        <div className="mt-0.5 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-gray-100">
-          <X className="h-3 w-3 text-gray-400" />
+        <div className="mt-0.5 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-muted">
+          <X className="h-3 w-3 text-muted-foreground" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 italic text-ssoo-primary/60">
@@ -112,7 +112,7 @@ function CommentItem({
           </div>
           <p className="mt-0.5 whitespace-pre-wrap italic text-ssoo-primary/65">
             {mentionAuthor && (
-              <span className="mr-1 text-label-sm text-blue-500/70">@{mentionAuthor}</span>
+              <span className="mr-1 text-label-sm text-ssoo-info/70">@{mentionAuthor}</span>
             )}
             {comment.content}
           </p>
@@ -153,8 +153,8 @@ function CommentItem({
         'flex gap-2 rounded-md px-1.5 py-1.5 text-caption text-ssoo-primary/40',
         isReply && 'ml-6',
       )}>
-        <div className="mt-0.5 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-gray-100">
-          <X className="h-3 w-3 text-gray-400" />
+        <div className="mt-0.5 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-muted">
+          <X className="h-3 w-3 text-muted-foreground" />
         </div>
         <div className="min-w-0 flex-1">
           <span className="block py-1 italic">삭제된 댓글입니다.</span>
@@ -209,7 +209,7 @@ function CommentItem({
         </div>
         <p className="mt-0.5 whitespace-pre-wrap text-ssoo-primary/80">
           {mentionAuthor && (
-            <span className="mr-1 text-label-sm text-blue-500">@{mentionAuthor}</span>
+            <span className="mr-1 text-label-sm text-ssoo-info">@{mentionAuthor}</span>
           )}
           {comment.content}
         </p>
@@ -229,7 +229,7 @@ function CommentItem({
           <Button variant="plain" size="plain"
             type="button"
             onClick={() => { void onDelete(comment.id); }}
-            className="inline-flex h-5 w-5 items-center justify-center rounded text-red-400 hover:text-red-600"
+            className="inline-flex h-5 w-5 items-center justify-center rounded text-ssoo-danger hover:text-ssoo-danger"
             title="댓글 삭제"
           >
             <X className="h-3 w-3" />
@@ -279,12 +279,12 @@ export function CommentsSection({
     <CollapsibleSection
       title="댓글"
       icon={<MessageSquare className="mr-1.5 h-4 w-4 shrink-0" />}
-      badge={!locked && totalCount > 0 ? <span className="mr-1 text-caption text-gray-400">({totalCount})</span> : undefined}
+      badge={!locked && totalCount > 0 ? <span className="mr-1 text-caption text-muted-foreground">({totalCount})</span> : undefined}
       defaultOpen
       locked={locked}
     >
       {threads.length === 0 ? (
-        <p className="py-1 text-caption text-gray-400">댓글없음</p>
+        <p className="py-1 text-caption text-muted-foreground">댓글없음</p>
       ) : (
         <div className="space-y-1">
           {threads.map((thread) => {
@@ -371,7 +371,7 @@ function RepliesGroup({
         <Button variant="plain" size="plain"
           type="button"
           onClick={() => setExpanded(true)}
-          className="ml-6 mt-0.5 text-caption text-blue-500 hover:text-blue-700"
+          className="ml-6 mt-0.5 text-caption text-ssoo-info hover:text-ssoo-info"
         >
           답글 {hiddenCount}개 더 보기
         </Button>

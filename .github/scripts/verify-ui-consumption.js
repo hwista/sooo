@@ -67,6 +67,20 @@ const RECIPE_CLASS_COMPONENTS = new Set([
   'SelectTrigger',
   'Textarea',
 ]);
+const STRICT_BUTTON_RECIPE_CLASS_PATH_PATTERNS = [
+  /^packages\/web-shell\/src\/(?:page-header|data-workspace-page)\.tsx$/,
+];
+const STRICT_BUTTON_RECIPE_CLASS_CATEGORIES = new Set([
+  'height',
+  'radius',
+  'border',
+  'background',
+  'spacing',
+  'shadow',
+  'focus',
+  'disabled',
+  'typography',
+]);
 const RECIPE_SIGNATURES = {
   Button: {
     threshold: 8,
@@ -85,12 +99,12 @@ const RECIPE_SIGNATURES = {
       'disabled:pointer-events-none',
       'disabled:opacity-50',
       'bg-ssoo-primary',
-      'text-white',
+      'text-primary-foreground',
       'shadow',
       'hover:bg-ssoo-primary-hover',
       'border',
       'border-ssoo-content-border',
-      'bg-white',
+      'bg-card',
       'text-ssoo-primary',
       'shadow-sm',
       'hover:bg-ssoo-sitemap-bg',
@@ -98,7 +112,9 @@ const RECIPE_SIGNATURES = {
       'w-control-h',
       'px-4',
       'py-2',
+      'gap-1.5',
       'px-3',
+      'text-action-md',
       'text-caption',
     ]),
   },
@@ -469,7 +485,7 @@ function getRecipeClassCategories(classText) {
       categories.add('border');
     } else if (/^(bg-|hover:bg-|active:bg-|focus:bg-)/.test(token)) {
       categories.add('background');
-    } else if (/^(px-|py-)/.test(token)) {
+    } else if (/^(p-|px-|py-|pl-|pr-|pt-|pb-)/.test(token)) {
       categories.add('spacing');
     } else if (/^shadow(?:-|$)/.test(token)) {
       categories.add('shadow');
@@ -477,11 +493,20 @@ function getRecipeClassCategories(classText) {
       categories.add('focus');
     } else if (/^disabled:/.test(token)) {
       categories.add('disabled');
-    } else if (/^(font-|text-(body|label|control|caption|base|sm|xs|lg|xl|\[))/.test(token)) {
+    } else if (/^(font-|leading-|text-(action|body|label|control|caption|title|badge|code|h1|h2|h3|base|sm|xs|lg|xl|\[))/.test(token)) {
       categories.add('typography');
     }
   }
   return categories;
+}
+
+function isStrictButtonRecipeClassFile(filePath) {
+  const repoPath = toRepoPath(filePath);
+  return STRICT_BUTTON_RECIPE_CLASS_PATH_PATTERNS.some((pattern) => pattern.test(repoPath));
+}
+
+function getStrictButtonRecipeCategories(categories) {
+  return [...categories].filter((category) => STRICT_BUTTON_RECIPE_CLASS_CATEGORIES.has(category));
 }
 
 function getClassNameText(attributes, constants) {
@@ -558,6 +583,20 @@ function collectIssues(filePath) {
       ) {
         const classText = getClassNameText(attributes, stringConstants);
         const categories = getRecipeClassCategories(classText);
+        const strictButtonCategories = tagName === 'Button' && isStrictButtonRecipeClassFile(filePath)
+          ? getStrictButtonRecipeCategories(categories)
+          : [];
+        if (strictButtonCategories.length > 0) {
+          const position = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+          issues.push({
+            file: toRepoPath(filePath),
+            line: position.line + 1,
+            kind: 'recipe-class-category',
+            tagName,
+            categories: strictButtonCategories.sort(),
+            recipeTokens: getRecipeClassIssueDetail(tagName, classText),
+          });
+        }
         if (hasRecipeClassOverride(tagName, classText)) {
           const position = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
           issues.push({
@@ -589,6 +628,8 @@ function printIssues(issues) {
     console.log(`  ${issue.file}:${issue.line}`);
     if (issue.kind === 'recipe-class') {
       console.log(`    <${issue.tagName}> className duplicates @ssoo/web-ui recipe tokens (${issue.recipeTokens.join(', ')}); move recipe to @ssoo/web-ui variant/size or keep className layout-only\n`);
+    } else if (issue.kind === 'recipe-class-category') {
+      console.log(`    <${issue.tagName}> className overrides ${issue.categories.join(', ')} recipe categories in a managed page template; move the role to @ssoo/web-ui variant/size or keep className layout-only\n`);
     } else if (issue.kind === 'pseudo-control') {
       const roleSuffix = issue.roleName ? ` role="${issue.roleName}"` : '';
       console.log(`    intrinsic <${issue.tagName}>${roleSuffix} acts as an interactive primitive; use @ssoo/web-ui Button/Checkbox/Select/etc. instead\n`);

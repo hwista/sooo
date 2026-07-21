@@ -21,7 +21,7 @@ export default function NotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-ssoo-background">
       <div className="text-center">
-        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-3 border-teal-600 border-t-transparent" />
+        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-3 border-ssoo-primary border-t-transparent" />
         <p className="text-body-sm text-muted-foreground">
           유효하지 않은 경로입니다. 루트 화면으로 이동 중...
         </p>

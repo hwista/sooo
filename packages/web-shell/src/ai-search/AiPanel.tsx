@@ -80,7 +80,7 @@ export function SsooAiPanel({
       <SsooTextSection
         title="사용 팁"
         text={tipsText}
-        icon={<Info className="h-4 w-4 text-gray-500" />}
+        icon={<Info className="h-4 w-4 text-muted-foreground" />}
         sectionVariant="default"
       />
 
@@ -89,7 +89,7 @@ export function SsooAiPanel({
           title={frequentSearchTitle}
           chips={frequentSearches.map((query) => ({ id: query, label: query, title: query }))}
           onChipClick={(chip) => onSuggestionSelect?.(chip.label)}
-          icon={<History className="h-4 w-4 text-gray-500" />}
+          icon={<History className="h-4 w-4 text-muted-foreground" />}
           sectionVariant="default"
         />
       ) : null}
@@ -99,7 +99,7 @@ export function SsooAiPanel({
           title={suggestionTitle}
           chips={suggestions.map((suggestion) => ({ id: suggestion, label: suggestion, title: suggestion }))}
           onChipClick={(chip) => onSuggestionSelect?.(chip.label)}
-          icon={<Info className="h-4 w-4 text-gray-500" />}
+          icon={<Info className="h-4 w-4 text-muted-foreground" />}
           sectionVariant="default"
         />
       ) : null}
@@ -107,15 +107,15 @@ export function SsooAiPanel({
       {sources.length > 0 ? (
         <SsooCollapsibleSection
           title="참조 문서"
-          icon={<BookOpen className="h-4 w-4 text-gray-500" />}
+          icon={<BookOpen className="h-4 w-4 text-muted-foreground" />}
           defaultOpen
           variant="default"
         >
           <ul className="space-y-1.5">
             {sources.map((source, index) => (
-              <li key={index} className="truncate text-caption text-gray-600" title={source.path}>
+              <li key={index} className="truncate text-caption text-muted-foreground" title={source.path}>
                 <span className="text-ssoo-primary">{source.title}</span>
-                <span className="ml-1 text-gray-400">{source.path}</span>
+                <span className="ml-1 text-muted-foreground">{source.path}</span>
               </li>
             ))}
           </ul>
@@ -124,7 +124,7 @@ export function SsooAiPanel({
 
       <SsooActivityListSection
         title={historyTitle}
-        icon={<History className="h-4 w-4 text-gray-500" />}
+        icon={<History className="h-4 w-4 text-muted-foreground" />}
         defaultOpen={variant === 'chat' || variant === 'search'}
         sectionVariant="default"
         variant="compact"

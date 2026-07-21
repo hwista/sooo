@@ -136,6 +136,15 @@ const passwordResetPage = file('packages/web-auth/src/password-reset-page.tsx');
 assert(passwordResetPage.includes("'/api/auth/password-reset'"), 'shared password reset page must call the same-origin app password-reset proxy by default');
 assert(!passwordResetPage.includes('NEXT_PUBLIC_API_URL'), 'shared password reset page must not bypass app-local auth proxy with NEXT_PUBLIC_API_URL');
 
+for (const authSurfacePath of [
+  'packages/web-auth/src/ui.tsx',
+  'packages/web-auth/src/password-reset-page.tsx',
+]) {
+  const authSurface = file(authSurfacePath);
+  assert(!/#(?:0B3B3B|114F4F)/i.test(authSurface), `${authSurfacePath} must not hard-code the legacy auth teal color`);
+  assert(!authSurface.includes('slate-'), `${authSurfacePath} must consume app theme tokens instead of slate neutral classes`);
+}
+
 const serverAuthTypes = file('apps/server/src/modules/common/auth/interfaces/auth.interface.ts');
 assert(!interfaceBlock(serverAuthTypes, 'TokenPayload').includes('roleCode'), 'JWT TokenPayload must not carry roleCode');
 

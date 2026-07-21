@@ -11,11 +11,9 @@ import {
   SsooSettingsPage,
   SsooSettingsBanner,
   SsooSettingsPendingSummary,
-  SsooSettingsViewModeTabs,
   type SsooPageHeaderAction,
   type SsooPageIndexRailItem,
 } from '@ssoo/web-shell';
-import { JsonDiffView, JsonEditor } from '@/components/common/json';
 import { ErrorState, LoadingSpinner } from '@/components/common/StateDisplay';
 import { templateApi } from '@/lib/api/endpoints/templates';
 import { templateKeys, useTemplateList } from '@/hooks/queries/useTemplates';
@@ -24,8 +22,6 @@ import { useAccessStore, useSettingsPageNavigationStore, useSettingsStore, useSi
 import { useTabInstanceId } from '@/components/layout/tab-instance/TabInstanceContext';
 import {
   SETTING_SECTIONS,
-  SETTINGS_SCOPE_LABELS,
-  SETTINGS_VIEW_MODE_LABELS,
   getSettingSectionsByScope,
 } from './_config/settingsPageConfig';
 import type { SettingSection } from './_config/settingsPageConfig';
@@ -36,15 +32,10 @@ import { SettingsFieldList } from './_components/SettingsFieldList';
 import { getSettingsTabOptions, parseSettingsTabPath } from './_utils/settingsNavigation';
 import {
   buildKeyToLabelMap,
-  buildSectionJsonDraft,
-  buildSectionUpdatePayload,
   buildSettingsUpdatePayload,
   getModifiedKeys,
   getNestedValue,
   getValidationErrors,
-  mergeSettingsPayloads,
-  parseSectionJsonDraft,
-  replaceSectionValue,
   setNestedValue,
 } from './_utils/settingsPageUtils';
 
@@ -79,9 +70,7 @@ export function SettingsPage() {
   const {
     activeScope,
     activeSectionId,
-    activeViewMode,
     openSection,
-    setViewMode,
   } = useSettingsPageNavigationStore();
   const tabId = useTabInstanceId();
   const activeTabId = useTabStore((state) => state.activeTabId);
@@ -103,8 +92,6 @@ export function SettingsPage() {
   const [localConfig, setLocalConfig] = useState<Record<string, unknown>>({});
   const [originalConfig, setOriginalConfig] = useState<Record<string, unknown>>({});
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [jsonDraft, setJsonDraft] = useState('{}');
-  const [jsonError, setJsonError] = useState<string | null>(null);
   const [templateDraft, setTemplateDraft] = useState({
     name: '',
     description: '',
@@ -112,7 +99,8 @@ export function SettingsPage() {
     scope: 'global' as TemplateScope,
     kind: 'document' as TemplateKind,
   });
-  const runtimeSectionIds = useMemo(() => new Set(['git', 'storage', 'ingest', 'templates-runtime']), []);
+  const [reviewConfirmingTemplateId, setReviewConfirmingTemplateId] = useState<string | null>(null);
+  const runtimeSectionIds = useMemo(() => new Set(['git', 'storage-runtime', 'ingest-runtime', 'templates-runtime']), []);
 
   const canOpenSection = useCallback((section: SettingSection) => {
     if (section.scope === 'personal') {
@@ -172,21 +160,11 @@ export function SettingsPage() {
   }, [effectiveSectionId, scopeSections]);
   const isCustomSection = currentSection?.kind === 'custom';
   const isAdminTemplateSection = currentSection?.slotKey === 'admin-templates';
-  const isReadOnlySection = currentSection?.id === 'git';
+  const isRuntimeSection = currentSection?.settingKind === 'runtime-observability';
+  const isReadOnlySection = Boolean(isRuntimeSection);
   const currentSectionItems = useMemo(() => {
-    if (!currentSection || canManageSystemSettings || currentSection.id !== 'workspace') {
-      return currentSection?.items ?? [];
-    }
-    return currentSection.items.map((item) => {
-      if (item.key !== 'personal.workspace.defaultSettingsScope') {
-        return item;
-      }
-      return {
-        ...item,
-        options: item.options?.filter((option) => option.value === 'personal'),
-      };
-    });
-  }, [canManageSystemSettings, currentSection]);
+    return currentSection?.items ?? [];
+  }, [currentSection]);
   const templateListQuery = useTemplateList({
     enabled: isAdminTemplateSection,
   });
@@ -208,33 +186,6 @@ export function SettingsPage() {
     }
   }, [activeScope, activeSectionId, currentSection, isActiveSettingsTab, openSection]);
 
-  useEffect(() => {
-    if (!currentSection || isCustomSection) {
-      setJsonDraft('{}');
-      setJsonError(null);
-      return;
-    }
-    setJsonDraft(buildSectionJsonDraft(localConfig, currentSection.jsonPath));
-    setJsonError(null);
-  }, [currentSection, isCustomSection, localConfig]);
-
-  const supportsJsonModes = !isCustomSection && currentSection?.id !== 'git';
-
-  useEffect(() => {
-    if (!supportsJsonModes && activeViewMode !== 'structured') {
-      setViewMode('structured');
-    }
-  }, [activeViewMode, setViewMode, supportsJsonModes]);
-
-  const parsedJsonDraft = useMemo(() => parseSectionJsonDraft(jsonDraft), [jsonDraft]);
-
-  const comparableConfig = useMemo(() => {
-    if (!supportsJsonModes || activeViewMode !== 'json' || !parsedJsonDraft.success || !currentSection) {
-      return localConfig;
-    }
-    return replaceSectionValue(localConfig, currentSection.jsonPath, parsedJsonDraft.data);
-  }, [activeViewMode, currentSection, localConfig, parsedJsonDraft, supportsJsonModes]);
-
   const keyToLabel = useMemo(() => {
     return buildKeyToLabelMap(SETTING_SECTIONS);
   }, []);
@@ -247,13 +198,12 @@ export function SettingsPage() {
   }, [canManageSystemSettings]);
 
   const modifiedKeys = useMemo(() => {
-    return getModifiedKeys(editableSections, comparableConfig, originalConfig);
-  }, [comparableConfig, editableSections, originalConfig]);
-  const modifiedKeySet = useMemo(() => new Set(modifiedKeys), [modifiedKeys]);
+    return getModifiedKeys(editableSections, localConfig, originalConfig);
+  }, [editableSections, localConfig, originalConfig]);
 
   const validationErrors = useMemo(() => {
-    return getValidationErrors(editableSections, comparableConfig);
-  }, [comparableConfig, editableSections]);
+    return getValidationErrors(editableSections, localConfig);
+  }, [editableSections, localConfig]);
 
   const settingsSectionOverviewAnchorId = useMemo(() => {
     return currentSection ? getSettingsSectionOverviewAnchorId(currentSection.id) : 'settings-section-overview';
@@ -264,24 +214,13 @@ export function SettingsPage() {
       return [];
     }
 
-    const items: SsooPageIndexRailItem[] = [
-      {
-        id: getSettingsSectionOverviewAnchorId(currentSection.id),
-        label: '개요',
-        description: currentSection.description,
-        meta: SETTINGS_SCOPE_LABELS[currentSection.scope],
-      },
-    ];
+    const items: SsooPageIndexRailItem[] = [];
 
     currentSectionItems.forEach((item) => {
-      const hasError = Boolean(validationErrors[item.key]);
-      const isModified = modifiedKeySet.has(item.key);
-
       items.push({
         id: getSettingsFieldAnchorId(currentSection.id, item.key),
         label: item.label,
-        description: item.helpKey,
-        meta: hasError ? '오류' : isModified ? '변경됨' : undefined,
+        description: item.description,
       });
     });
 
@@ -290,12 +229,11 @@ export function SettingsPage() {
         id: getSettingsSectionIndexAnchorId(currentSection.id, item.id),
         label: item.label,
         description: item.description,
-        meta: item.meta,
       });
     });
 
     return items;
-  }, [currentSection, currentSectionItems, modifiedKeySet, validationErrors]);
+  }, [currentSection, currentSectionItems]);
 
   const settingsCustomSlotAnchorIds = useMemo(() => {
     if (!currentSection?.indexItems) {
@@ -317,21 +255,7 @@ export function SettingsPage() {
     });
   }, []);
 
-  const currentSectionOriginalText = useMemo(() => {
-    if (!currentSection || !supportsJsonModes) return '{}';
-    return buildSectionJsonDraft(originalConfig, currentSection.jsonPath);
-  }, [currentSection, originalConfig, supportsJsonModes]);
-
-  const currentSectionComparableText = useMemo(() => {
-    if (!currentSection || !supportsJsonModes) return '{}';
-    if (activeViewMode === 'json') {
-      return parsedJsonDraft.success ? JSON.stringify(parsedJsonDraft.data, null, 2) : jsonDraft;
-    }
-    return buildSectionJsonDraft(comparableConfig, currentSection.jsonPath);
-  }, [activeViewMode, comparableConfig, currentSection, jsonDraft, parsedJsonDraft, supportsJsonModes]);
-
-  const hasSectionJsonChanges = supportsJsonModes && currentSectionComparableText !== currentSectionOriginalText;
-  const hasChanges = modifiedKeys.length > 0 || hasSectionJsonChanges;
+  const hasChanges = modifiedKeys.length > 0;
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
   const handleStructuredChange = useCallback((key: string, value: unknown) => {
@@ -339,79 +263,21 @@ export function SettingsPage() {
     setSaveSuccess(false);
   }, []);
 
-  const resolveConfigFromJsonDraft = useCallback(() => {
-    if (!supportsJsonModes || !currentSection) {
-      return { success: true as const, config: localConfig };
-    }
-
-    const parsed = parseSectionJsonDraft(jsonDraft);
-    if (!parsed.success) {
-      setJsonError(parsed.error);
-      return { success: false as const };
-    }
-
-    setJsonError(null);
-    return {
-      success: true as const,
-      config: replaceSectionValue(localConfig, currentSection.jsonPath, parsed.data),
-    };
-  }, [currentSection, jsonDraft, localConfig, supportsJsonModes]);
-
-  const handleViewModeChange = useCallback((nextMode: typeof activeViewMode) => {
-    if (!supportsJsonModes && nextMode !== 'structured') return;
-
-    if (activeViewMode === 'json' && nextMode !== 'json') {
-      const resolved = resolveConfigFromJsonDraft();
-      if (!resolved.success) return;
-      setLocalConfig(resolved.config);
-      if (currentSection) {
-        setJsonDraft(buildSectionJsonDraft(resolved.config, currentSection.jsonPath));
-      }
-    }
-
-    setViewMode(nextMode);
-  }, [activeViewMode, currentSection, resolveConfigFromJsonDraft, setViewMode, supportsJsonModes]);
-
   const handleReset = useCallback(() => {
     setLocalConfig(originalConfig);
-    if (currentSection && !isCustomSection) {
-      setJsonDraft(buildSectionJsonDraft(originalConfig, currentSection.jsonPath));
-    } else {
-      setJsonDraft('{}');
-    }
-    setJsonError(null);
     setSaveSuccess(false);
-  }, [currentSection, isCustomSection, originalConfig]);
+  }, [originalConfig]);
 
   const handleSave = useCallback(async () => {
     if (!currentSection) return;
 
-    let workingConfig = comparableConfig;
-    if (supportsJsonModes && activeViewMode === 'json') {
-      const resolved = resolveConfigFromJsonDraft();
-      if (!resolved.success) return;
-      workingConfig = resolved.config;
-      setLocalConfig(resolved.config);
-      setJsonDraft(buildSectionJsonDraft(resolved.config, currentSection.jsonPath));
-    }
-
-    if (Object.keys(getValidationErrors(editableSections, workingConfig)).length > 0) {
+    if (Object.keys(getValidationErrors(editableSections, localConfig)).length > 0) {
       return;
     }
 
     setSaveSuccess(false);
     let success = true;
-    let payload = buildSettingsUpdatePayload(modifiedKeys, workingConfig, editableSections);
-
-    if (supportsJsonModes && activeViewMode === 'json') {
-      payload = mergeSettingsPayloads(
-        payload,
-        buildSectionUpdatePayload(
-          currentSection.jsonPath,
-          (getNestedValue(workingConfig, currentSection.jsonPath) as Record<string, unknown>) ?? {}
-        )
-      );
-    }
+    const payload = buildSettingsUpdatePayload(modifiedKeys, localConfig, editableSections);
 
     const hasPayload = Object.keys(payload as Record<string, unknown>).length > 0;
     if (success && hasPayload) {
@@ -422,13 +288,10 @@ export function SettingsPage() {
       setSaveSuccess(true);
     }
   }, [
-    activeViewMode,
-    comparableConfig,
     currentSection,
     editableSections,
+    localConfig,
     modifiedKeys,
-    resolveConfigFromJsonDraft,
-    supportsJsonModes,
     updateSettings,
   ]);
 
@@ -458,6 +321,19 @@ export function SettingsPage() {
     await queryClient.invalidateQueries({ queryKey: templateKeys.all });
   }, [queryClient]);
 
+  const handleTemplateReviewConfirm = useCallback(async (template: TemplateItem) => {
+    setReviewConfirmingTemplateId(template.id);
+    try {
+      const response = await templateApi.confirmReview(template.id, template.scope, {
+        memo: 'DMS 설정에서 CRM 견적 템플릿 검토 확정',
+      });
+      if (!response.success) return;
+      await queryClient.invalidateQueries({ queryKey: templateKeys.all });
+    } finally {
+      setReviewConfirmingTemplateId(null);
+    }
+  }, [queryClient]);
+
   const runtimePathSurface = useMemo(() => {
     if (!runtime?.paths || !currentSection) {
       return null;
@@ -479,7 +355,7 @@ export function SettingsPage() {
             ]}
           />
         );
-      case 'storage':
+      case 'storage-runtime':
         return (
           <RuntimePathSurface
             title="Binary storage roots"
@@ -506,7 +382,7 @@ export function SettingsPage() {
             ]}
           />
         );
-      case 'ingest':
+      case 'ingest-runtime':
         return (
           <RuntimePathSurface
             title="Ingest queue path"
@@ -560,14 +436,11 @@ export function SettingsPage() {
 
   const pendingLabels = useMemo(() => {
     const labels = modifiedKeys.map((key) => keyToLabel.get(key) ?? key);
-    if (activeViewMode === 'json' && hasSectionJsonChanges && currentSection) {
-      labels.unshift(`${currentSection.label} JSON`);
-    }
     return Array.from(new Set(labels));
-  }, [activeViewMode, currentSection, hasSectionJsonChanges, keyToLabel, modifiedKeys]);
+  }, [keyToLabel, modifiedKeys]);
 
   const headerActions = useMemo<SsooPageHeaderAction[]>(() => {
-    if (isCustomSection || isReadOnlySection) {
+    if (isCustomSection || isRuntimeSection) {
       return [];
     }
 
@@ -596,26 +469,14 @@ export function SettingsPage() {
       onClick: () => {
         void handleSave();
       },
-      disabled: !hasChanges || hasValidationErrors || (activeViewMode === 'json' && !parsedJsonDraft.success) || isSaving,
+      disabled: !hasChanges || hasValidationErrors || isSaving,
     });
 
     return actions;
-  }, [activeViewMode, handleReset, handleSave, hasChanges, hasValidationErrors, isCustomSection, isReadOnlySection, isSaving, parsedJsonDraft.success, pendingLabels.length]);
-
-  const viewerRightSlot = currentSection && supportsJsonModes ? (
-    <SsooSettingsViewModeTabs
-      value={activeViewMode}
-      options={(['structured', 'json', 'diff'] as const).map((mode) => ({
-        value: mode,
-        label: SETTINGS_VIEW_MODE_LABELS[mode],
-      }))}
-      onChange={handleViewModeChange}
-    />
-  ) : null;
+  }, [handleReset, handleSave, hasChanges, hasValidationErrors, isCustomSection, isRuntimeSection, isSaving, pendingLabels.length]);
 
   const settingsIndex = currentSection ? {
     ariaLabel: '설정 항목 색인',
-    description: currentSection.description,
     items: settingsIndexItems,
     onItemSelect: (item: SsooPageIndexRailItem) => handleSettingsIndexSelect(item.id),
   } : null;
@@ -624,7 +485,6 @@ export function SettingsPage() {
     return (
       <SsooSettingsPage
         filePath="settings"
-        description={error ? '설정 정보를 불러오지 못했습니다.' : '설정 정보를 불러오는 중입니다.'}
         compactMode={isCompactMode}
         stateSlot={error ? (
           <ErrorState error={error} />
@@ -641,7 +501,6 @@ export function SettingsPage() {
     return (
       <SsooSettingsPage
         filePath="settings"
-        description="사용 가능한 설정 메뉴가 없습니다."
         compactMode={isCompactMode}
         stateSlot={<ErrorState error="사용 가능한 설정 메뉴가 없습니다." />}
       >
@@ -654,7 +513,6 @@ export function SettingsPage() {
     return (
       <SsooSettingsPage
         filePath="settings"
-        description="설정 권한이 필요합니다."
         compactMode={isCompactMode}
         stateSlot={<ErrorState error="설정을 관리할 권한이 없습니다." />}
       >
@@ -665,12 +523,10 @@ export function SettingsPage() {
 
   return (
     <SsooSettingsPage
-      filePath={`settings/${effectiveScope}/${currentSection.id}`}
-      description={`${SETTINGS_SCOPE_LABELS[effectiveScope]} · ${currentSection.description}`}
+      filePath={`settings/${currentSection.surface}/${currentSection.id}`}
       headerActions={{
         extraActions: headerActions,
         extraActionsPosition: 'right',
-        viewerRightSlot,
       }}
       index={settingsIndex}
       overviewAnchorId={settingsSectionOverviewAnchorId}
@@ -687,7 +543,8 @@ export function SettingsPage() {
         <div className="flex min-h-full items-center justify-center">
           <LoadingSpinner message="설정을 불러오는 중입니다." className="text-ssoo-primary/70" />
         </div>
-      ) : isCustomSection && currentSection.slotKey ? (
+      ) : isRuntimeSection ? null
+      : isCustomSection && currentSection.slotKey ? (
         <SettingsCustomSlot
           slotKey={currentSection.slotKey}
           templates={templates}
@@ -700,28 +557,19 @@ export function SettingsPage() {
           onDelete={(template) => {
             void handleTemplateDelete(template);
           }}
-          anchorIds={settingsCustomSlotAnchorIds}
-        />
-      ) : activeViewMode === 'json' ? (
-        <JsonEditor
-          value={jsonDraft}
-          onChange={(nextValue) => {
-            setJsonDraft(nextValue);
-            if (jsonError) setJsonError(null);
+          onConfirmReview={(template) => {
+            void handleTemplateReviewConfirm(template);
           }}
-          errorMessage={!parsedJsonDraft.success ? parsedJsonDraft.error : jsonError}
-          className="min-h-[480px]"
-        />
-      ) : activeViewMode === 'diff' ? (
-        <JsonDiffView
-          originalText={currentSectionOriginalText}
-          currentText={currentSectionComparableText}
-          className="min-h-[480px]"
+          reviewConfirmingTemplateId={reviewConfirmingTemplateId}
+          config={config}
+          isSavingSettings={isSaving}
+          onUpdateSettings={updateSettings}
+          anchorIds={settingsCustomSlotAnchorIds}
         />
       ) : (
         <SettingsFieldList
           items={currentSectionItems}
-          localConfig={comparableConfig}
+          localConfig={localConfig}
           originalConfig={originalConfig}
           validationErrors={validationErrors}
           getValue={getNestedValue}

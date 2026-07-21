@@ -49,7 +49,7 @@ export function TemplatePickerDialog({
             key={`${template.scope}-${template.id}`}
             type="button"
             onClick={() => onSelectTemplate(template)}
-            className="w-full rounded-md border border-ssoo-content-border bg-white px-3 py-3 text-left transition-colors hover:border-ssoo-primary/40 hover:bg-ssoo-content-bg/20"
+            className="w-full rounded-md border border-ssoo-content-border bg-card px-3 py-3 text-left transition-colors hover:border-ssoo-primary/40 hover:bg-ssoo-content-bg/20"
           >
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">

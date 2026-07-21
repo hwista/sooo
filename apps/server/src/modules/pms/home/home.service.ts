@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@ssoo/database';
 import type {
   PmsHomeAccessProject,
   PmsHomeAllowedAction,
   PmsHomeCapabilityKey,
   PmsHomeFlowItem,
   PmsHomeMetrics,
+  PmsHomePortfolioDashboard,
+  PmsHomePortfolioDashboardProject,
   PmsHomeRecentChange,
   PmsHomeRelation,
   PmsHomeRelationCounts,
+  PmsHomeRiskReportSummary,
   PmsHomeSignal,
   PmsHomeSignalKind,
   PmsHomeSignalSeverity,
@@ -27,12 +31,17 @@ import { ProjectService } from '../project/project.service.js';
 type ProjectListItem = Awaited<ReturnType<ProjectService['findAll']>>['data'][number];
 
 const HOME_PROJECT_LIMIT = 100;
+const PORTFOLIO_DASHBOARD_PROJECT_LIMIT = 8;
+const PORTFOLIO_PAYMENT_DUE_SOON_DAYS = 30;
 const STATUS_ORDER: ProjectStatusCode[] = ['request', 'proposal', 'execution', 'transition'];
 const TERMINAL_TASK_STATUSES = ['completed', 'cancelled'];
 const OPEN_PROJECT_ISSUE_STATUSES = ['open', 'in_progress'];
 const OPEN_RISK_STATUSES = ['identified', 'assessing', 'mitigating', 'open', 'in_progress'];
 const ACTIVE_CHANGE_STATUSES = ['requested', 'reviewing', 'approved', 'in_progress'];
+const PAID_PAYMENT_STATUSES = new Set(['paid', 'completed']);
 const PROJECT_DETAIL_PATH = '/project/detail';
+const PMS_CONTRACT_SNAPSHOT_BOUNDARY_NOTE =
+  '계약·대금 원장은 CRM 정본이며 PMS 홈은 수락된 실행 스냅샷 합계와 예정 상태만 표시합니다.';
 
 const VIEW_ONLY_FEATURES: PmsProjectAccessFeatures = {
   canViewProject: true,
@@ -70,13 +79,17 @@ export class HomeService {
           directActions: 0,
           attention: 0,
           pmoSignals: 0,
+          feedback: 0,
           closeout: 0,
           stale: 0,
           actionableProjects: 0,
           readOnlyProjects: 0,
         },
+        riskReportSummary: this.buildEmptyRiskReportSummary(),
+        portfolioDashboard: this.buildEmptyPortfolioDashboard(),
         briefing: ['열람 가능한 프로젝트가 아직 없습니다.'],
         signals: [],
+        feedbackSignals: [],
         flow: this.buildFlow([]),
         recentChanges: [],
         accessProjects: [],
@@ -96,12 +109,15 @@ export class HomeService {
 
     const [
       tasks,
+      portfolioTasks,
       milestones,
       deliverables,
       closeConditions,
       projectIssues,
       risks,
       changeRequests,
+      projectEvents,
+      projectContracts,
     ] = await Promise.all([
       this.db.client.task.findMany({
         where: {
@@ -110,6 +126,19 @@ export class HomeService {
           statusCode: { notIn: TERMINAL_TASK_STATUSES },
         },
         select: { projectId: true, assigneeUserId: true, plannedEndAt: true, priorityCode: true },
+      }),
+      this.db.client.task.findMany({
+        where: {
+          projectId: { in: projectIds },
+          isActive: true,
+        },
+        select: {
+          projectId: true,
+          statusCode: true,
+          plannedEndAt: true,
+          estimatedHours: true,
+          actualHours: true,
+        },
       }),
       this.db.client.milestone.findMany({
         where: {
@@ -121,11 +150,11 @@ export class HomeService {
       }),
       this.db.client.projectDeliverable.findMany({
         where: { projectId: { in: projectIds }, isActive: true },
-        select: { projectId: true, submissionStatusCode: true, updatedAt: true },
+        select: { projectId: true, eventId: true, submissionStatusCode: true, updatedAt: true },
       }),
       this.db.client.projectCloseCondition.findMany({
         where: { projectId: { in: projectIds }, isActive: true, isChecked: false },
-        select: { projectId: true, statusCode: true },
+        select: { projectId: true, eventId: true, statusCode: true },
       }),
       this.db.client.projectIssue.findMany({
         where: {
@@ -133,7 +162,7 @@ export class HomeService {
           isActive: true,
           statusCode: { in: OPEN_PROJECT_ISSUE_STATUSES },
         },
-        select: { projectId: true, priorityCode: true, ownerUserId: true },
+        select: { projectId: true, priorityCode: true, ownerUserId: true, memo: true },
       }),
       this.db.client.projectRisk.findMany({
         where: {
@@ -150,6 +179,39 @@ export class HomeService {
           statusCode: { in: ACTIVE_CHANGE_STATUSES },
         },
         select: { projectId: true, priorityCode: true, ownerUserId: true },
+      }),
+      this.db.client.projectEvent.findMany({
+        where: {
+          projectId: { in: projectIds },
+          isActive: true,
+          eventTypeCode: { in: ['report', 'review'] },
+        },
+        select: {
+          projectId: true,
+          eventId: true,
+          eventTypeCode: true,
+          statusCode: true,
+          scheduledAt: true,
+        },
+      }),
+      this.db.client.projectContract.findMany({
+        where: {
+          projectId: { in: projectIds },
+          isActive: true,
+        },
+        select: {
+          projectId: true,
+          totalAmount: true,
+          currencyCode: true,
+          payments: {
+            where: { isActive: true },
+            select: {
+              amount: true,
+              paymentStatusCode: true,
+              dueDate: true,
+            },
+          },
+        },
       }),
     ]);
 
@@ -189,14 +251,37 @@ export class HomeService {
 
     const accessProjects = this.buildAccessProjects(projects, relationByProject, accessByProject);
     const signals = this.collapseSignals(rawSignals);
+    const feedbackSignals = this.buildFeedbackSignals(rawSignals);
     const metrics = this.buildMetrics(projects, rawSignals, accessProjects);
+    const riskReportSummary = this.buildRiskReportSummary(projects, {
+      milestones,
+      deliverables,
+      closeConditions,
+      issues: projectIssues,
+      risks,
+      changes: changeRequests,
+      events: projectEvents,
+    });
+    const portfolioDashboard = this.buildPortfolioDashboard(projects, relationByProject, accessByProject, {
+      tasks: portfolioTasks,
+      milestones,
+      deliverables,
+      closeConditions,
+      issues: projectIssues,
+      risks,
+      changes: changeRequests,
+      contracts: projectContracts,
+    });
 
     return {
       generatedAt,
       relationCounts,
       metrics,
+      riskReportSummary,
+      portfolioDashboard,
       briefing: this.buildBriefing(projects, signals, metrics),
       signals,
+      feedbackSignals,
       flow: this.buildFlow(projects),
       recentChanges: this.buildRecentChanges(projects, relationByProject, accessByProject),
       accessProjects,
@@ -300,7 +385,7 @@ export class HomeService {
       milestones: Array<{ dueAt: Date | null; statusCode: string }>;
       deliverables: Array<{ submissionStatusCode: string }>;
       closeConditions: Array<{ statusCode: string }>;
-      issues: Array<{ priorityCode: string; ownerUserId: bigint | null }>;
+      issues: Array<{ priorityCode: string; ownerUserId: bigint | null; memo: string | null }>;
       risks: Array<{ impactCode: string; likelihoodCode: string; ownerUserId: bigint | null }>;
       changes: Array<{ priorityCode: string; ownerUserId: bigint | null }>;
     },
@@ -315,8 +400,12 @@ export class HomeService {
     const pendingDeliverables = source.deliverables.filter((deliverable) =>
       !isDeliverableSubmissionCompleted(deliverable.submissionStatusCode),
     );
+    const reviewFeedbackIssues = source.issues.filter((issue) =>
+      this.isReviewFeedbackIssue(issue),
+    );
     const blockingIssues = source.issues.filter((issue) =>
-      ['critical', 'high'].includes(issue.priorityCode),
+      ['critical', 'high'].includes(issue.priorityCode)
+      && !this.isReviewFeedbackIssue(issue),
     );
     const highRisks = source.risks.filter((risk) =>
       ['critical', 'high'].includes(risk.impactCode) || risk.likelihoodCode === 'high',
@@ -339,6 +428,20 @@ export class HomeService {
         targetTab: 'controls',
         requiredCapability: 'canManageIssues',
         sortWeight: 116 + relationBoost + blockingIssues.length,
+      }, access));
+    }
+
+    if (reviewFeedbackIssues.length > 0) {
+      signals.push(this.buildSignal(project, {
+        relation,
+        kind: 'review-feedback-open',
+        severity: reviewFeedbackIssues.some((issue) => issue.priorityCode === 'critical') ? 'critical' : 'warning',
+        label: '피드백 대기',
+        reason: `${reviewFeedbackIssues.length}건 확인 필요`,
+        nextActionLabel: '피드백 확인',
+        targetTab: 'review',
+        requiredCapability: 'canManageIssues',
+        sortWeight: 123 + relationBoost + reviewFeedbackIssues.length,
       }, access));
     }
 
@@ -493,6 +596,12 @@ export class HomeService {
       .sort(this.sortSignals);
   }
 
+  private buildFeedbackSignals(signals: PmsHomeSignal[]): PmsHomeSignal[] {
+    return signals
+      .filter((signal) => signal.kind === 'review-feedback-open')
+      .sort(this.sortSignals);
+  }
+
   private buildMetrics(
     projects: ProjectListItem[],
     signals: PmsHomeSignal[],
@@ -503,10 +612,291 @@ export class HomeService {
       directActions: signals.filter((signal) => this.isActionable(signal.primaryAction)).length,
       attention: signals.length,
       pmoSignals: signals.filter((signal) => signal.relation === 'pmo').length,
+      feedback: signals.filter((signal) => signal.kind === 'review-feedback-open').length,
       closeout: signals.filter((signal) => signal.kind === 'closeout-blocked' || signal.kind === 'stage-transition-ready').length,
       stale: signals.filter((signal) => signal.kind === 'project-stale').length,
       actionableProjects: accessProjects.filter((project) => this.isActionable(project.primaryAction)).length,
       readOnlyProjects: accessProjects.filter((project) => !this.isActionable(project.primaryAction)).length,
+    };
+  }
+
+  private buildRiskReportSummary(
+    projects: ProjectListItem[],
+    source: {
+      milestones: Array<{ projectId: bigint; dueAt: Date | null }>;
+      deliverables: Array<{ eventId: bigint | null; submissionStatusCode: string }>;
+      closeConditions: Array<{ projectId: bigint; eventId: bigint | null; statusCode: string }>;
+      issues: Array<{ priorityCode: string; memo: string | null }>;
+      risks: Array<{ impactCode: string; likelihoodCode: string; ownerUserId: bigint | null }>;
+      changes: Array<{ priorityCode: string; ownerUserId: bigint | null }>;
+      events: Array<{ eventId: bigint; statusCode: string; scheduledAt: Date | null }>;
+    },
+  ): PmsHomeRiskReportSummary {
+    const deliverablesByEvent = this.groupNullableEventItems(source.deliverables);
+    const closeConditionsByEvent = this.groupNullableEventItems(source.closeConditions);
+    const projectStatusById = new Map(
+      projects.map((project) => [this.key(project.id), project.statusCode]),
+    );
+    const closeoutBlockedProjectIds = new Set(
+      source.closeConditions
+        .filter((condition) => projectStatusById.get(this.key(condition.projectId)) === condition.statusCode)
+        .map((condition) => this.key(condition.projectId)),
+    );
+    const plannedReports = source.events.filter((event) => event.statusCode === 'planned');
+
+    return {
+      openRisks: source.risks.length,
+      highRisks: source.risks.filter((risk) =>
+        ['critical', 'high'].includes(risk.impactCode) || risk.likelihoodCode === 'high',
+      ).length,
+      unassignedRisks: source.risks.filter((risk) => !risk.ownerUserId).length,
+      blockingIssues: source.issues.filter((issue) =>
+        ['critical', 'high'].includes(issue.priorityCode)
+        && !this.isReviewFeedbackIssue(issue),
+      ).length,
+      activeChanges: source.changes.length,
+      plannedReports: plannedReports.length,
+      readyReports: source.events.filter((event) =>
+        event.statusCode !== 'cancelled'
+        && this.isReportEventReady(event.eventId, deliverablesByEvent, closeConditionsByEvent),
+      ).length,
+      completedReports: source.events.filter((event) => event.statusCode === 'completed').length,
+      overdueReports: plannedReports.filter((event) =>
+        event.scheduledAt && event.scheduledAt.getTime() < this.startOfToday().getTime(),
+      ).length,
+      delayedMilestones: source.milestones.filter((milestone) =>
+        milestone.dueAt && milestone.dueAt.getTime() < this.startOfToday().getTime(),
+      ).length,
+      pendingDeliverables: source.deliverables.filter((deliverable) =>
+        !isDeliverableSubmissionCompleted(deliverable.submissionStatusCode),
+      ).length,
+      closeoutBlockedProjects: closeoutBlockedProjectIds.size,
+    };
+  }
+
+  private buildEmptyRiskReportSummary(): PmsHomeRiskReportSummary {
+    return {
+      openRisks: 0,
+      highRisks: 0,
+      unassignedRisks: 0,
+      blockingIssues: 0,
+      activeChanges: 0,
+      plannedReports: 0,
+      readyReports: 0,
+      completedReports: 0,
+      overdueReports: 0,
+      delayedMilestones: 0,
+      pendingDeliverables: 0,
+      closeoutBlockedProjects: 0,
+    };
+  }
+
+  private buildPortfolioDashboard(
+    projects: ProjectListItem[],
+    relationByProject: Map<string, PmsHomeRelation>,
+    accessByProject: Map<string, PmsProjectAccessSnapshot>,
+    source: {
+      tasks: Array<{
+        projectId: bigint;
+        statusCode: string;
+        plannedEndAt: Date | null;
+        estimatedHours: Prisma.Decimal | null;
+        actualHours: Prisma.Decimal | null;
+      }>;
+      milestones: Array<{ projectId: bigint; dueAt: Date | null; statusCode: string }>;
+      deliverables: Array<{ projectId: bigint; submissionStatusCode: string }>;
+      closeConditions: Array<{ projectId: bigint; statusCode: string }>;
+      issues: Array<{ projectId: bigint; priorityCode: string; memo: string | null }>;
+      risks: Array<{ projectId: bigint; impactCode: string; likelihoodCode: string }>;
+      changes: Array<{ projectId: bigint; priorityCode: string }>;
+      contracts: Array<{
+        projectId: bigint;
+        totalAmount: bigint | null;
+        currencyCode: string;
+        payments: Array<{
+          amount: bigint | null;
+          paymentStatusCode: string;
+          dueDate: Date | null;
+        }>;
+      }>;
+    },
+  ): PmsHomePortfolioDashboard {
+    const today = this.startOfToday();
+    const dueSoonCutoff = new Date(today.getTime() + (PORTFOLIO_PAYMENT_DUE_SOON_DAYS * 86_400_000));
+    const taskMap = this.groupByProject(source.tasks);
+    const milestoneMap = this.groupByProject(source.milestones);
+    const deliverableMap = this.groupByProject(source.deliverables);
+    const closeConditionMap = this.groupByProject(source.closeConditions);
+    const issueMap = this.groupByProject(source.issues);
+    const riskMap = this.groupByProject(source.risks);
+    const changeMap = this.groupByProject(source.changes);
+    const payments = source.contracts.flatMap((contract) => contract.payments);
+    const openPayments = payments.filter((payment) => !PAID_PAYMENT_STATUSES.has(payment.paymentStatusCode));
+    const currencyCode = source.contracts.find((contract) => contract.currencyCode)?.currencyCode ?? 'KRW';
+
+    let estimatedHours = 0;
+    let actualHours = 0;
+    let delayedMilestoneCount = 0;
+    let pendingDeliverableCount = 0;
+    let openControlCount = 0;
+    let openRiskCount = 0;
+    let openIssueCount = 0;
+    let activeChangeCount = 0;
+    let launchFeedbackCount = 0;
+    let closeoutBlockedProjectCount = 0;
+
+    const topProjects = projects
+      .map((project) => {
+        const projectKey = this.key(project.id);
+        const tasksForProject = taskMap.get(projectKey) ?? [];
+        const milestonesForProject = milestoneMap.get(projectKey) ?? [];
+        const deliverablesForProject = deliverableMap.get(projectKey) ?? [];
+        const closeConditionsForProject = closeConditionMap.get(projectKey) ?? [];
+        const issuesForProject = issueMap.get(projectKey) ?? [];
+        const risksForProject = riskMap.get(projectKey) ?? [];
+        const changesForProject = changeMap.get(projectKey) ?? [];
+        const reviewFeedbackIssues = issuesForProject.filter((issue) => this.isReviewFeedbackIssue(issue));
+        const nonFeedbackIssues = issuesForProject.filter((issue) => !this.isReviewFeedbackIssue(issue));
+        const delayedMilestones = milestonesForProject.filter((milestone) =>
+          milestone.dueAt
+          && milestone.dueAt.getTime() < today.getTime()
+          && !['achieved', 'cancelled'].includes(milestone.statusCode),
+        );
+        const pendingDeliverables = deliverablesForProject.filter((deliverable) =>
+          !isDeliverableSubmissionCompleted(deliverable.submissionStatusCode),
+        );
+        const closeoutBlockers = closeConditionsForProject.filter((condition) =>
+          condition.statusCode === project.statusCode,
+        );
+        const projectEstimatedHours = this.sumNumbers(tasksForProject.map((task) => task.estimatedHours));
+        const projectActualHours = this.sumNumbers(tasksForProject.map((task) => task.actualHours));
+        const projectEffortVarianceHours = this.roundOne(projectActualHours - projectEstimatedHours);
+        const projectOpenControlCount = nonFeedbackIssues.length + risksForProject.length + changesForProject.length;
+        const allowedActions = this.buildAllowedActions(project, accessByProject.get(projectKey));
+        const portfolioProject: PmsHomePortfolioDashboardProject = {
+          projectId: project.id.toString(),
+          projectName: project.projectName,
+          statusCode: project.statusCode as ProjectStatusCode,
+          stageCode: project.stageCode as ProjectStageCode,
+          relation: relationByProject.get(projectKey) ?? 'viewer',
+          currentOwnerUserId: project.currentOwnerUserId?.toString() ?? null,
+          ownerOrganizationId: project.ownerOrganizationId?.toString() ?? null,
+          updatedAt: project.updatedAt.toISOString(),
+          estimatedHours: projectEstimatedHours,
+          actualHours: projectActualHours,
+          effortVarianceHours: projectEffortVarianceHours,
+          effortBurnRate: this.toPercent(projectActualHours, projectEstimatedHours),
+          delayedMilestoneCount: delayedMilestones.length,
+          pendingDeliverableCount: pendingDeliverables.length,
+          openControlCount: projectOpenControlCount,
+          openIssueCount: nonFeedbackIssues.length,
+          openRiskCount: risksForProject.length,
+          activeChangeCount: changesForProject.length,
+          launchFeedbackCount: reviewFeedbackIssues.length,
+          closeoutBlockerCount: closeoutBlockers.length,
+          allowedActions,
+          primaryAction: this.resolvePrimaryAction(allowedActions, null, 'overview'),
+        };
+
+        estimatedHours = this.roundOne(estimatedHours + projectEstimatedHours);
+        actualHours = this.roundOne(actualHours + projectActualHours);
+        delayedMilestoneCount += portfolioProject.delayedMilestoneCount;
+        pendingDeliverableCount += portfolioProject.pendingDeliverableCount;
+        openControlCount += portfolioProject.openControlCount;
+        openRiskCount += portfolioProject.openRiskCount;
+        openIssueCount += portfolioProject.openIssueCount;
+        activeChangeCount += portfolioProject.activeChangeCount;
+        launchFeedbackCount += portfolioProject.launchFeedbackCount;
+        closeoutBlockedProjectCount += portfolioProject.closeoutBlockerCount > 0 ? 1 : 0;
+
+        const staleScore = project.stageCode === 'in_progress' && this.daysSince(project.updatedAt) >= 7 ? 2 : 0;
+        const score =
+          (portfolioProject.launchFeedbackCount * 6)
+          + (portfolioProject.closeoutBlockerCount * 5)
+          + (portfolioProject.openControlCount * 4)
+          + (portfolioProject.delayedMilestoneCount * 3)
+          + (portfolioProject.pendingDeliverableCount * 2)
+          + Math.max(0, portfolioProject.effortVarianceHours)
+          + staleScore;
+
+        return { project: portfolioProject, score };
+      })
+      .sort((a, b) => {
+        const scoreDiff = b.score - a.score;
+        if (scoreDiff !== 0) return scoreDiff;
+        return new Date(b.project.updatedAt).getTime() - new Date(a.project.updatedAt).getTime();
+      })
+      .slice(0, PORTFOLIO_DASHBOARD_PROJECT_LIMIT)
+      .map((item) => item.project);
+
+    const effortVarianceHours = this.roundOne(actualHours - estimatedHours);
+    const overduePaymentCount = openPayments.filter((payment) =>
+      payment.dueDate && payment.dueDate.getTime() < today.getTime(),
+    ).length;
+    const dueSoonPaymentCount = openPayments.filter((payment) =>
+      payment.dueDate
+      && payment.dueDate.getTime() >= today.getTime()
+      && payment.dueDate.getTime() <= dueSoonCutoff.getTime(),
+    ).length;
+
+    return {
+      projectCount: projects.length,
+      activeProjectCount: projects.filter((project) => project.stageCode === 'in_progress').length,
+      pmOwnedProjectCount: projects.filter((project) => relationByProject.get(this.key(project.id)) === 'pm').length,
+      pmoVisibleProjectCount: projects.filter((project) => relationByProject.get(this.key(project.id)) === 'pmo').length,
+      crmContractSnapshotCount: source.contracts.length,
+      crmContractSnapshotAmount: this.sumBigInts(source.contracts.map((contract) => contract.totalAmount)).toString(),
+      crmContractSnapshotCurrencyCode: currencyCode,
+      scheduledPaymentSnapshotAmount: this.sumBigInts(payments.map((payment) => payment.amount)).toString(),
+      overduePaymentCount,
+      dueSoonPaymentCount,
+      estimatedHours,
+      actualHours,
+      effortVarianceHours,
+      effortBurnRate: this.toPercent(actualHours, estimatedHours),
+      delayedMilestoneCount,
+      pendingDeliverableCount,
+      openControlCount,
+      openRiskCount,
+      openIssueCount,
+      activeChangeCount,
+      launchFeedbackCount,
+      closeoutBlockedProjectCount,
+      staleProjectCount: projects.filter((project) =>
+        project.stageCode === 'in_progress' && this.daysSince(project.updatedAt) >= 7,
+      ).length,
+      topProjects,
+      boundaryNote: PMS_CONTRACT_SNAPSHOT_BOUNDARY_NOTE,
+    };
+  }
+
+  private buildEmptyPortfolioDashboard(): PmsHomePortfolioDashboard {
+    return {
+      projectCount: 0,
+      activeProjectCount: 0,
+      pmOwnedProjectCount: 0,
+      pmoVisibleProjectCount: 0,
+      crmContractSnapshotCount: 0,
+      crmContractSnapshotAmount: '0',
+      crmContractSnapshotCurrencyCode: 'KRW',
+      scheduledPaymentSnapshotAmount: '0',
+      overduePaymentCount: 0,
+      dueSoonPaymentCount: 0,
+      estimatedHours: 0,
+      actualHours: 0,
+      effortVarianceHours: 0,
+      effortBurnRate: 0,
+      delayedMilestoneCount: 0,
+      pendingDeliverableCount: 0,
+      openControlCount: 0,
+      openRiskCount: 0,
+      openIssueCount: 0,
+      activeChangeCount: 0,
+      launchFeedbackCount: 0,
+      closeoutBlockedProjectCount: 0,
+      staleProjectCount: 0,
+      topProjects: [],
+      boundaryNote: PMS_CONTRACT_SNAPSHOT_BOUNDARY_NOTE,
     };
   }
 
@@ -524,6 +914,9 @@ export class HomeService {
     }
     if (metrics.directActions > 0) {
       bullets.push(`내가 바로 봐야 할 PM/멤버 신호 ${metrics.directActions}건이 있습니다.`);
+    }
+    if (metrics.feedback > 0) {
+      bullets.push(`런칭 피드백 확인이 필요한 프로젝트 ${metrics.feedback}건이 있습니다.`);
     }
     if (metrics.pmoSignals > 0) {
       bullets.push(`운영 관점에서 놓치면 위험한 프로젝트 신호 ${metrics.pmoSignals}건이 있습니다.`);
@@ -621,6 +1014,7 @@ export class HomeService {
     }
     if (features.canManageIssues) {
       actions.push(this.buildAction('manage-issues', '컨트롤 조치', 'controls', 'canManageIssues'));
+      actions.push(this.buildAction('review-feedback', '리뷰/피드백', 'review', 'canManageIssues'));
     }
     if (features.canManageDeliverables) {
       actions.push(this.buildAction('manage-deliverables', '산출물 조치', 'deliverables', 'canManageDeliverables'));
@@ -656,6 +1050,13 @@ export class HomeService {
     targetTab: PmsHomeTargetTab,
   ): PmsHomeAllowedAction | undefined {
     if (requiredCapability) {
+      const targetCapabilityAction = allowedActions.find((action) =>
+        action.targetTab === targetTab
+        && action.requiredCapability === requiredCapability
+        && action.kind !== 'view-project',
+      );
+      if (targetCapabilityAction) return targetCapabilityAction;
+
       const capabilityAction = allowedActions.find((action) => action.requiredCapability === requiredCapability);
       if (capabilityAction) return capabilityAction;
     }
@@ -671,6 +1072,35 @@ export class HomeService {
     return Boolean(action && action.kind !== 'view-project');
   }
 
+  private isReviewFeedbackIssue(issue: { memo: string | null }): boolean {
+    return issue.memo === 'review-feedback';
+  }
+
+  private isReportEventReady(
+    eventId: bigint,
+    deliverablesByEvent: Map<string, Array<{ submissionStatusCode: string }>>,
+    closeConditionsByEvent: Map<string, Array<unknown>>,
+  ): boolean {
+    const eventKey = this.key(eventId);
+    const linkedDeliverables = deliverablesByEvent.get(eventKey) ?? [];
+    const blockingCloseConditions = closeConditionsByEvent.get(eventKey) ?? [];
+    return linkedDeliverables.every((deliverable) =>
+      isDeliverableSubmissionCompleted(deliverable.submissionStatusCode),
+    ) && blockingCloseConditions.length === 0;
+  }
+
+  private groupNullableEventItems<T extends { eventId: bigint | null }>(rows: T[]): Map<string, T[]> {
+    const map = new Map<string, T[]>();
+    for (const row of rows) {
+      if (!row.eventId) continue;
+      const key = this.key(row.eventId);
+      const group = map.get(key) ?? [];
+      group.push(row);
+      map.set(key, group);
+    }
+    return map;
+  }
+
   private groupByProject<T extends { projectId: bigint }>(rows: T[]): Map<string, T[]> {
     const map = new Map<string, T[]>();
     for (const row of rows) {
@@ -680,6 +1110,23 @@ export class HomeService {
       map.set(key, group);
     }
     return map;
+  }
+
+  private sumBigInts(values: Array<bigint | number | null>): bigint {
+    return values.reduce<bigint>((sum, value) => sum + BigInt(value ?? 0), 0n);
+  }
+
+  private sumNumbers(values: Array<Prisma.Decimal | number | null>): number {
+    const sum = values.reduce<number>((total, value) => total + Number(value ?? 0), 0);
+    return this.roundOne(sum);
+  }
+
+  private toPercent(value: number, total: number): number {
+    return total > 0 ? Math.round((value / total) * 100) : 0;
+  }
+
+  private roundOne(value: number): number {
+    return Math.round(value * 10) / 10;
   }
 
   private key(value: bigint): string {

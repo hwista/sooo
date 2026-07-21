@@ -21,8 +21,11 @@ export { authApi } from './auth';
 // Endpoints
 export {
   codesApi,
+  crmHandoffApi,
   customersApi,
   menusApi,
+  pmsMasterApi,
+  pmsTemplatesApi,
   projectsApi,
   rolesApi,
 } from './endpoints';
@@ -31,15 +34,18 @@ export type {
   CodeItem,
   CreateCodeRequest,
   UpdateCodeRequest,
+  CrmContractHandoffCandidateFilters,
+  CrmContractPmsHandoffCandidate,
   CustomerItem,
   CustomerFilters,
-  CreateCustomerRequest,
-  UpdateCustomerRequest,
+  CloseConditionTemplateGroup,
+  MasterFilters,
   MenuItem,
   FavoriteMenu,
   MyMenuResponse,
   MenuType,
   AccessType,
+  DeliverableTemplateGroup,
   Project,
   ProjectFilters,
   CreateProjectRequest,
@@ -52,15 +58,22 @@ export type {
   ProjectDoneResultCode,
   RoleItem,
   RoleMenuPermission,
+  TemplateGroupApprovalStatusCode,
+  TemplateGroupHistory,
   UpdateRolePermissionsRequest,
+  UpsertCloseConditionTemplateGroupRequest,
+  UpsertDeliverableTemplateGroupRequest,
 } from './endpoints';
 
 // 편의를 위한 통합 객체
 import { authApi } from './auth';
 import {
   codesApi,
+  crmHandoffApi,
   customersApi,
   menusApi,
+  pmsMasterApi,
+  pmsTemplatesApi,
   projectsApi,
   rolesApi,
 } from './endpoints';
@@ -68,7 +81,10 @@ import {
 export const api = {
   auth: authApi,
   codes: codesApi,
+  crmHandoff: crmHandoffApi,
   customers: customersApi,
+  pmsMaster: pmsMasterApi,
+  pmsTemplates: pmsTemplatesApi,
   menus: menusApi,
   projects: projectsApi,
   roles: rolesApi,

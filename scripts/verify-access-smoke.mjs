@@ -78,6 +78,14 @@ const DMS_FEATURE_PERMISSION_CODES = {
   canUseGit: 'dms.git.use',
 };
 
+const CRM_OPPORTUNITY_FEATURE_PERMISSION_CODES = {
+  canViewOpportunity: 'crm.opportunity.read',
+  canCreateOpportunity: 'crm.opportunity.write',
+  canEditOpportunity: 'crm.opportunity.write',
+  canConfirmOpportunity: 'crm.opportunity.confirm',
+  canAddVersion: 'crm.opportunity.version.manage',
+};
+
 const PMS_MANAGEMENT_FEATURES = [
   'canEditProject',
   'canManageMembers',
@@ -273,6 +281,7 @@ async function verifyRuntimeDomainChecks(config, adminAccessToken) {
     config.communityRoutePrefix,
   );
   await verifyDmsRuntime(config.baseUrl, runtimeAccessToken, runtimeInspection);
+  await verifyCrmRuntime(config.baseUrl, runtimeAccessToken, runtimeInspection);
 
   return {
     accessToken: runtimeAccessToken,
@@ -563,6 +572,109 @@ async function verifyDmsRuntime(baseUrl, runtimeAccessToken, runtimeInspection) 
   }
 }
 
+async function verifyCrmRuntime(baseUrl, runtimeAccessToken, runtimeInspection) {
+  console.log('→ verify: CRM opportunity access snapshot');
+  const globalAccess = await fetchSuccessData(
+    `${baseUrl}/crm/opportunities/access/me`,
+    authHeaders(runtimeAccessToken),
+    [200],
+    '/crm/opportunities/access/me',
+  );
+
+  assertFeatureFlags(
+    globalAccess.features,
+    CRM_OPPORTUNITY_FEATURE_PERMISSION_CODES,
+    runtimeInspection.action.grantedPermissionCodes,
+    runtimeInspection.action.policy.hasSystemOverride,
+    'CRM opportunity global access snapshot',
+  );
+  assertPolicyTrace(
+    globalAccess.policy,
+    runtimeInspection.action.policy,
+    'CRM opportunity global access policy',
+    FULL_POLICY_TRACE_KEYS,
+  );
+
+  const listExpectedStatus = globalAccess.features.canViewOpportunity ? [200] : [403];
+  const opportunityList = await fetchSuccessData(
+    `${baseUrl}/crm/opportunities?sort=updated-desc`,
+    authHeaders(runtimeAccessToken),
+    listExpectedStatus,
+    '/crm/opportunities',
+    { allowNonSuccessEnvelope: !globalAccess.features.canViewOpportunity },
+  );
+
+  if (!globalAccess.features.canViewOpportunity) {
+    return;
+  }
+
+  assertArray(opportunityList.items, 'CRM opportunity list items');
+  const opportunityId = opportunityList.items[0]?.id;
+  if (typeof opportunityId !== 'string' || !opportunityId) {
+    throw new Error('CRM opportunity list 에 선택 가능한 영업기회 id 가 없습니다.');
+  }
+
+  const opportunityAccess = await fetchSuccessData(
+    `${baseUrl}/crm/opportunities/${encodeURIComponent(opportunityId)}/access`,
+    authHeaders(runtimeAccessToken),
+    [200],
+    `/crm/opportunities/${opportunityId}/access`,
+  );
+  assertCrmOpportunityAccessSnapshot(opportunityAccess, opportunityId);
+  assertPolicyTrace(
+    opportunityAccess.policy,
+    runtimeInspection.action.policy,
+    'CRM opportunity object access foundation policy',
+    FOUNDATION_POLICY_TRACE_KEYS,
+  );
+
+  await fetchSuccessData(
+    `${baseUrl}/crm/opportunities/${encodeURIComponent(opportunityId)}`,
+    authHeaders(runtimeAccessToken),
+    [200],
+    `/crm/opportunities/${opportunityId}`,
+  );
+
+  const quotePreview = await fetchSuccessData(
+    `${baseUrl}/crm/opportunities/${encodeURIComponent(opportunityId)}/quote-preview`,
+    authHeaders(runtimeAccessToken),
+    [200],
+    `/crm/opportunities/${opportunityId}/quote-preview`,
+  );
+  assertCrmQuotePreview(quotePreview, opportunityId);
+
+  if (!globalAccess.features.canCreateOpportunity) {
+    console.log('→ verify: CRM opportunity create forbidden');
+    const { response } = await requestJson(`${baseUrl}/crm/opportunities`, {
+      method: 'POST',
+      headers: authHeaders(runtimeAccessToken, {
+        'Content-Type': 'application/json',
+      }),
+      body: JSON.stringify({}),
+    });
+    assertStatus(response, 403, '/crm/opportunities create forbidden');
+  } else {
+    console.log('! runtime persona 가 CRM opportunity create 권한이 있어 create deny probe 는 건너뜁니다.');
+  }
+
+  if (!opportunityAccess.features.canEditOpportunity) {
+    console.log(`→ verify: CRM opportunity update forbidden (opportunity=${opportunityId})`);
+    const { response } = await requestJson(
+      `${baseUrl}/crm/opportunities/${encodeURIComponent(opportunityId)}`,
+      {
+        method: 'PUT',
+        headers: authHeaders(runtimeAccessToken, {
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify({}),
+      },
+    );
+    assertStatus(response, 403, `/crm/opportunities/${opportunityId} update forbidden`);
+  } else {
+    console.log('! runtime persona 가 CRM opportunity edit 권한이 있어 update deny probe 는 건너뜁니다.');
+  }
+}
+
 async function verifyNonAdminInspectBoundary(config, runtimeContext) {
   if (
     runtimeContext
@@ -737,6 +849,76 @@ function assertProjectAccessSnapshot(projectAccess, projectId) {
   ) {
     throw new Error(`/projects/${projectId}/access canViewProject 계산이 역할/관리 capability 와 일치하지 않습니다.`);
   }
+}
+
+function assertCrmOpportunityAccessSnapshot(opportunityAccess, opportunityId) {
+  if (!isPlainObject(opportunityAccess)) {
+    throw new Error(`/crm/opportunities/${opportunityId}/access 응답이 객체가 아닙니다.`);
+  }
+
+  if (opportunityAccess.opportunityId !== opportunityId) {
+    throw new Error(`/crm/opportunities/${opportunityId}/access 응답 opportunityId 가 요청값과 다릅니다.`);
+  }
+
+  assertBooleanFields(
+    opportunityAccess.features,
+    [
+      'canViewOpportunity',
+      'canCreateOpportunity',
+      'canEditOpportunity',
+      'canConfirmOpportunity',
+      'canAddVersion',
+    ],
+    'CRM opportunity features',
+  );
+  assertBooleanFields(
+    opportunityAccess.roles,
+    ['isOpportunityOwnerNameMatch'],
+    'CRM opportunity roles',
+  );
+}
+
+function assertCrmQuotePreview(quotePreview, opportunityId) {
+  if (!isPlainObject(quotePreview)) {
+    throw new Error(`/crm/opportunities/${opportunityId}/quote-preview 응답이 객체가 아닙니다.`);
+  }
+
+  if (!isPlainObject(quotePreview.workflow)) {
+    throw new Error(`/crm/opportunities/${opportunityId}/quote-preview workflow 가 객체가 아닙니다.`);
+  }
+
+  if (quotePreview.workflow.sourceOpportunityId !== opportunityId) {
+    throw new Error(`/crm/opportunities/${opportunityId}/quote-preview sourceOpportunityId 가 요청값과 다릅니다.`);
+  }
+
+  if (quotePreview.workflow.readOnly !== true) {
+    throw new Error(`/crm/opportunities/${opportunityId}/quote-preview 는 readOnly=true 여야 합니다.`);
+  }
+
+  assertArray(quotePreview.workflow.unavailableActions, 'CRM quote preview unavailableActions');
+  for (const action of ['CRM 직접 PDF 저장', 'CRM 직접 Word 견적서 생성']) {
+    if (!quotePreview.workflow.unavailableActions.includes(action)) {
+      throw new Error(`/crm/opportunities/${opportunityId}/quote-preview unavailableActions 에 ${action} 이 없습니다.`);
+    }
+  }
+
+  for (const action of ['DMS 저장', '계약 전환']) {
+    if (quotePreview.workflow.unavailableActions.includes(action)) {
+      throw new Error(`/crm/opportunities/${opportunityId}/quote-preview unavailableActions 에 현재 지원하는 ${action} 이 포함되어 있습니다.`);
+    }
+  }
+
+  if (!isPlainObject(quotePreview.summary) || typeof quotePreview.summary.quoteTotal !== 'number') {
+    throw new Error(`/crm/opportunities/${opportunityId}/quote-preview summary.quoteTotal 이 숫자가 아닙니다.`);
+  }
+
+  if (quotePreview.summary.vatIncluded !== false || quotePreview.summary.vatNotice !== 'VAT 별도') {
+    throw new Error(`/crm/opportunities/${opportunityId}/quote-preview VAT 표기가 기대와 다릅니다.`);
+  }
+
+  assertArray(quotePreview.productLines, 'CRM quote preview productLines');
+  assertArray(quotePreview.serviceLines, 'CRM quote preview serviceLines');
+  assertArray(quotePreview.notes, 'CRM quote preview notes');
 }
 
 function assertMenuTree(items, expectedAdminMenu, label) {
@@ -980,14 +1162,15 @@ function printDryRun(config) {
   console.log('2. /users/profile legacy field contract');
   console.log('3. /access/ops/inspect success for admin subject');
   if (config.skipRuntime) {
-    console.log('4. runtime PMS/SNS/DMS verification skipped');
+    console.log('4. runtime PMS/SNS/DMS/CRM verification skipped');
   } else {
     console.log('4. runtime user login');
     console.log('5. PMS menus + accessible project allow + foreign project deny');
     console.log('6. CHS/SNS access/feed + post create boundary');
     console.log('7. DMS access/files/search/settings/git boundary');
+    console.log('8. CRM opportunity access/list/detail/quote-preview + create/update boundary');
   }
-  console.log('8. /access/ops/inspect 403 for non-admin runtime or explicit credential');
+  console.log('9. /access/ops/inspect 403 for non-admin runtime or explicit credential');
 }
 
 function mask(value) {

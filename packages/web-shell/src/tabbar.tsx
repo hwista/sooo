@@ -32,7 +32,7 @@ function SsooTabBarShell({
 }: SsooTabBarShellProps) {
   return (
     <div
-      className="flex shrink-0 items-end border-b border-gray-200 bg-gray-50"
+      className="flex shrink-0 items-end border-b border-border bg-muted"
       style={{ height: SSOO_SHELL_METRICS.tabBar.containerHeight }}
     >
       {leftControlSlot}
@@ -57,7 +57,7 @@ export function SsooTabBarControlButton({ children, title, onClick, className }:
       type="button"
       title={title}
       onClick={onClick}
-      className={cn('h-control-h shrink-0 px-2 transition-colors hover:bg-gray-100', className)}
+      className={cn('h-control-h shrink-0 px-2 transition-colors hover:bg-muted', className)}
     >
       {children}
     </Button>
@@ -96,9 +96,9 @@ export function SsooTabBarIcon({
     <span
       className={cn(
         'inline-flex shrink-0 items-center justify-center',
-        tone === 'default' && (active ? 'text-ssoo-primary' : 'text-gray-500'),
+        tone === 'default' && (active ? 'text-ssoo-primary' : 'text-muted-foreground'),
         tone === 'editing' && (active ? 'text-ssoo-primary/80' : 'text-ssoo-primary/70'),
-        tone === 'inverse' && (active ? 'text-ssoo-primary' : 'text-white'),
+        tone === 'inverse' && (active ? 'text-ssoo-primary' : 'text-primary-foreground'),
         className
       )}
       aria-hidden
@@ -127,7 +127,7 @@ export function SsooTabBarHomeButton({ active = false, children, onClick, classN
   return (
     <div
       className={cn(
-        'flex h-control-h w-10 shrink-0 items-center justify-center border-r border-gray-200 transition-colors',
+        'flex h-control-h w-10 shrink-0 items-center justify-center border-r border-border transition-colors',
         active ? 'border-b-2 border-b-ls-red bg-ssoo-content-border' : 'bg-ls-gray hover:bg-ssoo-content-border/80',
         className
       )}
@@ -193,10 +193,10 @@ export function SsooTabBarItem({
       onDragEnd={onDragEnd}
       onDragLeave={onDragLeave}
       className={cn(
-        'group flex h-control-h shrink-0 cursor-pointer select-none items-center gap-1.5 border-r border-gray-200 px-3 transition-all',
+        'group flex h-control-h shrink-0 cursor-pointer select-none items-center gap-1.5 border-r border-border px-3 transition-all',
         disabled && 'cursor-not-allowed opacity-50',
         !disabled && active ? 'border-b-2 border-b-ls-red bg-ssoo-content-border' : null,
-        !disabled && !active ? 'hover:bg-gray-100' : null,
+        !disabled && !active ? 'hover:bg-muted' : null,
         dragging && 'opacity-50',
         dragOver && !disabled && 'border-l-2 border-l-ssoo-primary',
         modified && 'italic',
@@ -214,7 +214,7 @@ export function SsooTabBarItem({
         className="flex h-full min-w-0 flex-1 justify-start gap-1.5 px-3 text-left disabled:pointer-events-none disabled:opacity-100"
       >
         {iconSlot}
-        <span className={cn('max-w-[120px] truncate text-sm', !disabled && active ? 'font-medium text-ssoo-primary' : 'text-gray-600')}>
+        <span className={cn('max-w-[120px] truncate text-sm', !disabled && active ? 'font-medium text-ssoo-primary' : 'text-muted-foreground')}>
           {title}
         </span>
       </Button>
@@ -249,10 +249,10 @@ export function SsooTabBarCloseButton({
       className={cn(
         'flex h-control-h-sm w-control-h-sm items-center justify-center rounded opacity-0 transition-opacity',
         'pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100',
-        active ? 'hover:bg-ssoo-primary/20' : 'hover:bg-gray-200'
+        active ? 'hover:bg-ssoo-primary/20' : 'hover:bg-muted'
       )}
     >
-      {cloneIconElement(children, cn('h-3 w-3', active ? 'text-ssoo-primary' : 'text-gray-500'))}
+      {cloneIconElement(children, cn('h-3 w-3', active ? 'text-ssoo-primary' : 'text-muted-foreground'))}
     </Button>
   );
 }

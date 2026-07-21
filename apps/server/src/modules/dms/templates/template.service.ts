@@ -15,6 +15,7 @@ import type {
   TemplateItem,
   TemplateOriginType,
   TemplateReferenceDoc,
+  TemplateReviewConfirmation,
   TemplateScope,
   TemplateSourceType,
   TemplateStatus,
@@ -169,6 +170,31 @@ function normalizeGeneration(value: unknown): TemplateGeneration | undefined {
   };
 }
 
+function normalizeTemplateReviewStatus(value: unknown): TemplateReviewConfirmation['status'] {
+  return value === 'confirmed' ? 'confirmed' : 'pending';
+}
+
+function normalizeTemplateReviewSource(value: unknown): TemplateReviewConfirmation['source'] | undefined {
+  return value === 'dms-settings' || value === 'system-seed'
+    ? value
+    : undefined;
+}
+
+function normalizeTemplateReviewConfirmation(value: unknown): TemplateReviewConfirmation | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  return {
+    status: normalizeTemplateReviewStatus(value.status),
+    confirmedAt: normalizeOptionalString(value.confirmedAt),
+    confirmedByLoginId: normalizeOptionalString(value.confirmedByLoginId),
+    confirmedByName: normalizeOptionalString(value.confirmedByName),
+    memo: normalizeOptionalString(value.memo),
+    source: normalizeTemplateReviewSource(value.source),
+  };
+}
+
 function resolveOwnerRef(scope: TemplateScope, userId: string): string {
   const trimmedUserId = userId.trim();
   if (scope === 'global') {
@@ -228,6 +254,7 @@ function normalizeMetadataRecord(
     originType: normalizeTemplateOriginType(value.originType),
     referenceDocuments: normalizeReferenceDocuments(value.referenceDocuments),
     generation: normalizeGeneration(value.generation),
+    reviewConfirmation: normalizeTemplateReviewConfirmation(value.reviewConfirmation),
   };
 }
 
@@ -270,6 +297,101 @@ const DEFAULT_SYSTEM_TEMPLATES: Array<Omit<TemplateItem, 'updatedAt'>> = [
     originType: 'generated',
     referenceDocuments: [],
     generation: { source: 'manual' },
+  },
+  {
+    id: 'crm-contract-v1',
+    name: 'CRM 계약서 기본 템플릿',
+    description: 'CRM 계약 원장 handoff 변수로 계약서 초안을 검토하기 위한 DMS 시스템 템플릿',
+    scope: 'global',
+    kind: 'document',
+    content: `# {{contractName}} 계약서
+
+## 계약 기본정보
+
+- 계약번호: {{contractCode}}
+- 고객사: {{customerName}}
+- 계약명: {{contractName}}
+- 영업 담당자: {{ownerName}}
+- 계약기간: {{contractPeriod}}
+- WBS: {{wbsCode}}
+
+## 공급자
+
+- 회사명: {{sellerCompanyName}}
+- 대표자: {{sellerCeoName}}
+- 사업자등록번호: {{sellerBusinessRegistrationNo}}
+- 주소: {{sellerAddress}}
+
+## 금액
+
+- 계약 매출: {{revenueTotal}}
+- 외부원가: {{externalCostTotal}}
+- 손익: {{marginTotal}}
+
+## 납부조건
+
+- 청구계획 건수: {{billingPlanCount}}
+- 청구 예정월: {{billingPlanMonths}}
+- 청구계획 매출 합계: {{billingRevenueTotal}}
+- 청구계획 외부원가 합계: {{billingExternalCostTotal}}
+
+## 검토 메모
+
+{{dmsBoundary}}
+`,
+    ownerId: 'system',
+    visibility: 'shared',
+    status: 'active',
+    sourceType: 'markdown-file',
+    originType: 'referenced',
+    referenceDocuments: [],
+    generation: { source: 'manual', taskKey: 'crm-contract-document' },
+  },
+  {
+    id: 'crm-quote-v1',
+    name: 'CRM 견적서 기본 템플릿',
+    description: 'CRM 영업기회 견적 handoff 변수로 견적서 초안을 검토하기 위한 DMS 시스템 템플릿',
+    scope: 'global',
+    kind: 'document',
+    content: `# {{quoteNumber}} 견적서
+
+## 견적 기본정보
+
+- 견적번호: {{quoteNumber}}
+- 고객사: {{customerName}}
+- 고객 담당자: {{clientContactName}}
+- 건명: {{opportunityName}}
+- 영업 담당자: {{ownerName}}
+- 담당 부서: {{ownerDepartment}}
+- 담당 연락처: {{ownerPhone}} / {{ownerEmail}}
+- 발행일: {{issuedAt}}
+- 유효기한: {{validUntil}}
+- 수금조건: {{paymentTermCode}}
+
+## 공급자
+
+- 회사명: {{sellerCompanyName}}
+- 대표자: {{sellerCeoName}}
+- 사업자등록번호: {{sellerBusinessRegistrationNo}}
+- 주소: {{sellerAddress}}
+- 연락처: {{sellerTel}} / {{sellerEmail}}
+
+## 금액
+
+- 견적 금액: {{quoteTotal}}
+- 부가세: {{vatNotice}}
+
+## 검토 메모
+
+{{dmsBoundary}}
+`,
+    ownerId: 'system',
+    visibility: 'shared',
+    status: 'active',
+    sourceType: 'markdown-file',
+    originType: 'referenced',
+    referenceDocuments: [],
+    generation: { source: 'manual', taskKey: 'crm-quote-document' },
   },
 ];
 
@@ -487,6 +609,10 @@ interface TemplateListFilter {
 
 interface SaveTemplateInput extends Omit<TemplateItem, 'id' | 'updatedAt'> {
   id?: string;
+}
+
+interface ConfirmTemplateReviewInput {
+  memo?: string;
 }
 
 interface TemplateRow {
@@ -753,6 +879,79 @@ export class TemplateService {
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   }
 
+  async confirmReview(
+    id: string,
+    scope: TemplateScope,
+    userId = 'anonymous',
+    input: ConfirmTemplateReviewInput = {},
+    currentUser?: TokenPayload,
+  ): Promise<TemplateItem | null> {
+    await this.ensureRoots();
+
+    const ownerRef = resolveOwnerRef(scope, userId);
+    const row = await this.findTemplateRow(id, scope, ownerRef);
+    if (!row) {
+      return null;
+    }
+
+    const template = this.toTemplateItem(row);
+    if (!template) {
+      return null;
+    }
+
+    const existingMetadata = normalizeMetadataRecord(row.metadataJson);
+    const now = new Date().toISOString();
+    const actorLoginId = normalizeOptionalString(currentUser?.loginId)
+      ?? normalizeOptionalString(currentUser?.userId)
+      ?? ownerRef;
+    const actorName = normalizeOptionalString(currentUser?.userName) ?? actorLoginId;
+    const reviewConfirmation: TemplateReviewConfirmation = {
+      status: 'confirmed',
+      confirmedAt: now,
+      confirmedByLoginId: actorLoginId,
+      confirmedByName: actorName,
+      memo: normalizeOptionalString(input.memo),
+      source: 'dms-settings',
+    };
+    const metadata = this.buildMetadataRecord(
+      {
+        ...template,
+        id: template.id,
+        reviewConfirmation,
+      },
+      existingMetadata,
+      ownerRef,
+      existingMetadata?.createdAt ?? template.createdAt ?? row.createdAt.toISOString(),
+      now,
+      actorLoginId,
+    );
+
+    const updated = await this.db.client.dmsTemplate.update({
+      where: { templateId: row.templateId },
+      data: {
+        templateScopeCode: toStoredTemplateScope(metadata.scope),
+        templateKindCode: metadata.kind,
+        ownerRef,
+        visibilityCode: metadata.visibility,
+        templateStatusCode: metadata.status,
+        sourceTypeCode: metadata.sourceType,
+        originTypeCode: metadata.originType ?? null,
+        metadataJson: JSON.parse(JSON.stringify(metadata)) as Prisma.InputJsonValue,
+        isActive: true,
+        lastSource: TEMPLATE_LAST_SOURCE,
+        lastActivity: 'dms.templates.review-confirm',
+      },
+      select: this.templateRowSelect(),
+    });
+
+    return this.toTemplateItem(updated, template.content) ?? {
+      ...template,
+      updatedAt: metadata.updatedAt,
+      lastModifiedBy: metadata.lastModifiedBy,
+      reviewConfirmation,
+    };
+  }
+
   async save(
     template: SaveTemplateInput,
     userId = 'anonymous',
@@ -846,6 +1045,7 @@ export class TemplateService {
       originType: metadata.originType,
       referenceDocuments: metadata.referenceDocuments,
       generation: metadata.generation,
+      reviewConfirmation: metadata.reviewConfirmation,
     };
   }
 
@@ -978,6 +1178,7 @@ export class TemplateService {
       originType: metadata?.originType ?? normalizeTemplateOriginType(row.originTypeCode),
       referenceDocuments: metadata?.referenceDocuments ?? [],
       generation: metadata?.generation,
+      reviewConfirmation: metadata?.reviewConfirmation,
     };
   }
 
@@ -1015,6 +1216,9 @@ export class TemplateService {
         template.referenceDocuments ?? existing?.referenceDocuments ?? [],
       ),
       generation: normalizeGeneration(template.generation ?? existing?.generation),
+      reviewConfirmation: normalizeTemplateReviewConfirmation(
+        template.reviewConfirmation ?? existing?.reviewConfirmation,
+      ),
     };
   }
 }

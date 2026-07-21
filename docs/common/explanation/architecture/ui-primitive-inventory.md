@@ -2,7 +2,7 @@
 title: UI Primitive Inventory
 owner: platform-team
 status: active
-lastReviewed: 2026-06-19
+lastReviewed: 2026-07-08
 ---
 
 # UI Primitive Inventory
@@ -15,6 +15,7 @@ SSOO 원자 UI 컴포넌트는 `@ssoo/web-ui`를 플랫폼 pool로 삼는다. �
 - platform implementation: `packages/web-ui/src/*.tsx`
 - gate script: `.github/scripts/verify-ui-primitives.js`
 - consumption gate script: `.github/scripts/verify-ui-consumption.js`
+- style boundary gate script: `.github/scripts/verify-ui-style-boundary.js`
 
 ## 상태 모델
 
@@ -60,12 +61,16 @@ SSOO 원자 UI 컴포넌트는 `@ssoo/web-ui`를 플랫폼 pool로 삼는다. �
 7. `apps/web`, `packages/web-shell`, `packages/web-auth`의 TSX surface는 원시 `button/input/textarea/select/table/thead/tbody/tfoot/tr/th/td`를 직접 렌더링하지 않고 platform primitive를 소비한다.
 8. 정적 intrinsic 태그에 interactive role 또는 `onClick+tabIndex`/`onClick+onKeyDown`을 붙여 primitive처럼 쓰는 pseudo-control은 허용하지 않는다.
 9. `@ssoo/web-ui` 원자 사용처의 `className`은 layout-only override만 허용한다. Button/Input/NativeSelect/SelectTrigger/Textarea/Checkbox recipe 토큰을 다시 조합하면 실패한다.
-10. story 파일은 검증 대상에서 제외한다.
+10. `@ssoo/web-ui`의 `cn()`은 SSOO 커스텀 typography token과 color token을 동시에 보존하는 class merge 정본이다. 앱/공용 패키지 local utils는 이 구현을 재사용한다.
+11. DMS 문서 페이지 header action의 현재 렌더 리듬(36px control height, 12px horizontal padding, 13px medium label)은 Button `pageAction` 역할 size 기준선이다. 공용 page header/data workspace/settings header action은 이 역할 size를 소비하고 사용처에서 height/spacing/typography recipe를 재조합하지 않는다.
+12. story 파일은 검증 대상에서 제외한다.
+13. 앱 `globals.css`의 font/theme/raw visual token 재정의, 앱 Tailwind theme recipe 재선언, 공용 원자/페이지 템플릿/auth surface, 도메인 reusable surface, 최종 페이지 내부와 주요 App Router page/error surface의 raw Tailwind 색상/arbitrary/hex visual token 재정의는 `verify:ui-style-boundary`에서 실패한다. raw `white`/`black`도 semantic token 없이 직접 쓰지 않는다.
 
 ## 실행 지점
 
 - `pnpm run verify:ui-primitives`: inventory와 앱 로컬 adapter를 직접 검증한다.
 - `pnpm run verify:ui-consumption`: 앱/공용 web surface의 raw 원자 태그 소비를 검증한다.
+- `pnpm run verify:ui-style-boundary`: 공용 원자/페이지 템플릿/auth surface, app globals/Tailwind/domain reusable surface, 최종 페이지 내부의 style drift를 검증한다.
 - `pnpm run codex:preflight`: 작업 시작/점검 루틴에서 두 gate를 실행한다.
 - `pnpm run build`: `build:raw` 진입 전에 두 gate를 실행한다.
 - `pnpm run codex:push-guard`: push 전 두 gate를 실행한다.
@@ -84,6 +89,9 @@ SSOO 원자 UI 컴포넌트는 `@ssoo/web-ui`를 플랫폼 pool로 삼는다. �
 
 | 날짜 | 변경 내용 |
 |------|-----------|
+| 2026-07-08 | SSOO typography/color token을 함께 보존하는 `cn()` merge 정본과 DMS 문서 page action 기반 Button `pageAction` 역할 size 기준(36px/12px/13px medium)을 추가 |
+| 2026-07-08 | `verify:ui-style-boundary`의 검사 범위를 app globals, 최종 페이지 내부와 주요 App Router page/error surface까지 확장하고 raw `white`/`black` visual token도 차단 |
+| 2026-07-07 | 공용 원자/페이지 템플릿/auth surface와 앱 globals/Tailwind/domain reusable surface style drift를 차단하는 `verify:ui-style-boundary` gate 추가 |
 | 2026-06-19 | `SegmentedControl` primitive 추가, export/adapter AST 검증과 pseudo-control/recipe class 중복 차단 기준 반영 |
 | 2026-06-18 | 원자 UI raw 태그 소비를 앱/web-shell/web-auth 전역에서 막는 `verify:ui-consumption` 추가 |
 | 2026-06-18 | 원자 UI inventory의 중간 상태를 제거하고 모든 원자를 `platform` 단일 상태로 정리 |

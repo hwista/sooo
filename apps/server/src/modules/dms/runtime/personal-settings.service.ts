@@ -3,7 +3,6 @@ import { configService } from './dms-config.service.js';
 import { createDmsLogger } from './dms-logger.js';
 import type {
   DmsConfigDbClient,
-  PreferredSettingsViewMode,
   SettingsAccessMode,
   SettingsProfileKey,
   SettingsScope,
@@ -18,8 +17,6 @@ export interface PersonalIdentitySettings {
 
 export interface PersonalWorkspaceSettings {
   defaultSettingsScope: SettingsScope;
-  defaultSettingsView: PreferredSettingsViewMode;
-  showDiffByDefault: boolean;
   preferredStorageProvider: StorageProvider | 'system-default';
 }
 
@@ -69,7 +66,7 @@ class PersonalSettingsService {
         where: { scopeCode: 'personal', ownerRef: userId, isActive: true },
       });
       if (row && row.configData && typeof row.configData === 'object') {
-        return row.configData as unknown as DmsPersonalSettings;
+        return this.sanitizeSettings(row.configData as unknown as DmsPersonalSettings);
       }
     } catch (error) {
       logger.error('DB에서 개인 설정 로드 실패', error);
@@ -83,7 +80,7 @@ class PersonalSettingsService {
       const existing = await this.dbClient.dmsConfig.findFirst({
         where: { scopeCode: 'personal', ownerRef: userId },
       });
-      const data = JSON.parse(JSON.stringify(settings));
+      const data = JSON.parse(JSON.stringify(this.sanitizeSettings(settings)));
       if (existing) {
         await this.dbClient.dmsConfig.update({
           where: { configId: existing.configId },
@@ -144,10 +141,10 @@ class PersonalSettingsService {
   /** 비동기 업데이트 (DB에 저장). */
   async updateSettingsForUser(userId: string, partial: DeepPartial<DmsPersonalSettings>): Promise<DmsPersonalSettings> {
     const current = await this.loadSettingsForUser(userId);
-    const merged = this.deepMerge(
+    const merged = this.sanitizeSettings(this.deepMerge(
       current as unknown as Record<string, unknown>,
       partial as unknown as Record<string, unknown>,
-    ) as unknown as DmsPersonalSettings;
+    ) as unknown as DmsPersonalSettings);
     this.settingsCache.set(userId, merged);
     if (this.dbReady) {
       await this.saveToDb(userId, merged);
@@ -158,10 +155,10 @@ class PersonalSettingsService {
   /** @deprecated 레거시 동기 업데이트. DB 모드에서는 updateSettingsForUser 사용 */
   updateSettings(partial: DeepPartial<DmsPersonalSettings>): DmsPersonalSettings {
     const current = this.getSettings();
-    const merged = this.deepMerge(
+    const merged = this.sanitizeSettings(this.deepMerge(
       current as unknown as Record<string, unknown>,
       partial as unknown as Record<string, unknown>
-    ) as unknown as DmsPersonalSettings;
+    ) as unknown as DmsPersonalSettings);
     this.settingsCache.set(ANONYMOUS_PROFILE_KEY, merged);
     return merged;
   }
@@ -194,8 +191,6 @@ class PersonalSettingsService {
       },
       workspace: {
         defaultSettingsScope: 'system',
-        defaultSettingsView: 'structured',
-        showDiffByDefault: false,
         preferredStorageProvider: 'system-default',
       },
       viewer: {
@@ -210,6 +205,16 @@ class PersonalSettingsService {
         },
       },
     };
+  }
+
+  private sanitizeSettings(settings: DmsPersonalSettings): DmsPersonalSettings {
+    const next = JSON.parse(JSON.stringify(settings)) as DmsPersonalSettings;
+    const workspace = next.workspace as unknown as Record<string, unknown> | undefined;
+    if (workspace && typeof workspace === 'object') {
+      delete workspace.defaultSettingsView;
+      delete workspace.showDiffByDefault;
+    }
+    return next;
   }
 
   private deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {

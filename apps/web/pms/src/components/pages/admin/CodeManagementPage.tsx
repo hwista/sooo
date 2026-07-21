@@ -21,7 +21,9 @@ import {
   useDeactivateCode,
 } from '@/hooks/queries/useCodes';
 import type { CodeItem, CreateCodeRequest, UpdateCodeRequest } from '@/lib/api/endpoints/codes';
+import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
+import { useConfirmStore } from '@/stores/confirm.store';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
 
 type FormMode = 'create' | 'edit';
@@ -47,6 +49,7 @@ const INITIAL_FORM: CodeFormData = {
 };
 
 export function CodeManagementPage() {
+  const { confirm } = useConfirmStore();
   const [selectedGroup, setSelectedGroup] = useState<string>('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>('create');
@@ -89,10 +92,19 @@ export function CodeManagementPage() {
     setDialogOpen(true);
   }, []);
 
-  const handleDeactivate = useCallback((code: CodeItem) => {
-    if (!confirm(`"${code.displayNameKo}" 코드를 비활성화하시겠습니까?`)) return;
-    deactivateMutation.mutate(code.id);
-  }, [deactivateMutation]);
+  const handleDeactivate = useCallback(async (code: CodeItem) => {
+    const confirmed = await confirm({
+      title: '코드를 비활성화할까요?',
+      description: `${code.displayNameKo} 코드를 비활성화합니다.`,
+      confirmText: '비활성화',
+    });
+    if (!confirmed) return;
+    deactivateMutation.mutate(code.id, {
+      onError: (error) => toast.error('코드를 비활성화하지 못했습니다.', {
+        description: getErrorMessage(error),
+      }),
+    });
+  }, [confirm, deactivateMutation]);
 
   const handleSubmit = useCallback(() => {
     if (formMode === 'create') {
@@ -133,7 +145,7 @@ export function CodeManagementPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
         <div className="flex items-center gap-2">
           <Database className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-lg font-semibold">코드 관리</h1>
@@ -143,8 +155,8 @@ export function CodeManagementPage() {
       {/* Content: 2-panel layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Code Groups */}
-        <div className="w-72 border-r bg-gray-50 flex flex-col">
-          <div className="px-4 py-3 border-b bg-white">
+        <div className="w-72 border-r bg-muted flex flex-col">
+          <div className="px-4 py-3 border-b bg-card">
             <h2 className="text-sm font-medium text-muted-foreground">코드 그룹</h2>
           </div>
           <div className="flex-1 overflow-auto">
@@ -160,7 +172,7 @@ export function CodeManagementPage() {
                         'w-full text-left px-4 py-2.5 text-sm flex items-center justify-between transition-colors',
                         selectedGroup === g.codeGroup
                           ? 'bg-ssoo-primary/10 text-ssoo-primary font-medium'
-                          : 'text-gray-700 hover:bg-gray-100',
+                          : 'text-muted-foreground hover:bg-muted',
                       )}
                     >
                       <span className="truncate">{g.codeGroup}</span>
@@ -168,7 +180,7 @@ export function CodeManagementPage() {
                         'text-xs px-1.5 py-0.5 rounded-full',
                         selectedGroup === g.codeGroup
                           ? 'bg-ssoo-primary/20 text-ssoo-primary'
-                          : 'bg-gray-200 text-gray-500',
+                          : 'bg-muted text-muted-foreground',
                       )}>
                         {g.count}
                       </span>
@@ -188,7 +200,7 @@ export function CodeManagementPage() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between px-6 py-3 border-b bg-white">
+              <div className="flex items-center justify-between px-6 py-3 border-b bg-card">
                 <h2 className="text-sm font-semibold">{selectedGroup}</h2>
                 <Button size="sm" onClick={handleOpenCreate}>
                   <Plus className="h-4 w-4 mr-1" />
@@ -206,7 +218,7 @@ export function CodeManagementPage() {
                 ) : (
                   <Table className="w-full text-sm">
                     <TableHeader>
-                      <TableRow className="border-b bg-gray-50">
+                      <TableRow className="border-b bg-muted">
                         <TableHead className="text-left px-4 py-2.5 font-medium text-muted-foreground">코드값</TableHead>
                         <TableHead className="text-left px-4 py-2.5 font-medium text-muted-foreground">한국어명</TableHead>
                         <TableHead className="text-left px-4 py-2.5 font-medium text-muted-foreground">영어명</TableHead>
@@ -217,7 +229,7 @@ export function CodeManagementPage() {
                     </TableHeader>
                     <TableBody>
                       {codes.map((code) => (
-                        <TableRow key={code.id} className="border-b hover:bg-gray-50 transition-colors">
+                        <TableRow key={code.id} className="border-b hover:bg-muted transition-colors">
                           <TableCell className="px-4 py-2.5 font-mono text-xs">{code.codeValue}</TableCell>
                           <TableCell className="px-4 py-2.5">{code.displayNameKo}</TableCell>
                           <TableCell className="px-4 py-2.5 text-muted-foreground">{code.displayNameEn ?? '-'}</TableCell>
@@ -226,8 +238,8 @@ export function CodeManagementPage() {
                             <span className={cn(
                               'px-2 py-0.5 rounded text-xs font-medium',
                               code.isActive
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-500',
+                                ? 'bg-ssoo-success-bg text-ssoo-success'
+                                : 'bg-muted text-muted-foreground',
                             )}>
                               {code.isActive ? '활성' : '비활성'}
                             </span>
@@ -240,7 +252,7 @@ export function CodeManagementPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeactivate(code)}
+                                onClick={() => void handleDeactivate(code)}
                                 disabled={!code.isActive}
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -352,4 +364,11 @@ export function CodeManagementPage() {
       </Dialog>
     </div>
   );
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return '요청 처리 중 오류가 발생했습니다.';
 }

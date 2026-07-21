@@ -84,7 +84,7 @@ export function FloatingAssistantHistory({
           </Button>
         </div>
         {historyOpen && (
-          <div className="max-h-48 w-64 overflow-y-auto rounded-lg border border-ssoo-content-border bg-white p-2 shadow-sm">
+          <div className="max-h-48 w-64 overflow-y-auto rounded-lg border border-ssoo-content-border bg-card p-2 shadow-sm">
             <AssistantSessionHistoryList
               items={sessions.slice(0, 20)}
               isActive={(item) => item.id === activeSessionId}

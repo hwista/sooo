@@ -7,6 +7,8 @@ import { useProjectList } from '@/hooks/queries';
 import { useTabStore } from '@/stores';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Project, ProjectStatusCode } from '@/lib/api/endpoints/projects';
+import { formatProjectCustomerName, formatProjectExecutionAssetLabel } from '@/lib/project-display';
+import { formatPmsDate, getPmsTime } from '@/lib/pms-format';
 import { Button } from '@ssoo/web-ui';
 
 const STATUS_LABELS: Record<ProjectStatusCode, string> = {
@@ -17,10 +19,10 @@ const STATUS_LABELS: Record<ProjectStatusCode, string> = {
 };
 
 const STATUS_BADGE_CLASSES: Record<ProjectStatusCode, string> = {
-  request: 'bg-amber-50 text-amber-700 border-amber-200',
-  proposal: 'bg-blue-50 text-blue-700 border-blue-200',
-  execution: 'bg-green-50 text-green-700 border-green-200',
-  transition: 'bg-purple-50 text-purple-700 border-purple-200',
+  request: 'bg-ssoo-warning-bg text-ssoo-warning border-ssoo-warning-border',
+  proposal: 'bg-ssoo-info-bg text-ssoo-info border-ssoo-info-border',
+  execution: 'bg-ssoo-success-bg text-ssoo-success border-ssoo-success-border',
+  transition: 'bg-ssoo-accent-bg text-ssoo-accent border-ssoo-accent-border',
 };
 
 const STAGE_LABELS = {
@@ -30,14 +32,9 @@ const STAGE_LABELS = {
 } as const;
 
 function getDaysSince(dateStr: string): number {
-  const then = new Date(dateStr).getTime();
-  if (Number.isNaN(then)) return 0;
+  const then = getPmsTime(dateStr);
+  if (!then) return 0;
   return Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
-}
-
-function formatDate(dateStr?: string | null): string {
-  if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('ko-KR');
 }
 
 function useProjects() {
@@ -72,11 +69,11 @@ function PageShell({
   children: ReactNode;
 }) {
   return (
-    <div className="h-full overflow-auto bg-gray-50 p-6">
+    <div className="h-full overflow-auto bg-muted p-6">
       <div className="mx-auto max-w-6xl space-y-5">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">{title}</h1>
-          <p className="mt-1 text-sm text-gray-500">{description}</p>
+          <h1 className="text-lg font-bold text-foreground">{title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
         {children}
       </div>
@@ -88,7 +85,7 @@ function LoadingCards() {
   return (
     <div className="grid gap-3 md:grid-cols-2">
       {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="rounded-lg border bg-white p-4 shadow-sm">
+        <div key={index} className="rounded-lg border bg-card p-4 shadow-sm">
           <Skeleton className="mb-3 h-5 w-2/3" />
           <Skeleton className="mb-2 h-4 w-full" />
           <Skeleton className="h-4 w-1/2" />
@@ -100,17 +97,17 @@ function LoadingCards() {
 
 function ErrorState() {
   return (
-    <div className="rounded-lg border bg-white p-8 text-center text-gray-500 shadow-sm">
-      <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-400" />
+    <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground shadow-sm">
+      <AlertCircle className="mx-auto mb-3 h-10 w-10 text-ssoo-danger" />
       <p className="text-sm font-medium">프로젝트 데이터를 불러오지 못했습니다.</p>
-      <p className="mt-1 text-xs text-gray-400">잠시 후 다시 시도해주세요.</p>
+      <p className="mt-1 text-xs text-muted-foreground">잠시 후 다시 시도해주세요.</p>
     </div>
   );
 }
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border bg-white p-8 text-center text-sm text-gray-500 shadow-sm">
+    <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground shadow-sm">
       {message}
     </div>
   );
@@ -127,31 +124,39 @@ function ProjectCard({
 }) {
   const openProject = useOpenProjectDetail();
   const staleDays = getDaysSince(project.updatedAt);
+  const customerLabel = formatProjectCustomerName(project);
+  const executionAssetLabel = formatProjectExecutionAssetLabel(project);
 
   return (
     <Button variant="plain" size="plain"
       type="button"
       onClick={() => openProject(project)}
-      className="rounded-lg border bg-white p-4 text-left shadow-sm transition hover:border-ssoo-primary/40 hover:shadow-md"
+      className="rounded-lg border bg-card p-4 text-left shadow-sm transition hover:border-ssoo-primary/40 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-gray-900">{project.projectName}</p>
-          <p className="mt-1 text-xs text-gray-500">PRJ-{String(project.id).padStart(6, '0')}</p>
+          <p className="truncate text-sm font-semibold text-foreground">{project.projectName}</p>
+          <p className="mt-1 text-xs text-muted-foreground">PRJ-{String(project.id).padStart(6, '0')}</p>
         </div>
         <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASSES[project.statusCode]}`}>
           {STATUS_LABELS[project.statusCode]}
         </span>
       </div>
-      <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
-        <span className="rounded bg-gray-100 px-2 py-1">{STAGE_LABELS[project.stageCode]}</span>
-        <span className="rounded bg-gray-100 px-2 py-1">최근 업데이트 {staleDays}일 전</span>
-        <span className="rounded bg-gray-100 px-2 py-1">담당자 {project.currentOwnerUserId ? project.currentOwnerUserId : '미지정'}</span>
+      <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+        <span className="rounded bg-muted px-2 py-1">{STAGE_LABELS[project.stageCode]}</span>
+        {customerLabel !== '-' ? (
+          <span className="rounded bg-muted px-2 py-1">고객사 {customerLabel}</span>
+        ) : null}
+        {executionAssetLabel !== '-' ? (
+          <span className="rounded bg-muted px-2 py-1">자산 {executionAssetLabel}</span>
+        ) : null}
+        <span className="rounded bg-muted px-2 py-1">최근 업데이트 {staleDays}일 전</span>
+        <span className="rounded bg-muted px-2 py-1">담당자 {project.currentOwnerUserId ? '지정됨' : '미지정'}</span>
       </div>
       {reason ? (
         <p className="mt-3 text-xs font-medium text-ssoo-primary">{reason}</p>
       ) : null}
-      {meta ? <p className="mt-1 text-xs text-gray-500">{meta}</p> : null}
+      {meta ? <p className="mt-1 text-xs text-muted-foreground">{meta}</p> : null}
     </Button>
   );
 }
@@ -168,17 +173,17 @@ function SummaryCard({
   help: string;
 }) {
   return (
-    <div className="rounded-lg border bg-white p-4 shadow-sm">
+    <div className="rounded-lg border bg-card p-4 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="rounded-lg bg-ssoo-sitemap-bg p-2 text-ssoo-primary">
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-xs text-gray-500">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="text-xl font-bold text-foreground">{value}</p>
         </div>
       </div>
-      <p className="mt-3 text-xs text-gray-500">{help}</p>
+      <p className="mt-3 text-xs text-muted-foreground">{help}</p>
     </div>
   );
 }
@@ -186,7 +191,7 @@ function SummaryCard({
 export function MyProjectsPage() {
   const { projects, isLoading, error } = useProjects();
   const visibleProjects = useMemo(
-    () => [...projects].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()),
+    () => [...projects].sort((a, b) => getPmsTime(b.updatedAt) - getPmsTime(a.updatedAt)),
     [projects],
   );
 
@@ -264,7 +269,7 @@ export function CloseoutPage() {
               key={project.id}
               project={project}
               reason={project.statusCode === 'transition' ? '전환 진행 상태를 확인해야 합니다.' : '수행 완료 후 종료/전환 진입 여부를 확인해야 합니다.'}
-              meta={`전환 예정일: ${formatDate(project.transitionDetail?.transitionDueAt)}`}
+              meta={`전환 예정일: ${formatPmsDate(project.transitionDetail?.transitionDueAt)}`}
             />
           ))}
         </div>
@@ -296,10 +301,10 @@ export function OperationsOverviewPage() {
             <SummaryCard icon={CheckCircle2} label="종료 후보" value={summary.closeoutCandidates.length} help="종료/전환 readiness 확인 대상" />
           </div>
 
-          <div className="rounded-lg border bg-white p-4 shadow-sm">
+          <div className="rounded-lg border bg-card p-4 shadow-sm">
             <div className="mb-3 flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-ssoo-primary" />
-              <h2 className="text-sm font-semibold text-gray-800">운영 판단 큐</h2>
+              <h2 className="text-sm font-semibold text-foreground">운영 판단 큐</h2>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               {[...summary.staleProjects, ...summary.unownedProjects, ...summary.closeoutCandidates]
@@ -319,7 +324,7 @@ export function OperationsOverviewPage() {
 export function WorkQueuePlaceholder() {
   return (
     <PageShell title="업무 큐" description="프로젝트를 횡단해 지금 확인해야 하는 항목을 모으는 PMS 업무 큐입니다.">
-      <div className="rounded-lg border bg-white p-6 text-sm text-gray-500 shadow-sm">
+      <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground shadow-sm">
         <ListTodo className="mb-3 h-8 w-8 text-ssoo-primary" />
         세부 항목은 프로젝트 실행 데이터와 함께 확장됩니다.
       </div>

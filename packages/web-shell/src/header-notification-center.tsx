@@ -112,7 +112,7 @@ export function SsooHeaderNotificationCenter<TItem extends SsooNotificationPanel
 
       {open ? (
         <>
-          {withBackdrop ? <div aria-hidden="true" className="fixed inset-0 z-[55] bg-black/35" /> : null}
+          {withBackdrop ? <div aria-hidden="true" className="fixed inset-0 z-[55] bg-foreground/35" /> : null}
           <SsooNotificationPanel
             {...resolvedPanelProps}
             panelRef={panelRef}

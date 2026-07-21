@@ -401,7 +401,7 @@ export function DocumentPageContent({
             <div className="absolute inset-0 [background:linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--ssoo-sitemap-background)_22%,transparent)_54%,color-mix(in_srgb,var(--ssoo-background)_42%,transparent)_100%)]" />
             <div className="absolute left-1/2 top-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 justify-center px-6">
               <div className="flex flex-col items-center gap-3 text-center text-ssoo-primary">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-ssoo-primary shadow-sm ring-1 ring-ssoo-primary/20 backdrop-blur">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-card/85 text-ssoo-primary shadow-sm ring-1 ring-ssoo-primary/20 backdrop-blur">
                   <Lock className="h-5 w-5" />
                 </span>
                 <span className="text-sm font-semibold drop-shadow-sm">현 문서는 열람 권한 요청이 필요합니다.</span>
@@ -440,7 +440,7 @@ export function DocumentPageContent({
         canManageMetadata={canManageMetadata}
       />
       {isTemplateGenerating && !(currentDraftContent?.trim()) ? (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/80">
           <LoadingState size="sm" message="AI가 템플릿 초안을 작성하는 중..." />
         </div>
       ) : null}

@@ -134,7 +134,11 @@ const ENTITY_LABELS: Record<SsooGlobalSearchEntityType, string> = {
   person: '사람',
   post: '게시물',
   project: '프로젝트',
+  task: '작업',
+  projectMember: '프로젝트 멤버',
+  projectStatus: '프로젝트 상태',
   customer: '고객',
+  activity: '고객 활동',
   opportunity: '영업기회',
   user: '사용자',
   setting: '설정',
@@ -144,11 +148,11 @@ const ENTITY_LABELS: Record<SsooGlobalSearchEntityType, string> = {
 
 function getBadgeToneClass(tone: SsooGlobalSearchBadge['tone'] = 'neutral'): string {
   if (tone === 'primary') return 'border-ssoo-primary/20 bg-ssoo-primary/10 text-ssoo-primary';
-  if (tone === 'success') return 'border-green-200 bg-green-50 text-green-700';
-  if (tone === 'warning') return 'border-amber-200 bg-amber-50 text-amber-700';
-  if (tone === 'danger') return 'border-red-200 bg-red-50 text-red-700';
+  if (tone === 'success') return 'border-ssoo-success-border bg-ssoo-success-bg text-ssoo-success';
+  if (tone === 'warning') return 'border-ssoo-warning-border bg-ssoo-warning-bg text-ssoo-warning';
+  if (tone === 'danger') return 'border-ssoo-danger-border bg-ssoo-danger-bg text-ssoo-danger';
   if (tone === 'muted') return 'border-transparent bg-transparent text-ssoo-primary/55';
-  return 'border-ssoo-content-border bg-white text-ssoo-primary/75';
+  return 'border-ssoo-content-border bg-card text-ssoo-primary/75';
 }
 
 function getSourceFilters(
@@ -245,7 +249,7 @@ export function SsooGlobalSearchResultCard({
       type="button"
       onClick={onOpen}
       className={cn(
-        'block w-full min-w-0 overflow-hidden whitespace-normal rounded-lg border border-ssoo-content-border bg-white p-4 text-left transition-colors hover:bg-ssoo-content-bg/40',
+        'block w-full min-w-0 overflow-hidden whitespace-normal rounded-lg border border-ssoo-content-border bg-card p-4 text-left transition-colors hover:bg-ssoo-content-bg/40',
         'items-stretch justify-start gap-0',
         highlighted && 'bg-ssoo-content-bg'
       )}
@@ -254,7 +258,7 @@ export function SsooGlobalSearchResultCard({
         <span className="inline-flex rounded-full border border-ssoo-content-border bg-ssoo-content-bg px-1.5 py-0 text-badge text-ssoo-primary/75">
           {SOURCE_LABELS[result.sourceApp]}
         </span>
-        <span className="inline-flex rounded-full border border-ssoo-content-border bg-white px-1.5 py-0 text-badge text-ssoo-primary/75">
+        <span className="inline-flex rounded-full border border-ssoo-content-border bg-card px-1.5 py-0 text-badge text-ssoo-primary/75">
           {ENTITY_LABELS[result.entityType]}
         </span>
         {result.badges?.map((badge) => (

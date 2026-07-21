@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 환경 요구사항
 
 - **Node.js** ≥ 20.0.0, **pnpm** ≥ 9.0.0
-- **PostgreSQL** ≥ 15 (또는 Docker: `docker compose up -d`)
+- **PostgreSQL** ≥ 15 (또는 로컬 Docker 전체 스택: `pnpm docker:up`)
 - 환경변수: `.env` 파일 참조 (아래 "데이터베이스 명령" 섹션)
 - Health check: `curl http://localhost:4000/api/health`
 - 환경 설정: `.env.example` 복사 → `.env`. 시드 계정/데이터는 `pnpm db:seed` 실행 (스크립트: `.codex/scripts/db-seed.sh`)
@@ -42,6 +42,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 10. **비판적 수용**: 사용자 요청도 기술적 타당성 검증 후 수행, 무조건 긍정 금지
 11. **기존 결과 보존**: 새 작업이 기존 기능·동작·UI 외형을 왜곡·축소·변형 금지
 12. **패턴 최우선 + 경계 관리**: 워크스페이스 패턴 동일 적용, 역할/책임 경계 명확, 비대화 방지
+
+## Behavior Impact Gate
+
+- 이미 구현되어 사용자가 볼 수 있는 화면, 버튼, 안내 문구, 오류/빈 상태, 수동 복구 동선, 권한 fallback 은 모두 사용자-visible 기능으로 취급한다.
+- 사용자-visible 기능은 단순 미사용 코드나 dead code로 간주하지 않는다.
+- 사용자가 명시적으로 지시하지 않은 삭제, 축소, 대체, 자동 병합, 다른 UI로 흡수하는 작업은 실행 전 사용자 확정 게이트를 거친다.
+- 게이트 요청 시 기존 동작, 변경/제거 이유, 대체 사용자 동선, 실패 영향, 회귀 검증 방법을 함께 제시한다.
+- 코드 정리 원칙과 충돌하면 기존 결과 보존과 사용자 확정 게이트가 우선한다.
 
 ---
 
@@ -138,7 +146,7 @@ src/app/api/*/route.ts → server/handlers/*.handler.ts → server/services/*/
 
 ---
 
-## 금지 사항 (13개)
+## 금지 사항 (14개)
 
 1. **와일드카드 export** (`export * from`)
 2. **any 타입 사용** - `unknown` 또는 구체적 타입 사용
@@ -153,6 +161,7 @@ src/app/api/*/route.ts → server/handlers/*.handler.ts → server/services/*/
 11. **기존 기능·동작·UI 외형의 왜곡/축소/변형** - 새 작업이 기존 결과물을 훼손
 12. **역할/책임 경계 무시한 비대 모듈** - 하나의 파일/컴포넌트에 과도한 책임 집중
 13. **DMS에서 `@ssoo/database` 직접 import** - DMS는 웹 앱이며 DB 접근은 서버/플랫폼 경계를 통해 관리
+14. **사용자-visible 기능의 임의 제거/대체** - 명시 지시 없는 화면·버튼·복구 동선·상태 표현 제거는 Behavior Impact Gate 없이 수행 금지
 
 ---
 
@@ -228,6 +237,7 @@ pnpm install
 |------|--------|
 | 타입 체크 | `npx tsc --noEmit` (앱별) 또는 `pnpm build` |
 | 린트 | `pnpm lint` |
+| Production 의존성 감사 | `pnpm security:audit` |
 | DMS 빌드 | `pnpm run build:web-dms` |
 | DMS 가드 | `pnpm run codex:dms-guard` |
 | GitLab workspace 동기화 | `pnpm run codex:workspace-sync-from-gitlab` (LSWIKI ← GitLab `LSITC_WEB/LSWIKI`; legacy alias: `codex:dms-sync-from-gitlab`) |
@@ -250,7 +260,7 @@ pnpm install
 
 ### 관측형 실행
 
-`pnpm build`, `pnpm lint`, `pnpm docs:verify`, `pnpm codex:preflight`, `pnpm verify:access-*` 는 모두 `*:observed` 변형으로 실행됨 (`package.json` 참조).
+`pnpm build`, `pnpm lint`, `pnpm security:audit`, `pnpm docs:verify`, `pnpm codex:preflight`, `pnpm verify:access-*` 는 모두 `*:observed` 변형으로 실행됨 (`package.json` 참조).
 
 - `*:observed` = `scripts/run-observed-command.sh` 래퍼 (machine-local observer가 있으면 연결하고, 없으면 raw 명령으로 fallback)
 - raw 명령은 `:raw` suffix 사용 (예: `pnpm run build:raw`, `pnpm run lint:raw`) — 래핑 노이즈 없이 디버깅할 때

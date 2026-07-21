@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { configService, type StorageProvider } from '../runtime/dms-config.service.js';
-import { normalizeRelativePath } from '../runtime/path-utils.js';
+import { normalizeRelativePath, resolveContainedPath as resolvePathWithinRoot } from '../runtime/path-utils.js';
 
 export type StorageOrigin = 'manual' | 'ingest' | 'teams' | 'network_drive';
 export type StorageStatus = 'draft' | 'pending_confirm' | 'published';
@@ -111,15 +111,13 @@ class StorageAdapterService {
 
   resolveContainedPath(provider: StorageProvider, relativePath: string): { fullPath: string; relativePath: string } {
     const absoluteRoot = this.getStorageRoot(provider);
-    const normalizedRelative = normalizeRelativePath(relativePath);
-    const fullPath = path.resolve(absoluteRoot, normalizedRelative);
-    const relative = path.relative(absoluteRoot, fullPath);
+    const resolved = resolvePathWithinRoot(absoluteRoot, relativePath);
 
-    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    if (!resolved.valid) {
       throw new Error('허용되지 않은 경로입니다.');
     }
 
-    return { fullPath, relativePath: relative.replace(/\\/g, '/') };
+    return { fullPath: resolved.targetPath, relativePath: resolved.safeRelPath };
   }
 
   private resolveDestination(provider: StorageProvider, relativePath: string, fileName: string): { fullPath: string; relativePath: string } {

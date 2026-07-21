@@ -2,7 +2,7 @@
 title: SSOO Frame System
 owner: platform-team
 status: active
-lastReviewed: 2026-06-19
+lastReviewed: 2026-07-16
 ---
 
 # SSOO Frame System
@@ -16,10 +16,13 @@ SSOO 서비스 shell은 특정 서비스 화면을 다른 서비스가 복사하
 - 5개 앱(PMS/CRM/DMS/SNS/Admin)의 sidebar는 하나의 동작으로 통일한다. 토글로 접기/펼치기를 전환하고, 접힌 상태에서는 rail을 보이다가 마우스 hover 시 전체 sidebar가 펼쳐진다.
 - sidebar 동작 차이를 서비스별 optional mode로 만들지 않는다. 도메인 차이는 slot/data로만 표현한다.
 - 5개 앱의 sidebar 표현/동작 계층은 `SsooSidebarSurface`가 소유한다. 앱은 공용 visible identity의 brand title, brand action icon/event, search value/change/clear handler, refresh action, section 정의, tree node data, item click action만 주입한다.
+- mobile breakpoint에서는 Admin/CRM/PMS/SNS가 `useSsooMobileViewport`와 `SsooMobileSidebarOverlay`를 사용해 같은 modal sidebar 계약을 따른다. overlay는 backdrop 클릭과 Escape 닫기, `dialog`/`aria-modal` 시맨틱, body scroll lock을 소유하고 앱은 열림 상태와 sidebar content만 주입한다. DMS의 기존 모바일 준비 안내는 별도 제품 지원 게이트이므로 명시적인 지원 전환 없이 overlay로 대체하지 않는다.
 - 전역 CSS/token 정본은 `packages/web-shell/src/styles/ssoo-global.css`이며, 앱별 theme token도 `body[data-ssoo-theme]` 기준으로 이 파일이 소유한다. 각 앱의 `globals.css`는 Tailwind directive/공통 utility를 복제하지 않고, 도메인 전용 CSS 또는 theme token이 공용 CSS에서 제공된다는 짧은 표식만 둔다.
 - Tailwind theme extension 정본은 `@ssoo/web-ui/tailwind-preset`이다. 5개 웹 앱은 앱별 `tailwind.config.*`에 typography/spacing/radius/color extension을 재선언하지 않고, preset과 content scan 대상만 선언한다.
 - 내부 페이지 primitive 적용은 `apps/web`, `packages/web-shell`, `packages/web-auth` 전역 TSX surface 기준으로 강제한다. 원시 `button/input/textarea/select/table/thead/tbody/tfoot/tr/th/td` 소비는 `verify:ui-consumption`에서 실패한다.
 - 원자 UI inventory 정본은 `packages/web-ui/primitive-inventory.json`이다. inventory에 등록된 모든 원자는 `platform` 상태여야 하며, `verify:ui-primitives`는 inventory 밖 앱 로컬 primitive 추가, 중간/local-only 상태, 앱 로컬 재정의를 preflight/build/push guard에서 차단한다. 두 gate의 자세한 기준은 [UI Primitive Inventory](ui-primitive-inventory.md)를 따른다.
+- 전역 디자인 경험 표준은 `web-shell`/`web-ui`에 한정하지 않는다. app `globals.css`, 공용 원자 UI, 페이지 템플릿, shared auth surface와 도메인 앱이 보유한 `components/templates`, `components/common/{page,datagrid,form}`, DMS settings surface 같은 재사용 surface, 그리고 `apps/web/*/src/components/pages/**` 최종 페이지 내부와 주요 App Router page/error surface도 같은 표준 대상이다. 공용/도메인 surface 및 최종 페이지 style drift, raw `white`/`black` visual token 직접 사용은 `verify:ui-style-boundary`가 build/preflight/push guard에서 차단한다.
+- 제어 가능한 editor/viewer/export renderer는 플랫폼 font token(`--font-sans`, `--font-mono`)과 semantic class를 소비해야 한다. 제어 불가능한 third-party 내부/shadow/native style만 명시 예외로 남길 수 있다.
 - shell metric 정본은 `packages/web-shell/src/shell-metrics.ts`의 `SSOO_SHELL_METRICS`다. sidebar width, header height, tabbar height/min/max, overlay inset/panel width, desktop/mobile breakpoint 같은 frame 표현 수치는 앱 상수로 재선언하지 않는다.
 - theme preset 정본은 `packages/web-shell/src/theme.ts`의 `SSOO_THEME_PRESETS`와 `SSOO_APP_DEFAULT_THEME_KEYS`다. 앱은 기본 theme key를 `body[data-ssoo-theme]`로 선택하고, 색상 token 값과 light/dark 변형은 `web-shell`이 소유한다. CRM theme은 확정 전까지 `crm` preset의 임시 Sales Blue 기준을 사용한다.
 - 향후 Admin이 플랫폼 기본 theme을 설정하거나 사용자가 앱별 개인 설정에서 theme을 바꾸는 경우에도 저장/권한/선택 UI는 앱/Admin이 소유하고, 저장값은 `SsooThemePresetKey`만 참조한다. 새 색상 세트는 앱 CSS가 아니라 `SSOO_THEME_PRESETS`와 `ssoo-global.css` preset block에 추가한다.
@@ -47,11 +50,13 @@ SSOO 서비스 shell은 특정 서비스 화면을 다른 서비스가 복사하
 
 - `@ssoo/web-ui/tailwind-preset`
   - SSOO semantic typography, control height, icon size, radius, theme token color alias를 공통 Tailwind preset으로 제공한다.
+  - `cn()` class merge 정본은 SSOO custom typography token을 font-size로 인식해 `text-body-sm text-ssoo-primary` 같은 typography/color 조합을 동시에 보존한다.
   - Admin/CRM/PMS/DMS/SNS는 이 preset을 소비하고, 앱별 Tailwind config에서 같은 fontSize/spacing/colors/borderRadius map을 복제하지 않는다.
   - DMS 문서 prose/editor처럼 도메인 콘텐츠 해석에 필요한 CSS는 앱 local CSS에 남길 수 있지만, Button/Input/Table 같은 기본 UI token은 preset을 따른다.
 
 - `Button`, `Badge`, `Card`, `Input`, `NativeSelect`, `Table`, `Textarea`
   - 반복 primitive의 variant, size, typography, radius, focus ring, control height를 `@ssoo/web-ui`가 소유한다.
+  - DMS 문서 페이지 header action의 현재 렌더 리듬(36px control height, 12px horizontal padding, 13px medium label)은 Button `pageAction` 역할 size 기준선이며, 공용 page header/data workspace/settings header action은 이 role size를 소비한다.
   - inventory에 등록된 원자는 모두 `platform` 원자이며 중간/local-only 원자는 허용하지 않는다.
   - `Badge`는 inline token으로 취급해 `span`으로 렌더링한다. 버튼/링크/테이블 셀 안의 상태 표시도 별도 span class recipe 대신 공용 Badge를 사용한다.
   - 앱 local `components/ui/*` 파일은 기존 import 호환을 위한 thin re-export adapter로 유지할 수 있다.
@@ -75,6 +80,11 @@ SSOO 서비스 shell은 특정 서비스 화면을 다른 서비스가 복사하
   - `sidebarMode`, `sidebarExpanded`를 받아 `SSOO_SHELL_METRICS` 기준으로 main offset을 공통 계산한다.
   - header/tabbar/sidebar/content를 slot으로 받는다.
   - `theme` prop 또는 앱 root의 `body[data-ssoo-theme]`로 theme preset key를 전달할 수 있다. 앱은 frame root/background/content `<main>` class나 inline style을 직접 주입하지 않는다.
+
+- `useSsooMobileViewport`, `SsooMobileSidebarOverlay`
+  - `SSOO_SHELL_METRICS.breakpoint.mobile`을 기준으로 mobile viewport를 판정하고, hydration-safe external store 구독을 제공한다.
+  - mobile sidebar의 modal wrapper, backdrop, Escape dismiss, body scroll lock, dialog accessibility contract를 공용화한다.
+  - 앱은 overlay DOM/keyboard listener를 복제하지 않고 `id`, accessible label, dismiss action, 기존 `SsooSidebarSurface` consumer만 주입한다.
 
 - `SsooAppHeader`
   - 5개 앱의 header slot entrypoint다.
@@ -185,20 +195,21 @@ SSOO 서비스 shell은 특정 서비스 화면을 다른 서비스가 복사하
 - `SsooSettingsPage`, `createSsooSettingsPageContentPageElement`, `useSsooSettingsPageHeaderActions`
   - SSOO 전체 앱 설정 화면의 완성 content-page recipe를 공통화한다.
   - breadcrumb/header/settings tone, left sub-content index rail, settings body shell, state surface, header action bridge는 `web-shell`이 소유한다.
-  - 도메인 앱은 section/group/item 데이터, 저장/검증/권한 바인딩, JSON/diff/custom slot body만 주입한다.
+  - 설정 page recipe는 기본 page title/description을 자동 생성하지 않는다. 소비 앱이 명시적으로 주입한 title/description만 header에 노출한다.
+  - 도메인 앱은 section/group/item 데이터, 저장/검증/권한 바인딩, field/custom slot body만 주입한다.
 
 - `SsooSettingsSurface`, `SsooSettingsMainPanel`
   - `SsooSettingsPage` 내부에서 설정 본문 layout을 공통화한다.
   - 도메인 앱은 이 surface/main panel을 직접 조립하지 않고 `SsooSettingsPage`의 body slot에 도메인 콘텐츠를 주입한다.
 
-- `SsooSettingsBanner`, `SsooSettingsPendingSummary`, `SsooSettingsViewModeTabs`
-  - 설정 화면의 오류/성공 상태, 저장 예정 요약, structured/json/diff 같은 보기 모드 segmented control을 공통화한다.
-  - 실제 메시지, 변경 항목 계산, JSON/diff renderer는 소비 앱이 소유한다.
+- `SsooSettingsBanner`, `SsooSettingsPendingSummary`
+  - 설정 화면의 오류/성공 상태와 저장 예정 요약을 공통화한다.
+  - 실제 메시지, 변경 항목 계산, field/custom renderer는 소비 앱이 소유한다.
 
 - `createSsooSettingsSidebarSections`
   - settings mode sidebar의 검색 결과 section과 설정 메뉴 tree section 렌더링을 공통화한다.
   - 앱은 setting registry, access predicate, active section 판정, section open action, refresh action만 소유한다.
-  - 검색 결과 row, section/field status badge, empty state, menu group tree, active status badge 표현은 `web-shell` factory가 `SsooSidebarSurface`/`SsooSidebarTree` 계층으로 만든다.
+  - 검색 결과 row, optional section/field status badge, empty state, menu group tree 표현은 `web-shell` factory가 `SsooSidebarSurface`/`SsooSidebarTree` 계층으로 만든다. active row는 배경/폰트 상태로 표현하고 `열림` 같은 중복 상태 badge를 기본으로 만들지 않는다.
 
 - `SsooPageBreadcrumb`, `SsooPageHeader`, `SsooPageChromeStack`, `SsooContentPageTemplate`, `SsooPageIndexRail`
   - 문서 페이지, 설정 페이지, Admin 운영 페이지처럼 도메인 목적이 분명한 page surface의 경로 표시, CTA header, 상단 stack gap/padding, content page slot layout을 공통화한다.
@@ -207,7 +218,12 @@ SSOO 서비스 shell은 특정 서비스 화면을 다른 서비스가 복사하
   - page tone/state/header/index/panel 보조 색은 `packages/web-shell/src/styles/ssoo-global.css`의 `ssoo-content-page-tone-*`, `ssoo-content-page-state-tone-*`, `ssoo-sectioned-shell-toolbar-tone`, `ssoo-settings-subtle-surface` 같은 CSS-backed class를 사용한다. page recipe 재료에서 `bg-ssoo-content-bg/30`, `bg-ssoo-primary/15`, `text-ssoo-primary/70` 같은 CSS-variable slash opacity utility를 쓰지 않는다.
   - 기본 main content 폭은 975px, left/right sub-content rail과 sidecar 폭은 340px로 맞춘다. raw `contentMaxWidth={null}` 대신 비교형 화면은 `pageVariant="fluid"`, main-only 자율 캔버스형 화면은 `pageVariant="canvas"` recipe variant를 사용한다.
   - Breadcrumb row는 24px, page header는 54px 기준으로 시작해 문서 페이지와 설정 페이지의 상단 위치를 맞춘다. 소비 앱이 설정 색인 rail, 문서 sidecar, 본문 surface에 별도 `min-h-*`, `px-*`, `py-*`, `border-*`, `bg-*` page recipe class를 직접 두지 않는다.
-  - 설정 본문 내부 색인이나 페이지 목차형 필수 rail은 `SsooPageIndexRail`을 사용하고, 앱 page가 nav/button/meta chip surface class를 다시 정의하지 않는다.
+  - 설정 본문 내부 색인이나 페이지 목차형 필수 rail은 `SsooPageIndexRail`을 사용하고, 앱 page가 nav/button/meta chip surface class를 다시 정의하지 않는다. rail header와 item meta chip은 opt-in이며 기본 설정 화면에서는 field/custom anchor label만 노출한다.
+
+- `SsooWorkspacePage`, `SsooDataWorkspacePage`, `SsooDataGrid`
+  - `SsooWorkspacePage`는 일반 업무/데이터 작업 surface의 범용 page recipe다. breadcrumb, full-width header chrome, main content lane 폭 정책, 빈 main slot만 소유한다.
+  - `SsooDataWorkspacePage`는 `SsooWorkspacePage` 위에 얹는 데이터/grid preset이다. header 내부 action/filter controls, 접힘 필터, data content shell, grid/pagination/second-grid 조립을 제공하되 도메인 데이터와 action은 소비 앱이 주입한다.
+  - 업무 화면의 main slot에는 grid뿐 아니라 form, chart, summary panel, preview 같은 컴포넌트를 넣을 수 있다. `contentWidth`는 이 main content lane에만 적용하고 header 폭은 제한하지 않는다.
 
 - `SsooSectionedShell`, `SsooPanelFrame`, `SsooCollapsibleSection`
   - page 본문 toolbar/body/footer 구획, 우측 panel frame, panel section 접기/펼치기 동작을 공통화한다.
@@ -225,10 +241,10 @@ SSOO 서비스 shell은 특정 서비스 화면을 다른 서비스가 복사하
 - Header: 앱별 main header slot은 같은 `SsooAppHeader` entrypoint를 사용한다. 앱 메인 header는 검색/새로 만들기/알림/사용자 메뉴 surface를 같은 순서와 크기로 노출한다. 설정 컨텍스트는 앱 상단 header slot을 유지하되 header 내부 content를 비우고, 설정 sidebar brand 영역의 뒤로가기 action과 `설정` title만 노출한다.
 - Sidebar: 설정 진입 시 sidebar slot은 같은 `SsooSidebarSurface` 소비 컴포넌트에 설정 메뉴 트리/검색 데이터를 주입한다. 설정 검색 결과 section과 설정 메뉴 tree section은 `createSsooSettingsSidebarSections`가 만들고, 설정 전용 shell sidebar primitive를 새로 만들지 않는다.
 - Settings page tabs: 설정 메뉴 클릭은 frame tabbar slot의 기존 `TabBar`에 설정 페이지 탭을 연다. `TabBar`는 workspace/settings로 탭 데이터를 분리하지 않고 전체 열린 탭 배열을 `SsooMdiTabBar`에 넘긴다.
-- Settings mode invariant: 설정 모드가 활성화되면 활성 content tab도 반드시 `/settings/{scope}/{sectionId}` 경로여야 한다. shell만 settings variant이고 active content tab이 문서 탭이면 문서 본문/문서 패널이 설정 화면에 남으므로, frame coordinator는 non-settings active tab을 감지하면 settings mode를 해제하고 `ContentArea`는 공용 MDI의 기본 active-tab 규칙만 따른다.
-- Settings mode source of truth: DMS의 settings mode는 독립적으로 오래 살아 있는 flag가 아니라 active tab path에서 파생된다. active tab이 `/settings/{scope}/{sectionId}`이면 settings mode를 켜고, 홈/문서/AI 같은 non-settings tab이 active가 되면 tab store 변경 시점에 settings mode를 즉시 해제한다.
-- Main content: 설정 본문은 `ContentArea` keep-alive tab 안에서 `SsooSettingsPage`를 소비한다. `SsooSettingsPage`가 기본 page title `설정`, `SsooContentPageTemplate`, `SsooPageIndexRail`, `SsooSettingsSurface`, `SsooSettingsMainPanel`, 상태 surface, header action bridge를 조립하고, JSON/diff/editor/custom slot 같은 실제 본문은 도메인 앱이 소유한다.
-- 설정 본문 내부 색인은 `leftSubContentSlot`으로 주입한다. 색인은 현재 section의 field anchor와 section metadata의 `indexItems`로 정의한 custom slot anchor, 변경/오류 상태, 관련 진단 요약처럼 본문 내부 탐색에 한정한다. 이는 접히는 보조 패널이 아니라 설정 본문을 구성하는 필수 sub-content rail이며, rail 폭/패딩/border/overflow는 `SsooContentPageTemplate`이 소유하고 header/item/meta chip 표면은 `SsooPageIndexRail`이 소유한다.
+- Settings mode invariant: 설정 모드가 활성화되면 활성 content tab도 반드시 `/settings/{surface}/{sectionId}` 경로여야 한다. shell만 settings variant이고 active content tab이 문서 탭이면 문서 본문/문서 패널이 설정 화면에 남으므로, frame coordinator는 non-settings active tab을 감지하면 settings mode를 해제하고 `ContentArea`는 공용 MDI의 기본 active-tab 규칙만 따른다.
+- Settings mode source of truth: DMS의 settings mode는 독립적으로 오래 살아 있는 flag가 아니라 active tab path에서 파생된다. active tab이 `/settings/{surface}/{sectionId}`이면 settings mode를 켜고, 홈/문서/AI 같은 non-settings tab이 active가 되면 tab store 변경 시점에 settings mode를 즉시 해제한다. 저장 snapshot scope(`system`/`personal`)와 tab path surface(`operations`/`system-settings`/`management`/`personal-settings`)는 분리한다.
+- Main content: 설정 본문은 `ContentArea` keep-alive tab 안에서 `SsooSettingsPage`를 소비한다. `SsooSettingsPage`가 `SsooContentPageTemplate`, `SsooPageIndexRail`, `SsooSettingsSurface`, `SsooSettingsMainPanel`, 상태 surface, header action bridge를 조립하고, field/custom slot 같은 실제 본문은 도메인 앱이 소유한다.
+- 설정 본문 내부 색인은 `leftSubContentSlot`으로 주입한다. 색인은 현재 section의 field anchor와 section metadata의 `indexItems`로 정의한 custom slot anchor처럼 본문 내부 탐색에 한정한다. 이는 접히는 보조 패널이 아니라 설정 본문을 구성하는 필수 sub-content rail이며, rail 폭/패딩/border/overflow는 `SsooContentPageTemplate`이 소유하고 header/item/meta chip 표면은 `SsooPageIndexRail`이 소유한다. 기본 색인 rail은 `항목` 같은 title, section 설명, scope/status badge를 자동으로 노출하지 않는다.
 
 이 표준은 DMS 설정 화면에 먼저 적용하고, 이후 Admin의 설정/제어/운영성 화면에도 같은 경계를 적용한다. Admin 앱 메인 header는 운영 앱이어도 5개 앱 메인 header 기준에 포함되므로 검색, 새 사용자 CTA, 알림, 사용자 메뉴 surface를 유지한다.
 
@@ -363,6 +379,10 @@ PMS는 SSOO 플랫폼의 workbench 기준 앱이다. 여기서 말하는 100%는
 
 | 날짜 | 변경 내용 |
 |------|-----------|
+| 2026-07-16 | Admin/CRM/PMS/SNS 모바일 sidebar를 `useSsooMobileViewport` + `SsooMobileSidebarOverlay` 계약으로 통합하고 390px 실제 브라우저에서 메뉴 열기/Escape 닫기/가로 overflow 없음 기준을 검증. DMS 모바일 준비 안내는 기존 지원 게이트로 유지 |
+| 2026-07-10 | `SsooWorkspacePage`를 일반 업무/데이터 작업 surface recipe로 추가하고, `SsooDataWorkspacePage`를 데이터/grid preset 계층으로 분리 |
+| 2026-07-08 | 전역 디자인 경험 표준 범위를 모든 웹 앱 최종 페이지 내부와 주요 App Router page/error surface까지 확장 |
+| 2026-07-07 | 전역 디자인 경험 표준 범위를 도메인 reusable surface까지 확장하고 `verify:ui-style-boundary`를 build/preflight/push guard에 연결 |
 | 2026-06-23 | 완성 settings page recipe를 `SsooSettingsPage`로 `web-shell`에 승격하고, DMS 설정 page와 공용 account settings route가 domain body만 주입하도록 `verify:ssoo-frame` 기준을 강화 |
 | 2026-06-23 | 공용 user profile/settings content-page tone을 `profile`/`settings`로 분리하고 프로필이 `neutral` 배경으로 렌더링되는 회귀를 `verify:ssoo-frame`에서 차단 |
 | 2026-06-23 | `/api/search` 통합 검색 기준선과 별도로 AI/RAG platform roadmap을 정본화하고, 공용 `cm_ai_*` data plane과 DMS reference adapter를 후속 RAG 기준선으로 분리 |

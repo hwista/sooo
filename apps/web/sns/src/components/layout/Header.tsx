@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { Menu, Plus, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { SsooAppHeader, useSsooGlobalHeaderSearch } from '@ssoo/web-shell';
 import { APP_HOME_PATH } from '@/lib/constants/routes';
@@ -8,9 +8,22 @@ import { useAccessStore, useTabStore } from '@/stores';
 import { UserMenu } from './UserMenu';
 import { HeaderNotifications } from './HeaderNotifications';
 
-export function Header() {
+interface HeaderProps {
+  mobile?: boolean;
+  mobileMenuOpen?: boolean;
+  onMobileMenuClick?: () => void;
+}
+
+export function Header({
+  mobile = false,
+  mobileMenuOpen = false,
+  onMobileMenuClick,
+}: HeaderProps) {
   const accessSnapshot = useAccessStore((state) => state.snapshot);
   const openTab = useTabStore((state) => state.openTab);
+  const tabs = useTabStore((state) => state.tabs);
+  const activeTabId = useTabStore((state) => state.activeTabId);
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
   const router = useRouter();
   const canReadFeed = accessSnapshot?.features.canReadFeed ?? false;
   const canCreatePost = accessSnapshot?.features.canCreatePost ?? false;
@@ -31,8 +44,17 @@ export function Header() {
   return (
     <SsooAppHeader
       mode="primary"
-      search={globalHeaderSearch.search}
-      primaryAction={{
+      leading={mobile ? { title: `SNS / ${activeTab?.title ?? '피드'}`, subtitle: '소셜 협업' } : undefined}
+      leadingAction={mobile ? {
+        iconSlot: mobileMenuOpen ? <X /> : <Menu />,
+        'aria-controls': 'sns-mobile-sidebar',
+        'aria-expanded': mobileMenuOpen,
+        'aria-label': mobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기',
+        title: mobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기',
+        onClick: onMobileMenuClick,
+      } : null}
+      search={mobile ? null : globalHeaderSearch.search}
+      primaryAction={mobile ? null : {
         label: '새 게시물',
         iconSlot: <Plus />,
         type: 'button',

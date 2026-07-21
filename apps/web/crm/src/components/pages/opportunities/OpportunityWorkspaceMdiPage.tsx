@@ -2,6 +2,7 @@
 
 import type { CrmOpportunityListResponse, CrmOpportunitySort, CrmOpportunityStatus } from '@ssoo/types/crm';
 import { OpportunityWorkspaceClient, type OpportunityWorkspaceQuery } from './OpportunityWorkspaceClient';
+import { crmDashboardFallback } from './dashboardFallback';
 
 const fallback: CrmOpportunityListResponse = {
   summary: {
@@ -36,5 +37,5 @@ function normalizeQuery(path: string): OpportunityWorkspaceQuery {
 }
 
 export function OpportunityWorkspaceMdiPage({ path }: { path: string }) {
-  return <OpportunityWorkspaceClient data={fallback} query={normalizeQuery(path)} />;
+  return <OpportunityWorkspaceClient data={fallback} dashboard={crmDashboardFallback} query={normalizeQuery(path)} />;
 }

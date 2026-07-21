@@ -1,9 +1,9 @@
 import type {
-  PreferredSettingsViewMode,
   SettingsAccessMode,
   SettingsProfileKey,
   SettingsScope,
 } from '@/types/settings';
+import type { DmsCrmContractApprovalRoutePolicy, DmsCrmContractExportPolicy } from '@ssoo/types/dms';
 import type { GitSyncStatusClient } from './collaborationApi';
 import { request, type ApiResponse } from './core';
 
@@ -53,6 +53,8 @@ export interface DmsSystemConfigClient {
     maxSummaryFileChars: number;
     maxImagesPerRequest: number;
   };
+  crmContractApprovalRoute: DmsCrmContractApprovalRoutePolicy;
+  crmContractExportPolicy: DmsCrmContractExportPolicy;
 }
 
 export interface DmsPersonalSettingsClient {
@@ -62,8 +64,6 @@ export interface DmsPersonalSettingsClient {
   };
   workspace: {
     defaultSettingsScope: SettingsScope;
-    defaultSettingsView: PreferredSettingsViewMode;
-    showDiffByDefault: boolean;
     preferredStorageProvider: 'system-default' | 'local' | 'sharepoint' | 'nas';
   };
   viewer: {

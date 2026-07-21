@@ -11,6 +11,7 @@ export type PmsHomeActionKind =
   | 'manage-tasks'
   | 'manage-milestones'
   | 'manage-issues'
+  | 'review-feedback'
   | 'manage-deliverables'
   | 'manage-close-conditions'
   | 'advance-stage';
@@ -22,6 +23,7 @@ export type PmsHomeTargetTab =
   | 'tasks'
   | 'milestones'
   | 'controls'
+  | 'review'
   | 'deliverables'
   | 'closeConditions';
 
@@ -33,6 +35,7 @@ export type PmsHomeSignalKind =
   | 'project-unowned'
   | 'project-risk-open'
   | 'project-issue-blocking'
+  | 'review-feedback-open'
   | 'milestone-delayed'
   | 'deliverable-approval-pending'
   | 'closeout-blocked'
@@ -85,10 +88,79 @@ export interface PmsHomeMetrics {
   directActions: number;
   attention: number;
   pmoSignals: number;
+  feedback: number;
   closeout: number;
   stale: number;
   actionableProjects: number;
   readOnlyProjects: number;
+}
+
+export interface PmsHomeRiskReportSummary {
+  openRisks: number;
+  highRisks: number;
+  unassignedRisks: number;
+  blockingIssues: number;
+  activeChanges: number;
+  plannedReports: number;
+  readyReports: number;
+  completedReports: number;
+  overdueReports: number;
+  delayedMilestones: number;
+  pendingDeliverables: number;
+  closeoutBlockedProjects: number;
+}
+
+export interface PmsHomePortfolioDashboardProject {
+  projectId: string;
+  projectName: string;
+  statusCode: ProjectStatusCode;
+  stageCode: ProjectStageCode;
+  relation: PmsHomeRelation;
+  currentOwnerUserId?: string | null;
+  ownerOrganizationId?: string | null;
+  updatedAt: string;
+  estimatedHours: number;
+  actualHours: number;
+  effortVarianceHours: number;
+  effortBurnRate: number;
+  delayedMilestoneCount: number;
+  pendingDeliverableCount: number;
+  openControlCount: number;
+  openIssueCount: number;
+  openRiskCount: number;
+  activeChangeCount: number;
+  launchFeedbackCount: number;
+  closeoutBlockerCount: number;
+  allowedActions: PmsHomeAllowedAction[];
+  primaryAction?: PmsHomeAllowedAction;
+}
+
+export interface PmsHomePortfolioDashboard {
+  projectCount: number;
+  activeProjectCount: number;
+  pmOwnedProjectCount: number;
+  pmoVisibleProjectCount: number;
+  crmContractSnapshotCount: number;
+  crmContractSnapshotAmount: string;
+  crmContractSnapshotCurrencyCode: string;
+  scheduledPaymentSnapshotAmount: string;
+  overduePaymentCount: number;
+  dueSoonPaymentCount: number;
+  estimatedHours: number;
+  actualHours: number;
+  effortVarianceHours: number;
+  effortBurnRate: number;
+  delayedMilestoneCount: number;
+  pendingDeliverableCount: number;
+  openControlCount: number;
+  openRiskCount: number;
+  openIssueCount: number;
+  activeChangeCount: number;
+  launchFeedbackCount: number;
+  closeoutBlockedProjectCount: number;
+  staleProjectCount: number;
+  topProjects: PmsHomePortfolioDashboardProject[];
+  boundaryNote: string;
 }
 
 export interface PmsHomeFlowItem {
@@ -127,8 +199,11 @@ export interface PmsHomeSummary {
   generatedAt: string;
   relationCounts: PmsHomeRelationCounts;
   metrics: PmsHomeMetrics;
+  riskReportSummary: PmsHomeRiskReportSummary;
+  portfolioDashboard: PmsHomePortfolioDashboard;
   briefing: string[];
   signals: PmsHomeSignal[];
+  feedbackSignals: PmsHomeSignal[];
   flow: PmsHomeFlowItem[];
   recentChanges: PmsHomeRecentChange[];
   accessProjects: PmsHomeAccessProject[];

@@ -22,12 +22,16 @@ seed_files=(
   06_role_menu_permission.sql
   99_user_initial_admin.sql
   11_demo_users_customers.sql
+  19_pms_asset_master.sql
   12_org_foundation_bridge.sql
   13_permission_foundation.sql
   14_pms_project_policy_foundation.sql
   15_dms_access_policy_foundation.sql
   16_sns_access_policy_foundation.sql
+  18_crm_access_policy_foundation.sql
+  52_crm_opportunities.sql
   17_demo_project_access_context.sql
+  21_demo_project_statuses.sql
   12_demo_project_members.sql
   13_demo_tasks.sql
   14_demo_milestones.sql

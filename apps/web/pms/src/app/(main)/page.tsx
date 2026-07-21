@@ -6,10 +6,10 @@ const AppLayout = dynamic(
   () => import('@/components/layout/AppLayout').then((mod) => ({ default: mod.AppLayout })),
   {
     loading: () => (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-ssoo-background">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">로딩 중...</p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-ssoo-primary border-t-transparent" />
+          <p className="text-ssoo-primary/70">로딩 중...</p>
         </div>
       </div>
     ),

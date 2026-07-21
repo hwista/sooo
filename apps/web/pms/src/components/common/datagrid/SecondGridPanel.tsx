@@ -72,7 +72,7 @@ export function SecondGridPanel({
         )}
         style={{ maxHeight: isOpen ? maxHeight : 0 }}
       >
-        <div className="bg-gray-50">
+        <div className="ssoo-settings-subtle-surface">
           <div className="overflow-auto" style={{ height: panelHeight }}>
             {children}
           </div>

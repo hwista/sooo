@@ -68,7 +68,7 @@ export interface SsooContentPageTemplateProps {
 }
 
 const mainSurfaceClassMap: Record<SsooContentPageSurfaceVariant, string> = {
-  default: 'rounded-lg border border-ssoo-content-border bg-white',
+  default: 'rounded-lg border border-ssoo-content-border bg-card',
   transparent: 'border-0 bg-transparent',
   'transparent-rounded': 'rounded-lg border-0 bg-transparent',
   plain: '',
@@ -222,6 +222,13 @@ export function SsooContentPageTemplate({
   const shouldRenderSidecar = hasSidecar && (canShowSideBySide || shouldOverlaySidecar);
   const showSidecar = shouldRenderSidecar && sidecarOpen;
   const showBottomPanel = Boolean(effectiveBottomPanelSlot && bottomPanelOpen);
+  const isSettingsGroupedLayout = Boolean(
+    pageTone === 'settings'
+    && isMainConstrained
+    && effectiveLeftSubContentSlot
+    && !effectiveRightSubContentSlot
+  );
+  const settingsGroupGapPx = 10;
 
   useEffect(() => {
     if (canShowSideBySide && sidecarForcedOpen) {
@@ -234,6 +241,13 @@ export function SsooContentPageTemplate({
       width: canShowSideBySide ? `calc(100% - ${SSOO_CONTENT_PAGE_METRICS.sidecarWidthPx}px)` : '100%',
     }),
     [canShowSideBySide],
+  );
+  const settingsContentGroupStyle = useMemo<CSSProperties>(
+    () => ({
+      maxWidth: `${SSOO_CONTENT_PAGE_METRICS.subContentWidthPx + SSOO_CONTENT_PAGE_METRICS.mainContentWidthPx + settingsGroupGapPx}px`,
+      gap: `${settingsGroupGapPx}px`,
+    }),
+    [],
   );
 
   const mainSurfaceClassName = cn(
@@ -249,18 +263,26 @@ export function SsooContentPageTemplate({
     SSOO_CONTENT_PAGE_STATE_TONE_CLASSES[pageTone],
   );
 
-  const renderSubContentLane = (slot: ReactNode, side: 'left' | 'right', width: number) => {
+  const renderSubContentLane = (
+    slot: ReactNode,
+    side: 'left' | 'right',
+    width: number,
+    surface: 'default' | 'settings' = 'default',
+  ) => {
     if (!slot) return null;
     return (
       <aside
         className={cn(
-          'h-full min-h-0 shrink-0 overflow-hidden bg-white',
-          side === 'left' ? 'border-r border-ssoo-content-border' : 'border-l border-ssoo-content-border',
+          'h-full min-h-0 shrink-0 overflow-hidden',
+          surface === 'settings'
+            ? 'rounded-lg border border-ssoo-content-border bg-ssoo-content-bg'
+            : 'bg-card',
+          surface === 'default' && (side === 'left' ? 'border-r border-ssoo-content-border' : 'border-l border-ssoo-content-border'),
         )}
         style={{ width }}
         data-ssoo-content-page-slot={`${side}-sub-content`}
       >
-        <div className="h-full min-h-0 overflow-hidden p-3">{slot}</div>
+        <div className={cn('h-full min-h-0 overflow-hidden', surface === 'settings' ? 'p-2' : 'p-3')}>{slot}</div>
       </aside>
     );
   };
@@ -301,17 +323,38 @@ export function SsooContentPageTemplate({
               className={cn('flex h-full min-h-0 min-w-0', hasMeasured && 'transition-all duration-300 ease-in-out')}
               style={contentLaneStyle}
             >
-              {renderSubContentLane(effectiveLeftSubContentSlot, 'left', SSOO_CONTENT_PAGE_METRICS.subContentWidthPx)}
+              {isSettingsGroupedLayout ? (
+                <div
+                  className="flex h-full min-w-0 flex-1 justify-center overflow-hidden px-3"
+                  data-ssoo-content-page-settings-group
+                >
+                  <div className="flex h-full min-w-0 flex-1 overflow-hidden" style={settingsContentGroupStyle}>
+                    {renderSubContentLane(effectiveLeftSubContentSlot, 'left', SSOO_CONTENT_PAGE_METRICS.subContentWidthPx, 'settings')}
 
-              <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden" data-ssoo-content-page-slot="main-content">
-                <div className={cn('flex h-full overflow-hidden', isMainConstrained && 'justify-center px-4')}>
-                  <div className={cn('h-full w-full', mainSurfaceClassName)} style={resolvedMainMaxWidth ? { maxWidth: resolvedMainMaxWidth } : undefined}>
-                    {mainContentSlot}
+                    <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden" data-ssoo-content-page-slot="main-content">
+                      <div className="flex h-full overflow-hidden">
+                        <div className={cn('h-full w-full', mainSurfaceClassName)} style={resolvedMainMaxWidth ? { maxWidth: resolvedMainMaxWidth } : undefined}>
+                          {mainContentSlot}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {renderSubContentLane(effectiveLeftSubContentSlot, 'left', SSOO_CONTENT_PAGE_METRICS.subContentWidthPx)}
 
-              {renderSubContentLane(effectiveRightSubContentSlot, 'right', SSOO_CONTENT_PAGE_METRICS.subContentWidthPx)}
+                  <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden" data-ssoo-content-page-slot="main-content">
+                    <div className={cn('flex h-full overflow-hidden', isMainConstrained && 'justify-center px-4')}>
+                      <div className={cn('h-full w-full', mainSurfaceClassName)} style={resolvedMainMaxWidth ? { maxWidth: resolvedMainMaxWidth } : undefined}>
+                        {mainContentSlot}
+                      </div>
+                    </div>
+                  </div>
+
+                  {renderSubContentLane(effectiveRightSubContentSlot, 'right', SSOO_CONTENT_PAGE_METRICS.subContentWidthPx)}
+                </>
+              )}
             </div>
 
             {hasSidecar ? (
@@ -368,7 +411,7 @@ export function SsooContentPageTemplate({
 
         {effectiveBottomPanelSlot ? (
           <section
-            className={cn('shrink-0 overflow-hidden border-t border-ssoo-content-border bg-white', hasMeasured && 'transition-[height] duration-200 ease-out')}
+            className={cn('shrink-0 overflow-hidden border-t border-ssoo-content-border bg-card', hasMeasured && 'transition-[height] duration-200 ease-out')}
             style={{ height: showBottomPanel ? bottomPanelHeight : 36 }}
             data-ssoo-content-page-slot="bottom-panel"
           >

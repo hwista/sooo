@@ -22,7 +22,7 @@ export function StatusTimeline({ statuses, currentStatusCode }: StatusTimelinePr
   const currentIndex = STATUS_ORDER.indexOf(currentStatusCode);
 
   return (
-    <div className="border rounded-lg p-4 bg-white">
+    <div className="border rounded-lg p-4 bg-card">
       <h2 className="text-sm font-semibold mb-4">상태 이력</h2>
       <div className="flex items-start gap-0">
         {STATUS_ORDER.map((code, index) => {
@@ -34,9 +34,9 @@ export function StatusTimeline({ statuses, currentStatusCode }: StatusTimelinePr
             <div key={code} className="flex-1 flex flex-col items-center text-center">
               <div className="flex items-center w-full">
                 {index > 0 && (
-                  <div className={`h-0.5 flex-1 ${isPast || isCurrent ? 'bg-ssoo-primary' : 'bg-gray-200'}`} />
+                  <div className={`h-0.5 flex-1 ${isPast || isCurrent ? 'bg-ssoo-primary' : 'bg-muted'}`} />
                 )}
-                <div className={`flex-shrink-0 rounded-full ${isPast || isCurrent ? 'text-ssoo-primary' : 'text-gray-300'}`}>
+                <div className={`flex-shrink-0 rounded-full ${isPast || isCurrent ? 'text-ssoo-primary' : 'text-muted-foreground'}`}>
                   {isPast ? (
                     <CheckCircle className="h-6 w-6" />
                   ) : (
@@ -44,14 +44,14 @@ export function StatusTimeline({ statuses, currentStatusCode }: StatusTimelinePr
                   )}
                 </div>
                 {index < STATUS_ORDER.length - 1 && (
-                  <div className={`h-0.5 flex-1 ${isPast ? 'bg-ssoo-primary' : 'bg-gray-200'}`} />
+                  <div className={`h-0.5 flex-1 ${isPast ? 'bg-ssoo-primary' : 'bg-muted'}`} />
                 )}
               </div>
               <p className={`mt-2 text-xs font-medium ${isCurrent ? 'text-ssoo-primary' : 'text-muted-foreground'}`}>
                 {statusLabels[code]}
               </p>
               {status && (
-                <p className="text-[10px] text-muted-foreground mt-0.5">
+                <p className="text-caption-xs text-muted-foreground mt-0.5">
                   {status.statusGoal}
                 </p>
               )}

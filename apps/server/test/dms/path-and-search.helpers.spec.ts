@@ -1,3 +1,5 @@
+import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import {
   normalizePath,
@@ -64,6 +66,23 @@ describe('runtime/path-utils', () => {
     it('rejects backslash traversal attempts', () => {
       const r = resolveContainedPath(root, '..\\..\\etc\\passwd');
       expect(r.valid).toBe(false);
+    });
+
+    it('rejects paths that escape the root through a symbolic link', () => {
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ssoo-dms-path-'));
+      const realRoot = path.join(tempDir, 'root');
+      const outsideRoot = path.join(tempDir, 'outside');
+      fs.mkdirSync(realRoot);
+      fs.mkdirSync(outsideRoot);
+      fs.writeFileSync(path.join(outsideRoot, 'secret.md'), 'secret');
+      fs.symlinkSync(outsideRoot, path.join(realRoot, 'escape'), 'dir');
+
+      try {
+        const result = resolveContainedPath(realRoot, 'escape/secret.md');
+        expect(result.valid).toBe(false);
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
     });
   });
 

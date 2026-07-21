@@ -39,7 +39,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
 
   return (
     <nav className={cn('flex items-center text-sm text-muted-foreground', className)}>
-      <Home className="h-3.5 w-3.5 text-gray-400" />
+      <Home className="h-3.5 w-3.5 ssoo-text-primary-60" />
       {items.map((item, index) => {
         const label = typeof item === 'string' ? item : item.label;
         const isLast = index === items.length - 1;
@@ -47,7 +47,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
 
         return (
           <React.Fragment key={index}>
-            <ChevronRight className="mx-1 h-3.5 w-3.5 text-gray-400" />
+            <ChevronRight className="mx-1 h-3.5 w-3.5 ssoo-text-primary-60" />
             {onClick && !isLast ? (
               <Button variant="plain" size="plain"
                 onClick={onClick}

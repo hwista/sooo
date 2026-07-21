@@ -3,6 +3,7 @@ import type {
   TemplateItem,
   TemplateOriginType,
   TemplateReferenceDoc,
+  TemplateReviewConfirmation,
   TemplateScope,
   TemplateSourceType,
   TemplateStatus,
@@ -32,4 +33,5 @@ export interface TemplateMetadataRecord {
   originType?: TemplateOriginType;
   referenceDocuments?: TemplateReferenceDoc[];
   generation?: TemplateGeneration;
+  reviewConfirmation?: TemplateReviewConfirmation;
 }

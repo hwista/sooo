@@ -46,7 +46,7 @@ export function PostCard({ item }: PostCardProps) {
           <Link href={authorProfilePath} className="shrink-0 rounded-full outline-none focus:ring-2 focus:ring-ssoo-primary">
             <Avatar className="h-10 w-10">
               <AvatarImage src={author.avatarUrl || undefined} />
-              <AvatarFallback className="bg-ssoo-primary text-white text-sm">{initials}</AvatarFallback>
+              <AvatarFallback className="bg-ssoo-primary text-primary-foreground text-sm">{initials}</AvatarFallback>
             </Avatar>
           </Link>
           <div className="flex-1 min-w-0">
@@ -67,7 +67,7 @@ export function PostCard({ item }: PostCardProps) {
             <div className="flex items-center gap-2">
               <p className="text-xs text-muted-foreground">{timeAgo}</p>
               {VISIBILITY_BADGE_LABELS[post.visibilityScopeCode] && (
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="text-caption-xs">
                   {VISIBILITY_BADGE_LABELS[post.visibilityScopeCode]}
                 </Badge>
               )}
@@ -112,7 +112,7 @@ export function PostCard({ item }: PostCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            className={cn('gap-1', isLiked && 'text-red-500')}
+            className={cn('gap-1', isLiked && 'text-ssoo-danger')}
             onClick={() => {
               if (!canReact) {
                 return;

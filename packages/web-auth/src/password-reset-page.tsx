@@ -106,14 +106,14 @@ export function SharedPasswordResetPage({
 
   return (
     <AuthPageShell>
-      <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="rounded-lg border border-ssoo-content-border bg-card p-8 text-card-foreground shadow-sm">
         <div className="mb-7 text-center">
-          <h1 className="text-5xl font-extrabold text-[#0B3B3B]">SSOT</h1>
-          <h2 className="mt-6 text-2xl font-semibold text-slate-950">비밀번호 찾기</h2>
+          <h1 className="text-5xl font-extrabold text-ssoo-primary">SSOT</h1>
+          <h2 className="mt-6 text-2xl font-semibold text-foreground">비밀번호 찾기</h2>
         </div>
 
         {error ? (
-          <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-5 rounded-md border px-4 py-3 text-sm ssoo-tone-danger-surface">
             {error}
           </div>
         ) : null}
@@ -121,7 +121,7 @@ export function SharedPasswordResetPage({
         {step === 'request' ? (
           <form className="space-y-5" onSubmit={handleRequest}>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-900" htmlFor="reset-email">
+              <label className="block text-sm font-medium text-foreground" htmlFor="reset-email">
                 이메일
               </label>
               <Input
@@ -130,14 +130,14 @@ export function SharedPasswordResetPage({
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#0B3B3B] focus:ring-2 focus:ring-[#0B3B3B]/15"
+                className="h-11"
                 placeholder="가입한 이메일"
               />
             </div>
-            <Button variant="plain" size="plain"
+            <Button
               type="submit"
               disabled={!canSubmit || isSubmitting}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-[#0B3B3B] px-4 text-sm font-medium text-white transition hover:bg-[#114F4F] disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-11 w-full cursor-pointer"
             >
               <Mail aria-hidden className="h-4 w-4" />
               {isSubmitting ? '요청 중...' : '코드 받기'}
@@ -148,7 +148,7 @@ export function SharedPasswordResetPage({
         {step === 'confirm' ? (
           <form className="space-y-5" onSubmit={handleConfirm}>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-900" htmlFor="reset-code">
+              <label className="block text-sm font-medium text-foreground" htmlFor="reset-code">
                 재설정 코드
               </label>
               <Input
@@ -157,12 +157,12 @@ export function SharedPasswordResetPage({
                 inputMode="numeric"
                 value={code}
                 onChange={(event) => setCode(event.target.value)}
-                className="h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#0B3B3B] focus:ring-2 focus:ring-[#0B3B3B]/15"
+                className="h-11"
                 placeholder="메일로 받은 코드"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-900" htmlFor="new-password">
+              <label className="block text-sm font-medium text-foreground" htmlFor="new-password">
                 새 비밀번호
               </label>
               <Input
@@ -171,12 +171,12 @@ export function SharedPasswordResetPage({
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
-                className="h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#0B3B3B] focus:ring-2 focus:ring-[#0B3B3B]/15"
+                className="h-11"
                 placeholder="새 비밀번호"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-900" htmlFor="confirm-password">
+              <label className="block text-sm font-medium text-foreground" htmlFor="confirm-password">
                 새 비밀번호 확인
               </label>
               <Input
@@ -185,14 +185,14 @@ export function SharedPasswordResetPage({
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                className="h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#0B3B3B] focus:ring-2 focus:ring-[#0B3B3B]/15"
+                className="h-11"
                 placeholder="새 비밀번호 확인"
               />
             </div>
-            <Button variant="plain" size="plain"
+            <Button
               type="submit"
               disabled={!canSubmit || isSubmitting}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-[#0B3B3B] px-4 text-sm font-medium text-white transition hover:bg-[#114F4F] disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-11 w-full cursor-pointer"
             >
               <KeyRound aria-hidden className="h-4 w-4" />
               {isSubmitting ? '변경 중...' : '비밀번호 재설정'}
@@ -201,10 +201,10 @@ export function SharedPasswordResetPage({
         ) : null}
 
         {step === 'done' ? (
-          <Button variant="plain" size="plain"
+          <Button
             type="button"
             onClick={() => navigate(loginPath)}
-            className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-[#0B3B3B] px-4 text-sm font-medium text-white transition hover:bg-[#114F4F]"
+            className="h-11 w-full cursor-pointer"
           >
             <ArrowLeft aria-hidden className="h-4 w-4" />
             로그인으로 이동
@@ -212,17 +212,18 @@ export function SharedPasswordResetPage({
         ) : null}
 
         {step !== 'done' ? (
-          <Button variant="plain" size="plain"
+          <Button
+            variant="outline"
             type="button"
             onClick={() => navigate(loginPath)}
-            className="mt-5 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-[#0B3B3B] hover:bg-slate-50"
+            className="mt-5 h-11 w-full cursor-pointer"
           >
             <ArrowLeft aria-hidden className="h-4 w-4" />
             로그인으로 돌아가기
           </Button>
         ) : null}
 
-        <p className="mt-6 text-center text-sm text-slate-400">© 2026 SSOT</p>
+        <p className="mt-6 text-center text-sm text-ssoo-primary/50">© 2026 SSOT</p>
       </div>
     </AuthPageShell>
   );

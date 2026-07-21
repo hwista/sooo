@@ -30,7 +30,7 @@ function DefaultSeparator() {
   return (
     <span
       aria-hidden
-      className="mx-1 h-2 w-2 shrink-0 rotate-[-45deg] border-b border-r border-gray-400"
+      className="mx-1 h-2 w-2 shrink-0 rotate-[-45deg] border-b border-r border-ssoo-content-border"
     />
   );
 }
@@ -111,7 +111,7 @@ export function SsooPageBreadcrumb({
                 {label}
               </Button>
             ) : (
-              <span className="shrink-0 text-gray-500" title={item.title}>
+              <span className="shrink-0 ssoo-text-primary-70" title={item.title}>
                 {label}
               </span>
             )}

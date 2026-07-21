@@ -36,6 +36,25 @@
     --ssoo-sitemap-title: #0148A2;
     --ssoo-sitemap-bullet: #00398A;
     --ssoo-sitemap-background: #F6F9FF;
+    --ssoo-danger: #FA002D;
+    --ssoo-danger-hover: #D90027;
+    --ssoo-danger-border: #FFB8C5;
+    --ssoo-danger-background: #FFF1F4;
+    --ssoo-warning: #92400E;
+    --ssoo-warning-border: #F3C779;
+    --ssoo-warning-background: #FFFBEB;
+    --ssoo-success: #047857;
+    --ssoo-success-border: #A7D7B9;
+    --ssoo-success-background: #F0FAF4;
+    --ssoo-info: #0569A0;
+    --ssoo-info-border: #A9C9E8;
+    --ssoo-info-background: #EFF6FF;
+    --ssoo-accent-tone: #5B21B6;
+    --ssoo-accent-border: #C4B5FD;
+    --ssoo-accent-background: #F5F3FF;
+    --ssoo-neutral: #4B5563;
+    --ssoo-neutral-border: #D1D5DB;
+    --ssoo-neutral-background: #F3F4F6;
 
     --ls-blue: #0A1E5A;
     --ls-red: #FA002D;
@@ -45,7 +64,7 @@
     --ls-silver: #87827D;
     --ls-gold: #7D0D0D;
 
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --font-sans: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Nanum Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
@@ -79,6 +98,25 @@
     --ssoo-sitemap-title: #B8CAFF;
     --ssoo-sitemap-bullet: #8FB4FF;
     --ssoo-sitemap-background: #101A2D;
+    --ssoo-danger: #FDA4AF;
+    --ssoo-danger-hover: #FECDD3;
+    --ssoo-danger-border: #6A2D43;
+    --ssoo-danger-background: #3A1725;
+    --ssoo-warning: #FCD34D;
+    --ssoo-warning-border: #704D1A;
+    --ssoo-warning-background: #36230F;
+    --ssoo-success: #86EFAC;
+    --ssoo-success-border: #24543A;
+    --ssoo-success-background: #123323;
+    --ssoo-info: #93C5FD;
+    --ssoo-info-border: #1E3A5F;
+    --ssoo-info-background: #10233E;
+    --ssoo-accent-tone: #C4B5FD;
+    --ssoo-accent-border: #49385F;
+    --ssoo-accent-background: #231A33;
+    --ssoo-neutral: #D1D5DB;
+    --ssoo-neutral-border: #374151;
+    --ssoo-neutral-background: #1F2937;
   }
 
   [data-ssoo-theme="pms"] {
@@ -610,24 +648,88 @@ a:hover {
     --tw-ring-color: color-mix(in srgb, var(--ssoo-primary) 30%, transparent);
   }
 
+  .ssoo-tone-danger {
+    color: var(--ssoo-danger);
+  }
+
+  .ssoo-tone-danger-hover:hover {
+    color: var(--ssoo-danger-hover);
+  }
+
+  .ssoo-tone-danger-surface {
+    border-color: var(--ssoo-danger-border);
+    background-color: var(--ssoo-danger-background);
+    color: var(--ssoo-danger);
+  }
+
+  .ssoo-tone-warning {
+    color: var(--ssoo-warning);
+  }
+
+  .ssoo-tone-warning-surface {
+    border-color: var(--ssoo-warning-border);
+    background-color: var(--ssoo-warning-background);
+    color: var(--ssoo-warning);
+  }
+
+  .ssoo-tone-success {
+    color: var(--ssoo-success);
+  }
+
+  .ssoo-tone-success-surface {
+    border-color: var(--ssoo-success-border);
+    background-color: var(--ssoo-success-background);
+    color: var(--ssoo-success);
+  }
+
+  .ssoo-tone-info {
+    color: var(--ssoo-info);
+  }
+
+  .ssoo-tone-info-surface {
+    border-color: var(--ssoo-info-border);
+    background-color: var(--ssoo-info-background);
+    color: var(--ssoo-info);
+  }
+
+  .ssoo-tone-accent {
+    color: var(--ssoo-accent-tone);
+  }
+
+  .ssoo-tone-accent-surface {
+    border-color: var(--ssoo-accent-border);
+    background-color: var(--ssoo-accent-background);
+    color: var(--ssoo-accent-tone);
+  }
+
+  .ssoo-tone-neutral {
+    color: var(--ssoo-neutral);
+  }
+
+  .ssoo-tone-neutral-surface {
+    border-color: var(--ssoo-neutral-border);
+    background-color: var(--ssoo-neutral-background);
+    color: var(--ssoo-neutral);
+  }
+
   .heading-1 {
-    @apply text-h1 text-gray-900 font-bold;
+    @apply text-h1 font-bold text-ssoo-primary;
   }
 
   .heading-2 {
-    @apply text-h2 text-gray-800 font-semibold;
+    @apply text-h2 font-semibold text-ssoo-primary;
   }
 
   .heading-3 {
-    @apply text-h3 text-gray-800 font-semibold;
+    @apply text-h3 font-semibold text-ssoo-primary;
   }
 
   .body-text {
-    @apply text-body text-gray-700;
+    @apply text-body text-ssoo-primary;
   }
 
   .body-text-muted {
-    @apply text-body text-gray-500;
+    @apply text-body ssoo-text-primary-70;
   }
 
   .icon-h1 {

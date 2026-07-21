@@ -605,7 +605,7 @@ export function SsooUserSurfacePage({
 
   if (isLoading && !profile) {
     return (
-      <div className="flex min-h-[360px] items-center justify-center rounded-lg border border-ssoo-content-border bg-white text-body-sm text-muted-foreground">
+      <div className="flex min-h-[360px] items-center justify-center rounded-lg border border-ssoo-content-border bg-card text-body-sm text-muted-foreground">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         유저 표면을 불러오는 중...
       </div>
@@ -614,11 +614,11 @@ export function SsooUserSurfacePage({
 
   if (!profile || !form) {
     return (
-      <div className="rounded-lg border border-ssoo-content-border bg-white p-8 text-center">
+      <div className="rounded-lg border border-ssoo-content-border bg-card p-8 text-center">
         <p className="text-body-sm text-muted-foreground">{error ?? '프로필을 찾을 수 없습니다.'}</p>
         <Button variant="plain" size="plain"
           type="button"
-          className="mt-4 inline-flex h-control-h items-center rounded-md bg-ssoo-primary px-3 text-body-sm font-medium text-white"
+          className="mt-4 inline-flex h-control-h items-center rounded-md bg-ssoo-primary px-3 text-body-sm font-medium text-primary-foreground"
           onClick={() => void refresh()}
         >
           <RefreshCw className="mr-1.5 h-4 w-4" />
@@ -674,7 +674,7 @@ function UserSettingsSurface({
 
       {error ? <SurfaceError message={error} /> : null}
 
-      <div className="rounded-lg border border-ssoo-content-border bg-white p-4">
+      <div className="rounded-lg border border-ssoo-content-border bg-card p-4">
         <div id="ssoo-user-settings-basic" className="scroll-mt-4" />
         <h2 className="text-body-md font-semibold text-ssoo-content-strong">기본 정보</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -686,7 +686,7 @@ function UserSettingsSurface({
         </div>
       </div>
 
-      <div className="rounded-lg border border-ssoo-content-border bg-white p-4">
+      <div className="rounded-lg border border-ssoo-content-border bg-card p-4">
         <div id="ssoo-user-settings-profile-intro" className="scroll-mt-4" />
         <h2 className="text-body-md font-semibold text-ssoo-content-strong">프로필 소개</h2>
         <Textarea
@@ -734,7 +734,7 @@ function UserProfileSurfaceView({
     <div className="space-y-4">
       {error ? <SurfaceError message={error} /> : null}
 
-      <div className="overflow-hidden rounded-lg border border-ssoo-content-border bg-white">
+      <div className="overflow-hidden rounded-lg border border-ssoo-content-border bg-card">
         <div
           className={`h-36 bg-cover bg-center ${profile.coverImageUrl ? '' : 'bg-ssoo-primary'}`}
           style={profile.coverImageUrl ? { backgroundImage: `url(${profile.coverImageUrl})` } : undefined}
@@ -742,7 +742,7 @@ function UserProfileSurfaceView({
         <div className="relative space-y-4 p-4 pt-0">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end">
-              <div className="-mt-12 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-ssoo-primary text-2xl font-semibold text-white shadow-lg">
+              <div className="-mt-12 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-primary-foreground bg-ssoo-primary text-2xl font-semibold text-primary-foreground shadow-lg">
                 {profile.user.avatarUrl ? (
                   <img src={profile.user.avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
@@ -820,7 +820,7 @@ function UserProfileSurfaceView({
       {activePanel === 'posts' ? (
         <div className="space-y-3">
           {feedItems.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-ssoo-content-border bg-white p-8 text-center text-body-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-ssoo-content-border bg-card p-8 text-center text-body-sm text-muted-foreground">
               표시할 게시물이 없습니다.
             </div>
           ) : feedItems.map((item) => (
@@ -844,7 +844,7 @@ function UserProfileSurfaceView({
 function AboutPanel({ profile }: { profile: UserProfileSurface }) {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <div className="rounded-lg border border-ssoo-content-border bg-white p-4">
+      <div className="rounded-lg border border-ssoo-content-border bg-card p-4">
         <h2 className="text-body-md font-semibold text-ssoo-content-strong">스킬</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {profile.skills.length === 0 ? (
@@ -857,7 +857,7 @@ function AboutPanel({ profile }: { profile: UserProfileSurface }) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-ssoo-content-border bg-white p-4">
+      <div className="rounded-lg border border-ssoo-content-border bg-card p-4">
         <h2 className="text-body-md font-semibold text-ssoo-content-strong">경력/프로젝트</h2>
         <div className="mt-3 space-y-3">
           {profile.careers.length === 0 ? (
@@ -891,11 +891,11 @@ function FeedCard({
   const authorName = item.author.displayName || item.author.userName;
 
   return (
-    <article className="rounded-lg border border-ssoo-content-border bg-white p-4">
+    <article className="rounded-lg border border-ssoo-content-border bg-card p-4">
       <div className="flex items-start gap-3">
         <Button variant="plain" size="plain"
           type="button"
-          className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-ssoo-primary text-body-sm font-semibold text-white"
+          className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-ssoo-primary text-body-sm font-semibold text-primary-foreground"
           onClick={() => onOpenProfile?.(item.author.id)}
         >
           {item.author.avatarUrl ? <img src={item.author.avatarUrl} alt="" className="h-full w-full object-cover" /> : getInitials(authorName)}
@@ -927,7 +927,7 @@ function FeedCard({
         <Button variant="plain" size="plain"
           type="button"
           disabled={isMutating}
-          className={`inline-flex h-control-h-sm items-center rounded-md px-2 text-caption transition-colors ${item.isLiked ? 'text-red-500' : 'text-muted-foreground hover:bg-ssoo-content-bg'}`}
+          className={`inline-flex h-control-h-sm items-center rounded-md px-2 text-caption transition-colors ${item.isLiked ? 'ssoo-tone-danger' : 'text-muted-foreground hover:bg-ssoo-content-bg'}`}
           onClick={() => onToggleReaction(item)}
         >
           <Heart className={`mr-1 h-3.5 w-3.5 ${item.isLiked ? 'fill-current' : ''}`} />
@@ -996,8 +996,8 @@ function SurfaceButton({
   onClick: () => void;
 }) {
   const classes = variant === 'outline'
-    ? 'border border-ssoo-content-border bg-white text-ssoo-content hover:bg-ssoo-content-bg'
-    : 'bg-ssoo-primary text-white hover:bg-ssoo-primary-hover';
+    ? 'border border-ssoo-content-border bg-card text-ssoo-content hover:bg-ssoo-content-bg'
+    : 'bg-ssoo-primary text-primary-foreground hover:bg-ssoo-primary-hover';
 
   return (
     <Button variant="plain" size="plain"
@@ -1050,7 +1050,7 @@ function ExternalLink({
 
 function SurfaceError({ message }: { message: string }) {
   return (
-    <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-body-sm text-red-700">
+    <div className="rounded-md border px-3 py-2 text-body-sm ssoo-tone-danger-surface">
       {message}
     </div>
   );

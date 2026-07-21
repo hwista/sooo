@@ -88,7 +88,7 @@ export function ImageInsertDialog({ open, onConfirm, onCancel }: ImageInsertDial
           onClick={() => setActiveTab('url')}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-label-sm transition-colors ${
             activeTab === 'url'
-              ? 'bg-ssoo-primary text-white'
+              ? 'bg-ssoo-primary text-primary-foreground'
               : 'text-ssoo-primary/70 hover:bg-ssoo-content-bg/60'
           }`}
         >
@@ -100,7 +100,7 @@ export function ImageInsertDialog({ open, onConfirm, onCancel }: ImageInsertDial
           onClick={() => setActiveTab('upload')}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-label-sm transition-colors ${
             activeTab === 'upload'
-              ? 'bg-ssoo-primary text-white'
+              ? 'bg-ssoo-primary text-primary-foreground'
               : 'text-ssoo-primary/70 hover:bg-ssoo-content-bg/60'
           }`}
         >
@@ -150,13 +150,13 @@ export function ImageInsertDialog({ open, onConfirm, onCancel }: ImageInsertDial
                   />
                 </div>
               ) : (
-                <Upload className="h-8 w-8 text-gray-400" />
+                <Upload className="h-8 w-8 text-muted-foreground" />
               )}
-              <p className="text-caption text-gray-500">
+              <p className="text-caption text-muted-foreground">
                 {selectedFile ? selectedFile.name : '클릭하여 이미지 선택'}
               </p>
               {selectedFile && (
-                <p className="text-caption text-gray-400">
+                <p className="text-caption text-muted-foreground">
                   {(selectedFile.size / 1024).toFixed(1)} KB
                 </p>
               )}

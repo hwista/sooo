@@ -20,7 +20,7 @@ function ReferenceButton({
       className={`w-full rounded-md border px-2 py-1.5 text-left transition-colors ${
         attached
           ? 'border-ssoo-primary/45 bg-ssoo-primary/10'
-          : 'border-ssoo-primary/20 bg-white hover:border-ssoo-primary/40 hover:bg-ssoo-primary/5'
+          : 'border-ssoo-primary/20 bg-card hover:border-ssoo-primary/40 hover:bg-ssoo-primary/5'
       }`}
     >
       <p className="truncate text-label-sm text-ssoo-primary">{item.title}</p>
@@ -47,7 +47,7 @@ function TemplateButton({
       className={`w-full rounded-md border px-2 py-1.5 text-left transition-colors ${
         selected
           ? 'border-ssoo-primary/45 bg-ssoo-primary/10'
-          : 'border-ssoo-primary/20 bg-white hover:border-ssoo-primary/40 hover:bg-ssoo-primary/5'
+          : 'border-ssoo-primary/20 bg-card hover:border-ssoo-primary/40 hover:bg-ssoo-primary/5'
       }`}
     >
       <p className="truncate text-label-sm text-ssoo-primary">{template.name}</p>

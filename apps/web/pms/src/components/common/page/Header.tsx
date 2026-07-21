@@ -106,12 +106,12 @@ export function Header({
   return (
     <div
       className={cn(
-        'bg-white border border-gray-200 rounded-lg overflow-hidden',
+        'overflow-hidden rounded-lg border border-ssoo-content-border bg-card',
         className
       )}
     >
       {/* 액션 바 */}
-      <div className="flex items-center justify-between px-4 py-2 min-h-[52px] border-b border-gray-100 bg-gray-50">
+      <div className="ssoo-settings-subtle-surface flex min-h-[52px] items-center justify-between border-b ssoo-border-content-70 px-4 py-2">
         {/* 좌측: 액션 버튼들 */}
         <div className="flex items-center gap-2">
           {hasActions && actions.map((action, index) => (
@@ -158,7 +158,7 @@ export function Header({
 
       {/* 필터 바 (접힘 상태가 아닐 때만 표시) */}
       {!isCollapsed && hasFilters && (
-        <div className="px-4 py-2 min-h-[52px] bg-gray-50">
+        <div className="ssoo-settings-subtle-surface min-h-[52px] px-4 py-2">
           <div className="flex items-center gap-3">
             <FilterBar
               fields={filters}
@@ -192,7 +192,7 @@ export function Header({
 
       {/* 필터가 없어도 기본 영역 확보 */}
       {!isCollapsed && !hasFilters && (
-        <div className="px-4 py-2 bg-gray-50 min-h-[52px] flex items-center">
+        <div className="ssoo-settings-subtle-surface flex min-h-[52px] items-center px-4 py-2">
           <span className="text-sm text-muted-foreground">검색 조건이 없습니다</span>
         </div>
       )}

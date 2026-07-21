@@ -1,7 +1,7 @@
 'use client';
 
 import type { MouseEvent } from 'react';
-import { useMenuStore, useSidebarStore, useTabStore } from '@/stores';
+import { useLayoutStore, useMenuStore, useSidebarStore, useTabStore } from '@/stores';
 import { useOpenTabWithConfirm } from '@/hooks';
 import { MenuItem } from '@/types';
 import { ChevronRight, Folder, FolderOpen, FileText, Star } from 'lucide-react';
@@ -19,6 +19,7 @@ export function MenuTree() {
   const { generalMenus, isFavorite, addFavorite, removeFavorite } = useMenuStore();
   const { expandedMenuIds, toggleMenuExpand } = useSidebarStore();
   const { tabs, activeTabId } = useTabStore();
+  const closeMobileMenu = useLayoutStore((state) => state.closeMobileMenu);
   const openTabWithConfirm = useOpenTabWithConfirm();
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
@@ -29,13 +30,16 @@ export function MenuTree() {
     }
 
     if (item.menuPath) {
-      await openTabWithConfirm({
+      const tabId = await openTabWithConfirm({
         menuCode: item.menuCode,
         menuId: item.menuId,
         title: item.menuName,
         icon: item.icon,
         path: item.menuPath,
       });
+      if (tabId) {
+        closeMobileMenu();
+      }
     }
   };
 

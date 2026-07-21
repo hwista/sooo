@@ -1,25 +1,35 @@
 'use client';
 
 import type { OpenTabOptions } from '@/types/tab';
-import type { SettingsScope } from '@/types/settings';
+import type { SettingsScope, SettingsSurfaceId } from '@/types/settings';
 import {
   getSettingSection,
-  SETTINGS_SCOPE_LABELS,
+  SETTING_SECTIONS,
+  SETTINGS_SECTION_GROUP_LABELS,
 } from '../_config/settingsPageConfig';
 
 export const SETTINGS_TAB_PATH_PREFIX = '/settings/';
 
 export interface SettingsTabTarget {
+  surface: SettingsSurfaceId;
   scope: SettingsScope;
   sectionId: string;
 }
 
+function getFallbackSurface(scope: SettingsScope): SettingsSurfaceId {
+  return scope === 'personal' ? 'personal-settings' : 'system-settings';
+}
+
 export function getSettingsTabId(scope: SettingsScope, sectionId: string) {
-  return `settings-${scope}-${sectionId}`;
+  const section = getSettingSection(scope, sectionId);
+  const surface = section?.surface ?? getFallbackSurface(scope);
+  return `settings-${surface}-${sectionId}`;
 }
 
 export function getSettingsTabPath(scope: SettingsScope, sectionId: string) {
-  return `${SETTINGS_TAB_PATH_PREFIX}${scope}/${sectionId}`;
+  const section = getSettingSection(scope, sectionId);
+  const surface = section?.surface ?? getFallbackSurface(scope);
+  return `${SETTINGS_TAB_PATH_PREFIX}${surface}/${sectionId}`;
 }
 
 export function parseSettingsTabPath(path: string): SettingsTabTarget | null {
@@ -27,12 +37,26 @@ export function parseSettingsTabPath(path: string): SettingsTabTarget | null {
     return null;
   }
 
-  const [, , scope, sectionId] = path.split('/');
+  const [, , scopeOrSurface, sectionId] = path.split('/');
+  const section = SETTING_SECTIONS.find((candidate) => (
+    candidate.id === sectionId
+    && (candidate.surface === scopeOrSurface || candidate.scope === scopeOrSurface)
+  ));
+
+  if (section) {
+    return {
+      surface: section.surface,
+      scope: section.scope,
+      sectionId,
+    };
+  }
+
+  const scope = scopeOrSurface;
   if ((scope !== 'system' && scope !== 'personal') || !sectionId) {
     return null;
   }
 
-  return { scope, sectionId };
+  return { surface: getFallbackSurface(scope), scope, sectionId };
 }
 
 export function isSettingsTabPath(path: string) {
@@ -44,7 +68,7 @@ export function getSettingsTabOptions(scope: SettingsScope, sectionId: string): 
 
   return {
     id: getSettingsTabId(scope, sectionId),
-    title: section?.label ?? SETTINGS_SCOPE_LABELS[scope],
+    title: section?.label ?? SETTINGS_SECTION_GROUP_LABELS[scope === 'personal' ? 'personal' : 'system'],
     path: getSettingsTabPath(scope, sectionId),
     icon: 'Settings',
     closable: true,

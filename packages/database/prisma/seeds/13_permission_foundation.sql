@@ -33,6 +33,14 @@ set role_name = excluded.role_name,
     last_activity = excluded.last_activity,
     updated_at = current_timestamp;
 
+update common.cm_permission_m
+set is_active = false,
+    memo = 'Retired: PMS customer master editing belongs to CRM/Admin/common organization surfaces',
+    last_source = 'permission-foundation-seed',
+    last_activity = 'seed.permission-foundation',
+    updated_at = current_timestamp
+where permission_code = 'pms.customer.manage';
+
 insert into common.cm_permission_m (
   permission_code, permission_name, domain_code, permission_axis,
   description, sort_order, is_active, memo,
@@ -42,7 +50,7 @@ values
   ('system.override', '시스템 관리자 override', 'common', 'action', '도메인 권한 계산을 우회하는 시스템 관리자 override 권한', 10, true, 'Permission foundation seed', 'permission-foundation-seed', 'seed.permission-foundation', current_timestamp),
   ('common.user.manage', '사용자 관리', 'common', 'action', '공통 사용자 및 계정 관리 권한', 20, true, 'Permission foundation seed', 'permission-foundation-seed', 'seed.permission-foundation', current_timestamp),
   ('pms.code.manage', 'PMS 코드 관리', 'pms', 'action', 'PMS 코드 마스터 관리 권한', 100, true, 'Permission foundation seed', 'permission-foundation-seed', 'seed.permission-foundation', current_timestamp),
-  ('pms.customer.manage', 'PMS 고객사 관리', 'pms', 'action', 'PMS 고객사 관리 권한', 110, true, 'Permission foundation seed', 'permission-foundation-seed', 'seed.permission-foundation', current_timestamp),
+  ('pms.customer.read', 'PMS 고객사 조회', 'pms', 'action', 'PMS 프로젝트 실행 선택용 고객사 읽기 조회 권한', 110, true, 'Permission foundation seed', 'permission-foundation-seed', 'seed.permission-foundation', current_timestamp),
   ('pms.menu.manage', 'PMS 메뉴 권한 관리', 'pms', 'action', 'PMS 메뉴/역할 권한 관리 권한', 120, true, 'Permission foundation seed', 'permission-foundation-seed', 'seed.permission-foundation', current_timestamp),
   ('sns.board.manage', 'SNS 게시판 관리', 'sns', 'action', 'SNS 게시판 관리 권한', 200, true, 'Permission foundation seed', 'permission-foundation-seed', 'seed.permission-foundation', current_timestamp),
   ('sns.skill.manage', 'SNS 스킬 관리', 'sns', 'action', 'SNS 스킬 관리 권한', 210, true, 'Permission foundation seed', 'permission-foundation-seed', 'seed.permission-foundation', current_timestamp)
@@ -75,7 +83,7 @@ join common.cm_permission_m p
     'system.override',
     'common.user.manage',
     'pms.code.manage',
-    'pms.customer.manage',
+    'pms.customer.read',
     'pms.menu.manage',
     'sns.board.manage',
     'sns.skill.manage'

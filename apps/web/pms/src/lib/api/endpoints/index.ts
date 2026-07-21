@@ -18,9 +18,34 @@ export { customersApi } from './customers';
 export type {
   CustomerItem,
   CustomerFilters,
-  CreateCustomerRequest,
-  UpdateCustomerRequest,
 } from './customers';
+
+// PMS Master
+export { pmsMasterApi } from './master';
+export type {
+  CreatePmsMasterImportProfileRequest,
+  ImportProfileFilters,
+  MasterFilters,
+  UpdatePmsMasterImportProfileRequest,
+} from './master';
+
+// PMS Templates
+export { pmsTemplatesApi } from './templates';
+export type {
+  CloseConditionTemplateGroup,
+  DeliverableTemplateGroup,
+  TemplateGroupApprovalStatusCode,
+  TemplateGroupHistory,
+  UpsertCloseConditionTemplateGroupRequest,
+  UpsertDeliverableTemplateGroupRequest,
+} from './templates';
+
+// CRM Handoff
+export { crmHandoffApi } from './crmHandoff';
+export type {
+  CrmContractHandoffCandidateFilters,
+  CrmContractPmsHandoffCandidate,
+} from './crmHandoff';
 
 // Menus
 export { menusApi } from './menus';

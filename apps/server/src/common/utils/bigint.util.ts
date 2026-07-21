@@ -27,6 +27,7 @@ export function serializeBigIntShallow<T extends Record<string, unknown>>(obj: T
 export function serializeBigInt(value: unknown): unknown {
   if (value === null || value === undefined) return value;
   if (typeof value === 'bigint') return value.toString();
+  if (isDecimalLike(value)) return value.toNumber();
   if (value instanceof Date) return value;
   if (Array.isArray(value)) return value.map(serializeBigInt);
   if (typeof value === 'object') {
@@ -35,4 +36,16 @@ export function serializeBigInt(value: unknown): unknown {
     );
   }
   return value;
+}
+
+interface DecimalLike {
+  toJSON: () => string;
+  toNumber: () => number;
+}
+
+function isDecimalLike(value: unknown): value is DecimalLike {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<DecimalLike>;
+  return typeof candidate.toNumber === 'function'
+    && typeof candidate.toJSON === 'function';
 }

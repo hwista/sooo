@@ -30,8 +30,8 @@
 
 | 도구 | 버전 | 확인 명령어 | 설치 방법 |
 |------|------|------------|----------|
-| **Node.js** | v24.x (Active LTS) | `node --version` | [nodejs.org](https://nodejs.org/) 또는 `nvm use` |
-| **pnpm** | v9.x 이상 | `pnpm --version` | `npm install -g pnpm` |
+| **Node.js** | 22.13 이상 (`.nvmrc` 정본) | `node --version` | [nodejs.org](https://nodejs.org/) 또는 `nvm use` |
+| **pnpm** | 11.13.1 (루트 `packageManager` 정본) | `pnpm --version` | `corepack enable` |
 | **Git** | 최신 버전 | `git --version` | [git-scm.com](https://git-scm.com/) |
 
 ### PostgreSQL (택 1)
@@ -218,6 +218,10 @@ pnpm docker:up
 pnpm db:setup
 ```
 
+`pnpm docker:*`는 로컬 전용 `compose.yaml + compose.local.yaml` 경로입니다. 실제 공개 배포는 `.env.production.example`을 복사해 비밀값과 절대 DMS 저장 경로를 채운 뒤 `pnpm docker:production:verify-env`, `pnpm docker:production:config`, `pnpm docker:production:up` 순서로 실행합니다.
+
+조직 TLS 프록시 환경에서 dependency/Prisma engine 다운로드가 사설 인증서 체인으로 종료되면, 보안팀이 승인한 PEM root CA의 절대 경로를 `SSOO_TLS_CA_CERT_FILE`에 설정합니다. Compose는 이 파일을 7개 이미지의 일시적 BuildKit secret으로 전달하고, runtime secret은 outbound Node TLS가 필요한 server/db-init에만 mount합니다. 공개 CA 환경에서는 비워 두며 TLS 검증 비활성화는 허용하지 않습니다. 각 deps stage는 전체 workspace manifest를 먼저 복사한 뒤 대상만 filtered install하고, pnpm v11 store와 lockfile-keyed verification metadata를 각각 `sharing=locked` cache로 공유합니다. 따라서 pnpm 11 pre-run 상태 검사와 최초 24시간 release-age/frozen lockfile/install-script allowlist 검증을 유지하면서, 검증된 동일 lockfile의 반복 registry 조회와 tarball 다운로드만 줄입니다.
+
 이 명령어는 모든 workspace의 의존성을 자동으로 설치합니다:
 - `apps/web/pms` (Next.js)
 - `apps/web/dms` (Next.js)
@@ -227,7 +231,7 @@ pnpm db:setup
 - `packages/types` (TypeScript Types)
 
 > ⚠️ **중요**: Prisma 명령어(`prisma generate`, `prisma db push` 등)는 의존성 설치 후에만 사용 가능합니다.
-> 로컬 기능 검증은 개별 `pnpm dev:*`보다 root `compose.yaml` 기반 Docker 스택을 기본 경로로 사용합니다.
+> 로컬 기능 검증은 개별 `pnpm dev:*`보다 root `compose.yaml + compose.local.yaml` 기반 Docker 스택을 기본 경로로 사용합니다. `compose.production.yaml`은 실제 배포 입력 검증을 통과한 호스트에서만 사용합니다.
 
 ### DB 서버 옵션 (택 1)
 
@@ -319,12 +323,20 @@ DATABASE_URL="postgresql://[사용자]:[비밀번호]@[호스트]:[포트]/[DB�
 
 ```bash
 # Prisma Client 생성
-cd packages/database
-pnpm prisma generate
+pnpm db:generate
 
-# 데이터베이스 푸시
-pnpm prisma db push
+# 새 DB/launch-managed DB migration 적용 및 상태 확인
+pnpm db:migrate:deploy
+pnpm db:migrate:status
+
+# 빈 일회용 DB에서 launch baseline 재현성 검증
+pnpm db:baseline:verify
+
+# 개발 중 임시 schema 동기화(배포 이력 대체 금지)
+pnpm db:push
 ```
+
+기존 pre-baseline DB는 자동으로 baseline 처리하지 않습니다. 백업 후 schema drift가 0인 경우에만 `DATABASE_URL=... DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline pnpm db:baseline:resolve`를 실행합니다.
 
 ### 히스토리 트리거 설치
 
@@ -663,18 +675,20 @@ rmdir /s /q node_modules .turbo 2>nul
 
 **증상**: `self-signed certificate in certificate chain` 또는 Prisma 엔진 다운로드 실패
 
-**해결 (명령어별 임시 적용)**:
+**해결 (현재 셸 적용)**: 보안팀이 제공한 사내 root CA PEM을 신뢰하도록 설정합니다.
 ```bash
-NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm prisma generate
-NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm prisma db push
+export NODE_EXTRA_CA_CERTS=/secure/company-root-ca.pem
+pnpm config set cafile /secure/company-root-ca.pem
+pnpm prisma generate
+pnpm prisma db push
 ```
 
-**해결 (영구 적용)** - `~/.bashrc` 또는 `~/.zshrc`에 추가:
+**영구 적용**이 필요하면 CA 파일의 접근 권한과 갱신 책임을 보안팀 기준으로 관리하고, 셸 profile에는 승인된 파일 경로만 등록합니다.
 ```bash
-export NODE_TLS_REJECT_UNAUTHORIZED=0
+export NODE_EXTRA_CA_CERTS=/secure/company-root-ca.pem
 ```
 
-> ⚠️ 이 설정은 보안을 약화시키므로 개발 환경에서만 사용하세요.
+> TLS 인증서 검증 비활성화는 개발 환경에서도 허용하지 않습니다. 승인된 CA가 없으면 설치/엔진 다운로드를 중단하고 보안팀에 CA 배포를 요청합니다.
 
 ### 7. pnpm dev 실행 시 exit code -2 오류 (WSL 환경)
 

@@ -70,17 +70,47 @@ interface UseDmsSocketOptions {
 // WebSocket URL resolution
 // ============================================================================
 
+export interface ResolveDmsWebSocketUrlOptions {
+  explicitWebSocketUrl?: string;
+  apiBaseUrl?: string;
+  locationOrigin: string;
+  locationHostname: string;
+  locationProtocol: string;
+}
+
+export function resolveDmsWebSocketUrl({
+  explicitWebSocketUrl,
+  apiBaseUrl,
+  locationOrigin,
+  locationHostname,
+  locationProtocol,
+}: ResolveDmsWebSocketUrlOptions): string {
+  const explicitUrl = explicitWebSocketUrl?.trim();
+  if (explicitUrl) return explicitUrl;
+
+  const normalizedApiBaseUrl = apiBaseUrl?.trim();
+  if (normalizedApiBaseUrl && !normalizedApiBaseUrl.startsWith('/')) {
+    try {
+      return new URL(normalizedApiBaseUrl, locationOrigin).origin;
+    } catch {
+      // Invalid public API configuration falls through to the local default.
+    }
+  }
+
+  const socketProtocol = locationProtocol === 'https:' ? 'https:' : 'http:';
+  return `${socketProtocol}//${locationHostname}:4000`;
+}
+
 function getWsUrl(): string {
   if (typeof window === 'undefined') return '';
 
-  // NEXT_PUBLIC_WS_URL이 설정되어 있으면 사용
-  const envUrl = process.env.NEXT_PUBLIC_WS_URL?.trim();
-  if (envUrl) return envUrl;
-
-  // 같은 호스트의 port 4000 (NestJS 서버)
-  const { hostname, protocol } = window.location;
-  const wsProtocol = protocol === 'https:' ? 'https:' : 'http:';
-  return `${wsProtocol}//${hostname}:4000`;
+  return resolveDmsWebSocketUrl({
+    explicitWebSocketUrl: process.env.NEXT_PUBLIC_WS_URL,
+    apiBaseUrl: process.env.NEXT_PUBLIC_API_URL,
+    locationOrigin: window.location.origin,
+    locationHostname: window.location.hostname,
+    locationProtocol: window.location.protocol,
+  });
 }
 
 // ============================================================================

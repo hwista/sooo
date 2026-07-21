@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronRight,
-  ExternalLink,
   RefreshCw,
   Search as SearchIcon,
   Bookmark,
@@ -222,10 +221,9 @@ const SETTINGS_GROUP_ICON_MAP = {
   system: Shield,
   management: FolderTree,
   personal: SlidersHorizontal,
-  external: ExternalLink,
 } satisfies Record<SettingSectionGroup, LucideIcon>;
 
-const SETTINGS_RUNTIME_SECTION_IDS = new Set(['git', 'storage', 'ingest', 'templates-runtime']);
+const SETTINGS_RUNTIME_SECTION_IDS = new Set(['git', 'storage-runtime', 'ingest-runtime', 'templates-runtime']);
 
 function SettingsSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
   const access = useSettingsStore((state) => state.access);
@@ -374,10 +372,6 @@ function SettingsSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
     return node.type === 'group' && expandedSettingsGroups.has(node.id);
   };
 
-  const getSettingsNodeStatusLabel = (node: SettingsSidebarNode) => {
-    return node.type === 'section' && isSettingsNodeActive(node) ? '열림' : null;
-  };
-
   const settingsSidebarSections = createSsooSettingsSidebarSections<SettingSearchEntry, SettingsSidebarNode>({
     showSearchResults: showSettingsSearchResults,
     searchSection: {
@@ -414,8 +408,6 @@ function SettingsSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
     isMenuNodeFolder: isSettingsNodeFolder,
     isMenuNodeExpanded: isSettingsNodeExpanded,
     isMenuNodeActive: isSettingsNodeActive,
-    getMenuNodeStatusLabel: getSettingsNodeStatusLabel,
-    getMenuNodeStatusTone: () => 'primary',
     onMenuNodeSelect: handleSelectSettingsNode,
   });
 

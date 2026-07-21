@@ -13,6 +13,5 @@ export const ADMIN_ROOT_ENTRY_PATHS = [
 ] as const;
 
 export const ADMIN_ALLOWED_PATH_PREFIXES = [
-  '/dms',
   '/ssoo',
 ] as const;

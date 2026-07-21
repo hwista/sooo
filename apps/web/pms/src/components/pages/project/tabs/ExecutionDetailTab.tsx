@@ -1,17 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { upsertExecutionDetailSchema } from '@/lib/validations/project';
 import type { UpsertExecutionDetailInput } from '@/lib/validations/project';
-import { useProjectAccess, useUpsertExecutionDetail } from '@/hooks/queries';
+import { useProjectAccess, useProjectList, useUpsertExecutionDetail } from '@/hooks/queries';
 import { FormField } from '@/components/common';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Pencil, Save, X } from 'lucide-react';
-import type { ProjectExecutionDetail } from '@/lib/api/endpoints/projects';
+import type { Project, ProjectExecutionDetail } from '@/lib/api/endpoints/projects';
+import { formatPmsAmount, formatPmsDate } from '@/lib/pms-format';
+
+type ExecutionEditableInput = Pick<UpsertExecutionDetailInput, 'deliveryMethodCode' | 'nextProjectId' | 'memo'>;
+
+const executionEditableSchema = upsertExecutionDetailSchema.pick({
+  deliveryMethodCode: true,
+  nextProjectId: true,
+  memo: true,
+});
+
+const EMPTY_PROJECT_VALUE = '__none__';
+
+const formatProjectOption = (project: Project) =>
+  `${project.projectName} · PRJ-${String(project.id).padStart(6, '0')} · ${project.statusCode}/${project.stageCode}`;
+
+const formatProjectContext = (project: Project) =>
+  [project.customerName, project.plantSiteName, project.systemInstanceName].filter(Boolean).join(' · ');
 
 interface Props {
   projectId: number;
@@ -21,30 +45,60 @@ interface Props {
 
 export function ExecutionDetailTab({ projectId, detail, onSaved }: Props) {
   const [isEditing, setIsEditing] = useState(false);
+  const [projectSearch, setProjectSearch] = useState(() => (
+    detail?.nextProjectId ? String(detail.nextProjectId) : ''
+  ));
   const upsertMutation = useUpsertExecutionDetail();
   const { data: accessResponse } = useProjectAccess(projectId);
   const canEditProject = accessResponse?.data?.features.canEditProject ?? false;
 
-  const form = useForm<UpsertExecutionDetailInput>({
-    resolver: zodResolver(upsertExecutionDetailSchema),
+  const form = useForm<ExecutionEditableInput>({
+    resolver: zodResolver(executionEditableSchema),
     defaultValues: {
-      contractSignedAt: detail?.contractSignedAt ?? '',
-      contractAmount: detail?.contractAmount ? String(detail.contractAmount) : '',
-      contractUnitCode: detail?.contractUnitCode ?? '',
-      billingTypeCode: detail?.billingTypeCode ?? '',
       deliveryMethodCode: detail?.deliveryMethodCode ?? '',
       nextProjectId: detail?.nextProjectId ? Number(detail.nextProjectId) : undefined,
       memo: detail?.memo ?? '',
     },
   });
+  const watchedNextProjectId = form.watch('nextProjectId');
+  const selectedNextProjectId = watchedNextProjectId ? String(watchedNextProjectId) : '';
+  const projectLookupSearch = projectSearch.trim() || selectedNextProjectId || (detail?.nextProjectId ? String(detail.nextProjectId) : '');
+  const {
+    data: projectLookupResponse,
+    isLoading: isProjectLookupLoading,
+    isError: isProjectLookupError,
+    refetch: refetchProjectLookup,
+  } = useProjectList(
+    { search: projectLookupSearch, page: 1, pageSize: 20 },
+    { enabled: canEditProject || Boolean(detail?.nextProjectId) },
+  );
+  const projectOptions = useMemo(() => (
+    (projectLookupResponse?.data?.items ?? []).filter((project) => String(project.id) !== String(projectId))
+  ), [projectId, projectLookupResponse]);
+  const selectedNextProject = projectOptions.find(
+    (project) => String(project.id) === (selectedNextProjectId || String(detail?.nextProjectId ?? '')),
+  );
 
-  const handleSave = async (data: UpsertExecutionDetailInput) => {
+  useEffect(() => {
+    if (isEditing) {
+      return;
+    }
+    form.reset({
+      deliveryMethodCode: detail?.deliveryMethodCode ?? '',
+      nextProjectId: detail?.nextProjectId ? Number(detail.nextProjectId) : undefined,
+      memo: detail?.memo ?? '',
+    });
+    setProjectSearch(detail?.nextProjectId ? String(detail.nextProjectId) : '');
+  }, [detail, form, isEditing]);
+
+  const handleSave = async (data: ExecutionEditableInput) => {
     try {
       await upsertMutation.mutateAsync({
         id: projectId,
         data: {
-          ...data,
+          deliveryMethodCode: data.deliveryMethodCode,
           nextProjectId: data.nextProjectId ? String(data.nextProjectId) : undefined,
+          memo: data.memo,
         },
       });
       setIsEditing(false);
@@ -68,11 +122,11 @@ export function ExecutionDetailTab({ projectId, detail, onSaved }: Props) {
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground mb-1">계약 체결일</p>
-            <p>{detail?.contractSignedAt ? new Date(detail.contractSignedAt).toLocaleDateString() : '-'}</p>
+            <p>{formatPmsDate(detail?.contractSignedAt)}</p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1">계약 금액</p>
-            <p>{detail?.contractAmount ? `${Number(detail.contractAmount).toLocaleString()} ${detail.contractUnitCode || ''}` : '-'}</p>
+            <p>{formatPmsAmount(detail?.contractAmount, detail?.contractUnitCode ?? '')}</p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1">청구 유형</p>
@@ -83,8 +137,16 @@ export function ExecutionDetailTab({ projectId, detail, onSaved }: Props) {
             <p>{detail?.deliveryMethodCode || '-'}</p>
           </div>
           <div>
-            <p className="text-muted-foreground mb-1">후속 프로젝트 ID</p>
-            <p>{detail?.nextProjectId ? String(detail.nextProjectId) : '-'}</p>
+            <p className="text-muted-foreground mb-1">후속 프로젝트</p>
+            <p>
+              {selectedNextProject
+                ? formatProjectOption(selectedNextProject)
+                : detail?.nextProjectId
+                  ? isProjectLookupLoading
+                    ? '프로젝트 조회 중...'
+                    : '프로젝트 정보 조회 필요'
+                  : '-'}
+            </p>
           </div>
           {detail?.memo && (
             <div className="col-span-2 lg:col-span-3">
@@ -117,24 +179,82 @@ export function ExecutionDetailTab({ projectId, detail, onSaved }: Props) {
         </Button>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <FormField label="계약 체결일">
-          <Input type="date" {...form.register('contractSignedAt')} />
-        </FormField>
-        <FormField label="계약 금액">
-          <Input {...form.register('contractAmount')} placeholder="금액" />
-        </FormField>
-        <FormField label="계약 단위">
-          <Input {...form.register('contractUnitCode')} placeholder="예: KRW, USD" />
-        </FormField>
-        <FormField label="청구 유형">
-          <Input {...form.register('billingTypeCode')} placeholder="예: 일시불, 분할" />
-        </FormField>
+        <div className="col-span-2 lg:col-span-3 grid grid-cols-2 lg:grid-cols-3 gap-4 rounded border border-border bg-muted/20 p-3 text-sm">
+          <div>
+            <p className="text-muted-foreground mb-1">계약 체결일</p>
+            <p>{formatPmsDate(detail?.contractSignedAt)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground mb-1">계약 금액</p>
+            <p>{formatPmsAmount(detail?.contractAmount, detail?.contractUnitCode ?? '')}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground mb-1">청구 유형</p>
+            <p>{detail?.billingTypeCode || '-'}</p>
+          </div>
+        </div>
         <FormField label="납품 방식">
           <Input {...form.register('deliveryMethodCode')} placeholder="예: 온프레미스, 클라우드" />
         </FormField>
-        <FormField label="후속 프로젝트 ID">
-          <Input {...form.register('nextProjectId')} />
-        </FormField>
+        <div className="col-span-2 lg:col-span-2 grid grid-cols-1 gap-3 md:grid-cols-[minmax(180px,0.8fr),minmax(240px,1.2fr)]">
+          <FormField label="프로젝트 검색">
+            <Input
+              placeholder="프로젝트명 또는 번호"
+              value={projectSearch}
+              onChange={(event) => setProjectSearch(event.target.value)}
+            />
+          </FormField>
+          <FormField label="후속 프로젝트">
+            <Select
+              value={selectedNextProjectId || EMPTY_PROJECT_VALUE}
+              onValueChange={(value) => {
+                form.setValue(
+                  'nextProjectId',
+                  value === EMPTY_PROJECT_VALUE ? undefined : Number(value),
+                  { shouldDirty: true, shouldValidate: true },
+                );
+              }}
+              disabled={isProjectLookupLoading || (projectOptions.length === 0 && !selectedNextProjectId)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={isProjectLookupLoading ? '조회 중...' : '프로젝트 선택'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={EMPTY_PROJECT_VALUE}>선택 안함</SelectItem>
+                {selectedNextProjectId && !selectedNextProject ? (
+                  <SelectItem value={selectedNextProjectId}>
+                    프로젝트 정보 조회 필요
+                  </SelectItem>
+                ) : null}
+                {projectOptions.map((project) => (
+                  <SelectItem key={String(project.id)} value={String(project.id)}>
+                    {formatProjectOption(project)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+          <p className="md:col-span-2 text-xs text-muted-foreground">
+            {isProjectLookupError ? (
+              <>
+                프로젝트 조회 결과를 불러오지 못했습니다.{' '}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  onClick={() => void refetchProjectLookup()}
+                >
+                  다시 조회
+                </Button>
+              </>
+            ) : selectedNextProject ? (
+              formatProjectContext(selectedNextProject) || '선택한 프로젝트를 후속 프로젝트로 저장합니다.'
+            ) : (
+              '조회 가능한 프로젝트 중 후속으로 연결할 대상을 선택합니다.'
+            )}
+          </p>
+        </div>
         <div className="col-span-2 lg:col-span-3">
           <FormField label="메모">
             <Textarea {...form.register('memo')} rows={2} />

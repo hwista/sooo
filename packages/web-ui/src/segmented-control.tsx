@@ -50,9 +50,9 @@ const SegmentedControlItem = React.forwardRef<HTMLButtonElement, SegmentedContro
           ? 'h-control-h rounded-md px-3 text-sm font-medium'
           : 'h-7 rounded px-2 text-xs font-normal leading-4',
         selected
-          ? 'border-ssoo-primary bg-ssoo-primary text-white'
+          ? 'border-ssoo-primary bg-ssoo-primary text-primary-foreground'
           : surface === 'white'
-            ? 'border-ssoo-content-border bg-white text-ssoo-primary hover:bg-ssoo-content-bg'
+            ? 'border-ssoo-content-border bg-card text-ssoo-primary hover:bg-ssoo-content-bg'
             : 'border-ssoo-content-border bg-ssoo-content-bg text-ssoo-primary/70 hover:bg-muted/60',
         className,
       )}
@@ -62,8 +62,8 @@ const SegmentedControlItem = React.forwardRef<HTMLButtonElement, SegmentedContro
       {badge ? (
         <span
           className={cn(
-            'inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-medium leading-none',
-            selected ? 'bg-white/20 text-white' : 'bg-muted text-ssoo-primary/70',
+            'inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-caption-xs leading-none',
+            selected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-ssoo-primary/70',
           )}
         >
           {badge}

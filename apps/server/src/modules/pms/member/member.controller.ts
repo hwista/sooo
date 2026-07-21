@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
 import { MemberService } from './member.service.js';
@@ -6,7 +6,11 @@ import { ProjectFeatureGuard } from '../project/project-feature.guard.js';
 import { RequireProjectFeature } from '../project/require-project-feature.decorator.js';
 import { success, deleted } from '../../../common/index.js';
 import { serializeBigInt } from '../../../common/utils/bigint.util.js';
-import type { CreateProjectMemberDto, UpdateProjectMemberDto } from '@ssoo/types';
+import type {
+  CreateProjectMemberDto,
+  FindProjectMemberUserLookupDto,
+  UpdateProjectMemberDto,
+} from '@ssoo/types';
 import { ProjectMemberDto } from './dto/member.dto.js';
 import { ApiError } from '../../../common/swagger/api-response.dto.js';
 
@@ -27,6 +31,18 @@ export class MemberController {
   async findByProject(@Param('projectId') projectId: string) {
     const data = await this.memberService.findByProject(BigInt(projectId));
     return success(data.map((m) => serializeBigInt(m)));
+  }
+
+  @Get('lookup')
+  @RequireProjectFeature('canManageMembers')
+  @ApiOperation({ summary: '프로젝트 멤버 추가용 공용 사용자 조회' })
+  @ApiOkResponse({ description: '프로젝트 멤버 후보 사용자 목록' })
+  @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: '서버 오류' })
+  async findUserLookup(@Query() params: FindProjectMemberUserLookupDto) {
+    const data = await this.memberService.findUserLookup(params);
+    return success(data);
   }
 
   @Post()

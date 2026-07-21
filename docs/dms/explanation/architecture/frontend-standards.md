@@ -113,8 +113,8 @@ DMS settings 는 별도 설정 shell 컴포넌트 세트 없이 같은 frame pri
 - settings section navigation은 settings sidebar 메뉴 트리가 시작점이고, 클릭된 section은 기존 `TabBar`의 settings tab으로 열립니다. `SettingsPage` 본문은 현재 section content와 `PageTemplate`의 `leftSubContentSlot` 내부 색인만 소유합니다.
 - settings mode가 활성화된 동안 active content tab은 settings tab path여야 합니다. `AppLayout`과 settings navigation store는 active tab과 settings mode를 동기화하고, `ContentArea`는 공용 MDI의 active-tab 규칙에 따라 현재 active settings tab을 렌더링합니다.
 - structured settings registry 는 `settingsPageConfig.ts` 를 정본으로 사용합니다.
-- system settings surface 는 `documentAccess`, `git`, `storage`, `ingest`, `templates-runtime`, `uploads`, `search`, `docAssist`, `extraction`, `templates`, `external-settings` 를 다룹니다.
-- personal settings surface 는 `identity`, `workspace`, `viewer`, `sidebar` 를 다룹니다.
+- settings surface 는 `문서 운영·진단`(`git`, `storage-runtime`, `ingest-runtime`, `templates-runtime`), `문서 시스템 설정`(`storage`, `ingest`, `uploads`, `search`, `docAssist`, `extraction`), `문서 관리`(`documentAccess`, `templates`), `내 문서 환경 설정`(`identity`, `viewer`, `sidebar`)로 나뉩니다.
+- runtime observability section 은 저장 action 없이 상태만 표시하고, DB-backed policy/preference section 만 저장 action 을 노출합니다.
 - Microsoft 365 / Teams / SSO 의 조직 정책과 secret/token/certificate 는 Admin/Auth/Organization 또는 AI/Common control plane 책임입니다. DMS는 문서 도메인 storage/ingest/drop mapping 처럼 DMS에 직접 필요한 provider 사용 정책만 다룹니다.
 
 ### 선별 UI 기준선
@@ -296,6 +296,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-06 | DMS settings surface 를 운영·진단/시스템 설정/관리/개인 설정으로 재분류하고 외부 설정 링크와 workspace visible form 을 제거한 기준 반영 |
 | 2026-06-17 | DMS PageTemplate을 web-shell recipe 승격 전 기준 구현으로 정리하고 settings surface 범위와 Microsoft/Admin 경계를 최신 기준으로 보정 |
 | 2026-06-15 | settings mode shell과 active content tab이 불일치해 문서 pane/panel이 설정 화면에 남는 상태를 차단하는 frontend invariant를 명시 |
 | 2026-06-15 | settings sidebar의 refresh/collapse/tree expand 동작을 workspace sidebar와 같은 공용 surface 계약으로 명시 |

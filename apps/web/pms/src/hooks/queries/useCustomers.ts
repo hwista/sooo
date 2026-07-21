@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { customersApi } from '@/lib/api/endpoints/customers';
-import type { CustomerFilters, CreateCustomerRequest, UpdateCustomerRequest } from '@/lib/api/endpoints/customers';
+import type { CustomerFilters } from '@/lib/api/endpoints/customers';
 
 // ============================================
 // Query Keys
@@ -31,44 +31,5 @@ export function useCustomerDetail(id: string) {
     queryKey: customerKeys.detail(id),
     queryFn: () => customersApi.getById(id),
     enabled: !!id,
-  });
-}
-
-// ============================================
-// Mutations
-// ============================================
-
-export function useCreateCustomer() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: CreateCustomerRequest) => customersApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
-    },
-  });
-}
-
-export function useUpdateCustomer() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateCustomerRequest }) =>
-      customersApi.update(id, data),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
-    },
-  });
-}
-
-export function useDeactivateCustomer() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => customersApi.deactivate(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
-    },
   });
 }

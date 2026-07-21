@@ -2,7 +2,7 @@
 
 > 전체 변경 이력 요약 및 영역별 문서 링크
 
-**마지막 업데이트**: 2026-06-11
+**마지막 업데이트**: 2026-07-13
 
 ---
 
@@ -33,6 +33,145 @@
 ---
 
 ## 📅 최근 변경 요약
+
+### 2026-07-13
+
+| 시간 | 커밋 | 영역 | 변경 내용 |
+|------|------|------|----------|
+| - | - | PMS 프로젝트 상세/일일 공수 | **EFFORT-02 일일 공수 원장 추가**: 작업별 작업일·유형·요약·실제 공수를 기록하는 PMS 공수 원장 DB/API/UI와 이력 트리거를 추가하고, 활성 기록 합계를 작업 실제 공수로 자동 반영하며 `verify:pms-launch` 정적·런타임 검증에 포함. 전사 타임시트·노무비/회계 연동은 후속 |
+| - | - | PMS 프로젝트 상세/작업 공수 | **EFFORT-01 작업 단위 공수 관리 표면 추가**: 작업 탭에 예상/실제 공수 합계, 소진율, 차이, 미기입 건수 요약과 작업별 예상/실제 공수 인라인 입력을 추가하고, 프로젝트 통제 요약 성과 카드와 `verify:pms-launch` 검증에 공수 필드를 포함 |
+| - | - | PMS 프로젝트 상세/통제 요약 | **DASH-03 프로젝트 통제 요약 추가**: 프로젝트 상세에 비용(CRM 계약 스냅샷)·일정·성과·통제/피드백 요약 패널과 `/dashboard/summary` API를 추가하고, CRM 계약 원장 경계 문구와 관리 탭 바로가기를 `verify:pms-launch` 정적·런타임 검증에 포함. 기존 PMS 전체 PMO/경영 대시보드는 후속 범위로 유지 |
+| - | - | PMS 홈/런칭 피드백 | **HOME-04 런칭 피드백 홈 큐 추가**: 홈 요약 API가 접힌 대표 신호와 별도로 열린 launch feedback 신호 목록을 내려주고, PMS 홈이 `런칭 피드백 큐` 패널에서 여러 프로젝트의 피드백을 바로 리뷰 탭으로 열 수 있게 보강 |
+| - | - | PMS 런칭/운영 검증 | **LAUNCH-HOST-01 Docker 호스트 사전 점검 추가**: PMS 런칭 재빌드 전 Windows host/Docker host 여유 공간과 Docker CLI/Compose 응답을 수치로 확인하는 `verify:pms-launch-host`를 추가하고, `verify:pms-launch` 소스 검증과 PMS 계획 문서에 연결. 현재 실제 Docker 재빌드는 host 디스크 부족 및 Docker/WSL I/O 오류가 해소되어야 진행 가능 |
+| - | - | PMS AI/RAG | **AI-RAG-08B provider-ready 증빙 번들 추가**: Azure-backed PMS AI/RAG provider-ready report 를 받기 위한 PMS 전용 evidence bundle 생성기와 최종 번들 검증기를 추가. 번들은 env template, required-input request packet, draft report template, completion runner 명령을 한 디렉터리에 모으고, draft report/placeholder summary 는 최종 검증에서 실패하도록 고정. 실제 Azure-backed provider-ready report artifact 는 별도 잔여 |
+| - | - | PMS 런칭 UX/AI/RAG | **LAUNCH-QA-10 AI/RAG 본문 내부 식별자 표현 제거**: PMS project/task/member/status AI/RAG projection 의 검색 본문에서 고객·플랜트·시스템·담당자·조직 내부 ID 라벨을 제거하고, 가능한 사용자/조직 라벨만 본문에 포함하도록 정리. ACL/metadata 식별자는 유지하며 `verify:pms-launch`와 adapter 단위 테스트가 본문 회귀를 차단 |
+| - | - | PMS 런칭 UX/검증 | **LAUNCH-QA-09 미완성형 화면 문구 제거**: PMS 인수인계 탭의 CRM 인계 상태 `not-implemented` 표시를 사용자-facing `인계 미구성`으로 바꾸고, 알 수 없는 셸 경로 fallback 이 `페이지 준비 중` 대신 등록되지 않은 화면 경로로 안내하도록 변경. `verify:pms-launch`가 두 문구 회귀를 차단 |
+| - | - | PMS 런칭 UX/검증 | **LAUNCH-QA-08 관리자 기본 대화상자 제거**: 코드 관리, 메뉴 관리, 기준정보, 템플릿 관리 화면의 브라우저 기본 `alert`/`confirm` 표면을 PMS 전역 확인 다이얼로그와 토스트로 교체하고, `verify:pms-launch` 소스 검증이 관리자 화면의 기본 브라우저 대화상자 회귀를 차단하도록 보강 |
+| - | - | PMS 레이아웃 | **LAY-03 설정 화면 셸 경로 계약 보강**: `/settings` 직접 진입도 PMS 공용 셸로 들어와 설정 MDI 탭을 열도록 연결하고, ContentArea 설정 화면 매핑과 헤더 브레드크럼, `verify:pms-launch` 소스 검증을 추가 |
+| - | - | PMS AI/RAG | **AI-RAG-08B provider-ready evidence recorder 추가**: PMS provider-ready runtime report 검증 이후 digest-bound evidence block artifact 와 PMS planning 문서 기록 dry-run/record 경로를 실행하는 recorder를 추가하고 `complete:pms-ai-rag-provider-ready`에 연결. 실제 Azure-backed provider-ready report artifact 는 별도 잔여 |
+
+### 2026-07-10
+
+| 시간 | 커밋 | 영역 | 변경 내용 |
+|------|------|------|----------|
+| - | - | PMS AI/RAG | **AI-RAG-08B provider-ready 완료 runner 추가**: PMS provider-ready env precheck, live PMS runtime evidence 생성, provider-ready report 검증을 `complete:pms-ai-rag-provider-ready` 한 경로로 묶고 env-file, Docker runtime, 기존 artifact 재검증, self-test를 제공. 실제 Azure-backed provider-ready report artifact 는 별도 잔여 |
+| - | - | PMS AI/RAG | **AI-RAG-08B provider-ready report gate 추가**: PMS provider-ready runtime report verifier, fill-in template, self-test, 루트 실행 스크립트, `verify:pms-launch` 소스 검증을 추가해 project/task/member/status 증빙 JSON의 source status, backfill, job run, retrieval, database audit, embedding count 필드를 고정. 실제 Azure-backed provider-ready report artifact 는 별도 잔여 |
+| - | - | PMS DB/검증 | **CONTROL-LEGACY-06 legacy Issue seed 재현성 고정**: PMS demo issue seed 가 활성 `pr_issue_m` 행을 재생성하지 않도록 전환하고, 열린 seed 업무는 정식 이슈·리스크·변경요청으로 생성하며 원본 스냅샷은 legacy archive 로 보존. `verify:pms-launch` 런타임 검증이 전체 프로젝트 cleanup 활성 0건을 확인 |
+| - | - | PMS 통제/API/검증 | **CONTROL-LEGACY-05 legacy Issue 열린 행 일괄 정식 전환**: 프로젝트 단위로 열린 기존 `Issue` cleanup 행을 정식 이슈·리스크·변경요청으로 전환하고, 원본 행은 `canonicalized_cleanup` 보존 아카이브 후 비활성화하는 API와 화면 액션을 추가. `verify:pms-launch` 런타임 검증이 전환 카운트와 cleanup 카운트 감소를 확인 |
+| - | - | PMS 통제/API/검증 | **CONTROL-LEGACY-04 legacy Issue 완료 행 일괄 숨김**: 프로젝트 단위로 `resolved`/`closed` 기존 `Issue` cleanup 행을 보존 아카이브 후 비활성화하는 API와 화면 액션을 추가하고 `verify:pms-launch` 런타임 검증에 포함. 열린 cleanup 행은 정식 통제 항목 전환 대상으로 유지 |
+| - | - | PMS 통제/API/검증 | **CONTROL-LEGACY-03 legacy Issue cleanup 요약 고정**: 기존 `Issue` cleanup 요약 API와 화면 지표를 추가해 활성 cleanup, 열린 대상, 완료 상태, 숨김 보존 건수와 물리 제거 가능 여부를 서버 기준으로 표시하고 `verify:pms-launch` 런타임에서 확인한다. 물리 테이블 제거는 활성 cleanup 0건 확인 이후 별도 migration 으로 유지 |
+| - | - | PMS 통제/API/DB | **CONTROL-LEGACY-02 legacy Issue 아카이브 정책 고정**: 기존 `Issue` 숨김 cleanup 은 원본 행을 비활성화하기 전에 보존 아카이브 스냅샷과 이력 레코드를 남긴다. 원본 테이블은 런칭 cleanup 조회용으로 유지하며, 물리 테이블 제거는 활성 cleanup 대상 0건 확인 이후 별도 migration 으로 분리 |
+| - | - | PMS 통제/API | **CONTROL-LEGACY-01 legacy Issue 신규 생성 폐기**: 기존 `Issue` POST 신규 생성은 410 `PMS_LEGACY_ISSUE_WRITE_DISABLED`로 차단하고, PMS 웹 create API/mutation hook/create request 타입과 TypeDoc 표면을 제거. 기존 행 조회·상태 변경·숨김·정식 전환은 cleanup 인박스로 보존 |
+| - | - | PMS 산출물/종료조건 | **CLOSE-APPROVAL-01 closeout 승인선 1차**: 산출물·종료조건별 프로젝트 멤버 기반 1~5단계 승인선 저장, 지정 승인자 승인/반려, 최종 승인 시 산출물 승인 또는 종료조건 완료 반영을 DB/API/화면에 추가하고 보호 마이그레이션과 `verify:pms-launch` 런타임 검증에 고정. 전사 결재 엔진과 DMS 파일 검토 연동은 후속 |
+| - | - | PMS 산출물/종료조건 | **CLOSE-TPL-04 템플릿 append/replace 적용 정책**: 산출물·종료조건 템플릿 선택 적용에서 append/replace 모드를 제공. append는 기존 활성 항목을 유지하고, replace는 선택 템플릿 밖 기존 활성 항목을 소프트 비활성화한다. 화면 선택과 `verify:pms-launch` 런타임 검증에 고정 |
+
+### 2026-07-09
+
+| 시간 | 커밋 | 영역 | 변경 내용 |
+|------|------|------|----------|
+| - | - | PMS 산출물/종료조건 | **CLOSE-STAT-01 산출물 완료 상태 어휘 통합**: 산출물 완료 판정을 `confirmed`/`approved`/`not_required`로 통합하고, `before_submit`/`final` 호환 입력은 런타임 표준 상태로 정규화. 종료조건 체크 가드와 전환 준비도 완료 집계가 `confirmed` 산출물을 완료로 인정하는지 `verify:pms-launch` 런타임에서 확인 |
+| - | - | PMS 산출물/종료조건 | **CLOSE-TPL-03 템플릿 관리 화면·승인·복구 1차**: 관리자 템플릿 관리 화면과 전용 API를 추가해 산출물·종료조건 그룹 편집, 초안·승인·보관, 버전 증가, 이력 조회·복구, 보관 그룹 조회를 제공. DB migration, 시드, history trigger, `verify:pms-launch` 정적·런타임 검증에 고정. Closeout 승인선은 이후 2026-07-10 항목에서 1차 구현 |
+| - | - | PMS 산출물/종료조건 | **CLOSE-TPL-02 템플릿 그룹 선택·저장 1차**: 산출물·종료조건 탭에서 저장된 템플릿 그룹을 선택 적용하고 현재 목록을 새 그룹으로 저장하는 UX와 API를 추가. 종료조건 그룹 항목은 산출물 필요 여부를 정식 컬럼으로 보존하며, `verify:pms-launch`가 그룹 저장·목록 조회·선택 적용을 Docker 런타임에서 확인 |
+| - | - | PMS 산출물/종료조건 | **CLOSE-TPL-01 기본 템플릿 적용 1차**: 산출물·종료조건 탭에서 현재 단계 기본 템플릿을 적용하는 버튼과 API를 추가. 서버는 그룹 마스터가 있으면 우선 사용하고, 없으면 상태별 기본 세트를 append 방식으로 생성한다. 템플릿 선택·저장과 전용 관리 화면은 같은 날짜 후속 항목에서 보강됨 |
+| - | - | PMS 런칭 QA/PMR·PRR | **LAUNCH-QA-07 PMR/PRR 화면 갱신 안정화**: 이벤트 생성·상태 변경 mutation 성공 응답을 활성 이벤트 목록 캐시와 PMR/PRR 활성 행 상태에 즉시 반영해, 누적 데이터 Docker 환경에서도 같은 예약 행의 승인 요청·승인·발행 완료 상태 전환이 화면과 브라우저 QA에 바로 표시되도록 보강 |
+| - | - | PMS/CRM 경계 검증 | **BOUND-18 CRM 인계 경계 런칭 검증 보강**: `verify:pms-launch`가 PMS 웹의 CRM 계약 후보·PMS 인계 preview 접근이 읽기 전용인지 정적으로 확인하고, Docker 런타임에서는 준비 완료 CRM preview만 PMS 계약/대금/accepted handoff 스냅샷으로 반영되는지 확인. CRM 계약/청구 원장 쓰기와 PMS 신규 프로젝트 자동 생성은 제외 |
+| - | - | PMS 런칭 QA/PMR·PRR | **LAUNCH-QA-06 PMR/PRR 상태 전환 QA 안정화**: PMR/PRR 발행·승인 원장 행에 안정 이벤트 ID와 상태 코드 식별자를 추가하고, 브라우저 QA가 누적 원장 환경에서도 같은 예약 행의 승인 요청·승인·발행 완료 전환을 상태 코드 기준으로 확인하도록 보강 |
+| - | - | PMS AI/RAG | **AI-RAG-08B evidence summary 추가**: PMS project/task/member/status 런타임 evidence verifier가 공용 AI object, chunk, ACL snapshot, index state, retrieval audit 결과를 JSON report 와 Markdown summary 로 함께 산출하도록 보강. 현재 Docker 런타임은 provider-unavailable 증빙이며 provider-ready vector/RAG artifact 는 계속 잔여 |
+| - | - | PMS 리뷰/피드백/QA | **REPORT-14 리뷰 탭 최근 항목 렌더링 안정화**: PMR/PRR 원장, 수집된 런칭 피드백, 보고/리뷰 이벤트를 최근 20건 중심으로 표시하고 전체 건수는 유지. 브라우저 QA는 제한된 원장에서도 기대 상태와 전환 액션을 확인하도록 보정 |
+| - | - | PMS 통제/API | **CONTROL-UI-04 legacy Issue 인박스 축소**: 프로젝트 상세 컨트롤 탭의 기존 `Issue` 호환성 인박스를 열린 cleanup 대상 기본 보기로 축소하고, 완료/전환 행은 선택 이력으로 접음. 기존 Issue 삭제 동작은 물리 삭제가 아니라 비활성화/숨김 처리로 전환. 신규 생성 API/웹 계약은 2026-07-10 CONTROL-LEGACY-01에서 폐기했고, 보존 아카이브 정책은 2026-07-10 CONTROL-LEGACY-02에서 고정. 물리 테이블 제거는 활성 cleanup 대상 0건 확인 이후 별도 migration |
+| - | - | PMS 리뷰/피드백/API | **REPORT-13 PMR/PRR 만기 예약 자동 rollover 추가**: 서버 백그라운드 worker가 예약 시간이 지난 PMR/PRR 발행 예정 이벤트를 승인 요청 상태로 자동 전환하고 승인자 알림을 발송. 프로젝트 단위 운영 트리거와 런칭 검증이 같은 rollover 경로를 확인 |
+| - | - | PMS 리뷰/피드백 | **REPORT-12 PMR/PRR 승인자 제한 추가**: 프로젝트 상세 리뷰/피드백 탭과 이벤트 API에서 PMR/PRR 승인 요청 이후 승인·반려를 지정 승인자만 처리하도록 제한하고, 런칭 검증과 브라우저 QA가 현재 사용자 승인자 경로와 비승인자 API 거부를 확인 |
+
+### 2026-07-08
+
+| 시간 | 커밋 | 영역 | 변경 내용 |
+|------|------|------|----------|
+| - | - | PMS 리뷰/피드백 | **REPORT-11 PMR/PRR 결재선·수신 정책 추가**: 프로젝트 상세 리뷰/피드백 탭에서 결재선 정책과 알림 수신 정책을 선택하고, 프로젝트 이벤트에 정책 증적을 남기며 승인자·프로젝트 담당자·활성 멤버에게 정책별 PMS 공통 알림을 발송 |
+| - | - | PMS 리뷰/피드백 | **REPORT-10 PMR/PRR 반복 예약·승인자 알림 추가**: 프로젝트 상세 리뷰/피드백 탭에서 주간/월간 반복 예약 차수를 한 번에 생성하고 프로젝트 멤버 승인자를 이벤트 owner 로 지정해 PMS 공통 알림을 발송 |
+| - | - | PMS 리뷰/피드백 | **REPORT-09 PMR/PRR 발행·승인 워크플로우 1차 추가**: 프로젝트 상세 리뷰/피드백 탭에서 주간/월간 발행 건을 예약하고 승인 요청·승인·반려·발행 완료 상태를 프로젝트 이벤트로 전환 |
+| - | - | PMS 리뷰/피드백 | **REPORT-08 PMR/PRR 발행 원장 1차 추가**: 프로젝트 상세 리뷰/피드백 탭에서 현재 PMR/PRR 준비도 판정을 프로젝트 이벤트 기반 발행 원장으로 기록하고 이력을 모바일 카드와 데스크톱 표로 확인 |
+| - | - | PMS 리뷰/피드백 | **REPORT-07 PMR/PRR 준비도 화면 추가**: 프로젝트 상세 리뷰/피드백 탭에서 산출물, 종료조건, 일반 통제 이슈, 리스크, 변경요청, 인수인계, launch feedback 의 충족/확인 필요 상태를 화면에서 바로 판정 |
+| - | - | PMS/CRM 경계 | **BOUND-16 CRM 계약 인계 스냅샷 수용**: 프로젝트 상세 인수인계 탭에서 준비 완료 CRM 계약 preview를 `/api/projects/:id/contracts/crm-handoff-snapshot`으로 기존 프로젝트 계약/대금/accepted handoff 스냅샷에 반영. CRM 계약 원장 소유권, PMS 신규 프로젝트 자동 생성, 계약/청구 직접 편집은 제외 |
+| - | - | PMS 리뷰/피드백 | **REPORT-06 PMR/PRR 초안 다운로드 추가**: 프로젝트 상세 리뷰/피드백 탭에서 현재 PMS 실행 데이터 기준 PMR/PRR Markdown 초안을 다운로드. 산출물, 종료조건, 통제 이슈, 리스크, 변경요청, 인수인계, launch feedback 상태를 묶음 |
+| - | - | PMS 리뷰/피드백 | **REPORT-05 launch feedback 공유 스냅샷 추가**: 프로젝트 상세 리뷰/피드백 탭에서 현재 보고/리뷰 이벤트, 수집된 launch feedback 이슈, 확인 필요 신호를 Markdown 스냅샷으로 다운로드. 이 파일은 런칭 피드백 공유용이며 PMR/PRR 자동 보고서나 기존 PMS 전체 보고 자동화 완료로는 주장하지 않음 |
+| - | - | PMS/CRM 경계 | **MVP0-01 고객사 선택지 조직 앵커 표시 통일**: 요청 등록, 프로젝트 기본정보, 기준정보 관리의 고객사 선택지가 공통 포매터로 고객사 코드와 공용 조직명/코드를 표시하도록 정리. 조직 식별자만 있을 때는 숫자 ID 대신 정보 조회 필요 상태로 표시하며, 고객사 원장 편집과 공용 조직 full cutover 는 계속 잔여 |
+| - | - | PMS 유틸리티/경계 | **UTL-01 표시 포맷 유틸 정리**: PMS 런칭 화면의 날짜/일시/숫자/금액/건수 표시를 공통 포맷 유틸로 통일하고, 전환 목록 운영 담당자 숫자 ID 노출을 지정 여부 표시로 차단. `verify:pms-launch`가 주요 화면의 직접 로케일 포맷 회귀와 담당자 숫자 ID 재노출을 확인 |
+| - | - | PMS AI/RAG | **AI-RAG-08B demo status seed 추가**: PMS projectStatus runtime evidence 가 새 Docker 환경에서도 검증 대상을 확보하도록 데모 프로젝트 상태 상세 시드를 추가하고 apply_all_seeds, db-seed, 런칭 검증 게이트에 연결 |
+| - | - | PMS AI/RAG | **AI-RAG-08B member/status projection 추가**: PMS project member/status 를 독립 AI index entity 로 투영하고, runtime evidence gate 가 project/task/member/status 공용 AI 객체, 청크, ACL snapshot, index state, retrieval audit 를 모두 검증하도록 확장. provider-ready 실증 artifact 는 잔여 |
+| - | - | 전역 UI 표준 | **STYLE-GATE-02 최종 페이지 내부 확장**: `verify:ui-style-boundary`를 app globals, 모든 웹 앱 `components/pages/**` 최종 페이지와 주요 App Router page/error surface까지 확장하고, PMS 최종 페이지의 raw Tailwind 색상/arbitrary typography 및 raw `white`/`black` token을 semantic SSOO token으로 정리 |
+| - | - | PMS AI/RAG | **AI-RAG-08B evidence gate 추가**: PMS project/task backfill 을 런타임에서 큐잉·실행하고 공용 AI 객체, 청크, ACL snapshot, index state, retrieval audit 를 검증하는 evidence gate 를 추가. 이 시점의 member/status projection 잔여는 이후 같은 날짜 member/status projection 항목에서 해소 |
+| - | - | PMS API | **API-01 PMS API 오류 코드 정규화**: PMS 런칭 API 경로의 전역 오류 응답을 `PMS_*` 상세 코드, 실패 경로, HTTP 상태 메타데이터로 정리. 대표 프로젝트 식별자 오류는 `PMS_INVALID_IDENTIFIER` 런타임 검증에 포함했으며, CRM/Admin/공용 원장 오류 소유권 확장으로 주장하지 않음 |
+
+### 2026-07-07
+
+| 시간 | 커밋 | 영역 | 변경 내용 |
+|------|------|------|----------|
+| - | - | PMS 리뷰/피드백 | **REPORT-04 launch feedback 처리 루프 추가**: 프로젝트 상세 리뷰/피드백 탭에서 수집된 launch feedback 이슈를 별도 목록으로 보고 상태 변경·해결 처리할 수 있도록 보강. 프로젝트 이슈 변경 시 홈 피드백 요약을 갱신하고, 런칭 브라우저 QA가 등록한 피드백 이슈의 해결 버튼을 실제 클릭해 상태 변경을 확인 |
+| - | - | PMS 홈 | **DASH-01 리스크/리포트 집계 위젯 추가**: PMS 홈 요약 API가 열린 리스크, 상위 위험, 담당 미지정 리스크, 차단 이슈, 변경 요청, 보고/리뷰 이벤트 준비도, 지연 마일스톤, 산출물 대기, 종료/전환 막힘을 집계하고 홈 화면의 `리스크/리포트 집계` 위젯으로 노출. `verify:pms-launch`가 소스와 런타임 응답을 확인하며, PMR/PRR 자동 보고 완료로는 주장하지 않음 |
+| - | - | PMS 레이아웃 | **LAY-02 헤더 브레드크럼 추가**: PMS 헤더가 활성 MDI 탭 기준으로 `PMS / 홈`, `PMS / 프로젝트 상세`, 통합 검색, 개인 설정 등 현재 화면 문맥을 표시. `verify:pms-launch` 소스 검증과 브라우저 QA가 홈/상세/요청 등록 헤더 문맥 회귀를 확인 |
+| - | - | 전역 UI 표준 | **STYLE-GATE-01 전역 style boundary 적용**: PMS 로컬 page/datagrid 호환 surface에서 gray 계열 직접 토큰을 semantic SSOO token으로 정리하고, 앱별 font/theme/Tailwind/domain reusable surface drift를 `verify:ui-style-boundary`에서 차단하도록 공용 게이트에 연결 |
+| - | - | PMS 홈 | **HOME-03 launch feedback 운영 가시성 추가**: 리뷰 탭에서 수집된 열린 launch feedback 이슈를 홈의 피드백 지표와 리뷰 탭 대상 운영 신호로 분리해 표시. 기존 보고/PMO/PMR/PRR 자동화 완료로는 주장하지 않음 |
+| - | - | PMS 런칭 QA/통제 전환 | **LAUNCH-QA-04 legacy Issue 전환 클릭 리허설 추가**: 당시 브라우저 QA는 프로젝트 상세 컨트롤 탭에 QA 전용 기존 `Issue` 행을 만들고 화면의 정식 전환 버튼을 실제 클릭해 정식 이슈 생성과 기존 행 종료 상태를 확인했다. 이후 2026-07-10 `CONTROL-LEGACY-01`에서 신규 생성 차단 확인 방식으로 대체 |
+| - | - | PMS/Admin 공용 UI | **DATA-UI-02 데이터 워크스페이스 헤더 통합**: `SsooDataWorkspacePage`의 action/filter controls 를 별도 toolbar card 가 아니라 full-width page header chrome 내부에 배치하도록 전환. 본문 `contentWidth` 제한은 grid/main content 에만 적용하고 header 폭은 플랫폼 page chrome 기준을 유지 |
+| - | - | PMS 통제 | **CONTROL-UI-03 legacy Issue 수동 전환**: 프로젝트 상세 컨트롤 탭의 기존 `Issue` 호환성 인박스에서 유형에 따라 정식 이슈, 리스크, 변경요청을 생성하고 기존 행을 종료 처리하는 1차 cleanup 동선을 추가. `verify:pms-launch`가 전환 액션과 정식 mutation 의존성을 확인 |
+| - | - | PMS/CRM 경계 | **BOUND-16 CRM 계약 인계 preview 소비**: 프로젝트 상세 인수인계 탭에서 CRM 계약 후보를 검색하고 선택 계약의 PMS 인계 preview를 읽기 전용으로 조회하도록 추가. PMS 프로젝트 생성, 계약/청구 편집, CRM 원장 소유권 확장은 제외 |
+| - | - | PMS 상세 closeout | **CLOSE-03 closeout 처리 큐**: 프로젝트 상세 closeout 패널에 현재 단계의 미해결 산출물과 종료조건을 읽기용 처리 큐로 노출하고, 각 큐 항목에서 산출물/종료조건/리뷰 관리 탭으로 이동하도록 보강. 브라우저 QA와 `verify:pms-launch`가 처리 큐와 탭 이동 회귀를 확인 |
+| - | - | PMS 상세 closeout | **CLOSE-02 closeout 조치 바로가기**: 프로젝트 상세 closeout 패널에서 산출물, 종료조건, 리뷰/피드백 탭으로 바로 전환하고 해당 관리 영역으로 스크롤되는 조치 동선을 추가. 브라우저 QA와 `verify:pms-launch`가 바로가기 회귀를 확인 |
+| - | - | PMS 런칭 QA/피드백 저장 | **LAUNCH-QA-03 리뷰 탭 저장 리허설 추가**: 브라우저 QA가 프로젝트 리뷰 탭에서 피드백 이슈와 리뷰 이벤트를 실제 등록하고, 저장 후 피드백 큐와 보고/리뷰 이벤트 목록에 표시되는지 desktop/mobile 기준으로 확인 |
+| - | - | PMS/Admin 공용 UI | **DATA-UI-01 데이터 워크스페이스 공용화**: PMS 요청 목록 기준선의 action/filter toolbar, 접힘 필터, DataGrid, pagination, 세컨 그리드 패널을 `@ssoo/web-shell`의 `SsooDataWorkspacePage`/`SsooDataGrid`로 승격하고, Admin 사용자/조직 관리가 같은 데이터 화면 shell을 소비하도록 전환 |
+| - | - | PMS 런칭 QA/상세 화면 | **LAUNCH-QA-02 홈→상세 리허설 QA 확대**: 프로젝트 상세 상태/관리 탭 레일을 작은 화면에서 가로 스크롤되도록 보강하고, 브라우저 QA가 홈에서 프로젝트 상세로 진입해 태스크, 마일스톤, 컨트롤, 산출물, 종료조건, 인수인계, 리뷰 탭을 desktop/mobile 기준으로 실제 확인하도록 확장 |
+
+### 2026-07-06
+
+| 시간 | 커밋 | 영역 | 변경 내용 |
+|------|------|------|----------|
+| - | - | PMS 런칭 QA/API | **LAUNCH-QA-01 브라우저 QA 기반 목록 API 400 정리**: PMS 고객/프로젝트/실행 자산 목록 요청이 서버 계약에 없는 `pageSize`를 함께 보내지 않고 `limit`만 보내도록 정리해 런칭 화면의 400 응답을 제거. PMS 전용 한국어 시스템 글꼴 스택을 보강하고, 브라우저 QA 산출물은 실제 사이드바 흐름 기준으로 홈과 요청 등록 화면을 확인하도록 조정 |
+| - | - | PMS 런칭 표시/경계 | **BOUND-15 내부 ID fallback 표시 제거**: PMS 상태별 목록, 작업 큐, 홈, 프로젝트 기본정보, 조직/관계 섹션, 요청 보조 그리드, 담당자 선택 fallback 이 숫자 내부 ID를 직접 보여주지 않고 이름·코드 우선 또는 정보 조회 필요 상태로 표시되도록 정리. 저장 필드와 API 식별자는 유지하되 사용자 표면의 raw ID 회귀는 `verify:pms-launch` 정적 검증에서 차단 |
+| - | - | PMS 실행 상세/경계 | **BOUND-14 후속 프로젝트 lookup 선택 전환**: 실행 상세의 후속 프로젝트 입력/표시를 숫자 프로젝트 ID 직접 입력에서 접근 가능한 프로젝트명/번호 검색 선택으로 전환. 기존 `nextProjectId` successor 호환 동기화는 유지하되, 사용자 표면의 직접 ID 입력 회귀는 `verify:pms-launch` 정적 검증에서 차단 |
+| - | - | PMS 상태별 목록/경계 | **BOUND-13 고객 필터 조회 선택 전환**: 요청/제안/수행/전환 목록의 고객사 필터를 숫자 ID 직접 입력에서 읽기용 고객 조회 선택으로 전환하고, 고객 열과 fallback 표시가 숫자 고객 ID에 의존하지 않도록 보강. PMS는 고객사 원장 편집을 소유하지 않으며, `verify:pms-launch` 정적 검증에서 회귀를 차단 |
+| - | - | PMS 기준정보/경계 | **BOUND-12 기준정보 반입 코드 우선 템플릿**: PMS 실행 자산 기준정보 CSV/TSV 템플릿을 고객사/사이트/시스템 코드 기반으로 내려받게 하고, 숫자 ID 컬럼은 기존 파일 호환 매핑으로만 유지. PMS는 고객사 원장 편집을 소유하지 않으며, `verify:pms-launch` 정적 검증에서 코드 우선 템플릿 기준을 확인 |
+| - | - | PMS 계획/작업 | **TASK-UI-01 목표/WBS/작업·마일스톤 모바일 사용성 보강**: 프로젝트 상세 목표/WBS/작업/마일스톤을 모바일 카드 목록으로 제공하고 상태·연결·진척을 작은 화면에서 확인/변경할 수 있게 보강. 각 등록 다이얼로그와 상단 액션은 작은 화면에서 스크롤·전체폭 버튼으로 동작하며, `verify:pms-launch` 정적 검증에서 확인 |
+| - | - | PMS 산출물/종료조건 | **CLOSE-UI-02 산출물·종료조건 모바일 사용성 보강**: 프로젝트 상세 산출물 탭을 모바일 카드 목록으로 제공하고 제출상태·연결 이벤트를 모바일에서 변경할 수 있게 보강. 산출물/종료조건 등록 다이얼로그와 상단 액션은 작은 화면에서 스크롤·전체폭 버튼으로 동작하며, `verify:pms-launch` 정적 검증에서 확인 |
+| - | - | PMS 통제 | **CONTROL-UI-02 legacy Issue 호환성 인박스 모바일 보강**: 프로젝트 상세 컨트롤 탭의 기존 `Issue` 호환성 인박스를 모바일 카드 목록으로 제공하고, 새 작성은 정식 통제 패널로 유도한다는 기준을 유지. `verify:pms-launch` 정적 검증에서 legacy 인박스 모바일 카드와 canonical 작성 경로 문구를 확인 |
+| - | - | PMS 통제 | **CONTROL-UI-01 통제 객체 모바일 사용성 보강**: 프로젝트 상세 통제 탭의 이슈/요구사항/리스크/변경/이벤트를 모바일 카드 목록으로 제공하고, 각 등록 다이얼로그가 작은 화면에서 스크롤되도록 보강. `verify:pms-launch` 정적 검증에서 통제 객체 모바일 카드와 다이얼로그 제약을 확인 |
+| - | - | PMS 리뷰/피드백 | **REPORT-03 모바일 피드백 사용성 보강**: 프로젝트 상세 리뷰/피드백 탭의 보고 이벤트와 피드백 큐를 모바일 카드 목록으로 제공하고, 피드백 이슈/리뷰 이벤트 등록 다이얼로그가 작은 화면에서 스크롤되도록 보강. `verify:pms-launch` 정적 검증에서 모바일 카드와 다이얼로그 제약을 확인 |
+| - | - | PMS 인수인계 | **BOUND-11 인수인계 배정 역할 선택 전환**: PMS 인수인계 등록 화면이 배정 역할을 텍스트 코드로 직접 입력받지 않고 활성 프로젝트 멤버 역할 코드에서 선택하도록 전환. 기존 인계 목록은 멤버명/역할명을 우선 표시하며, `verify:pms-launch` 정적 검증에서 회귀를 차단 |
+| - | - | PMS 단계 상세 | **BOUND-10 단계별 담당자 프로젝트 멤버 선택 전환**: 요청/제안/전환 상세 담당자 화면이 숫자 사용자 ID 직접 입력 대신 현재 프로젝트 멤버를 선택하도록 전환. 사용자 원장 생성/수정은 PMS 범위 밖으로 유지하며, `verify:pms-launch` 정적 검증에서 확인 |
+| - | - | PMS 프로젝트 관계 | **BOUND-09 프로젝트 관계 lookup 선택 전환**: PMS 프로젝트 직접 관계 추가 화면이 숫자 프로젝트 ID 직접 입력 대신 프로젝트명/번호 검색 결과를 선택하도록 전환. 프로젝트 간 관계 관리는 PMS 실행 프로젝트 책임으로 유지하며, `verify:pms-launch` 정적/런타임 검증에서 확인 |
+| - | - | PMS 멤버/경계 | **BOUND-08 프로젝트 멤버 사용자 lookup 선택 전환**: PMS 프로젝트 멤버 추가 화면이 숫자 사용자 ID 직접 입력 대신 프로젝트 문맥의 활성 공용 사용자 lookup 결과를 선택하도록 전환. PMS는 사용자 원장을 생성/수정하지 않으며, 선택 사용자의 1차 소속 조직 앵커를 멤버 배정에 전달하고 `verify:pms-launch` 정적/런타임 검증에서 확인 |
+| - | - | PMS/CRM 경계 | **BOUND-07 프로젝트 연결 조직 lookup 선택 전환**: PMS 프로젝트 조직 supplier/partner 추가 화면이 숫자 조직 ID 직접 입력 대신 프로젝트 문맥의 읽기 전용 공용 조직 lookup 결과를 선택하도록 전환. PMS는 조직 원장을 생성/수정하지 않으며, `verify:pms-launch` 정적/런타임 검증에서 확인 |
+| - | - | PMS 프로젝트 | **MVP0-01 프로젝트 실행 자산 앵커 표시 정리**: PMS 프로젝트 목록/상세/생성/수정 응답이 plant/site와 system instance 이름·코드를 읽기 전용으로 반환하고, 상태별 목록·작업 큐·프로젝트 기본정보 읽기 화면 및 `verify:pms-launch` 런타임 검증에서 확인 |
+| - | - | PMS/CRM 경계 | **MVP0-01 프로젝트 고객 공용 조직 앵커 투영**: PMS 프로젝트 목록/상세/생성 응답이 고객명과 공용 조직 앵커 메타데이터를 읽기 전용으로 반환하고, 상태별 목록·작업 큐·프로젝트 기본정보 읽기 화면 및 `verify:pms-launch` 런타임 검증에서 확인. 고객사 원장 편집과 공용 조직 full cutover 는 계속 잔여 |
+| - | - | PMS 문서/검증 | **DOC-REF-01 TypeDoc reference 현행화**: PMS 서버/웹 TypeDoc reference 를 최신 소스로 재생성해 제거된 고객사 쓰기 DTO, 고객사 mutation hook, 고객사 관리 화면 문서를 삭제하고, `verify:pms-launch` 가 stale reference 회귀를 차단하도록 보강 |
+| - | - | PMS 런칭 UI | **UI-LAUNCH-02 가짜 삭제 액션 제거**: 요청/제안/수행/전환 legacy 목록에서 실제 동작 없는 삭제 alert 버튼을 제거하고, 노출 PMS 메뉴 경로가 실제 화면 컴포넌트에 매핑되는지 `verify:pms-launch` 에서 고정 |
+| - | - | PMS/CRM 경계 | **MVP0-01 고객사 공용 조직 앵커 1차 투영**: PMS 고객사 읽기 조회가 공용 조직 앵커 메타데이터를 반환하고, 공용 조직 코드/명 검색과 프로젝트/요청/기준정보 선택지 연결 표기 및 `verify:pms-launch` 런타임 검증을 추가. 고객사 원장 편집과 공용 조직 full cutover 는 계속 잔여 |
+| - | - | DB/검증 | **MIG-02 PMS core reconciliation protected baseline 고정**: 프로젝트 멤버·조직·관계, 인수인계, 계약 읽기 스냅샷, 목표/WBS/작업, 이슈·요구사항·리스크·변경·이벤트 및 history table formal migration 을 db-init protected baseline 적용 경로에 묶고, `verify:pms-launch` 가 migration 내용·CRM 원장 비소유 경계·db-init coverage 를 소스 기준으로 확인 |
+| - | - | DB/검증 | **MIG-01 formal migration protected baseline 고정**: PMS 실행 자산 기준정보와 공유 반입 프로필 formal migration 을 db-init protected baseline 적용 경로에 묶고, `verify:pms-launch` 가 migration 내용·CRM 원장 비소유 경계·db-init coverage 를 소스 기준으로 확인 |
+| - | - | PMS 홈 | **HOME-02 launch feedback 진입 동선 추가**: 홈 요약의 권한 기반 액션에 `리뷰/피드백`을 추가하고, 바로 이동에서 프로젝트 리뷰 탭으로 직접 진입하도록 연결. `verify:pms-launch` 런타임 smoke 가 홈 요약 응답의 review feedback action 을 확인 |
+| - | - | PMS 상세 | **REPORT-02 launch feedback 수집 표면 추가**: 프로젝트 상세 리뷰 탭에서 피드백 이슈와 리뷰 이벤트를 직접 등록해 사용자 확인 사항을 기존 정식 이슈/프로젝트 이벤트 API로 저장. `verify:pms-launch` 런타임 smoke 가 실제 생성·조회·정리 흐름을 확인 |
+| - | - | PMS/CRM 경계 | **MVP0-01 고객사 쓰기 표면 제거**: PMS 관리자 고객사 CRUD 화면, 고객사 생성/수정/비활성화 API, 웹 mutation, PMS 고객사 쓰기 DTO export 를 제거하고 프로젝트 생성·기준정보 선택용 읽기 조회만 유지. 고객사 원장 편집은 CRM/Admin/공용 조직 책임이며 공용 Organization cutover 는 계속 잔여 |
+
+### 2026-07-03
+
+| 시간 | 커밋 | 영역 | 변경 내용 |
+|------|------|------|----------|
+| - | - | PMS 레이아웃 | **LAY-01 모바일 레이아웃 1차 구현**: 모바일 준비 중 차단 화면을 제거하고 헤더 메뉴 버튼, 오버레이 사이드바, 탭바, 콘텐츠 유지형 레이아웃을 추가. 개별 업무 화면의 모바일 표/폼 밀도 개선은 별도 잔여 |
+| - | - | PMS 기준정보 | **MVP0-01 공유 매핑 이력 조회/복구 1차 추가**: 기준정보 CSV/TSV 반입의 서버 공유 매핑 프로필 히스토리를 조회하고 선택 이력으로 복구하는 API/화면/런타임 smoke 를 추가. 공용 Organization cutover 는 계속 잔여 |
+| - | - | PMS 기준정보 | **MVP0-01 공유 매핑 기본 지정 UI 추가**: 기준정보 CSV/TSV 반입의 서버 공유 매핑 프로필을 기본 프로필로 지정/해제하고 저장 payload 에 반영하도록 화면을 보강. 공용 Organization cutover 는 계속 잔여 |
+| - | - | PMS 기준정보 | **MVP0-01 서버 공유 매핑 프로필 1차 추가**: 기준정보 CSV/TSV 반입 매핑을 서버 테이블/API/화면에서 저장·조회·수정·삭제하고 `verify:pms-launch` 런타임 smoke 로 검증. 공용 Organization cutover 는 계속 잔여 |
+| - | - | PMS 기준정보 | **MVP0-01 반입 템플릿·매핑 재사용 1차 추가**: 기준정보 CSV/TSV 반입에 대상별 템플릿 다운로드, 브라우저 로컬 컬럼 매핑 저장·불러오기·삭제를 추가. 서버 공유 매핑 프로필 CRUD/재사용 1차도 추가됐고, 공용 Organization cutover 는 계속 잔여 |
+| - | - | PMS 기준정보 | **MVP0-01 파일 반입 UX 1차 추가**: 기준정보 반입 화면에 CSV/TSV 파일 업로드, 반입 대상 선택, 컬럼 자동 매핑, 행 미리보기를 추가. 적용은 기존 dry-run/apply import API를 사용하며 서버 공유 매핑 프로필 CRUD/재사용 1차도 추가됨. 공용 Organization cutover 는 계속 잔여 |
+| - | - | PMS 기준정보 | **MVP0-01 반입/병합 1차 추가**: Plant/Site, System Catalog, System Instance, Integration 에 대해 JSON 기반 dry-run/apply 반입 API, 코드 참조 기반 관계 해석, 기존 코드 갱신 옵션, 관리자 반입 다이얼로그, `verify:pms-launch` 런타임 반입/merge smoke 를 추가. CSV/TSV 업로드·컬럼 매핑과 서버 공유 매핑 프로필 1차가 추가됐고, 공용 Organization cutover 는 계속 잔여 |
+| - | - | PMS 프로젝트 | **기준정보 선택 검증 1차 추가**: 요청 등록과 프로젝트 기본정보 편집에서 Plant/Site, System Instance 선택을 기준정보 API와 연결하고, 서버 create/update 가 customer-site-instance 조합을 검증·보정하도록 반영. `verify:pms-launch` 는 런타임에서 anchor 포함 프로젝트 생성·수정·삭제 smoke 를 확인 |
+| - | - | PMS 기준정보 | **MVP0-01 관리자 CRUD 1차 추가**: Plant/Site, System Catalog, System Instance, Integration 에 대해 관리자 생성·수정·비활성화 API, React Query mutation, 기준정보 화면 편집 다이얼로그, `verify:pms-launch` 비읽기 전용 런타임 쓰기 smoke 를 추가. 대량 import/merge, 공용 Organization cutover 는 계속 잔여 |
+| - | - | PMS 기준정보 | **MVP0-01 1차 착수**: Plant/Site, System Catalog, System Instance, Integration 을 PMS 실행 자산 기준정보로 분리하고 스키마·이력 트리거·시드·서버 목록 API·관리자 조회 화면·`verify:pms-launch` 런타임 smoke 를 추가. 기준정보 CRUD 전체와 프로젝트 생성 흐름 선택 검증은 아직 잔여 |
+| - | - | PMS 멤버 | **멤버 역할 코드 테이블 전환 완료**: 프로젝트 멤버 추가 화면의 역할 선택을 `PROJECT_MEMBER_ROLE` 활성 코드 기반으로 고정하고 정적 fallback 역할 목록을 제거. `verify:pms-launch` 가 코드 시드, 화면 의존성, 런타임 코드 API 조회를 함께 확인 |
+| - | - | PMS 상세 | **보고/리뷰 이벤트 요약 1차 화면 추가**: 프로젝트 상세 관리 탭에 리뷰를 추가해 보고/리뷰/회의/인계 이벤트, 연결 산출물·종료조건 readiness, 열린 이슈·리스크·변경·인계 대기 피드백 큐를 읽기용으로 노출. 기존 PMS 전체 보고/PMO/PMR/PRR 자동화는 계속 미완성 범위로 구분 |
+| - | - | 검증 | **PMS 런타임 검증 확장 완료**: `verify:pms-launch` 가 관리자 로그인 후 프로젝트 상세, access/readiness, 조직/관계, objective/WBS, 작업, control 객체, 산출물, 종료조건, 인수인계, 계약 스냅샷 API smoke 를 실제 런타임에서 확인 |
+| - | - | PMS/CRM 경계 | **런칭 책임 경계 재고정**: 기존 PMS 구축 자료의 영업/계약/청구/매출 범위를 CRM 정본으로 분리하고, PMS는 실행 프로젝트 관리와 CRM 읽기용 스냅샷 소비로 제한 |
+| - | - | PMS 상세 | **계약/청구 표시 정책 정리**: 실행 상세의 계약/청구 값은 PMS 편집 대상이 아니라 CRM 정본에서 동기화되는 스냅샷으로 취급 |
+| - | - | PMS 상세 | **실행 상세 편집 범위 축소**: 납품 방식, 후속 프로젝트, 메모만 PMS에서 편집하고 계약 체결일/금액/청구 유형은 읽기 전용으로 표시 |
+| - | - | PMS 상세 | **인수인계 1차 화면 추가**: 프로젝트 상세 관리 탭에 인수인계를 추가해 인계 목록, 신규 인계 등록, 대기 인계 수락/반려/취소를 처리하고 계약/대금은 읽기용 스냅샷으로 노출 |
 
 ### 2026-06-11
 

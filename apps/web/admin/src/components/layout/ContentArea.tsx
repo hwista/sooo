@@ -25,11 +25,6 @@ const UsersPage = lazy(() => import('@/components/pages/users/UserManagementPage
 const OrganizationsPage = lazy(() => import('@/components/pages/organizations/OrgManagementPage').then((mod) => ({ default: mod.OrgManagementPage })));
 const RolesPage = lazy(() => import('@/components/pages/roles/AccessManagementPage').then((mod) => ({ default: mod.AccessManagementPage })));
 const AuthPage = lazy(() => import('@/components/pages/auth/AuthPolicyPage').then((mod) => ({ default: mod.AuthPolicyPage })));
-const DmsOverviewPage = lazy(() => import('@/components/pages/dms/DmsOverviewPage'));
-const DmsDocumentsPage = lazy(() => import('@/components/pages/dms/DmsDocumentsPage'));
-const DmsTemplatesPage = lazy(() => import('@/components/pages/dms/DmsTemplatesPage'));
-const DmsGitPage = lazy(() => import('@/components/pages/dms/DmsGitPage'));
-const DmsSettingsPage = lazy(() => import('@/components/pages/dms/DmsSettingsPage'));
 const AdminGlobalSearchPage = lazy(() => import('@/components/pages/search/GlobalSearchPage').then((mod) => ({ default: mod.AdminGlobalSearchPage })));
 
 function LoadingFallback() {
@@ -50,11 +45,6 @@ function renderAdminPage(tab: AdminTabItem) {
   if (pathname === '/organizations') return <OrganizationsPage />;
   if (pathname === '/roles') return <RolesPage />;
   if (pathname === '/auth') return <AuthPage />;
-  if (pathname === '/dms') return <DmsOverviewPage />;
-  if (pathname === '/dms/documents') return <DmsDocumentsPage />;
-  if (pathname === '/dms/templates') return <DmsTemplatesPage />;
-  if (pathname === '/dms/git') return <DmsGitPage />;
-  if (pathname === '/dms/settings') return <DmsSettingsPage />;
   if (pathname === SSOO_GLOBAL_SEARCH_APP_PATH) return <AdminGlobalSearchPage path={tab.path} />;
 
   return <SsooContentAreaEmptyState>페이지 준비 중: {tab.path}</SsooContentAreaEmptyState>;

@@ -2,13 +2,14 @@
 -- apply_all_seeds.sql
 -- 모든 시드 파일을 순서대로 실행하는 마스터 스크립트
 -- 
--- 각 시드 파일은 명시적 스키마(common/pms)를 사용합니다.
+-- 각 시드 파일은 명시적 스키마(common/pms/dms/sns/crm)를 사용합니다.
 -- 
 -- 스키마 분류:
 --   - common: cm_user_m (사용자)
 --   - pms: cm_code_m, cm_menu_m, cm_*_r (코드, 메뉴, 권한 관련)
 --   - dms: dm_config_m (DMS 시스템 설정)
---   - sns: cm_board_m, cm_skill_m (게시판, 스킬)
+--   - sns: sns_board_m, sns_skill_m (게시판, 스킬)
+--   - crm: crm_opportunity_m, crm_opportunity_line_d, crm_customer_m, crm_customer_activity_d (영업/고객)
 -- =========================================================
 -- 
 -- 사용법 (psql):
@@ -23,7 +24,7 @@
 
 \echo '=========================================='
 \echo 'Starting Seed Data Application'
-\echo 'Schema: common (user), pms (code, menu, permission), dms (config), sns (boards, skills)'
+\echo 'Schema: common (user), pms (code, menu, permission), dms (config), sns (boards, skills), crm (opportunities, customers)'
 \echo '=========================================='
 
 -- 00: 사용자 타입 코드
@@ -74,6 +75,10 @@
 \echo 'Applying 11_demo_users_customers.sql...'
 \i 11_demo_users_customers.sql
 
+-- 19: PMS execution asset master
+\echo 'Applying 19_pms_asset_master.sql...'
+\i 19_pms_asset_master.sql
+
 -- 12: legacy user/customer 기준 org foundation bridge
 \echo 'Applying 12_org_foundation_bridge.sql...'
 \i 12_org_foundation_bridge.sql
@@ -94,6 +99,10 @@
 \echo 'Applying 16_sns_access_policy_foundation.sql...'
 \i 16_sns_access_policy_foundation.sql
 
+-- 18: CRM access policy foundation
+\echo 'Applying 18_crm_access_policy_foundation.sql...'
+\i 18_crm_access_policy_foundation.sql
+
 -- 20: DMS config foundation (시스템 설정 시드 — git, storage, ingest 등)
 \echo 'Applying 20_dms_config_foundation.sql...'
 \i 20_dms_config_foundation.sql
@@ -106,9 +115,29 @@
 \echo 'Applying 51_sns_skills.sql...'
 \i 51_sns_skills.sql
 
+-- 52: CRM opportunities
+\echo 'Applying 52_crm_opportunities.sql...'
+\i 52_crm_opportunities.sql
+
+-- 55: CRM customer/activity backfill
+\echo 'Applying 55_crm_customer_activity.sql...'
+\i 55_crm_customer_activity.sql
+
+-- 53: CRM quote seller profile
+\echo 'Applying 53_crm_quote_seller_profile.sql...'
+\i 53_crm_quote_seller_profile.sql
+
+-- 54: CRM business plan ledger sample
+\echo 'Applying 54_crm_business_plan.sql...'
+\i 54_crm_business_plan.sql
+
 -- 17: PMS demo project access context (owner/org baseline)
 \echo 'Applying 17_demo_project_access_context.sql...'
 \i 17_demo_project_access_context.sql
+
+-- 21: PMS demo project status detail baseline
+\echo 'Applying 21_demo_project_statuses.sql...'
+\i 21_demo_project_statuses.sql
 
 -- Demo PMS data: members/tasks/milestones/issues/deliverables
 \echo 'Applying 12_demo_project_members.sql...'
@@ -125,6 +154,10 @@
 
 \echo 'Applying 16_demo_deliverables_conditions.sql...'
 \i 16_demo_deliverables_conditions.sql
+
+-- 22: PMS deliverable / close-condition template groups
+\echo 'Applying 22_pms_template_groups.sql...'
+\i 22_pms_template_groups.sql
 
 -- 07: 사용자별 메뉴 권한 (admin 사용자 생성 후 실행)
 \echo 'Applying 07_user_menu_permission.sql...'

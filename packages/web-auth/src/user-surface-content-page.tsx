@@ -96,8 +96,6 @@ export function createSsooUserSurfaceRouteContentPageElement({
 
   if (userSurfaceRoute?.kind === 'personal-settings') {
     return createSsooSettingsPageContentPageElement({
-      title: userSurfaceRoute.title ?? title,
-      description: getSsooUserSurfacePageDescription(userSurfaceRoute.kind),
       breadcrumbItems: [
         { id: 'ssoo/shared-user-surface', label: rootLabel ?? '사용자' },
         { id: `ssoo-user-${userSurfaceRoute.kind}`, label: userSurfaceRoute.title ?? title },
@@ -106,7 +104,6 @@ export function createSsooUserSurfaceRouteContentPageElement({
       overviewAnchorId: 'ssoo-user-settings-overview',
       index: {
         ariaLabel: '계정 설정 항목 색인',
-        description: '프로필과 계정 표시 정보를 관리합니다.',
         items: [
           {
             id: 'ssoo-user-settings-basic',

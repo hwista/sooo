@@ -17,29 +17,35 @@ export interface SsooPageIndexRailProps {
   description?: ReactNode;
   ariaLabel?: string;
   className?: string;
+  showItemMeta?: boolean;
   onItemSelect: (item: SsooPageIndexRailItem) => void;
 }
 
 export function SsooPageIndexRail({
   items,
   activeItemId,
-  title = '항목',
+  title,
   description,
   ariaLabel = '페이지 항목 색인',
   className,
+  showItemMeta = false,
   onItemSelect,
 }: SsooPageIndexRailProps) {
+  const hasHeader = Boolean(title || description);
+
   return (
-    <nav className={cn('flex h-full min-h-0 flex-col', className)} aria-label={ariaLabel}>
-      <div className="shrink-0 border-b ssoo-border-content-70 pb-2">
-        <p className="text-caption font-semibold text-ssoo-primary">{title}</p>
-        {description ? (
-          <p className="mt-1 max-h-8 overflow-hidden text-[11px] leading-4 text-ssoo-secondary">
-            {description}
-          </p>
-        ) : null}
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto pt-2">
+    <nav className={cn('flex h-full min-h-0 flex-col text-ssoo-primary', className)} aria-label={ariaLabel}>
+      {hasHeader ? (
+        <div className="shrink-0 border-b border-ssoo-content-border ssoo-border-content-70 px-1 pb-2">
+          {title ? <p className="text-sm font-medium text-ssoo-primary">{title}</p> : null}
+          {description ? (
+            <p className={cn(title ? 'mt-1' : '', 'line-clamp-2 text-caption leading-4 ssoo-text-primary-60')}>
+              {description}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+      <div className={cn('min-h-0 flex-1 overflow-y-auto', hasHeader ? 'pt-2' : 'pt-0')}>
         <div className="flex flex-col gap-1">
           {items.map((item) => {
             const active = activeItemId === item.id;
@@ -53,16 +59,16 @@ export function SsooPageIndexRail({
                 title={item.description}
                 onClick={() => onItemSelect(item)}
                 className={cn(
-                  'flex min-h-8 w-full items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-left text-caption transition-colors',
+                  'flex min-h-8 w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
                   active
-                    ? 'ssoo-border-primary-30 bg-ssoo-content-bg text-ssoo-primary'
-                    : 'border-transparent ssoo-text-primary-80 ssoo-hover-border-primary-30 hover:bg-ssoo-content-bg',
-                  item.disabled && 'cursor-not-allowed opacity-50 hover:border-transparent hover:bg-transparent'
+                    ? 'bg-ssoo-content-border font-medium text-ssoo-primary'
+                    : 'ssoo-text-primary-80 hover:bg-ssoo-sitemap-bg hover:text-ssoo-primary',
+                  item.disabled && 'cursor-not-allowed opacity-50 hover:bg-transparent'
                 )}
               >
                 <span className="min-w-0 truncate">{item.label}</span>
-                {item.meta ? (
-                  <span className="shrink-0 rounded-full bg-ssoo-content-bg px-1.5 py-0.5 text-[10px] leading-none ssoo-text-primary-60">
+                {showItemMeta && item.meta ? (
+                  <span className="shrink-0 rounded-full bg-card px-1.5 py-0.5 text-caption-xs leading-none ssoo-text-primary-60">
                     {item.meta}
                   </span>
                 ) : null}

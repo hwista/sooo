@@ -70,8 +70,8 @@ export function DiffTargetToggle({ value, onChange }: DiffTargetToggleProps) {
         type="button"
         onClick={() => onChange('content')}
         className={cn(
-          'rounded px-3 py-1 text-[0.8125rem] transition-colors',
-          value === 'content' ? 'bg-white text-ssoo-primary shadow-sm' : 'text-ssoo-primary/60 hover:text-ssoo-primary'
+          'rounded px-3 py-1 text-body-xs transition-colors',
+          value === 'content' ? 'bg-card text-ssoo-primary shadow-sm' : 'text-ssoo-primary/60 hover:text-ssoo-primary'
         )}
       >
         본문
@@ -80,8 +80,8 @@ export function DiffTargetToggle({ value, onChange }: DiffTargetToggleProps) {
         type="button"
         onClick={() => onChange('metadata')}
         className={cn(
-          'rounded px-3 py-1 text-[0.8125rem] transition-colors',
-          value === 'metadata' ? 'bg-white text-ssoo-primary shadow-sm' : 'text-ssoo-primary/60 hover:text-ssoo-primary'
+          'rounded px-3 py-1 text-body-xs transition-colors',
+          value === 'metadata' ? 'bg-card text-ssoo-primary shadow-sm' : 'text-ssoo-primary/60 hover:text-ssoo-primary'
         )}
       >
         메타데이터

@@ -1,6 +1,44 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@ssoo/database';
 import { DatabaseService } from '../../../database/database.service.js';
-import type { CreateCustomerDto, UpdateCustomerDto, FindCustomersDto } from './dto/customer.dto.js';
+import type { FindCustomersDto } from './dto/customer.dto.js';
+
+const CUSTOMER_SELECT = {
+  id: true,
+  customerCode: true,
+  customerName: true,
+  customerType: true,
+  industry: true,
+  address: true,
+  phone: true,
+  email: true,
+  contactPerson: true,
+  contactPhone: true,
+  website: true,
+  isActive: true,
+  memo: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+const EXTERNAL_ORGANIZATION_SELECT = {
+  orgId: true,
+  orgCode: true,
+  orgName: true,
+  orgType: true,
+  scope: true,
+  isActive: true,
+} as const;
+
+type CustomerLookupRow = Prisma.CustomerGetPayload<{ select: typeof CUSTOMER_SELECT }>;
+type ExternalOrganizationLookupRow = Prisma.OrganizationGetPayload<{ select: typeof EXTERNAL_ORGANIZATION_SELECT }>;
+type CustomerLookupProjection = CustomerLookupRow & {
+  organizationId: bigint | null;
+  organizationCode: string | null;
+  organizationName: string | null;
+  organizationType: string | null;
+  organizationScope: string | null;
+};
 
 @Injectable()
 export class CustomerService {
@@ -12,13 +50,20 @@ export class CustomerService {
     const page = Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
     const limit = Number.isFinite(limitValue) && limitValue > 0 ? limitValue : 10;
     const skip = (page - 1) * limit;
+    const search = params.search?.trim();
+    const organizationMatchedCodes = search
+      ? await this.findExternalOrganizationCodes(search)
+      : [];
 
-    const where = {
+    const where: Prisma.CustomerWhereInput = {
       isActive: true,
-      ...(params.search && {
+      ...(search && {
         OR: [
-          { customerName: { contains: params.search, mode: 'insensitive' as const } },
-          { customerCode: { contains: params.search, mode: 'insensitive' as const } },
+          { customerName: { contains: search, mode: 'insensitive' as const } },
+          { customerCode: { contains: search, mode: 'insensitive' as const } },
+          ...(organizationMatchedCodes.length > 0
+            ? [{ customerCode: { in: organizationMatchedCodes } }]
+            : []),
         ],
       }),
     };
@@ -26,6 +71,7 @@ export class CustomerService {
     const [data, total] = await Promise.all([
       this.db.client.customer.findMany({
         where,
+        select: CUSTOMER_SELECT,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -33,77 +79,69 @@ export class CustomerService {
       this.db.client.customer.count({ where }),
     ]);
 
-    return { data, total, page, limit };
+    return { data: await this.attachOrganizationAnchors(data), total, page, limit };
   }
 
   async findOne(id: bigint) {
     const customer = await this.db.client.customer.findUnique({
       where: { id },
+      select: CUSTOMER_SELECT,
     });
     if (!customer) {
       throw new NotFoundException(`Customer ${id} not found`);
     }
-    return customer;
+    const [projected] = await this.attachOrganizationAnchors([customer]);
+    return projected;
   }
 
-  async create(dto: CreateCustomerDto) {
-    const existing = await this.db.client.customer.findUnique({
-      where: { customerCode: dto.customerCode },
-    });
-    if (existing) {
-      throw new ConflictException(`Customer code '${dto.customerCode}' already exists`);
-    }
-
-    return this.db.client.customer.create({
-      data: {
-        customerCode: dto.customerCode,
-        customerName: dto.customerName,
-        customerType: dto.customerType,
-        industry: dto.industry,
-        address: dto.address,
-        phone: dto.phone,
-        email: dto.email,
-        contactPerson: dto.contactPerson,
-        contactPhone: dto.contactPhone,
-        website: dto.website,
-        memo: dto.memo,
+  private async findExternalOrganizationCodes(search: string): Promise<string[]> {
+    const rows = await this.db.client.organization.findMany({
+      where: {
+        orgType: 'external',
+        isActive: true,
+        OR: [
+          { orgName: { contains: search, mode: 'insensitive' } },
+          { orgCode: { contains: search, mode: 'insensitive' } },
+        ],
       },
-    });
-  }
-
-  async update(id: bigint, dto: UpdateCustomerDto) {
-    const existing = await this.db.client.customer.findUnique({ where: { id } });
-    if (!existing) {
-      throw new NotFoundException(`Customer ${id} not found`);
-    }
-
-    return this.db.client.customer.update({
-      where: { id },
-      data: {
-        ...(dto.customerName !== undefined && { customerName: dto.customerName }),
-        ...(dto.customerType !== undefined && { customerType: dto.customerType }),
-        ...(dto.industry !== undefined && { industry: dto.industry }),
-        ...(dto.address !== undefined && { address: dto.address }),
-        ...(dto.phone !== undefined && { phone: dto.phone }),
-        ...(dto.email !== undefined && { email: dto.email }),
-        ...(dto.contactPerson !== undefined && { contactPerson: dto.contactPerson }),
-        ...(dto.contactPhone !== undefined && { contactPhone: dto.contactPhone }),
-        ...(dto.website !== undefined && { website: dto.website }),
-        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
-        ...(dto.memo !== undefined && { memo: dto.memo }),
+      select: {
+        orgCode: true,
       },
+      take: 50,
     });
+
+    return rows.map((row) => row.orgCode);
   }
 
-  async deactivate(id: bigint) {
-    const existing = await this.db.client.customer.findUnique({ where: { id } });
-    if (!existing) {
-      throw new NotFoundException(`Customer ${id} not found`);
+  private async attachOrganizationAnchors(customers: CustomerLookupRow[]): Promise<CustomerLookupProjection[]> {
+    if (customers.length === 0) {
+      return [];
     }
 
-    return this.db.client.customer.update({
-      where: { id },
-      data: { isActive: false },
+    const organizations = await this.db.client.organization.findMany({
+      where: {
+        orgType: 'external',
+        orgCode: {
+          in: customers.map((customer) => customer.customerCode),
+        },
+      },
+      select: EXTERNAL_ORGANIZATION_SELECT,
+    });
+    const organizationsByCode = new Map<string, ExternalOrganizationLookupRow>(
+      organizations.map((organization) => [organization.orgCode, organization]),
+    );
+
+    return customers.map((customer) => {
+      const organization = organizationsByCode.get(customer.customerCode);
+
+      return {
+        ...customer,
+        organizationId: organization?.orgId ?? null,
+        organizationCode: organization?.orgCode ?? null,
+        organizationName: organization?.orgName ?? null,
+        organizationType: organization?.orgType ?? null,
+        organizationScope: organization?.scope ?? null,
+      };
     });
   }
 }

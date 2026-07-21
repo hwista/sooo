@@ -5,13 +5,21 @@ import { GitBranchPlus, Link2, Plus, X } from 'lucide-react';
 import {
   useCreateProjectRelation,
   useProjectAccess,
+  useProjectList,
   useProjectRelations,
   useRemoveProjectRelation,
 } from '@/hooks/queries';
-import type { ProjectRelationItem } from '@/lib/api/endpoints/projects';
+import type { Project, ProjectRelationItem } from '@/lib/api/endpoints/projects';
 import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useConfirmStore } from '@/stores/confirm.store';
 
 const PROJECT_RELATION_COMPAT_SOURCE = 'pms-project-relation-compat';
@@ -33,26 +41,78 @@ const INCOMING_LABELS = {
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error && error.message ? error.message : fallback;
 
+const formatProjectOption = (project: Project) =>
+  `${project.projectName} · PRJ-${String(project.id).padStart(6, '0')} · ${project.statusCode}/${project.stageCode}`;
+
+const formatProjectContext = (project: Project) =>
+  [project.customerName, project.plantSiteName, project.systemInstanceName].filter(Boolean).join(' · ');
+
+const getCounterpartProject = (relation: ProjectRelationItem, isOutgoing: boolean) =>
+  isOutgoing ? relation.targetProject : relation.sourceProject;
+
+const formatCounterpartProjectName = (
+  relation: ProjectRelationItem,
+  isOutgoing: boolean,
+) => getCounterpartProject(relation, isOutgoing)?.projectName ?? '프로젝트 정보 조회 필요';
+
+const formatCounterpartProjectMeta = (
+  relation: ProjectRelationItem,
+  isOutgoing: boolean,
+) => {
+  const counterpartProject = getCounterpartProject(relation, isOutgoing);
+
+  if (!counterpartProject) {
+    return '연결 대상 기준정보 조회 필요';
+  }
+
+  return `PRJ-${String(counterpartProject.id).padStart(6, '0')} · ${counterpartProject.statusCode}/${counterpartProject.stageCode}`;
+};
+
 interface RelationsSectionProps {
   projectId: number;
 }
 
 export function RelationsSection({ projectId }: RelationsSectionProps) {
-  const [targetProjectId, setTargetProjectId] = useState('');
+  const [projectSearch, setProjectSearch] = useState('');
+  const [selectedTargetProjectId, setSelectedTargetProjectId] = useState('');
   const { data, isLoading, error } = useProjectRelations(projectId);
   const { data: accessResponse } = useProjectAccess(projectId);
   const canEditProject = accessResponse?.data?.features.canEditProject ?? false;
+  const {
+    data: projectLookupResponse,
+    isLoading: isProjectLookupLoading,
+    isError: isProjectLookupError,
+    refetch: refetchProjectLookup,
+  } = useProjectList(
+    { search: projectSearch, page: 1, pageSize: 20 },
+    { enabled: canEditProject },
+  );
   const createProjectRelation = useCreateProjectRelation();
   const removeProjectRelation = useRemoveProjectRelation();
   const { confirm } = useConfirmStore();
   const relations = data?.data ?? [];
+  const linkedTargetProjectIds = new Set(
+    relations
+      .filter(
+        (relation) =>
+          relation.relationTypeCode === 'linked' &&
+          String(relation.sourceProjectId) === String(projectId),
+      )
+      .map((relation) => String(relation.targetProjectId)),
+  );
+  const projectOptions = (projectLookupResponse?.data?.items ?? []).filter(
+    (project) =>
+      String(project.id) !== String(projectId) &&
+      !linkedTargetProjectIds.has(String(project.id)),
+  );
+  const selectedProject = projectOptions.find(
+    (project) => String(project.id) === selectedTargetProjectId,
+  );
 
   const handleAdd = async () => {
-    const trimmedTargetProjectId = targetProjectId.trim();
-
-    if (!/^\d+$/.test(trimmedTargetProjectId)) {
-      toast.error('대상 프로젝트 ID 형식을 확인해주세요.', {
-        description: '연결 프로젝트는 숫자 프로젝트 ID 로만 추가할 수 있습니다.',
+    if (!selectedTargetProjectId) {
+      toast.error('연결할 프로젝트를 선택해주세요.', {
+        description: '조회 가능한 프로젝트 목록에서 직접 연결 대상을 선택합니다.',
       });
       return;
     }
@@ -62,11 +122,14 @@ export function RelationsSection({ projectId }: RelationsSectionProps) {
         projectId,
         data: {
           relationTypeCode: 'linked',
-          targetProjectId: trimmedTargetProjectId,
+          targetProjectId: selectedTargetProjectId,
         },
       });
-      setTargetProjectId('');
-      toast.success('연결 프로젝트를 추가했습니다.');
+      setSelectedTargetProjectId('');
+      setProjectSearch('');
+      toast.success('연결 프로젝트를 추가했습니다.', {
+        description: selectedProject ? formatProjectOption(selectedProject) : undefined,
+      });
     } catch (createError) {
       toast.error('연결 프로젝트를 추가하지 못했습니다.', {
         description: getErrorMessage(createError, '잠시 후 다시 시도해주세요.'),
@@ -75,7 +138,7 @@ export function RelationsSection({ projectId }: RelationsSectionProps) {
   };
 
   const handleRemove = async (relation: ProjectRelationItem) => {
-    const counterpartProjectName = relation.targetProject?.projectName ?? `프로젝트 ${relation.targetProjectId}`;
+    const counterpartProjectName = formatCounterpartProjectName(relation, true);
     const confirmed = await confirm({
       title: '연결 관계를 제거할까요?',
       description: `${counterpartProjectName} 과의 직접 연결을 해제합니다.`,
@@ -115,32 +178,78 @@ export function RelationsSection({ projectId }: RelationsSectionProps) {
       </div>
 
       {canEditProject ? (
-        <div className="mb-4 rounded-md border border-dashed bg-white p-3">
-          <div className="grid gap-3 sm:grid-cols-[1fr,auto]">
+        <div className="mb-4 rounded-md border border-dashed bg-card p-3">
+          <div className="grid gap-3 sm:grid-cols-[minmax(180px,1fr),minmax(240px,1.35fr),auto]">
             <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">연결 대상 프로젝트 ID</label>
+              <label className="text-xs font-medium text-muted-foreground">프로젝트 검색</label>
               <Input
-                placeholder="예: 10001"
-                value={targetProjectId}
-                onChange={(event) => setTargetProjectId(event.target.value)}
+                placeholder="프로젝트명 또는 번호"
+                value={projectSearch}
+                onChange={(event) => {
+                  setProjectSearch(event.target.value);
+                  setSelectedTargetProjectId('');
+                }}
               />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">연결 대상 프로젝트</label>
+              <Select
+                value={selectedTargetProjectId}
+                onValueChange={setSelectedTargetProjectId}
+                disabled={isProjectLookupLoading || projectOptions.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={isProjectLookupLoading ? '조회 중...' : '프로젝트 선택'}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectOptions.length === 0 ? (
+                    <SelectItem value="__empty" disabled>
+                      조회 결과 없음
+                    </SelectItem>
+                  ) : (
+                    projectOptions.map((project) => (
+                      <SelectItem key={String(project.id)} value={String(project.id)}>
+                        {formatProjectOption(project)}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-end">
               <Button
                 size="sm"
                 className="w-full sm:w-auto"
                 onClick={handleAdd}
-                disabled={createProjectRelation.isPending || targetProjectId.trim().length === 0}
+                disabled={createProjectRelation.isPending || !selectedTargetProjectId}
               >
                 <Plus className="mr-1 h-3.5 w-3.5" />
                 연결 추가
               </Button>
             </div>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            직접 연결한 프로젝트만 여기서 관리합니다. 종료사유 <code>linked</code> 와는
-            별개입니다.
-          </p>
+          {isProjectLookupError ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-destructive">
+              <span>프로젝트 조회 결과를 불러오지 못했습니다.</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                onClick={() => void refetchProjectLookup()}
+              >
+                다시 조회
+              </Button>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {selectedProject
+                ? formatProjectContext(selectedProject) || '선택한 프로젝트를 직접 연결합니다.'
+                : '조회 가능한 프로젝트 중 직접 연결할 대상을 선택합니다.'}
+            </p>
+          )}
         </div>
       ) : null}
 
@@ -156,9 +265,6 @@ export function RelationsSection({ projectId }: RelationsSectionProps) {
         <div className="space-y-2">
           {relations.map((relation) => {
             const isOutgoing = String(relation.sourceProjectId) === String(projectId);
-            const counterpartProject = isOutgoing
-              ? relation.targetProject
-              : relation.sourceProject;
             const label = isOutgoing
               ? OUTGOING_LABELS[relation.relationTypeCode] ?? relation.relationTypeCode
               : INCOMING_LABELS[relation.relationTypeCode] ?? relation.relationTypeCode;
@@ -173,29 +279,26 @@ export function RelationsSection({ projectId }: RelationsSectionProps) {
             return (
               <div
                 key={`${relation.sourceProjectId}-${relation.targetProjectId}-${relation.relationTypeCode}`}
-                className="flex flex-col gap-3 rounded-md border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-md border bg-card px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="truncate text-sm font-medium">
-                      {counterpartProject?.projectName
-                        ?? `프로젝트 ${isOutgoing ? relation.targetProjectId : relation.sourceProjectId}`}
+                      {formatCounterpartProjectName(relation, isOutgoing)}
                     </span>
                   </div>
                   <p className="mt-1 truncate text-xs text-muted-foreground">
-                    {counterpartProject
-                      ? `PRJ-${String(counterpartProject.id).padStart(6, '0')} · ${counterpartProject.statusCode}/${counterpartProject.stageCode}`
-                      : `ID ${isOutgoing ? relation.targetProjectId : relation.sourceProjectId}`}
+                    {formatCounterpartProjectMeta(relation, isOutgoing)}
                     {relation.memo ? ` · ${relation.memo}` : ''}
                   </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+                  <span className="inline-flex items-center rounded-full bg-ssoo-accent-bg px-2 py-0.5 text-xs font-medium text-ssoo-accent">
                     {label}
                   </span>
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                     {provenanceLabel}
                   </span>
                   {canRemove ? (

@@ -8,7 +8,7 @@ import { Button } from '@ssoo/web-ui';
 
 function toolbarIconButtonClass(className?: string) {
   return cn(
-    'inline-flex h-control-h w-control-h items-center justify-center rounded-md transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex h-control-h w-control-h items-center justify-center rounded-md transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50',
     className
   );
 }
@@ -35,7 +35,7 @@ export function SsooAiSearchToolbarZoomControls({
         type="button"
         onClick={() => onZoomReset?.()}
         disabled={!onZoomReset}
-        className="relative z-30 h-control-h min-w-[50px] rounded px-2 text-body-sm transition-colors hover:bg-gray-100"
+        className="relative z-30 h-control-h min-w-[50px] rounded px-2 text-body-sm transition-colors hover:bg-muted"
         title="기본 크기로"
       >
         {level}%

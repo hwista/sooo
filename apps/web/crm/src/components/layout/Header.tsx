@@ -10,16 +10,29 @@ import {
   type SsooUserSurfaceTabKind,
 } from '@ssoo/web-auth';
 import { SsooAppHeader, useSsooGlobalHeaderSearch } from '@ssoo/web-shell';
-import { Plus } from 'lucide-react';
+import { Menu, Plus, X } from 'lucide-react';
 import { LOGIN_PATH } from '@/lib/constants/routes';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTabStore } from '@/stores/tab.store';
 import { HeaderNotifications } from './HeaderNotifications';
 
-export function Header() {
+interface HeaderProps {
+  mobile?: boolean;
+  mobileMenuOpen?: boolean;
+  onMobileMenuClick?: () => void;
+}
+
+export function Header({
+  mobile = false,
+  mobileMenuOpen = false,
+  onMobileMenuClick,
+}: HeaderProps) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const openTab = useTabStore((state) => state.openTab);
+  const tabs = useTabStore((state) => state.tabs);
+  const activeTabId = useTabStore((state) => state.activeTabId);
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
   const handleLogout = useSharedLogout({
     authStore: useAuthStore,
@@ -62,8 +75,17 @@ export function Header() {
   return (
     <SsooAppHeader
       mode="primary"
-      search={globalHeaderSearch.search}
-      primaryAction={{
+      leading={mobile ? { title: `CRM / ${activeTab?.title ?? '홈'}`, subtitle: '영업 관리' } : undefined}
+      leadingAction={mobile ? {
+        iconSlot: mobileMenuOpen ? <X /> : <Menu />,
+        'aria-controls': 'crm-mobile-sidebar',
+        'aria-expanded': mobileMenuOpen,
+        'aria-label': mobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기',
+        title: mobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기',
+        onClick: onMobileMenuClick,
+      } : null}
+      search={mobile ? null : globalHeaderSearch.search}
+      primaryAction={mobile ? null : {
         label: '새 기회',
         iconSlot: <Plus />,
         onClick: handleCreateOpportunity,

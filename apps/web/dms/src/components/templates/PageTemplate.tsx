@@ -147,8 +147,8 @@ export function PageTemplate({
       sidecarMode={panelMode}
       sidecarNarrowBehavior={panelNarrowBehavior}
       sidecarControlSlots={{
-        collapseIcon: <ChevronRight className="h-4 w-4 text-gray-500" />,
-        expandIcon: <ChevronLeft className="h-4 w-4 text-gray-500" />,
+        collapseIcon: <ChevronRight className="h-4 w-4 ssoo-text-primary-70" />,
+        expandIcon: <ChevronLeft className="h-4 w-4 ssoo-text-primary-70" />,
       }}
       compactMode={isCompactMode}
       bottomPanelHeight={bottomPanelHeight}

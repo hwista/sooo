@@ -1,6 +1,6 @@
 # PMS 문서
 
-> 최종 업데이트: 2026-02-02
+> 최종 업데이트: 2026-07-08
 
 프로젝트 관리 시스템(PMS) 관련 문서를 관리합니다.
 
@@ -45,6 +45,8 @@
 | [tech-stack.md](explanation/architecture/tech-stack.md) | PMS 기술 스택 |
 | [modular-monolith.md](../common/explanation/architecture/modular-monolith.md) | 모듈러 모놀리스 아키텍처 (공용) |
 | [service-overview.md](explanation/domain/service-overview.md) | 서비스 개요 |
+| [pms-crm-boundary-launch-rebaseline.md](planning/pms-crm-boundary-launch-rebaseline.md) | CRM 분리 이후 PMS 런칭 책임 경계 |
+| [api-error-codes.md](guides/api-error-codes.md) | PMS API 오류 응답 상세 코드와 런칭 운영 기준 |
 
 ---
 

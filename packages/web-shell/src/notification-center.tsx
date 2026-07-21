@@ -107,7 +107,7 @@ function SsooNotificationPanelActionButton({ action }: SsooNotificationPanelActi
       className={cn(
         'inline-flex h-7 items-center justify-center gap-1 rounded border px-2 text-xs font-normal leading-4 transition-colors disabled:cursor-not-allowed disabled:opacity-60 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:shrink-0',
         action.iconSpinning && '[&>svg]:animate-spin',
-        variant === 'primary' && 'border-ssoo-primary bg-ssoo-primary text-white hover:bg-ssoo-primary-hover',
+        variant === 'primary' && 'border-ssoo-primary bg-ssoo-primary text-primary-foreground hover:bg-ssoo-primary-hover',
         variant === 'secondary' && 'border-ssoo-content-border bg-background text-ssoo-primary hover:bg-muted/50',
         variant === 'danger' && 'border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/15',
       )}
@@ -291,9 +291,9 @@ function SsooNotificationPanelCard<TItem extends SsooNotificationPanelItem>({
             <span
               className={cn(
                 'mt-0.5 shrink-0 [&>svg]:h-4 [&>svg]:w-4',
-                category.tone === 'error' && 'text-red-500',
-                category.tone === 'warning' && 'text-amber-600',
-                category.tone === 'success' && 'text-emerald-600',
+                category.tone === 'error' && 'text-ssoo-danger',
+                category.tone === 'warning' && 'text-ssoo-warning',
+                category.tone === 'success' && 'text-ssoo-success',
                 (!category.tone || category.tone === 'info') && 'text-ssoo-primary/60',
               )}
             >
@@ -301,7 +301,7 @@ function SsooNotificationPanelCard<TItem extends SsooNotificationPanelItem>({
             </span>
           ) : null}
           <span className="min-w-0 flex-1">
-            <span className="mb-1 inline-flex rounded bg-ssoo-content-bg/70 px-1.5 py-0.5 text-[10px] font-normal leading-none text-ssoo-primary/55">
+            <span className="mb-1 inline-flex rounded bg-ssoo-content-bg/70 px-1.5 py-0.5 text-caption-xs font-normal leading-none text-ssoo-primary/55">
               {category.label}
             </span>
             <span className={cn('block truncate text-sm font-normal leading-5', read && 'text-ssoo-primary/70')}>
@@ -382,7 +382,7 @@ function SsooNotificationPanelGroup<TItem extends SsooNotificationPanelItem>({
         <h3 className="text-xs font-medium leading-4 text-ssoo-primary/60">{title}</h3>
         <div className="flex items-center gap-1.5">
           {headerAction}
-          <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium leading-none text-ssoo-primary/60">
+          <span className="rounded-full bg-muted px-1.5 py-0.5 text-caption-xs font-medium leading-none text-ssoo-primary/60">
             {total}
           </span>
         </div>

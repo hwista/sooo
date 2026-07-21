@@ -33,7 +33,7 @@ DMS 문서는 모노레포 내에서 `docs/dms/` 단일 정본으로 관리합�
 | 위치 | 역할 | 언제 참조? |
 |------|------|----------|
 | `docs/dms/` | **DMS 정본** | DMS 개발/통합 작업 시 |
-| `dm_config_m` 테이블 (DB), `compose.yaml`, `DMS_*` | **런타임 문서/스토리지 경로 계약** | DMS markdown working tree (템플릿은 `_templates/` 하위 포함), ingest queue, binary storage |
+| `dm_config_m` 테이블 (DB), `compose.yaml` + 환경별 overlay, `DMS_*` | **런타임 문서/스토리지 경로 계약** | DMS markdown working tree (템플릿은 `_templates/` 하위 포함), ingest queue, binary storage |
 
 ---
 

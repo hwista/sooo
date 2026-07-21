@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   getSsooUserSurfaceTabId,
@@ -13,23 +13,32 @@ import {
   SsooSidebarSearchableTree,
   SsooSidebarSurface,
   SsooSidebarTreeStatusBadge,
+  SsooAppFrame,
+  SsooMobileSidebarOverlay,
   SsooWorkbenchShell,
+  useSsooMobileViewport,
 } from '@ssoo/web-shell';
 import {
   BarChart3,
+  Calculator,
   ChevronDown,
   ChevronRight,
   CircleDollarSign,
+  ClipboardList,
   FileText,
   FolderTree,
   Handshake,
   Layers,
+  LineChart,
   Menu,
+  PieChart,
   RefreshCw,
   Search,
   Settings,
+  SlidersHorizontal,
   ShieldCheck,
   Star,
+  UsersRound,
   X,
 } from 'lucide-react';
 import { CRM_HOME_TAB, useTabStore } from '@/stores/tab.store';
@@ -41,8 +50,15 @@ const CRM_APP_IDENTITY = getSsooAppIdentity('crm');
 
 const menuItems = [
   { label: '영업기회', path: '/', icon: BarChart3, hasChildren: false, disabled: false },
-  { label: '견적', icon: FileText, active: false, hasChildren: true, disabled: true },
-  { label: '계약 원장', icon: CircleDollarSign, active: false, hasChildren: true, disabled: true },
+  { label: '고객/활동', path: '/customers', icon: UsersRound, hasChildren: false, disabled: false },
+  { label: '견적 설정', path: '/quote-settings', icon: FileText, hasChildren: false, disabled: false },
+  { label: '계약 원장', path: '/contracts', icon: CircleDollarSign, hasChildren: false, disabled: false },
+  { label: '계약대비실적', path: '/contract-performance', icon: BarChart3, hasChildren: false, disabled: false },
+  { label: '보고 Preview', path: '/reports', icon: PieChart, hasChildren: false, disabled: false },
+  { label: '사업계획 Preview', path: '/business-plan', icon: ClipboardList, hasChildren: false, disabled: false },
+  { label: '사업계획대비실적 Preview', path: '/business-plan-performance', icon: LineChart, hasChildren: false, disabled: false },
+  { label: '원가/AMS Preview', path: '/cost-plan', icon: Calculator, hasChildren: false, disabled: false },
+  { label: '운영 기준 Preview', path: '/operations', icon: SlidersHorizontal, hasChildren: false, disabled: false },
   { label: 'PMS 인계', icon: Handshake, active: false, hasChildren: true, disabled: true },
   { label: '공용 Admin', icon: ShieldCheck, active: false, hasChildren: false, disabled: true },
   { label: '설정', icon: Settings, active: false, hasChildren: false, disabled: true },
@@ -50,7 +66,11 @@ const menuItems = [
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobileViewport = useSsooMobileViewport();
   const toggleSidebar = () => setIsSidebarCollapsed((current) => !current);
+  const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), []);
+  const toggleMobileMenu = useCallback(() => setIsMobileMenuOpen((current) => !current), []);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const openTab = useTabStore((state) => state.openTab);
@@ -79,7 +99,44 @@ export function AppLayout({ children }: { children: ReactNode }) {
     });
   }, [currentPath, openTab]);
 
+  useEffect(() => {
+    if (!isMobileViewport && isMobileMenuOpen) {
+      closeMobileMenu();
+    }
+  }, [closeMobileMenu, isMobileMenuOpen, isMobileViewport]);
+
   void children;
+
+  if (isMobileViewport) {
+    return (
+      <SsooAppFrame
+        mode="workbench"
+        sidebarMode="none"
+        sidebarSlot={isMobileMenuOpen ? (
+          <SsooMobileSidebarOverlay
+            id="crm-mobile-sidebar"
+            label="CRM 모바일 메뉴"
+            onDismiss={closeMobileMenu}
+          >
+            <CrmSidebar
+              isCollapsed={false}
+              onToggleCollapse={closeMobileMenu}
+              toggleLabel="모바일 메뉴 닫기"
+            />
+          </SsooMobileSidebarOverlay>
+        ) : null}
+        headerSlot={(
+          <Header
+            mobile
+            mobileMenuOpen={isMobileMenuOpen}
+            onMobileMenuClick={toggleMobileMenu}
+          />
+        )}
+        tabBarSlot={<TabBar />}
+        contentSlot={<ContentArea />}
+      />
+    );
+  }
 
   return (
     <SsooWorkbenchShell
@@ -101,9 +158,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
 function CrmSidebar({
   isCollapsed,
   onToggleCollapse,
+  toggleLabel,
 }: {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  toggleLabel?: string;
 }) {
   const router = useRouter();
   const tabs = useTabStore((state) => state.tabs);
@@ -127,6 +186,7 @@ function CrmSidebar({
       expanded={!isCollapsed}
       onToggleCollapse={onToggleCollapse}
       toggleIcon={Menu}
+      toggleLabel={toggleLabel}
       brandTitle={CRM_APP_IDENTITY.brandTitle}
       search={{
         value: searchQuery,

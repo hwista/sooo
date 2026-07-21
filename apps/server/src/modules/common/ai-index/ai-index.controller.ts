@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type {
   AiConversationCreateRequest,
@@ -12,9 +12,13 @@ import type {
 } from '@ssoo/types/common';
 import { success } from '../../../common/responses.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
 import type { TokenPayload } from '../auth/interfaces/auth.interface.js';
 import { AiConversationService } from './ai-conversation.service.js';
+import { AiIndexSchedulerService } from './ai-index-scheduler.service.js';
 import { AiIndexingService } from './ai-indexing.service.js';
+import { AiIndexWorkerService } from './ai-index-worker.service.js';
 import { AiRetrievalService } from './ai-retrieval.service.js';
 
 const AI_INDEX_SOURCE_APPS = new Set<AiIndexSourceApp>(['admin', 'crm', 'pms', 'dms', 'sns']);
@@ -32,6 +36,8 @@ function normalizeSourceApp(sourceApp?: string): AiIndexSourceApp | undefined {
 export class AiIndexController {
   constructor(
     private readonly aiIndexingService: AiIndexingService,
+    private readonly aiIndexSchedulerService: AiIndexSchedulerService,
+    private readonly aiIndexWorkerService: AiIndexWorkerService,
     private readonly aiRetrievalService: AiRetrievalService,
     private readonly aiConversationService: AiConversationService,
   ) {}
@@ -46,6 +52,8 @@ export class AiIndexController {
   }
 
   @Post('jobs')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: '공용 AI/RAG 인덱스 job 등록' })
   @ApiBody({ description: 'AI index job request' })
   @ApiOkResponse({ description: '등록된 AI index job snapshot 반환' })
@@ -57,12 +65,35 @@ export class AiIndexController {
     return success(data);
   }
 
+  @Get('jobs/metrics')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: '공용 AI/RAG 인덱스 job queue 관측성 조회' })
+  @ApiQuery({ name: 'sourceApp', required: false, type: String, description: 'admin|crm|pms|dms|sns' })
+  @ApiOkResponse({ description: 'AI index job queue 상태와 retry backlog 반환' })
+  async getJobMetrics(@Query('sourceApp') sourceApp?: string) {
+    const data = await this.aiIndexingService.getJobQueueMetrics(normalizeSourceApp(sourceApp));
+    return success(data);
+  }
+
+  @Get('jobs/scheduler')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: '공용 AI/RAG 인덱스 scheduler 상태 조회' })
+  @ApiOkResponse({ description: 'AI index scheduler 설정과 마지막 실행 상태 반환' })
+  async getSchedulerStatus() {
+    const data = this.aiIndexSchedulerService.getStatus();
+    return success(data);
+  }
+
   @Post('jobs/run')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: '대기 중인 공용 AI/RAG 인덱스 job 실행' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: '최대 실행 job 수' })
   @ApiOkResponse({ description: 'AI index job 실행 요약 반환' })
   async runJobs(@Query('limit') limit?: string) {
-    const data = await this.aiIndexingService.runPendingJobs(limit ? Number(limit) : undefined);
+    const data = await this.aiIndexWorkerService.runPendingJobs(limit ? Number(limit) : undefined);
     return success(data);
   }
 

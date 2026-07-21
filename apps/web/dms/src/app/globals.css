@@ -7,8 +7,8 @@
 
 /* 검색 결과 하이라이트 */
 .search-highlight {
-background-color: #fef3c7;
-color: #d97706;
+background-color: var(--ssoo-warning-background);
+color: var(--ssoo-warning);
 /* design/font-override: 검색 결과 시각적 강조 */
 font-weight: 500;
 padding: 0 2px;
@@ -43,8 +43,8 @@ background: hsl(var(--muted-foreground) / 0.5);
 
 /* 검색 하이라이트 다크 모드 */
 .dark .search-highlight {
-background-color: #78350f;
-color: #fcd34d;
+background-color: var(--ssoo-warning-background);
+color: var(--ssoo-warning);
 }
 
 /* ============================================
@@ -78,7 +78,7 @@ color: #fcd34d;
 /* Placeholder 스타일 (ProseMirror 고유) */
 .ProseMirror p.is-editor-empty:first-child::before,
 .ProseMirror.is-editor-empty::before {
-@apply text-gray-400 float-left h-0 pointer-events-none;
+@apply text-muted-foreground float-left h-0 pointer-events-none;
 content: attr(data-placeholder);
 }
 
@@ -100,13 +100,13 @@ content: attr(data-placeholder);
 }
 
 .ProseMirror ul[data-type="taskList"] li input[type="checkbox"] {
-@apply cursor-pointer w-4 h-4 accent-blue-600;
+@apply cursor-pointer w-4 h-4 accent-ssoo-info;
 }
 
 /* 코드 블록 구문 강조 (hljs - ProseMirror 고유) */
 .ProseMirror pre .hljs-comment,
 .ProseMirror pre .hljs-quote {
-@apply text-gray-500;
+@apply text-muted-foreground;
 }
 
 .ProseMirror pre .hljs-variable,
@@ -118,7 +118,7 @@ content: attr(data-placeholder);
 .ProseMirror pre .hljs-name,
 .ProseMirror pre .hljs-selector-id,
 .ProseMirror pre .hljs-selector-class {
-@apply text-red-400;
+@apply text-ssoo-danger;
 }
 
 .ProseMirror pre .hljs-number,
@@ -128,53 +128,54 @@ content: attr(data-placeholder);
 .ProseMirror pre .hljs-literal,
 .ProseMirror pre .hljs-type,
 .ProseMirror pre .hljs-params {
-@apply text-amber-400;
+@apply text-ssoo-warning;
 }
 
 .ProseMirror pre .hljs-string,
 .ProseMirror pre .hljs-symbol,
 .ProseMirror pre .hljs-bullet {
-@apply text-emerald-400;
+@apply text-ssoo-success;
 }
 
 .ProseMirror pre .hljs-title,
 .ProseMirror pre .hljs-section {
-@apply text-blue-400;
+@apply text-ssoo-info;
 }
 
 .ProseMirror pre .hljs-keyword,
 .ProseMirror pre .hljs-selector-tag {
-@apply text-purple-400;
+@apply text-ssoo-accent;
 }
 
 /* 테이블 선택/리사이즈 (ProseMirror 고유) */
 .ProseMirror .selectedCell:after {
-@apply bg-blue-600/10 absolute inset-0 pointer-events-none z-[2];
+@apply absolute inset-0 pointer-events-none z-[2];
+background-color: color-mix(in srgb, var(--ssoo-info) 10%, transparent);
 content: '';
 }
 
 .ProseMirror .column-resize-handle {
-@apply bg-blue-600 absolute -right-0.5 -bottom-0.5 top-0 w-1 pointer-events-none;
+@apply bg-ssoo-info absolute -right-0.5 -bottom-0.5 top-0 w-1 pointer-events-none;
 }
 
 /* 이미지 선택 (ProseMirror 고유) */
 .ProseMirror img.ProseMirror-selectednode {
-@apply outline-[3px] outline outline-blue-600;
+@apply outline-[3px] outline outline-ssoo-info;
 }
 
 /* 하이라이트 스타일 (prose에 없음) */
 .ProseMirror mark {
-@apply bg-yellow-200 py-0.5;
+@apply bg-ssoo-warning-bg py-0.5;
 }
 
 .prose mark.md-highlight,
 .markdown-preview mark.md-highlight {
-@apply rounded bg-yellow-200 px-0.5 py-0.5 text-inherit;
+@apply rounded bg-ssoo-warning-bg px-0.5 py-0.5 text-inherit;
 }
 
 .dark .prose mark.md-highlight,
 .dark .markdown-preview mark.md-highlight {
-background-color: rgba(250, 204, 21, 0.35);
+background-color: color-mix(in srgb, var(--ssoo-warning) 35%, transparent);
 color: inherit;
 }
 
@@ -197,12 +198,12 @@ color: inherit;
 }
 
 .ProseMirror ::selection {
-@apply bg-blue-600/20;
+background-color: color-mix(in srgb, var(--ssoo-info) 20%, transparent);
 }
 
 /* Tippy 팝업 스타일 */
 .tippy-box[data-theme~='light-border'] {
-@apply bg-white border border-gray-200 rounded-lg shadow-lg;
+@apply bg-card border border-ssoo-content-border rounded-lg shadow-lg;
 }
 
 /* 반응형 */
@@ -226,36 +227,36 @@ color: inherit;
 
 /* 에디터 다크 모드 */
 .dark .ProseMirror {
-background-color: #1f2937;
-color: #f3f4f6;
+background-color: var(--ssoo-content-background);
+color: hsl(var(--foreground));
 }
 
 .dark .ProseMirror code {
-background-color: #374151;
-color: #fbbf24;
+background-color: var(--ssoo-neutral-background);
+color: var(--ssoo-warning);
 }
 
 .dark .ProseMirror pre {
-background-color: #111827;
-border-color: #374151;
+background-color: var(--ssoo-background);
+border-color: var(--ssoo-neutral-border);
 }
 
 .dark .ProseMirror blockquote {
-border-left-color: #4b5563;
-color: #9ca3af;
+border-left-color: var(--ssoo-neutral);
+color: var(--ssoo-neutral);
 }
 
 .dark .ProseMirror table {
-border-color: #374151;
+border-color: var(--ssoo-neutral-border);
 }
 
 .dark .ProseMirror th,
 .dark .ProseMirror td {
-border-color: #374151;
+border-color: var(--ssoo-neutral-border);
 }
 
 .dark .ProseMirror th {
-background-color: #374151;
+background-color: var(--ssoo-neutral-background);
 }
 
 /* 마크다운 미리보기 다크 모드 */
@@ -297,7 +298,7 @@ color: inherit !important;
 
 /* 마크다운 미리보기 다크 모드 */
 .dark .markdown-preview {
-color: #f3f4f6;
+color: hsl(var(--foreground));
 }
 
 .dark .markdown-preview h1,
@@ -306,44 +307,44 @@ color: #f3f4f6;
 .dark .markdown-preview h4,
 .dark .markdown-preview h5,
 .dark .markdown-preview h6 {
-color: #f9fafb;
+color: hsl(var(--foreground));
 }
 
 .dark .markdown-preview a {
-color: #60a5fa;
+color: var(--ssoo-info);
 }
 
 .dark .markdown-preview code {
-background-color: #374151;
-color: #fbbf24;
+background-color: var(--ssoo-neutral-background);
+color: var(--ssoo-warning);
 }
 
 .dark .markdown-preview pre {
-background-color: #111827;
-border-color: #374151;
+background-color: var(--ssoo-background);
+border-color: var(--ssoo-neutral-border);
 }
 
 .dark .markdown-preview blockquote {
-border-left-color: #4b5563;
-background-color: #1f2937;
-color: #9ca3af;
+border-left-color: var(--ssoo-neutral);
+background-color: var(--ssoo-content-background);
+color: var(--ssoo-neutral);
 }
 
 .dark .markdown-preview table {
-border-color: #374151;
+border-color: var(--ssoo-neutral-border);
 }
 
 .dark .markdown-preview th {
-background-color: #374151;
-border-color: #4b5563;
+background-color: var(--ssoo-neutral-background);
+border-color: var(--ssoo-neutral);
 }
 
 .dark .markdown-preview td {
-border-color: #374151;
+border-color: var(--ssoo-neutral-border);
 }
 
 .dark .markdown-preview hr {
-border-color: #374151;
+border-color: var(--ssoo-neutral-border);
 }
 
 .assistant-markdown {
@@ -408,20 +409,20 @@ border-color: #374151;
 }
 
 .assistant-markdown code {
-@apply rounded bg-white/70 px-1 py-0.5 font-mono text-[0.8125rem] text-ssoo-primary;
+@apply rounded bg-card/70 px-1 py-0.5 font-mono text-body-xs text-ssoo-primary;
 }
 
 .assistant-markdown pre {
-@apply my-3 overflow-x-auto rounded-lg border border-ssoo-content-border bg-white px-3 py-2;
+@apply my-3 overflow-x-auto rounded-lg border border-ssoo-content-border bg-card px-3 py-2;
 }
 
 .assistant-markdown pre code {
-@apply bg-transparent p-0 text-[0.8125rem];
+@apply bg-transparent p-0 text-body-xs;
 }
 
 .assistant-markdown blockquote {
-@apply my-3 border-l-4 border-ssoo-content-border bg-white/60 px-3 py-2;
-color: rgb(52 16 74 / 0.8);
+@apply my-3 border-l-4 border-ssoo-content-border bg-card/60 px-3 py-2;
+color: color-mix(in srgb, var(--ssoo-primary) 80%, transparent);
 }
 
 .assistant-markdown table {
@@ -429,7 +430,7 @@ color: rgb(52 16 74 / 0.8);
 }
 
 .assistant-markdown thead {
-@apply bg-white/70;
+@apply bg-card/70;
 }
 
 .assistant-markdown th,

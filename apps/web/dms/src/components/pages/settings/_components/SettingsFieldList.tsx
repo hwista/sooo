@@ -29,6 +29,7 @@ export function SettingsFieldList({
       onChange={onChange}
       readOnly={readOnly}
       getItemAnchorId={getItemAnchorId}
+      showDescription={false}
     />
   );
 }

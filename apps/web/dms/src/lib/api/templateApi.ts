@@ -31,6 +31,20 @@ export const templateApi = {
     });
   },
 
+  confirmReview: async (
+    id: string,
+    scope: 'global' | 'personal',
+    payload?: { memo?: string },
+  ): Promise<ApiResponse<TemplateItem>> => {
+    return request(`/api/templates/${encodeURIComponent(id)}/review-confirmation`, {
+      method: 'POST',
+      body: {
+        scope,
+        memo: payload?.memo,
+      },
+    });
+  },
+
   convertToTemplateStream: async (
     payload: { documentContent: string; documentPath?: string },
     callbacks: { onTextDelta?: (delta: string) => void },

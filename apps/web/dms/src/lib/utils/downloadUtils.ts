@@ -41,11 +41,15 @@ export function printHtmlContent(htmlContent: string, title: string): void {
     <meta charset="utf-8" />
     <title>${safeTitle}</title>
     <style>
+      :root {
+        --font-sans: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Nanum Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
       body {
         margin: 0;
         padding: 32px;
         color: #172554;
-        font-family: "Pretendard", "Noto Sans KR", sans-serif;
+        font-family: var(--font-sans);
         background: #fff;
       }
       article {
@@ -62,7 +66,7 @@ export function printHtmlContent(htmlContent: string, title: string): void {
         margin: 0.75em 0;
       }
       pre, code {
-        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-family: var(--font-mono);
       }
       pre {
         white-space: pre-wrap;

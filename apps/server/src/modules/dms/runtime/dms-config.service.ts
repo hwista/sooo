@@ -11,6 +11,14 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import {
+  DEFAULT_DMS_CRM_CONTRACT_APPROVAL_ROUTE_POLICY,
+  DEFAULT_DMS_CRM_CONTRACT_EXPORT_POLICY,
+} from '@ssoo/types';
+import type {
+  DmsCrmContractApprovalRoutePolicy,
+  DmsCrmContractExportPolicy,
+} from '@ssoo/types/dms';
 import { createDmsLogger } from './dms-logger.js';
 import { gitRemoteIdentitiesMatch } from './git-remote-identity.util.js';
 import type { DmsConfigDbClient } from './settings.types.js';
@@ -151,6 +159,8 @@ export interface DmsConfig {
   uploads: UploadConfig;
   search: SearchConfig;
   docAssist: DocAssistConfig;
+  crmContractApprovalRoute: DmsCrmContractApprovalRoutePolicy;
+  crmContractExportPolicy: DmsCrmContractExportPolicy;
   m365: M365Config;
 }
 
@@ -609,6 +619,13 @@ class ConfigService {
         maxSummaryFileCount: 2,
         maxSummaryFileChars: 2000,
         maxImagesPerRequest: 5,
+      },
+      crmContractApprovalRoute: {
+        ...DEFAULT_DMS_CRM_CONTRACT_APPROVAL_ROUTE_POLICY,
+        requiredRoles: [...DEFAULT_DMS_CRM_CONTRACT_APPROVAL_ROUTE_POLICY.requiredRoles],
+      },
+      crmContractExportPolicy: {
+        ...DEFAULT_DMS_CRM_CONTRACT_EXPORT_POLICY,
       },
       m365: {
         sharepoint: {

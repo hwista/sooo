@@ -82,7 +82,9 @@ d=json.load(sys.stdin); print('files:', n(d['data']))"
 
 | 증상                              | 원인                                                | 조치 |
 |-----------------------------------|-----------------------------------------------------|------|
-| API는 200인데 `data: []`          | DB 비어 있음 (시드/hydration 미실행)                | `pnpm --filter @ssoo/database run db:seed` 후 서버 재기동, 또는 admin 으로 1회 호출하여 `ensureRepoControlPlaneSynced` 트리거 |
+| 신규 사용자에서 API 200 + `data: []` | 권한 내 읽을 수 있는 문서가 아직 없음               | 정상 empty state 입니다. 사용자를 blocking page에 가두지 않고, 문서 권한/생성 후 사이드바 새로고침 또는 파일 트리 retry로 다시 hydrate 합니다. |
+| API는 200인데 `data: []`          | DB 비어 있음 또는 기존 문서 row가 `missing` 상태로 남음 | 서버 재기동으로 hydration 재활성화를 먼저 확인. 계속 0건이면 `dms.dm_document_m.sync_status_code` 집계와 서버 로그의 parity 보류 사유 확인 |
+| 사이드바에 있어야 할 문서가 표시되지 않음 | 일시적 control-plane sync/API 실패 또는 stale client state | 파일 트리 error state의 `문서 목록 다시 불러오기` 또는 사이드바 상단 새로고침으로 `forceSync` 재시도. 반복 실패 시 서버 로그와 `/api/dms/files?force=1` 응답 확인 |
 | `data` 일부만 표시                | ACL 필터 동작(visibility=self/private 등)           | DB `metadata_jsonb->'visibility'` 확인 — 의도한 가시성인지 검증 |
 | `403 DMS feature not enabled`     | 사용자에게 `canReadDocuments` 권한 미부여           | `common.cm_role_permission_r` / `cm_user_permission_exception_r` 점검 |
 | `503` 또는 control-plane 동기화 보류 | 원격 git remote가 ahead/diverged 상태               | 서버 로그 `문서 repo -> control-plane 동기화 보류` 확인, 필요 시 원격 변경을 수동 pull/리졸브 |

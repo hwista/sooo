@@ -1,6 +1,6 @@
 # 데이터베이스 가이드
 
-> 최종 업데이트: 2026-02-02
+> 최종 업데이트: 2026-07-20
 
 SSOO 데이터베이스 구조 및 사용 가이드입니다.
 
@@ -26,7 +26,15 @@ SSOO 데이터베이스 구조 및 사용 가이드입니다.
 | Service Name | `SSOT` (임시 플랫폼 표기; repository slug는 `ssoo`) |
 | DBMS | PostgreSQL 15+ |
 | ORM | Prisma 6.x |
-| 스키마 관리 | Multi-Schema (common, pms, dms) |
+| 스키마 관리 | Multi-Schema (common, crm, pms, dms, sns) |
+
+### Launch migration 기준선
+
+- 새 DB와 `_prisma_migrations`에 launch baseline 기록이 있는 DB의 정식 경로는 `packages/database/prisma.launch.config.ts`와 `packages/database/prisma/launch-migrations/`입니다.
+- `pnpm db:migrate:deploy`는 pending launch migration을 적용하고 `pnpm db:migrate:status`는 적용 상태를 확인합니다.
+- `pnpm db:baseline:verify`는 일회용 DB를 만들고 launch migration 전체를 적용한 뒤 master seed 35개, database-native CHECK/부분 인덱스/CRM 계약 trigger, source trigger 78개, Prisma schema parity를 검증하고 DB를 제거합니다.
+- 기존 pre-baseline DB는 자동으로 baseline 처리하지 않습니다. 백업 후 schema drift가 0임을 확인한 경우에만 `DATABASE_URL=... DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline pnpm db:baseline:resolve`를 실행합니다. drift가 있으면 명령은 쓰기 전에 실패합니다.
+- `packages/database/prisma/migrations/`의 기존 SQL은 pre-baseline volume 호환과 protected patch 검증을 위해 보존합니다. 신규 배포 이력의 정본은 `prisma/launch-migrations/`입니다.
 
 ---
 
@@ -34,11 +42,13 @@ SSOO 데이터베이스 구조 및 사용 가이드입니다.
 
 ### 스키마 분리 (Multi-Schema)
 
-| 스키마 | 접두사 | 설명 | 테이블 수 |
-|--------|--------|------|-----------|
-| `common` | `cm_` | 공통 사용자 (모든 시스템 공유) | 2개 |
-| `pms` | `cm_`, `pr_` | PMS 전용 (코드, 메뉴, 프로젝트) | 27개 |
-| `dms` | `dm_` | 문서 관리 시스템 (미래 확장) | 0개 |
+| 스키마 | 접두사 | 설명 |
+|--------|--------|------|
+| `common` | `cm_` | 공통 사용자, 인증, AI/RAG projection |
+| `crm` | `crm_` | 영업·계약·원가 계획 |
+| `pms` | `cm_`, `pr_` | 코드, 메뉴, 프로젝트 실행 |
+| `dms` | `dm_` | 문서, 설정, 대화 세션 |
+| `sns` | `sns_` | 게시물·댓글·반응 |
 
 ### Prisma multiSchema 설정
 
@@ -50,7 +60,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["common", "pms", "dms"]
+  schemas  = ["common", "crm", "pms", "dms", "sns"]
 }
 ```
 
@@ -116,7 +126,8 @@ ALTER DATABASE appdb SET search_path TO common, pms, dms, public;
 
 ```powershell
 cd packages/database
-$env:NODE_TLS_REJECT_UNAUTHORIZED=0
+$env:NODE_EXTRA_CA_CERTS='C:\secure\company-root-ca.pem'
+pnpm config set cafile 'C:\secure\company-root-ca.pem'
 node ./node_modules/prisma/build/index.js db push
 ```
 
@@ -147,18 +158,22 @@ npx ts-node scripts/run-sql.ts --file ../../docs/pms/database/tables/seeds/menu_
 ### 주요 명령어
 
 ```powershell
-# SSL 우회 (개발 환경)
-$env:NODE_TLS_REJECT_UNAUTHORIZED=0
+# 사내 TLS 프록시 사용 시 승인된 root CA 신뢰 설정
+$env:NODE_EXTRA_CA_CERTS='C:\secure\company-root-ca.pem'
+pnpm config set cafile 'C:\secure\company-root-ca.pem'
 
-# 테이블 동기화
-cd packages/database
-node ./node_modules/prisma/build/index.js db push
+# 새 DB/launch-managed DB migration 적용 및 상태 확인
+pnpm db:migrate:deploy
+pnpm db:migrate:status
+
+# 빈 일회용 DB에서 launch baseline 재현성 검증
+pnpm db:baseline:verify
 
 # Client 생성
-node ./node_modules/prisma/build/index.js generate
+pnpm db:generate
 
-# 마이그레이션
-node ./node_modules/prisma/build/index.js migrate dev --name <migration_name>
+# 개발 중 스키마 실험용 동기화(배포 이력 대체 금지)
+pnpm db:push
 ```
 
 ---

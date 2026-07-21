@@ -1,5 +1,12 @@
-import type { CrmOpportunityListQuery, CrmOpportunityListResponse, CrmOpportunitySort, CrmOpportunityStatus } from '@ssoo/types/crm';
+import type {
+  CrmDashboardResponse,
+  CrmOpportunityListQuery,
+  CrmOpportunityListResponse,
+  CrmOpportunitySort,
+  CrmOpportunityStatus,
+} from '@ssoo/types/crm';
 import { OpportunityWorkspaceClient, type OpportunityWorkspaceQuery } from './OpportunityWorkspaceClient';
+import { crmDashboardFallback } from './dashboardFallback';
 
 const API_BASE_URL = process.env.CRM_SERVER_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -52,9 +59,23 @@ async function loadOpportunities(query: Required<CrmOpportunityListQuery>): Prom
   }
 }
 
+async function loadDashboard(): Promise<CrmDashboardResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/crm/dashboard`, { cache: 'no-store' });
+    if (!response.ok) return crmDashboardFallback;
+    const payload = await response.json();
+    return payload?.data ?? crmDashboardFallback;
+  } catch {
+    return crmDashboardFallback;
+  }
+}
+
 export async function OpportunityWorkspace({ query = {} }: { query?: Record<string, string | string[] | undefined> }) {
   const normalizedQuery = normalizeQuery(query);
-  const data = await loadOpportunities(normalizedQuery);
+  const [data, dashboard] = await Promise.all([
+    loadOpportunities(normalizedQuery),
+    loadDashboard(),
+  ]);
 
-  return <OpportunityWorkspaceClient data={data} query={normalizedQuery} />;
+  return <OpportunityWorkspaceClient data={data} dashboard={dashboard} query={normalizedQuery} />;
 }

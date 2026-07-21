@@ -11,6 +11,8 @@ import { Logger } from '@nestjs/common';
 import type { Server, Socket } from 'socket.io';
 import { verifyWsToken } from './ws-jwt.guard.js';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
+import { AuthService } from '../../common/auth/auth.service.js';
+import { AccessService } from '../access/access.service.js';
 import { DocumentAclService } from '../access/document-acl.service.js';
 import { normalizePath } from '../collaboration/collaboration-paths.util.js';
 import { configService } from '../runtime/dms-config.service.js';
@@ -82,6 +84,8 @@ export class DmsEventsGateway implements OnGatewayConnection, OnGatewayDisconnec
 
   constructor(
     private readonly documentAclService: DocumentAclService,
+    private readonly authService: AuthService,
+    private readonly accessService: AccessService,
   ) {}
 
   // --------------------------------------------------------------------------
@@ -100,9 +104,19 @@ export class DmsEventsGateway implements OnGatewayConnection, OnGatewayDisconnec
         return;
       }
 
-      const user = await verifyWsToken(token);
+      const user = await verifyWsToken(token, this.authService);
       if (!user) {
         logger.warn('WebSocket 연결 거부: 유효하지 않은 토큰', { id: client.id });
+        client.disconnect(true);
+        return;
+      }
+
+      const access = await this.accessService.getAccessSnapshot(user);
+      if (!access.features.canReadDocuments) {
+        logger.warn('WebSocket 연결 거부: DMS 문서 읽기 권한 없음', {
+          id: client.id,
+          userId: user.userId,
+        });
         client.disconnect(true);
         return;
       }

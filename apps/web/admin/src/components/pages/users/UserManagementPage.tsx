@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Search, Plus, Pencil, UserX } from 'lucide-react';
+import { Plus, Pencil, UserX } from 'lucide-react';
+import {
+  SsooDataWorkspacePage,
+  type SsooDataGridColumnDef,
+  type SsooDataWorkspaceFilterValues,
+} from '@ssoo/web-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,14 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -110,8 +107,8 @@ interface UserManagementPageProps {
 export function UserManagementPage({ path }: UserManagementPageProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('');
+  const [filterValues, setFilterValues] = useState<SsooDataWorkspaceFilterValues>({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [form, setForm] = useState<UserFormData>(INITIAL_FORM);
@@ -135,19 +132,18 @@ export function UserManagementPage({ path }: UserManagementPageProps) {
 
   const users = response?.data ?? [];
   const total = response?.meta?.total ?? 0;
-  const totalPages = Math.ceil(total / limit) || 1;
-
-  const handleSearch = useCallback(() => {
-    setSearch(searchInput);
+  const handleSearch = useCallback((values: SsooDataWorkspaceFilterValues) => {
+    setSearch(values.search?.trim() ?? '');
+    setRoleFilter(values.roleCode ?? '');
     setPage(1);
-  }, [searchInput]);
+  }, []);
 
-  const handleSearchKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') handleSearch();
-    },
-    [handleSearch],
-  );
+  const handleReset = useCallback(() => {
+    setFilterValues({});
+    setSearch('');
+    setRoleFilter('');
+    setPage(1);
+  }, []);
 
   const openCreateDialog = useCallback(() => {
     setEditingUser(null);
@@ -157,7 +153,7 @@ export function UserManagementPage({ path }: UserManagementPageProps) {
   }, []);
 
   useEffect(() => {
-    setSearchInput(pathSearch);
+    setFilterValues((prev) => ({ ...prev, search: pathSearch }));
     setSearch(pathSearch);
     setPage(1);
   }, [pathSearch]);
@@ -273,6 +269,107 @@ export function UserManagementPage({ path }: UserManagementPageProps) {
     [deactivateMutation],
   );
 
+  const columns = useMemo<SsooDataGridColumnDef<UserItem>[]>(() => [
+    {
+      accessorKey: 'loginId',
+      header: '로그인ID',
+      size: 120,
+      cell: ({ row }) => <span className="font-mono text-sm">{row.original.loginId}</span>,
+    },
+    {
+      accessorKey: 'userName',
+      header: '이름',
+      size: 100,
+    },
+    {
+      accessorKey: 'email',
+      header: '이메일',
+      size: 180,
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.email}</span>,
+    },
+    {
+      accessorKey: 'roleCode',
+      header: '역할',
+      size: 90,
+      cell: ({ row }) => {
+        const roleCode = row.original.roleCode;
+        return (
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+              roleCode === 'admin'
+                ? 'bg-ssoo-danger-bg text-ssoo-danger'
+                : 'bg-ssoo-info-bg text-ssoo-info'
+            }`}
+          >
+            {ROLE_LABEL[roleCode] ?? roleCode}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: 'departmentCode',
+      header: '부서',
+      size: 110,
+      cell: ({ row }) => <span className="text-sm">{row.original.departmentCode ?? '-'}</span>,
+    },
+    {
+      accessorKey: 'isActive',
+      header: '상태',
+      size: 80,
+      cell: ({ row }) => (
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+            row.original.isActive
+              ? 'bg-ssoo-success-bg text-ssoo-success'
+              : 'bg-muted text-muted-foreground'
+          }`}
+        >
+          {row.original.isActive ? '활성' : '비활성'}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'lastLoginAt',
+      header: '최종로그인',
+      size: 150,
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateTime(row.original.lastLoginAt)}</span>,
+    },
+    {
+      id: 'actions',
+      header: '작업',
+      size: 90,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(event) => {
+              event.stopPropagation();
+              openEditDialog(row.original);
+            }}
+            title="수정"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          {row.original.isActive ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(event) => {
+                event.stopPropagation();
+                void handleDeactivate(row.original);
+              }}
+              title="비활성화"
+              disabled={deactivateMutation.isPending}
+            >
+              <UserX className="h-3.5 w-3.5 text-destructive" />
+            </Button>
+          ) : null}
+        </div>
+      ),
+    },
+  ], [deactivateMutation.isPending, handleDeactivate, openEditDialog]);
+
   const updateField = useCallback((field: keyof UserFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setFormErrors((prev) => {
@@ -285,174 +382,41 @@ export function UserManagementPage({ path }: UserManagementPageProps) {
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">사용자 관리</h1>
-          <p className="mt-1 text-sm text-muted-foreground">시스템 사용자 계정 관리</p>
-        </div>
-        <Button onClick={openCreateDialog}>
-          <Plus className="h-4 w-4 mr-1" />
-          사용자 추가
-        </Button>
-      </div>
+    <>
+      <SsooDataWorkspacePage
+        breadcrumb={['admin', 'users']}
+        toolbar={{
+          actions: [
+            {
+              label: '사용자 추가',
+              icon: <Plus className="h-4 w-4" />,
+              onClick: openCreateDialog,
+            },
+          ],
+          filters: [
+            { key: 'search', type: 'text', placeholder: '이름, 로그인ID, 이메일 검색', width: '280px' },
+            { key: 'roleCode', type: 'select', placeholder: '역할 전체', options: ROLE_OPTIONS, width: '160px' },
+          ],
+          filterValues,
+          onFilterValuesChange: setFilterValues,
+          onSearch: handleSearch,
+          onReset: handleReset,
+        }}
+        table={{
+          columns,
+          data: users,
+          loading: isLoading,
+          error: listError,
+          onRetry: () => refetch(),
+          pagination: {
+            page,
+            pageSize: limit,
+            total,
+            onPageChange: setPage,
+          },
+        }}
+      />
 
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 flex-1 max-w-md">
-          <Input
-            placeholder="이름, 로그인ID, 이메일 검색"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-          />
-          <Button variant="outline" size="icon" onClick={handleSearch}>
-            <Search className="h-4 w-4" />
-          </Button>
-        </div>
-        <Select
-          value={roleFilter}
-          onValueChange={(v) => {
-            setRoleFilter(v === 'all' ? '' : v);
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="역할 전체" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">전체</SelectItem>
-            {ROLE_OPTIONS.map((r) => (
-              <SelectItem key={r.value} value={r.value}>
-                {r.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Table Card */}
-      <div className="rounded-lg border bg-card">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-40 text-muted-foreground">
-            로딩 중...
-          </div>
-        ) : listError ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-2">
-            <p className="text-sm text-destructive">목록을 불러오지 못했습니다.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              다시 시도
-            </Button>
-          </div>
-        ) : users.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-muted-foreground">
-            사용자가 없습니다.
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[120px]">로그인ID</TableHead>
-                <TableHead className="w-[100px]">이름</TableHead>
-                <TableHead className="w-[180px]">이메일</TableHead>
-                <TableHead className="w-[80px]">역할</TableHead>
-                <TableHead className="w-[100px]">부서</TableHead>
-                <TableHead className="w-[70px]">상태</TableHead>
-                <TableHead className="w-[140px]">최종로그인</TableHead>
-                <TableHead className="w-[80px]">작업</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-mono text-sm">{user.loginId}</TableCell>
-                  <TableCell>{user.userName}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{user.email}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        user.roleCode === 'admin'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-blue-100 text-blue-700'
-                      }`}
-                    >
-                      {ROLE_LABEL[user.roleCode] ?? user.roleCode}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-sm">{user.departmentCode ?? '-'}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        user.isActive
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {user.isActive ? '활성' : '비활성'}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDateTime(user.lastLoginAt)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(user)}
-                        title="수정"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      {user.isActive && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeactivate(user)}
-                          title="비활성화"
-                          disabled={deactivateMutation.isPending}
-                        >
-                          <UserX className="h-3.5 w-3.5 text-destructive" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t text-sm">
-            <span className="text-muted-foreground">
-              총 {total}명 (페이지 {page}/{totalPages})
-            </span>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => setPage(page - 1)}
-              >
-                이전
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages}
-                onClick={() => setPage(page + 1)}
-              >
-                다음
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -643,6 +607,6 @@ export function UserManagementPage({ path }: UserManagementPageProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

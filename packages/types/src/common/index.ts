@@ -107,6 +107,9 @@ export type {
   AiIndexJobTypeCode,
   AiIndexProjection,
   AiJsonValue,
+  AiLegacyRetrievalCitation,
+  AiLegacyRetrievalRequest,
+  AiLegacyRetrievalResponse,
   AiMessageAppendRequest,
   AiMessageRoleCode,
   AiMessageSnapshot,
@@ -143,9 +146,12 @@ export type {
   AiIndexEmbeddingProfile,
   AiIndexEntityType,
   AiIndexJobErrorKind,
+  AiIndexJobQueueMetric,
+  AiIndexJobQueueMetrics,
   AiIndexJobRequest,
   AiIndexJobRunResult,
   AiIndexJobRunSummary,
+  AiIndexJobSchedulerStatus,
   AiIndexJobSafetyInput,
   AiIndexJobSafetySnapshot,
   AiIndexJobSnapshot,
@@ -158,15 +164,18 @@ export type {
   AiIndexObjectStatus,
   AiIndexSensitivityCode,
   AiIndexSourceApp,
+  AiIndexSourceRegistrationStatus,
   AiIndexSourceStatus,
 } from './ai-index';
 
 export type {
-  AiRetrievalCitation as CommonAiRetrievalCitation,
   AiRetrievalContextItem,
-  AiRetrievalRequest as CommonAiRetrievalRequest,
-  AiRetrievalResponse as CommonAiRetrievalResponse,
   AiRetrievalResultItem,
+  CommonAiRetrievalCitation,
+  CommonAiRetrievalContextItem,
+  CommonAiRetrievalRequest,
+  CommonAiRetrievalResponse,
+  CommonAiRetrievalResultItem,
 } from './ai-retrieval';
 
 // User

@@ -273,7 +273,7 @@ export function AssistantComposer({
                 event.stopPropagation();
                 onAbort();
               }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive text-white transition-colors hover:bg-destructive/90"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive text-primary-foreground transition-colors hover:bg-destructive/90"
               aria-label="중단"
             >
               <Square className="h-3.5 w-3.5 fill-current" />
@@ -283,7 +283,7 @@ export function AssistantComposer({
               type="submit"
               disabled={isSubmitBlocked}
               title={isSubmitBlocked ? submitDisabledReason : undefined}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ssoo-primary text-white transition-colors hover:bg-ssoo-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ssoo-primary text-primary-foreground transition-colors hover:bg-ssoo-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
               aria-label="전송"
             >
               {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizontal className="h-4 w-4" />}

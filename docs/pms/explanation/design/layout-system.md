@@ -46,16 +46,21 @@ const LAYOUT_SIZES = {
 
 ```
 AppLayout
-└── SsooWorkbenchShell
-    ├── sidebarSlot: Sidebar
-    │   └── SsooSidebarSurface
-    │       ├── search / refresh / collapse / rail / footer
-    │       └── sections
-    │           ├── Favorites  → SsooSidebarTree leaf rows
-    │           ├── OpenTabs   → SsooSidebarTree leaf rows
-    │           ├── MenuTree   → SsooSidebarTree recursive rows
-    │           └── AdminMenu  → SsooSidebarTree recursive rows
-    ├── headerSlot: Header
+├── Desktop: SsooWorkbenchShell
+│   ├── sidebarSlot: Sidebar
+│   │   └── SsooSidebarSurface
+│   │       ├── search / refresh / collapse / rail / footer
+│   │       └── sections
+│   │           ├── Favorites  → SsooSidebarTree leaf rows
+│   │           ├── OpenTabs   → SsooSidebarTree leaf rows
+│   │           ├── MenuTree   → SsooSidebarTree recursive rows
+│   │           └── AdminMenu  → SsooSidebarTree recursive rows
+│   ├── headerSlot: Header
+│   ├── tabBarSlot: TabBar
+│   └── contentSlot: ContentArea
+└── Mobile: SsooAppFrame
+    ├── sidebarSlot: overlay Sidebar drawer
+    ├── headerSlot: Header mobile menu trigger
     ├── tabBarSlot: TabBar
     └── contentSlot: ContentArea
 ```
@@ -72,6 +77,8 @@ AppLayout
 
 ### 구조
 
+Desktop:
+
 ```tsx
 <SsooWorkbenchShell
   sidebarMode="collapsible"
@@ -82,10 +89,24 @@ AppLayout
 />
 ```
 
+Mobile:
+
+```tsx
+<SsooAppFrame
+  mode="workbench"
+  sidebarMode="none"
+  sidebarSlot={<Sidebar variant="mobile" />}
+  headerSlot={<Header mobile />}
+  tabBarSlot={<TabBar />}
+  contentSlot={<ContentArea />}
+/>
+```
+
 ### 반응형 처리
 
-- **Desktop**: 기본 레이아웃
-- **Mobile**: "모바일 버전 준비 중" 메시지 표시 (추후 개발)
+- **Desktop**: 공용 `SsooWorkbenchShell` 기준의 고정/접힘 사이드바, 헤더, 탭바, 콘텐츠 영역.
+- **Mobile**: 준비 중 차단 화면을 제거하고 헤더·탭바·콘텐츠를 유지한다. 사이드바는 헤더 메뉴 버튼으로 여는 오버레이 드로어이며, 메뉴/즐겨찾기/열린 탭 항목 선택 후 닫힌다.
+- **잔여**: 개별 업무 화면의 모바일 밀도와 표/폼 최적화는 화면별 UX 개선으로 별도 추적한다.
 
 ---
 
@@ -312,7 +333,7 @@ const pageComponents = {
 
 | ID | 항목 | 우선순위 | 상태 |
 |----|------|----------|------|
-| LAY-01 | 모바일 레이아웃 구현 | P2 | 🔲 대기 |
+| LAY-01 | 모바일 레이아웃 구현 | P2 | ✅ 완료 |
 | LAY-02 | 페이지 컴포넌트 문서화 (Home, Request 등) | P3 | 🔲 대기 |
 | LAY-03 | Header 브레드크럼 구현 | P3 | 🔲 대기 |
 
@@ -324,6 +345,7 @@ const pageComponents = {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-03 | 모바일 준비 중 차단 화면을 제거하고 헤더 메뉴 버튼, 오버레이 사이드바, 탭바, 콘텐츠 유지형 모바일 레이아웃 1차 구현 |
 | 2026-02-02 | 최대 탭 수 16으로 수정, sidebar/ 폴더 경로 정합 |
 | 2026-01-22 | 사이드바/탭바 치수 및 플로팅 패널 설정 정합화 |
 | 2026-01-21 | 레이아웃 시스템 문서 최초 작성 |

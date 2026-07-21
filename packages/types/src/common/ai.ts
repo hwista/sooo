@@ -97,6 +97,10 @@ export interface AiRetrievalResponse {
   logId?: string;
 }
 
+export type AiLegacyRetrievalCitation = AiRetrievalCitation;
+export type AiLegacyRetrievalRequest = AiRetrievalRequest;
+export type AiLegacyRetrievalResponse = AiRetrievalResponse;
+
 export interface AiReferenceInput {
   aiObjectId?: string;
   aiChunkId?: string;

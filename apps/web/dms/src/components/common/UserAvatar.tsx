@@ -75,7 +75,7 @@ export function UserAvatar({ name, email, avatarUrl, size = 28, className }: Use
       className={cn(
         // Avatar initials follow the label tier as semantic intent,
         // then scale with the container size at runtime.
-        'flex items-center justify-center rounded-full select-none text-label-sm leading-none text-white',
+        'flex items-center justify-center rounded-full select-none text-label-sm leading-none text-primary-foreground',
         className,
       )}
       style={{ ...sizeStyle, backgroundColor: bgColor, fontSize: size * 0.45, lineHeight: 1 }}

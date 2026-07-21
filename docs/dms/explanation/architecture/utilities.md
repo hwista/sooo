@@ -143,12 +143,12 @@ getPathDepth('docs/guides/api.md')  // 2
 
 ## JSON 유틸리티 (`json.ts`, `objectPath.ts`)
 
-설정 탭 page와 document metadata diff에서 공통으로 쓰는 JSON 처리를 담당합니다.
+설정 탭 page와 document metadata diff에서 공통으로 쓰는 object path/JSON 처리를 담당합니다.
 
 ### `getNestedValue()` / `setNestedValue()`
 
 ```typescript
-getNestedValue(config, 'personal.workspace.defaultSettingsView');
+getNestedValue(config, 'personal.workspace.defaultSettingsScope');
 setNestedValue(config, 'system.storage.local.basePath', '/mnt/dms/local');
 ```
 
@@ -159,16 +159,16 @@ setNestedValue(config, 'system.storage.local.basePath', '/mnt/dms/local');
 
 ```typescript
 const text = stringifyJson(snapshot);
-const parsed = parseJsonObject(jsonDraft);
+const parsed = parseJsonObject(metadataDraft);
 ```
 
 - pretty JSON 문자열 생성
-- raw JSON editor 입력 검증 및 object parse
+- document metadata draft 입력 검증 및 object parse
 - document metadata diff 문자열 생성에도 공용 사용
 
 ### `deepMergeRecords()`
 
-- system/personal 설정 payload 병합
+- 서버/클라이언트 partial 설정 payload 병합
 - 서버/클라이언트 양쪽 partial JSON patch 조합
 
 ---

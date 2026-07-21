@@ -49,7 +49,7 @@
 
 ## 3. 운영자가 관리해야 할 `.env` 값
 
-`compose.yaml` 의 server service 는 아래 변수를 컨테이너 환경변수로 전달합니다. 실제 운영에서는 compose 파일을 직접 수정하기보다 배포 환경의 `.env` 에 값을 둡니다.
+`compose.yaml` 의 server service 는 아래 변수를 컨테이너 환경변수로 전달합니다. 실제 운영에서는 compose 파일을 직접 수정하지 않고 `.env.production`에 값을 둔 뒤 `compose.production.yaml`과 함께 사용합니다. 로컬 `.env`/`compose.local.yaml`은 운영 역할의 입력으로 사용하지 않습니다.
 
 ```dotenv
 # 필수 역할 선택

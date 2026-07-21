@@ -2,7 +2,7 @@
 title: Content Page Assembly Standard
 owner: platform-team
 status: active
-lastReviewed: 2026-06-22
+lastReviewed: 2026-07-10
 ---
 
 # Content Page Assembly Standard
@@ -76,7 +76,22 @@ DMS `DocumentPage`가 표준 최종 형태다.
 - `SsooSettingsMainPanel`
 - `SsooSettingsBanner`
 - `SsooSettingsPendingSummary`
-- `SsooSettingsViewModeTabs`
+- `SsooWorkspacePage`
+- `SsooDataWorkspacePage`
+- `SsooDataWorkspaceToolbar`
+- `SsooDataWorkspaceContent`
+- `SsooDataGrid`
+- `SsooDataGridPagination`
+
+Settings page recipe defaults are intentionally minimal: `SsooSettingsPage` does not synthesize a page title/description, and `SsooPageIndexRail` does not synthesize an `항목` header or item meta badges unless the consuming app explicitly opts in.
+
+환경설정류 페이지는 `SsooSettingsPage`를 사용한다. 여기서 설정은 계정 설정, 개인 환경 설정, 시스템 설정, 정책 설정처럼 서비스를 이용하고 관리하기 위한 configuration surface를 뜻하며, 도메인 기능명이 설정인 일반 업무 화면까지 자동으로 포함하지 않는다.
+
+일반 업무/데이터 작업 surface는 `SsooWorkspacePage`를 사용한다. 이 recipe는 breadcrumb, full-width header chrome, main content lane 폭 정책, 빈 main slot만 소유한다. 도메인 앱은 main slot에 grid, form, chart, summary panel, preview 같은 실제 업무 컴포넌트를 주입한다.
+
+PMS 요청 목록에서 검증한 업무 데이터 화면 패턴은 `SsooDataWorkspacePage`와 `SsooDataGrid`로 `web-shell`에 승격한다. `SsooDataWorkspacePage`는 `SsooWorkspacePage`를 소비하는 데이터 화면 preset이며, 목록 도메인 전용이 아니라 header 내부 action/filter controls, 접힘 필터, data content shell, pagination/second-grid 동작을 제공한다. grid가 기본 소비 형태지만 main slot에는 form, chart, summary panel 같은 데이터 표현 컴포넌트를 주입할 수 있다.
+
+데이터 워크스페이스의 action/filter controls 는 별도 본문 card/section 이 아니라 page header chrome 의 일부다. header 는 플랫폼 page chrome 의 full-width 흐름을 따르며, `contentWidth` 또는 데이터 본문 폭 제한을 header 에 적용하지 않는다. `contentWidth`는 grid/form/chart 가 들어가는 main content lane 에만 적용한다.
 
 ## Web-ui 재료
 
@@ -97,6 +112,8 @@ DMS `DocumentPage`가 표준 최종 형태다.
 
 위 경로에서는 원시 `button/input/textarea/select/table/thead/tbody/tfoot/tr/th/td`를 직접 렌더링하지 않고 `@ssoo/web-ui` primitive 또는 앱 thin adapter를 소비한다. 상태 토큰/칩은 Badge를 사용한다. `verify:ui-consumption`이 이 기준을 오류로 검증한다.
 
+전역 디자인 경험 표준은 공유 패키지 소비 여부만으로 완료되지 않는다. app `globals.css`, 공용 원자 UI/페이지 템플릿/auth surface와 각 도메인 앱의 `components/templates`, `components/common/{page,datagrid,form}`, DMS settings surface처럼 반복 사용되는 로컬 표준 surface, 그리고 `apps/web/*/src/components/pages/**` 최종 페이지 내부까지 모두 플랫폼 표준 대상이다. 이 계층은 도메인 데이터/action/slot adapter만 소유하고, font/theme token, Tailwind theme recipe, raw Tailwind 색상/arbitrary/hex visual token을 재정의하지 않는다. raw `white`/`black`도 semantic surface, primary foreground, foreground token으로 표현해야 한다. `verify:ui-style-boundary`가 이 기준을 `build`, `codex:preflight`, `codex:push-guard`에서 실패 처리한다.
+
 승격 대상 재료:
 
 - settings field/card primitives: 여러 앱에서 structured settings field를 공유하기 시작하는 시점에 승격
@@ -109,6 +126,7 @@ DMS `DocumentPage`가 표준 최종 형태다.
 - body/sidecar/header action/breadcrumb item/sub-content/bottom-panel item을 slot 또는 data prop으로만 받는다.
 - layout metric, surface class, panel toggle, loading/error/empty surface처럼 페이지 구조 반복을 소유한다.
 - 앱별 visual override 없이 theme token과 semantic utility만 사용한다.
+- danger/warning/success 같은 상태 표현은 raw red/amber/emerald 계열 class가 아니라 `ssoo-tone-*` semantic utility 또는 `@ssoo/web-ui` primitive variant로 표현한다.
 - DMS 외 페이지가 같은 구조를 재사용할 수 있다.
 
 아래 조건 중 하나라도 해당하면 도메인에 남긴다.
@@ -144,6 +162,10 @@ DMS `DocumentPage`가 표준 최종 형태다.
 - 도메인 아이콘 선택과 action handler
 - API/runtime/권한 상태에 따른 표시 여부
 
+도메인이 소유하는 최종 페이지 내부라도 raw Tailwind 색상, arbitrary typography, hex 색상을 직접 선언하지 않는다. 필요한 강조/상태/중립 표현은 `@ssoo/web-ui` Tailwind preset의 semantic token, `ssoo-tone-*` utility, 또는 새 플랫폼 token으로 추가한 뒤 소비한다.
+
+SSOO 커스텀 typography token은 color token과 같이 쓰이는 것이 기본이다. `cn()` 병합은 `@ssoo/web-ui` 정본을 재사용하며, DMS 문서 페이지 header action의 현재 36px control rhythm과 13px medium action label은 Button `pageAction` 역할 size 기준선으로 둔다. page header/data workspace/settings header action은 사용처 className에서 height/spacing/typography를 다시 조합하지 않는다.
+
 page tone과 state surface는 `SsooContentPageTemplate`의 `pageTone` 의미 prop과 `ssoo-content-page-tone-*`/`ssoo-content-page-state-tone-*` CSS 클래스가 정본이다. `bg-ssoo-content-bg/30`, `bg-ssoo-primary/15`, `text-ssoo-primary/70`처럼 CSS variable 색상에 Tailwind slash opacity를 직접 붙이는 방식은 빌드 CSS 생성이 보장되지 않으므로 page recipe 재료에서 금지한다.
 
 앱 로컬에서 `rounded-*`, `border-*`, `bg-white`, `px-*`, `py-*`를 반복해 page recipe surface를 만들거나 `contentMaxWidth={null}` 같은 raw opt-out으로 표준 폭을 끄면 공용화 누수로 본다. full-width가 필요한 비교형 화면은 `pageVariant="fluid"`, main-only 자율 캔버스형 화면은 `pageVariant="canvas"` 같은 공용 recipe variant로 표현한다. 단, 도메인 콘텐츠 내부의 카드/행/본문 표현은 그 도메인에서 소유할 수 있다.
@@ -154,7 +176,7 @@ Settings page는 문서 페이지와 같은 내부 페이지 조립 표준을 �
 
 - 완성 settings page recipe는 `packages/web-shell`의 `SsooSettingsPage`가 소유한다. 앱이나 도메인은 `PageTemplate` 복사본으로 설정 page chrome/index/body shell을 다시 조립하지 않는다.
 - breadcrumb/header/main content slot은 `SsooSettingsPage`가 `SsooContentPageTemplate` 위에서 조립한다.
-- `SsooSettingsPage`의 기본 page title은 `설정`이며, 앱/도메인이 명시 title을 넘길 때만 이를 대체한다.
+- `SsooSettingsPage`는 page title/description을 기본 생성하지 않는다. 앱/도메인이 명시적으로 전달한 header action과 breadcrumb만 page chrome에 배치한다.
 - 설정 본문 내부 색인은 `leftSubContentSlot`으로 주입한다. 이는 접히는 보조 패널이 아니라 설정 본문을 탐색하기 위한 필수 sub-content rail이다.
 - 색인 rail의 header/item/meta chip 표면은 `SsooSettingsPage` 내부의 `SsooPageIndexRail`을 사용하고, 도메인 settings page가 nav/button/chip class를 직접 소유하지 않는다.
 - settings 본문 shell은 `SsooSettingsPage` 내부의 `SsooSettingsSurface`와 `SsooSettingsMainPanel`을 사용한다.
@@ -171,6 +193,7 @@ Settings page는 문서 페이지와 같은 내부 페이지 조립 표준을 �
 4. 도메인 의미가 있는 본문/패널/custom slot은 도메인에 둔다.
 5. recipe 복사본을 앱 로컬에 만들려면 문서에 예외 사유와 제거 조건을 남긴다.
 6. Button/Badge/Card/Input/NativeSelect/Table/Textarea 등 원자 UI가 필요한 화면이면 `@ssoo/web-ui` primitive 또는 앱 thin adapter를 사용하고, 필요한 primitive가 없으면 로컬 class recipe를 만들기 전에 `@ssoo/web-ui` inventory 원자로 추가한다.
+7. 도메인 reusable surface와 최종 페이지 내부는 앱 globals/Tailwind/font/theme/visual token 재정의를 만들지 않는다. 필요한 표현 token은 `web-shell`/`web-ui`에 추가하고, 제어 가능한 third-party/editor/export renderer도 플랫폼 font token과 semantic color token을 소비한다.
 
 ## Typed route registry
 
@@ -210,6 +233,11 @@ DMS 기준 분류:
 
 | 날짜 | 변경 내용 |
 | --- | --- |
+| 2026-07-10 | `SsooWorkspacePage`를 범용 업무/데이터 작업 surface recipe로 추가하고, `SsooDataWorkspacePage`를 이 recipe 위의 데이터/grid preset으로 분리 |
+| 2026-07-08 | app globals와 최종 페이지 내부 raw visual token 및 raw `white`/`black` token도 `verify:ui-style-boundary` 기준에 포함하고 도메인 책임/스타일 책임 경계를 보강 |
+| 2026-07-07 | 공용 원자/페이지 템플릿/auth surface와 도메인 reusable surface까지 전역 디자인 경험 표준 대상으로 명시하고 `verify:ui-style-boundary` gate를 추가 |
+| 2026-07-07 | 데이터 워크스페이스 action/filter controls 를 별도 toolbar card 가 아니라 full-width page header chrome 내부에 배치하도록 기준을 고정 |
+| 2026-07-07 | PMS 요청 목록 기준선을 `SsooDataWorkspacePage`/`SsooDataGrid` 공용 데이터 화면 recipe로 승격하고 Admin 사용자/조직 관리의 첫 소비 기준을 추가 |
 | 2026-06-23 | 완성 settings page recipe를 `SsooSettingsPage`로 `web-shell`에 승격하고, DMS 설정과 공용 account settings가 domain adapter만 주입하도록 content-page 조립 기준을 강화 |
 | 2026-06-23 | 공용 user profile/settings surface의 page tone을 `profile`/`settings`로 분리하고, 프로필이 `neutral` 배경으로 회귀하지 않도록 content-page tone 검증을 강화 |
 | 2026-06-22 | 5개 앱 direct user-surface URL bootstrap을 `@ssoo/web-auth` route-entry helper로 고정하고 canonical `/__user/*` route-policy rewrite와 layout bootstrap을 검증 기준으로 강화 |

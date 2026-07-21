@@ -2,12 +2,13 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { ListPageTemplate } from '@/components/templates';
-import { Trash2 } from 'lucide-react';
 import { useTabStore } from '@/stores';
 import { ColumnDef } from '@tanstack/react-table';
 import type { FilterValues } from '@/components/common/page/Header';
-import { useProjectList } from '@/hooks/queries';
+import { useCustomerList, useProjectList } from '@/hooks/queries';
 import type { Project, ProjectFilters, ProjectStageCode } from '@/lib/api/endpoints/projects';
+import { formatCustomerLookupLabel, formatProjectCustomerLabel, formatProjectExecutionAssetLabel } from '@/lib/project-display';
+import { formatPmsDate } from '@/lib/pms-format';
 
 const stageOptions: { label: string; value: ProjectStageCode }[] = [
   { label: '대기', value: 'waiting' },
@@ -34,10 +35,16 @@ const columns: ColumnDef<Project>[] = [
     size: 220,
   },
   {
-    accessorKey: 'customerId',
+    id: 'customer',
     header: '고객사',
-    size: 120,
-    cell: ({ row }) => row.original.customerId ? String(row.original.customerId) : '-',
+    size: 180,
+    cell: ({ row }) => formatProjectCustomerLabel(row.original),
+  },
+  {
+    id: 'executionAsset',
+    header: '실행 자산',
+    size: 220,
+    cell: ({ row }) => formatProjectExecutionAssetLabel(row.original),
   },
   {
     accessorKey: 'stageCode',
@@ -46,9 +53,9 @@ const columns: ColumnDef<Project>[] = [
     cell: ({ row }) => {
       const stage = row.original.stageCode;
       const colorMap: Record<ProjectStageCode, string> = {
-        waiting: 'bg-yellow-100 text-yellow-800',
-        in_progress: 'bg-blue-100 text-blue-800',
-        done: 'bg-green-100 text-green-800',
+        waiting: 'bg-ssoo-warning-bg text-ssoo-warning',
+        in_progress: 'bg-ssoo-info-bg text-ssoo-info',
+        done: 'bg-ssoo-success-bg text-ssoo-success',
       };
       return (
         <span className={`px-2 py-1 rounded text-xs font-medium ${colorMap[stage]}`}>
@@ -61,10 +68,7 @@ const columns: ColumnDef<Project>[] = [
     id: 'transitionDueAt',
     header: '전환 마감일',
     size: 120,
-    cell: ({ row }) => {
-      const date = row.original.transitionDetail?.transitionDueAt;
-      return date ? new Date(date).toLocaleDateString() : '-';
-    },
+    cell: ({ row }) => formatPmsDate(row.original.transitionDetail?.transitionDueAt),
   },
   {
     id: 'operationOwnerUserId',
@@ -72,14 +76,14 @@ const columns: ColumnDef<Project>[] = [
     size: 120,
     cell: ({ row }) => {
       const id = row.original.transitionDetail?.operationOwnerUserId;
-      return id ? String(id) : '-';
+      return id ? '담당 지정됨' : '담당 미지정';
     },
   },
   {
     accessorKey: 'createdAt',
     header: '등록일',
     size: 120,
-    cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+    cell: ({ row }) => formatPmsDate(row.original.createdAt),
   },
 ];
 
@@ -97,22 +101,26 @@ export function TransitionListPage() {
     page,
     pageSize,
   });
+  const { data: customersResponse } = useCustomerList({ page: 1, pageSize: 100 });
 
   const projects = useMemo(() => response?.data?.items ?? [], [response]);
   const total = response?.data?.total ?? 0;
   const apiError = response && !response.success
     ? new Error(response.message || '요청 처리 중 오류가 발생했습니다.')
     : null;
-
-  const handleDelete = () => {
-    alert('선택된 항목을 삭제합니다.');
-  };
+  const customerOptions = useMemo(() => (
+    customersResponse?.data?.items.map((customer) => ({
+      label: formatCustomerLookupLabel(customer),
+      value: String(customer.id),
+    })) ?? []
+  ), [customersResponse]);
 
   const handleSearch = useCallback((values: FilterValues) => {
     setFilters({
       statusCode: 'transition',
       search: values.projectName?.trim() || undefined,
       stageCode: values.stageCode as ProjectStageCode | undefined,
+      customerId: values.customerId || undefined,
     });
     setPage(1);
   }, []);
@@ -137,16 +145,9 @@ export function TransitionListPage() {
       breadcrumb={['전환', '전환 목록']}
       header={{
         collapsible: true,
-        actions: [
-          {
-            label: '삭제',
-            icon: <Trash2 className="h-4 w-4" />,
-            variant: 'destructive',
-            onClick: handleDelete,
-          },
-        ],
         filters: [
           { key: 'projectName', type: 'text', placeholder: '프로젝트명' },
+          { key: 'customerId', type: 'select', placeholder: '고객사', options: customerOptions, width: '240px' },
           { key: 'stageCode', type: 'select', placeholder: '단계', options: stageOptions },
         ],
         onSearch: handleSearch,

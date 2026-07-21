@@ -33,12 +33,12 @@ BEGIN
   -- 히스토리 테이블에 삽입
   INSERT INTO pms.pr_close_condition_group_item_r_h (
     group_code, condition_code, history_seq, event_type, event_at,
-    sort_order,
+    requires_deliverable, sort_order,
     is_active, memo, created_by, created_at, updated_by, updated_at,
     last_source, last_activity, transaction_id
   ) VALUES (
     v_record.group_code, v_record.condition_code, v_history_seq, v_event_type, NOW(),
-    v_record.sort_order,
+    v_record.requires_deliverable, v_record.sort_order,
     v_record.is_active, v_record.memo, v_record.created_by, v_record.created_at, v_record.updated_by, v_record.updated_at,
     v_record.last_source, v_record.last_activity, v_record.transaction_id
   );

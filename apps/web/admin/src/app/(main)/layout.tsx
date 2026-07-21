@@ -8,7 +8,12 @@ import {
   parseSsooUserSurfaceRouteEntry,
   useProtectedAppBootstrap,
 } from '@ssoo/web-auth';
-import { SsooWorkbenchShell } from '@ssoo/web-shell';
+import {
+  SsooAppFrame,
+  SsooMobileSidebarOverlay,
+  SsooWorkbenchShell,
+  useSsooMobileViewport,
+} from '@ssoo/web-shell';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTabStore } from '@/stores/tab.store';
 import { AdminSidebar } from '@/components/layout/Sidebar';
@@ -30,7 +35,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const searchParams = useSearchParams();
   const openTab = useTabStore((s) => s.openTab);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobileViewport = useSsooMobileViewport();
   const toggleSidebar = () => setIsSidebarCollapsed((current) => !current);
+  const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), []);
+  const toggleMobileMenu = useCallback(() => setIsMobileMenuOpen((current) => !current), []);
   const currentPath = useMemo(() => {
     const search = searchParams.toString();
     return search ? `${pathname}?${search}` : pathname;
@@ -73,6 +82,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     }
   }, [currentPath, openTab, shouldRender]);
 
+  useEffect(() => {
+    if (!isMobileViewport && isMobileMenuOpen) {
+      closeMobileMenu();
+    }
+  }, [closeMobileMenu, isMobileMenuOpen, isMobileViewport]);
+
   void children;
 
   if (showLoading || (shouldRender && adminAccess.isLoading)) {
@@ -93,6 +108,37 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           </p>
         </section>
       </main>
+    );
+  }
+
+  if (isMobileViewport) {
+    return (
+      <SsooAppFrame
+        mode="workbench"
+        sidebarMode="none"
+        sidebarSlot={isMobileMenuOpen ? (
+          <SsooMobileSidebarOverlay
+            id="admin-mobile-sidebar"
+            label="Admin 모바일 메뉴"
+            onDismiss={closeMobileMenu}
+          >
+            <AdminSidebar
+              isCollapsed={false}
+              onToggleCollapse={closeMobileMenu}
+              toggleLabel="모바일 메뉴 닫기"
+            />
+          </SsooMobileSidebarOverlay>
+        ) : null}
+        headerSlot={(
+          <AdminHeader
+            mobile
+            mobileMenuOpen={isMobileMenuOpen}
+            onMobileMenuClick={toggleMobileMenu}
+          />
+        )}
+        tabBarSlot={<AdminTabBar />}
+        contentSlot={<AdminContentArea />}
+      />
     );
   }
 

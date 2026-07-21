@@ -16,6 +16,15 @@ import {
 } from '@ssoo/web-auth';
 import { useTabStore, type CrmTabItem } from '@/stores/tab.store';
 import { OpportunityWorkspaceMdiPage } from '@/components/pages/opportunities/OpportunityWorkspaceMdiPage';
+import { BusinessPlanPerformancePreviewWorkspaceMdiPage } from '@/components/pages/business-plan-performance/BusinessPlanPerformancePreviewWorkspaceMdiPage';
+import { BusinessPlanPreviewWorkspaceMdiPage } from '@/components/pages/business-plan/BusinessPlanPreviewWorkspaceMdiPage';
+import { CostPlanPreviewWorkspaceMdiPage } from '@/components/pages/cost-plan/CostPlanPreviewWorkspaceMdiPage';
+import { ContractWorkspaceMdiPage } from '@/components/pages/contracts/ContractWorkspaceMdiPage';
+import { ContractPerformanceWorkspaceMdiPage } from '@/components/pages/contracts/ContractPerformanceWorkspaceMdiPage';
+import { CustomerWorkspaceMdiPage } from '@/components/pages/customers/CustomerWorkspaceMdiPage';
+import { OperationsPreviewWorkspaceMdiPage } from '@/components/pages/operations/OperationsPreviewWorkspaceMdiPage';
+import { QuoteSellerProfileWorkspaceMdiPage } from '@/components/pages/quote-settings/QuoteSellerProfileWorkspaceMdiPage';
+import { ReportsPreviewWorkspaceMdiPage } from '@/components/pages/reports/ReportsPreviewWorkspaceMdiPage';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 const CRM_LOCAL_PAGE_CONTENT_PAGE_ADAPTER_NAME = SSOO_CONTENT_PAGE_ADAPTER_NAMES.crmLocalPage;
@@ -40,6 +49,42 @@ function renderCrmPage(tab: CrmTabItem) {
 
   if (tab.path === '/' || tab.path.startsWith('/?')) {
     return <OpportunityWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/contracts') {
+    return <ContractWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/customers') {
+    return <CustomerWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/contract-performance') {
+    return <ContractPerformanceWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/reports') {
+    return <ReportsPreviewWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/business-plan') {
+    return <BusinessPlanPreviewWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/business-plan-performance') {
+    return <BusinessPlanPerformancePreviewWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/cost-plan') {
+    return <CostPlanPreviewWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/operations') {
+    return <OperationsPreviewWorkspaceMdiPage path={tab.path} />;
+  }
+
+  if (pathname === '/quote-settings') {
+    return <QuoteSellerProfileWorkspaceMdiPage />;
   }
 
   return <SsooContentAreaEmptyState>페이지 준비 중: {tab.path}</SsooContentAreaEmptyState>;

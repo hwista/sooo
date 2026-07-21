@@ -92,7 +92,7 @@ export function Content({
       <div 
         className={cn(
           'h-full min-h-0 w-full overflow-hidden flex flex-col',
-          shouldShowSurface && 'bg-white border border-gray-200 rounded-lg'
+          shouldShowSurface && 'bg-card border border-border rounded-lg'
         )}
         style={resolvedMaxWidth ? { maxWidth: resolvedMaxWidth } : undefined}
       >

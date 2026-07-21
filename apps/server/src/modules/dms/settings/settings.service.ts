@@ -114,6 +114,12 @@ function sanitizeMutableSettingsPartial(
   }
 
   const next: MutableSettingsPartial = { ...partial };
+  const workspace = next.personal?.workspace as Record<string, unknown> | undefined;
+  if (workspace && typeof workspace === 'object') {
+    delete workspace.defaultSettingsView;
+    delete workspace.showDiffByDefault;
+  }
+
   if (!partial.system) {
     return next;
   }

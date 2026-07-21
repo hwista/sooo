@@ -1,17 +1,14 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { Building2, Plus, Pencil, Trash2 } from 'lucide-react';
+import { useState, useCallback, useMemo } from 'react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import {
+  SsooDataWorkspacePage,
+  type SsooDataGridColumnDef,
+} from '@ssoo/web-shell';
+import { Badge } from '@ssoo/web-ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -104,6 +101,79 @@ export function OrgManagementPage() {
     [deactivateMutation],
   );
 
+  const columns = useMemo<SsooDataGridColumnDef<CodeItem>[]>(() => [
+    {
+      accessorKey: 'codeValue',
+      header: '조직코드',
+      size: 120,
+      cell: ({ row }) => <span className="font-mono text-xs">{row.original.codeValue}</span>,
+    },
+    {
+      accessorKey: 'displayNameKo',
+      header: '조직명',
+      size: 150,
+    },
+    {
+      accessorKey: 'displayNameEn',
+      header: '조직명(영문)',
+      size: 160,
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.displayNameEn ?? '-'}</span>,
+    },
+    {
+      accessorKey: 'description',
+      header: '설명',
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.description ?? '-'}</span>,
+    },
+    {
+      accessorKey: 'sortOrder',
+      header: '정렬순서',
+      size: 90,
+      cell: ({ row }) => <span className="flex justify-center">{row.original.sortOrder}</span>,
+    },
+    {
+      accessorKey: 'isActive',
+      header: '상태',
+      size: 90,
+      cell: ({ row }) => (
+        <Badge variant={row.original.isActive ? 'default' : 'outline'}>
+          {row.original.isActive ? '활성' : '비활성'}
+        </Badge>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '작업',
+      size: 100,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(event) => {
+              event.stopPropagation();
+              handleOpenEdit(row.original);
+            }}
+            title="수정"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(event) => {
+              event.stopPropagation();
+              handleDeactivate(row.original);
+            }}
+            disabled={!row.original.isActive}
+            title="비활성화"
+          >
+            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+          </Button>
+        </div>
+      ),
+    },
+  ], [handleDeactivate, handleOpenEdit]);
+
   const handleSubmit = useCallback(() => {
     const errors = validateOrgForm(formData, formMode);
     setFormErrors(errors);
@@ -151,102 +221,29 @@ export function OrgManagementPage() {
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">조직 관리</h1>
-          <p className="mt-1 text-sm text-muted-foreground">부서 및 조직 코드를 관리합니다</p>
-        </div>
-        <Button onClick={handleOpenCreate}>
-          <Plus className="h-4 w-4 mr-1" />
-          조직 추가
-        </Button>
-      </div>
+    <>
+      <SsooDataWorkspacePage
+        breadcrumb={['admin', 'organizations']}
+        toolbar={{
+          actions: [
+            {
+              label: '조직 추가',
+              icon: <Plus className="h-4 w-4" />,
+              onClick: handleOpenCreate,
+            },
+          ],
+          collapsible: false,
+        }}
+        table={{
+          columns,
+          data: departments,
+          loading: isLoading,
+          error,
+          onRetry: () => refetch(),
+          emptyState: <div className="text-sm text-muted-foreground">등록된 조직이 없습니다.</div>,
+        }}
+      />
 
-      {/* Table Card */}
-      <div className="rounded-lg border bg-card">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-40 text-muted-foreground">
-            로딩 중...
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-2">
-            <p className="text-sm text-destructive">목록을 불러오지 못했습니다.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              다시 시도
-            </Button>
-          </div>
-        ) : departments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-2">
-            <Building2 className="h-10 w-10 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">등록된 조직이 없습니다.</p>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[120px]">조직코드</TableHead>
-                <TableHead className="w-[150px]">조직명</TableHead>
-                <TableHead className="w-[150px]">조직명(영문)</TableHead>
-                <TableHead>설명</TableHead>
-                <TableHead className="w-[80px] text-center">정렬순서</TableHead>
-                <TableHead className="w-[80px] text-center">상태</TableHead>
-                <TableHead className="w-[100px] text-center">작업</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {departments.map((dept) => (
-                <TableRow key={dept.id}>
-                  <TableCell className="font-mono text-xs">{dept.codeValue}</TableCell>
-                  <TableCell>{dept.displayNameKo}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dept.displayNameEn ?? '-'}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {dept.description ?? '-'}
-                  </TableCell>
-                  <TableCell className="text-center">{dept.sortOrder}</TableCell>
-                  <TableCell className="text-center">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        dept.isActive
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {dept.isActive ? '활성' : '비활성'}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenEdit(dept)}
-                        title="수정"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeactivate(dept)}
-                        disabled={!dept.isActive}
-                        title="비활성화"
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-
-      {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -326,6 +323,6 @@ export function OrgManagementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

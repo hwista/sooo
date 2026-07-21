@@ -9,5 +9,6 @@ import { FileCrudService } from './file-crud.service.js';
   imports: [SearchModule, AccessModule, CollaborationModule],
   controllers: [FileController],
   providers: [FileCrudService],
+  exports: [FileCrudService],
 })
 export class FileModule {}

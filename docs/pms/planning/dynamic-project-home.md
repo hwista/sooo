@@ -45,6 +45,7 @@ type HomeSignalKind =
   | 'project-unowned'
   | 'project-risk-open'
   | 'project-issue-blocking'
+  | 'review-feedback-open'
   | 'milestone-delayed'
   | 'deliverable-approval-pending'
   | 'closeout-blocked'
@@ -230,8 +231,11 @@ type PmsHomeSummary = {
     viewer: number;
   };
   metrics: {
+    active: number;
     directActions: number;
     attention: number;
+    pmoSignals: number;
+    feedback: number;
     closeout: number;
     stale: number;
     actionableProjects: number;
@@ -239,6 +243,7 @@ type PmsHomeSummary = {
   };
   briefing: string[];
   signals: HomeSignal[]; // requiredCapability + allowedActions + primaryAction 포함
+  feedbackSignals: HomeSignal[]; // 대표 신호 접힘과 별도로 홈 런칭 피드백 큐에 사용
   flow: Array<{ statusCode: string; count: number }>;
   recentChanges: Array<{ projectId: string; title: string; changedAt: string; primaryAction?: HomeAction }>;
   accessProjects: Array<{
@@ -258,6 +263,7 @@ type PmsHomeSummary = {
 - `relation`은 PM/member/PMO/viewer 관계 배지와 신호 우선순위 분류에 사용한다.
 - 실제 버튼/기능 노출은 `features`에서 산출한 `allowedActions`만 사용한다.
 - signal은 `requiredCapability`를 가질 수 있으며, 해당 capability가 없으면 홈에서는 mutating action 대신 `view-project`만 노출한다.
+- `feedbackSignals`는 프로젝트별 대표 신호 접힘과 별도로 열린 `review-feedback-open` 신호를 유지해 런칭 피드백 큐가 여러 프로젝트를 바로 보여주게 한다.
 - `primaryAction.targetTab`은 상세 화면의 management tab 초기 선택에 사용한다.
 
 ## 9. 구현 순서 제안

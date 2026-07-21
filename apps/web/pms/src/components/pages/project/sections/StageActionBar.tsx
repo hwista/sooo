@@ -79,6 +79,7 @@ export function StageActionBar({
   );
   const canAdvanceStage = accessResponse?.data?.features.canAdvanceStage ?? false;
   const readiness = readinessResponse?.data ?? null;
+  const completedDeliverables = readiness?.deliverables.completed ?? readiness?.deliverables.approved ?? 0;
 
   const handleStart = async () => {
     try {
@@ -107,10 +108,10 @@ export function StageActionBar({
 
   const stageBadgeClass =
     stageCode === 'waiting'
-      ? 'bg-gray-100 text-gray-700'
+      ? 'bg-muted text-muted-foreground'
       : stageCode === 'in_progress'
-        ? 'bg-blue-50 text-blue-700'
-        : 'bg-green-50 text-green-700';
+        ? 'bg-ssoo-info-bg text-ssoo-info'
+        : 'bg-ssoo-success-bg text-ssoo-success';
 
   return (
     <div className="flex items-center gap-3 bg-muted/30 rounded-lg px-4 py-2.5">
@@ -128,7 +129,7 @@ export function StageActionBar({
         {doneResultCode && (
           <>
             <span className="text-muted-foreground">→</span>
-            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-purple-50 text-purple-700">
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-ssoo-accent-bg text-ssoo-accent">
               {RESULT_LABELS[doneResultCode] || doneResultCode}
             </span>
           </>
@@ -153,13 +154,13 @@ export function StageActionBar({
             {readiness && !readiness.canComplete && (
               <div className="flex items-center gap-2 text-sm">
                 {readiness.deliverables.pending > 0 && (
-                  <span className="text-amber-600 flex items-center gap-1">
+                  <span className="text-ssoo-warning flex items-center gap-1">
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    산출물 {readiness.deliverables.approved}/{readiness.deliverables.total}
+                    산출물 {completedDeliverables}/{readiness.deliverables.total}
                   </span>
                 )}
                 {readiness.closeConditions.unchecked > 0 && (
-                  <span className="text-amber-600 flex items-center gap-1">
+                  <span className="text-ssoo-warning flex items-center gap-1">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     종료조건 {readiness.closeConditions.checked}/{readiness.closeConditions.total}
                   </span>
@@ -185,7 +186,7 @@ export function StageActionBar({
                     className="fixed inset-0 z-10"
                     onClick={() => setShowResultPicker(false)}
                   />
-                  <div className="absolute right-0 top-full mt-1 z-20 w-56 rounded-md border bg-white shadow-lg py-1">
+                  <div className="absolute right-0 top-full mt-1 z-20 w-56 rounded-md border bg-card shadow-lg py-1">
                     {(DONE_RESULT_OPTIONS[statusCode] || []).map((option) => (
                       <Button variant="plain" size="plain"
                         key={option.value}

@@ -24,6 +24,25 @@ export interface ProjectMember {
   positionCode?: string | null;
 }
 
+export interface ProjectMemberUserLookup {
+  userId: string;
+  userName: string;
+  displayName?: string | null;
+  loginId?: string | null;
+  email?: string | null;
+  departmentCode?: string | null;
+  positionCode?: string | null;
+  primaryOrganizationId?: string | null;
+  primaryOrganizationCode?: string | null;
+  primaryOrganizationName?: string | null;
+  primaryOrganizationScope?: string | null;
+}
+
+export interface FindProjectMemberUserLookupDto {
+  search?: string;
+  limit?: number;
+}
+
 export interface CreateProjectMemberDto {
   userId: string;
   roleCode: string;

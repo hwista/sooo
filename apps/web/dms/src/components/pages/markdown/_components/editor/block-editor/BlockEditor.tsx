@@ -253,7 +253,7 @@ const BlockEditor = forwardRef<BlockEditorRef, BlockEditorProps>(({
         </div>
       )}
 
-      <div className="relative flex-1 min-h-0 overflow-hidden bg-white">
+      <div className="relative flex-1 min-h-0 overflow-hidden bg-card">
         <div
           ref={containerRef}
           className="h-full"

@@ -58,7 +58,7 @@ function SsooAiSearchDefaultResultCard<T extends SsooAiSearchResultItem>({
       type="button"
       onClick={onOpen}
       className={cn(
-        'block w-full min-w-0 overflow-hidden whitespace-normal rounded-lg border border-ssoo-content-border bg-white p-4 text-left transition-colors hover:bg-ssoo-content-bg/40',
+        'block w-full min-w-0 overflow-hidden whitespace-normal rounded-lg border border-ssoo-content-border bg-card p-4 text-left transition-colors hover:bg-ssoo-content-bg/40',
         'items-stretch justify-start gap-0',
         highlighted && 'bg-ssoo-content-bg'
       )}

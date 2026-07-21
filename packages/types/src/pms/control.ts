@@ -217,6 +217,9 @@ export type ProjectEventTypeCode =
 
 export type ProjectEventStatusCode =
   | 'planned'
+  | 'approval_requested'
+  | 'approved'
+  | 'rejected'
   | 'completed'
   | 'cancelled';
 

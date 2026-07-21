@@ -211,6 +211,17 @@
 즉 첫 진입 파일 목록 hydration은 “문서 전체 메타 full hydrate”가 아니라
 **권한 파일 목록 hydrate** 가 우선이다.
 
+### 7.1.1 실패/빈 상태 UX 계약
+
+문서 목록 hydrate 는 로그인 사용자를 복구 불가능한 blocking page 에 가두면 안 된다. 상태 구분은 다음을 따른다.
+
+- 문서 0건은 오류가 아니다. 신규 사용자나 읽을 수 있는 문서가 없는 사용자는 empty state 로 종료한다.
+- 권한 없음은 문서 목록 실패가 아니다. `canReadDocuments=false` 이면 파일 트리 hydrate 를 호출하지 않고 권한/섹션 상태로 처리한다.
+- 서버/API/control-plane sync 실패만 오류 상태다.
+- 오류 상태에는 사용자가 수동으로 다시 불러올 수 있는 visible retry 동선이 있어야 한다.
+- 정상 로그인 사용자를 full-page blocking recovery 화면에 가두지 않는다.
+- retry 동선은 기존 사이드바 force sync 경로와 같은 `refreshFileTree({ forceSync: true })` 계약을 사용한다.
+
 ### 7.2 단계별 hydration
 
 #### Step A. auth/session hydrate

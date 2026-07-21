@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Put,
   UseGuards } from '@nestjs/common';
 import {
@@ -15,7 +16,7 @@ import {
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse } from '@nestjs/swagger';
-import type { CreateProjectOrgDto, UpdateProjectOrgDto } from '@ssoo/types';
+import type { CreateProjectOrgDto, FindProjectOrgLookupDto, UpdateProjectOrgDto } from '@ssoo/types';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
 import { success, deleted } from '../../../common/index.js';
 import { serializeBigInt } from '../../../common/utils/bigint.util.js';
@@ -41,6 +42,18 @@ export class ProjectOrgController {
   async findByProject(@Param('projectId') projectId: string) {
     const data = await this.projectOrgService.findByProject(BigInt(projectId));
     return success(data.map((projectOrg) => serializeBigInt(projectOrg)));
+  }
+
+  @Get('lookup')
+  @RequireProjectFeature('canViewProject')
+  @ApiOperation({ summary: '프로젝트 연결용 공용 조직 조회' })
+  @ApiOkResponse({ description: '공용 조직 후보 목록' })
+  @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: '서버 오류' })
+  async findOrganizationLookup(@Query() params: FindProjectOrgLookupDto) {
+    const data = await this.projectOrgService.findOrganizationLookup(params);
+    return success(data);
   }
 
   @Post()

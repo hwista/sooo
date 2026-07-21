@@ -1,14 +1,12 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, GoneException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
-import { CurrentUser } from '../../common/auth/decorators/current-user.decorator.js';
-import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import { IssueService } from './issue.service.js';
 import { ProjectFeatureGuard } from '../project/project-feature.guard.js';
 import { RequireProjectFeature } from '../project/require-project-feature.decorator.js';
 import { success, deleted } from '../../../common/index.js';
 import { serializeBigInt } from '../../../common/utils/bigint.util.js';
-import type { CreateIssueDto, UpdateIssueDto } from '@ssoo/types';
+import type { UpdateIssueDto } from '@ssoo/types';
 
 @ApiTags('issues')
 @ApiBearerAuth()
@@ -29,6 +27,30 @@ export class IssueController {
     return success(data.map((i) => serializeBigInt(i)));
   }
 
+  @Get('cleanup-summary')
+  @RequireProjectFeature('canViewProject')
+  @ApiOperation({ summary: '기존 Issue cleanup 요약' })
+  async getCleanupSummary(@Param('projectId') projectId: string) {
+    const data = await this.issueService.getCleanupSummary(BigInt(projectId));
+    return success(data);
+  }
+
+  @Post('cleanup-terminal/archive')
+  @RequireProjectFeature('canManageIssues')
+  @ApiOperation({ summary: '완료된 기존 Issue cleanup 행 일괄 숨김' })
+  async archiveTerminalCleanupRows(@Param('projectId') projectId: string) {
+    const data = await this.issueService.archiveTerminalCleanupRows(BigInt(projectId));
+    return success(data);
+  }
+
+  @Post('cleanup-pending/canonicalize')
+  @RequireProjectFeature('canManageIssues')
+  @ApiOperation({ summary: '열린 기존 Issue cleanup 행 일괄 정식 전환' })
+  async canonicalizePendingCleanupRows(@Param('projectId') projectId: string) {
+    const data = await this.issueService.canonicalizePendingCleanupRows(BigInt(projectId));
+    return success(data);
+  }
+
   @Get(':id')
   @RequireProjectFeature('canViewProject')
   @ApiOperation({ summary: '이슈 상세' })
@@ -39,15 +61,12 @@ export class IssueController {
 
   @Post()
   @RequireProjectFeature('canManageIssues')
-  @ApiOperation({ summary: '이슈 생성' })
-  async create(
-    @Param('projectId') projectId: string,
-    @Body() dto: CreateIssueDto,
-    @CurrentUser() currentUser: TokenPayload,
-  ) {
-    const reportedBy = BigInt(currentUser.userId);
-    const result = await this.issueService.create(BigInt(projectId), dto, reportedBy);
-    return success(serializeBigInt(result));
+  @ApiOperation({ summary: '기존 Issue 신규 생성 차단' })
+  async create() {
+    throw new GoneException({
+      code: 'PMS_LEGACY_ISSUE_WRITE_DISABLED',
+      message: '기존 Issue 신규 생성은 중단되었습니다. 정식 통제 이슈/리스크/변경요청 API를 사용하세요.',
+    });
   }
 
   @Put(':id')

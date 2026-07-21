@@ -1,5 +1,4 @@
 import type { DeepPartialClient, DmsSettingsConfigClient } from '@/lib/api/endpoints/settings';
-import { deepMergeRecords, parseJsonObject, stringifyJson } from '@/lib/utils/json';
 import { getNestedValue, setNestedValue } from '@/lib/utils/objectPath';
 import type { SettingItem, SettingSection } from '../_config/settingsPageConfig';
 
@@ -84,51 +83,4 @@ export function buildSettingsUpdatePayload(
   });
 
   return partial as DeepPartialClient<DmsSettingsConfigClient>;
-}
-
-export function buildSectionUpdatePayload(
-  sectionPath: string,
-  sectionValue: Record<string, unknown>
-): DeepPartialClient<DmsSettingsConfigClient> {
-  return setNestedValue({}, sectionPath, sectionValue) as DeepPartialClient<DmsSettingsConfigClient>;
-}
-
-export function mergeSettingsPayloads(
-  ...partials: Array<DeepPartialClient<DmsSettingsConfigClient>>
-): DeepPartialClient<DmsSettingsConfigClient> {
-  return partials.reduce<DeepPartialClient<DmsSettingsConfigClient>>((merged, partial) => {
-    return deepMergeRecords(
-      merged as Record<string, unknown>,
-      partial as Record<string, unknown>
-    ) as DeepPartialClient<DmsSettingsConfigClient>;
-  }, {});
-}
-
-export function getSectionObject(
-  config: Record<string, unknown>,
-  sectionPath: string
-): Record<string, unknown> {
-  const value = getNestedValue(config, sectionPath);
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
-  }
-  return {};
-}
-
-export function replaceSectionValue(
-  config: Record<string, unknown>,
-  sectionPath: string,
-  sectionValue: Record<string, unknown>
-): Record<string, unknown> {
-  return setNestedValue(config, sectionPath, sectionValue);
-}
-
-export function buildSectionJsonDraft(config: Record<string, unknown>, sectionPath: string): string {
-  return stringifyJson(getSectionObject(config, sectionPath));
-}
-
-export function parseSectionJsonDraft(text: string):
-  | { success: true; data: Record<string, unknown> }
-  | { success: false; error: string } {
-  return parseJsonObject(text);
 }

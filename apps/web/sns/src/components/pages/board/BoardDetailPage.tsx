@@ -168,7 +168,7 @@ export function BoardDetailPage({ boardId }: BoardDetailPageProps) {
                           {post.title?.trim() || '제목 없음'}
                         </h3>
                         {visibilityLabels[post.visibilityScopeCode] && (
-                          <Badge variant="outline" className="text-[10px]">
+                          <Badge variant="outline" className="text-caption-xs">
                             {visibilityLabels[post.visibilityScopeCode]}
                           </Badge>
                         )}

@@ -2,12 +2,13 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { ListPageTemplate } from '@/components/templates';
-import { Trash2 } from 'lucide-react';
 import { useTabStore } from '@/stores';
 import { ColumnDef } from '@tanstack/react-table';
 import type { FilterValues } from '@/components/common/page/Header';
-import { useProjectList } from '@/hooks/queries';
+import { useCustomerList, useProjectList } from '@/hooks/queries';
 import type { Project, ProjectFilters, ProjectStageCode } from '@/lib/api/endpoints/projects';
+import { formatCustomerLookupLabel, formatProjectCustomerLabel, formatProjectExecutionAssetLabel } from '@/lib/project-display';
+import { formatPmsAmount, formatPmsDate } from '@/lib/pms-format';
 
 const stageOptions: { label: string; value: ProjectStageCode }[] = [
   { label: '대기', value: 'waiting' },
@@ -34,10 +35,16 @@ const columns: ColumnDef<Project>[] = [
     size: 220,
   },
   {
-    accessorKey: 'customerId',
+    id: 'customer',
     header: '고객사',
-    size: 120,
-    cell: ({ row }) => row.original.customerId ? String(row.original.customerId) : '-',
+    size: 180,
+    cell: ({ row }) => formatProjectCustomerLabel(row.original),
+  },
+  {
+    id: 'executionAsset',
+    header: '실행 자산',
+    size: 220,
+    cell: ({ row }) => formatProjectExecutionAssetLabel(row.original),
   },
   {
     accessorKey: 'stageCode',
@@ -46,9 +53,9 @@ const columns: ColumnDef<Project>[] = [
     cell: ({ row }) => {
       const stage = row.original.stageCode;
       const colorMap: Record<ProjectStageCode, string> = {
-        waiting: 'bg-yellow-100 text-yellow-800',
-        in_progress: 'bg-green-100 text-green-800',
-        done: 'bg-gray-100 text-gray-800',
+        waiting: 'bg-ssoo-warning-bg text-ssoo-warning',
+        in_progress: 'bg-ssoo-success-bg text-ssoo-success',
+        done: 'bg-muted text-foreground',
       };
       return (
         <span className={`px-2 py-1 rounded text-xs font-medium ${colorMap[stage]}`}>
@@ -62,26 +69,23 @@ const columns: ColumnDef<Project>[] = [
     header: '견적금액',
     size: 130,
     cell: ({ row }) => {
-      const amount = row.original.proposalDetail?.estimateAmount;
-      if (!amount) return '-';
-      const unit = row.original.proposalDetail?.estimateUnitCode || '';
-      return `${Number(amount).toLocaleString()} ${unit}`;
+      return formatPmsAmount(
+        row.original.proposalDetail?.estimateAmount,
+        row.original.proposalDetail?.estimateUnitCode ?? '',
+      );
     },
   },
   {
     id: 'proposalDueAt',
     header: '제안 마감일',
     size: 120,
-    cell: ({ row }) => {
-      const date = row.original.proposalDetail?.proposalDueAt;
-      return date ? new Date(date).toLocaleDateString() : '-';
-    },
+    cell: ({ row }) => formatPmsDate(row.original.proposalDetail?.proposalDueAt),
   },
   {
     accessorKey: 'createdAt',
     header: '등록일',
     size: 120,
-    cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+    cell: ({ row }) => formatPmsDate(row.original.createdAt),
   },
 ];
 
@@ -99,22 +103,26 @@ export function ProposalListPage() {
     page,
     pageSize,
   });
+  const { data: customersResponse } = useCustomerList({ page: 1, pageSize: 100 });
 
   const projects = useMemo(() => response?.data?.items ?? [], [response]);
   const total = response?.data?.total ?? 0;
   const apiError = response && !response.success
     ? new Error(response.message || '요청 처리 중 오류가 발생했습니다.')
     : null;
-
-  const handleDelete = () => {
-    alert('선택된 항목을 삭제합니다.');
-  };
+  const customerOptions = useMemo(() => (
+    customersResponse?.data?.items.map((customer) => ({
+      label: formatCustomerLookupLabel(customer),
+      value: String(customer.id),
+    })) ?? []
+  ), [customersResponse]);
 
   const handleSearch = useCallback((values: FilterValues) => {
     setFilters({
       statusCode: 'proposal',
       search: values.projectName?.trim() || undefined,
       stageCode: values.stageCode as ProjectStageCode | undefined,
+      customerId: values.customerId || undefined,
     });
     setPage(1);
   }, []);
@@ -139,16 +147,9 @@ export function ProposalListPage() {
       breadcrumb={['제안', '제안 목록']}
       header={{
         collapsible: true,
-        actions: [
-          {
-            label: '삭제',
-            icon: <Trash2 className="h-4 w-4" />,
-            variant: 'destructive',
-            onClick: handleDelete,
-          },
-        ],
         filters: [
           { key: 'projectName', type: 'text', placeholder: '프로젝트명' },
+          { key: 'customerId', type: 'select', placeholder: '고객사', options: customerOptions, width: '240px' },
           { key: 'stageCode', type: 'select', placeholder: '단계', options: stageOptions },
         ],
         onSearch: handleSearch,

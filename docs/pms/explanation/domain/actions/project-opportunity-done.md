@@ -54,15 +54,15 @@
 - requires_deliverable=false → 바로 체크 가능
 - requires_deliverable=true →
   - pr_project_deliverable_r_m에서 (project_id, status_code) 산출물 중
-  - submission_status_code='confirmed' 충족 여부 확인 후 체크 허용
-  - (정책) “1개 이상 confirmed 존재” 또는 “필수 목록 모두 confirmed”는 추후 고도화
+  - submission_status_code가 confirmed/approved/not_required 완료 판정을 충족하는지 확인 후 체크 허용
+  - 현재 런칭 런타임은 해당 status의 활성 산출물 전체가 완료 판정을 통과해야 체크 허용
 
 ## 6) 실패/에러
-- 산출물 confirmed 미충족 시 체크 불가(에러 메시지에 부족 항목 안내 권장)
+- 산출물 완료 판정 미충족 시 체크 불가(에러 메시지에 부족 항목 안내 권장)
 
 ## Changelog
 
 | Date | Change |
 |------|--------|
+| 2026-07-09 | Align close-condition deliverable validation with runtime completion vocabulary. |
 | 2026-02-09 | Add changelog section. |
-

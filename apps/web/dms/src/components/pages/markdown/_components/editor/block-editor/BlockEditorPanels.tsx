@@ -59,7 +59,7 @@ export function SlashCommandMenu({
 
   return (
     <div
-      className="absolute z-50 overflow-y-auto rounded-lg border border-ssoo-content-border bg-white shadow-lg"
+      className="absolute z-50 overflow-y-auto rounded-lg border border-ssoo-content-border bg-card shadow-lg"
       style={{
         top: position?.top ?? 48,
         left: position?.left ?? 32,

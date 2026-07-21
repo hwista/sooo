@@ -229,6 +229,8 @@ describe('TemplateService', () => {
     expect(templates.global.map((item) => item.id)).toEqual([
       'system-doc-default',
       'system-folder-default',
+      'crm-contract-v1',
+      'crm-quote-v1',
     ]);
     expect(templates.personal.map((item) => item.id)).toEqual(['tpl-6b582033']);
     expect(findManyMock).toHaveBeenCalledWith(expect.objectContaining({

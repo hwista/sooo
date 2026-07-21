@@ -1,6 +1,25 @@
 import { apiClient } from '../client';
 import { ApiResponse, PaginatedResponse, ListParams } from '../types';
-import type { PmsProjectAccessSnapshot, ProjectEventRollup } from '@ssoo/types/pms';
+import type {
+  ContractPayment as PmsContractPayment,
+  ApplyCrmContractHandoffSnapshotDto,
+  ApplyCrmContractHandoffSnapshotResult,
+  CreateProjectHandoffDto,
+  ProjectContract as PmsProjectContract,
+  ProjectEventRollup,
+  ProjectHandoff as PmsProjectHandoff,
+  ProjectHandoffTypeCode as PmsProjectHandoffTypeCode,
+  ProjectDashboardSummary as PmsProjectDashboardSummary,
+  LegacyIssueCleanupArchiveResult as PmsLegacyIssueCleanupArchiveResult,
+  LegacyIssueCleanupCanonicalizeResult as PmsLegacyIssueCleanupCanonicalizeResult,
+  LegacyIssueCleanupSummary as PmsLegacyIssueCleanupSummary,
+  ProjectMemberUserLookup as PmsProjectMemberUserLookup,
+  ProjectOrgLookup as PmsProjectOrgLookup,
+  PmsProjectAccessSnapshot,
+  FindProjectMemberUserLookupDto as PmsFindProjectMemberUserLookupDto,
+  FindProjectOrgLookupDto as PmsFindProjectOrgLookupDto,
+  UpdateProjectHandoffDto,
+} from '@ssoo/types/pms';
 
 /**
  * 프로젝트 상태 코드
@@ -47,9 +66,29 @@ export interface Project {
   stageCode: ProjectStageCode;
   doneResultCode?: ProjectDoneResultCode;
   lifecycle: ProjectLifecycle;
-  customerId?: number;
+  customerId?: number | string | null;
+  customerCode?: string | null;
+  customerName?: string | null;
+  customerOrganizationId?: number | string | null;
+  customerOrganizationCode?: string | null;
+  customerOrganizationName?: string | null;
+  customerOrganizationType?: string | null;
+  customerOrganizationScope?: string | null;
+  plantId?: number | string | null;
+  plantSiteCode?: string | null;
+  plantSiteName?: string | null;
+  plantSiteTypeCode?: string | null;
+  plantSiteRegionCode?: string | null;
+  plantSiteOperationOwnerName?: string | null;
+  systemInstanceId?: number | string | null;
+  systemInstanceCode?: string | null;
+  systemInstanceName?: string | null;
+  systemInstanceEnvironmentCode?: string | null;
+  systemInstanceOperationOwnerTypeCode?: string | null;
+  systemInstanceOperationOwnerName?: string | null;
+  systemInstanceLifecycleStatusCode?: string | null;
   currentOwnerUserId?: number;
-  ownerOrganizationId?: number | null;
+  ownerOrganizationId?: number | string | null;
   memo?: string | null;
   isActive?: boolean;
   createdAt: string;
@@ -123,6 +162,8 @@ export interface CreateProjectRequest {
   statusCode?: ProjectStatusCode;
   stageCode?: ProjectStageCode;
   customerId?: string;
+  plantId?: string;
+  systemInstanceId?: string;
   ownerOrganizationId?: string | null;
   description?: string;
 }
@@ -130,8 +171,12 @@ export interface CreateProjectRequest {
 /**
  * 프로젝트 수정 요청
  */
-export interface UpdateProjectRequest extends Partial<CreateProjectRequest> {
+export interface UpdateProjectRequest
+  extends Omit<Partial<CreateProjectRequest>, 'customerId' | 'plantId' | 'systemInstanceId'> {
   doneResultCode?: ProjectDoneResultCode;
+  customerId?: string | null;
+  plantId?: string | null;
+  systemInstanceId?: string | null;
   ownerOrganizationId?: string | null;
 }
 
@@ -205,9 +250,19 @@ export interface TransitionResult {
 
 export interface TransitionReadiness {
   canComplete: boolean;
-  deliverables: { total: number; approved: number; pending: number };
+  deliverables: { total: number; completed: number; approved: number; pending: number };
   closeConditions: { total: number; checked: number; unchecked: number };
 }
+
+export type ProjectHandoff = PmsProjectHandoff;
+export type ProjectHandoffTypeCode = PmsProjectHandoffTypeCode;
+export type ProjectDashboardSummary = PmsProjectDashboardSummary;
+export type CreateProjectHandoffRequest = CreateProjectHandoffDto;
+export type UpdateProjectHandoffRequest = UpdateProjectHandoffDto;
+export type ProjectContract = PmsProjectContract;
+export type ContractPayment = PmsContractPayment;
+export type ApplyCrmContractHandoffSnapshotRequest = ApplyCrmContractHandoffSnapshotDto;
+export type ApplyCrmContractHandoffSnapshotResponse = ApplyCrmContractHandoffSnapshotResult;
 
 // ─── 프로젝트 멤버 ───
 
@@ -233,6 +288,9 @@ export interface ProjectMember {
     email?: string;
   };
 }
+
+export type ProjectMemberUserLookupItem = PmsProjectMemberUserLookup;
+export type FindProjectMemberUserLookupParams = PmsFindProjectMemberUserLookupDto;
 
 export interface CreateMemberRequest {
   userId: string;
@@ -278,6 +336,9 @@ export interface ProjectOrgItem {
     isActive: boolean;
   } | null;
 }
+
+export type ProjectOrgLookupItem = PmsProjectOrgLookup;
+export type FindProjectOrgLookupParams = PmsFindProjectOrgLookupDto;
 
 export interface CreateProjectOrgRequest {
   roleCode: ProjectOrgRoleCode;
@@ -385,6 +446,44 @@ export interface UpdateTaskRequest {
   actualHours?: number | null;
   sortOrder?: number;
   memo?: string;
+}
+
+export interface TaskEffortLogItem {
+  effortLogId: number | string;
+  projectId: number | string;
+  taskId: number | string;
+  userId?: number | string | null;
+  workDate: string;
+  actualHours: number;
+  workTypeCode: string;
+  summary?: string | null;
+  isActive: boolean;
+  memo?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  task?: { id: number | string; taskCode: string; taskName: string } | null;
+  user?: { id: number | string; userName: string; displayName?: string | null } | null;
+}
+
+export interface CreateTaskEffortLogRequest {
+  taskId: string;
+  userId?: string | null;
+  workDate: string;
+  actualHours: number;
+  workTypeCode?: string;
+  summary?: string | null;
+  memo?: string | null;
+}
+
+export interface UpdateTaskEffortLogRequest {
+  taskId?: string;
+  userId?: string | null;
+  workDate?: string;
+  actualHours?: number;
+  workTypeCode?: string;
+  summary?: string | null;
+  isActive?: boolean;
+  memo?: string | null;
 }
 
 // ─── 마일스톤 ───
@@ -529,16 +628,9 @@ export interface IssueItem {
   assignee?: { id: number | string; userName: string; displayName?: string | null } | null;
 }
 
-export interface CreateIssueRequest {
-  issueCode: string;
-  issueTitle: string;
-  description?: string;
-  issueTypeCode: string;
-  priorityCode?: string;
-  assigneeUserId?: string;
-  dueAt?: string;
-  memo?: string;
-}
+export type LegacyIssueCleanupSummary = PmsLegacyIssueCleanupSummary;
+export type LegacyIssueCleanupArchiveResult = PmsLegacyIssueCleanupArchiveResult;
+export type LegacyIssueCleanupCanonicalizeResult = PmsLegacyIssueCleanupCanonicalizeResult;
 
 export interface UpdateIssueRequest {
   issueTitle?: string;
@@ -550,6 +642,7 @@ export interface UpdateIssueRequest {
   dueAt?: string | null;
   resolvedAt?: string | null;
   resolution?: string;
+  isActive?: boolean;
   memo?: string;
 }
 
@@ -783,6 +876,39 @@ export interface UpdateProjectEventRequest {
 
 // ─── 산출물 ───
 
+export type CloseoutApprovalTargetTypeCode = 'deliverable' | 'close_condition';
+export type CloseoutApprovalStatusCode = 'pending' | 'approved' | 'rejected' | 'skipped';
+export type CloseoutApprovalDecisionStatusCode = 'approved' | 'rejected' | 'skipped';
+
+export interface ProjectCloseoutApprovalStep {
+  approvalStepId: number | string;
+  projectId: number | string;
+  statusCode: string;
+  targetTypeCode: CloseoutApprovalTargetTypeCode;
+  targetCode: string;
+  sequenceNo: number;
+  approverUserId: number | string;
+  approvalStatusCode: CloseoutApprovalStatusCode;
+  requestedAt: string;
+  decidedAt?: string | null;
+  decidedBy?: number | string | null;
+  memo?: string | null;
+  isActive: boolean;
+}
+
+export interface UpsertCloseoutApprovalRouteRequest {
+  steps: Array<{
+    sequenceNo?: number;
+    approverUserId: string;
+    memo?: string;
+  }>;
+}
+
+export interface DecideCloseoutApprovalStepRequest {
+  approvalStatusCode: CloseoutApprovalDecisionStatusCode;
+  memo?: string;
+}
+
 export interface DeliverableItem {
   projectId: number | string;
   statusCode: string;
@@ -794,6 +920,7 @@ export interface DeliverableItem {
   submittedBy?: number | string | null;
   originalFileName?: string | null;
   memo?: string | null;
+  approvalSteps: ProjectCloseoutApprovalStep[];
   isActive: boolean;
   event?: {
     eventId: number | string;
@@ -813,6 +940,57 @@ export interface UpsertDeliverableRequest {
   submissionStatusCode: string;
   eventId?: string;
   memo?: string;
+}
+
+export interface ApplyDeliverableTemplateRequest {
+  statusCode: string;
+  groupCode?: string;
+  applyMode?: 'append' | 'replace';
+}
+
+export interface DeliverableTemplateGroupItem {
+  deliverableCode: string;
+  deliverableName: string;
+  description?: string | null;
+  sortOrder: number;
+  memo?: string | null;
+  isActive: boolean;
+}
+
+export interface DeliverableTemplateGroup {
+  groupCode: string;
+  groupName: string;
+  description?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  items: DeliverableTemplateGroupItem[];
+}
+
+export interface UpsertDeliverableTemplateGroupRequest {
+  groupCode: string;
+  groupName: string;
+  description?: string;
+  sortOrder?: number;
+  items: Array<{
+    deliverableCode: string;
+    deliverableName: string;
+    description?: string;
+    sortOrder?: number;
+    memo?: string;
+  }>;
+}
+
+export interface DeliverableTemplateApplyResult {
+  projectId: number | string;
+  statusCode: string;
+  templateCode: string;
+  source: 'group' | 'default';
+  applyMode: 'append' | 'replace';
+  createdCount: number;
+  restoredCount: number;
+  keptCount: number;
+  deactivatedCount: number;
+  items: DeliverableItem[];
 }
 
 export interface UpdateSubmissionRequest {
@@ -838,6 +1016,7 @@ export interface CloseConditionItem {
     eventCode: string;
     eventName: string;
   } | null;
+  approvalSteps: ProjectCloseoutApprovalStep[];
 }
 
 export interface UpsertCloseConditionRequest {
@@ -847,6 +1026,55 @@ export interface UpsertCloseConditionRequest {
   eventId?: string;
   sortOrder?: number;
   memo?: string;
+}
+
+export interface ApplyCloseConditionTemplateRequest {
+  statusCode: string;
+  groupCode?: string;
+  applyMode?: 'append' | 'replace';
+}
+
+export interface CloseConditionTemplateGroupItem {
+  conditionCode: string;
+  requiresDeliverable: boolean;
+  sortOrder: number;
+  memo?: string | null;
+  isActive: boolean;
+}
+
+export interface CloseConditionTemplateGroup {
+  groupCode: string;
+  groupName: string;
+  description?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  items: CloseConditionTemplateGroupItem[];
+}
+
+export interface UpsertCloseConditionTemplateGroupRequest {
+  groupCode: string;
+  groupName: string;
+  description?: string;
+  sortOrder?: number;
+  items: Array<{
+    conditionCode: string;
+    requiresDeliverable: boolean;
+    sortOrder?: number;
+    memo?: string;
+  }>;
+}
+
+export interface CloseConditionTemplateApplyResult {
+  projectId: number | string;
+  statusCode: string;
+  templateCode: string;
+  source: 'group' | 'default';
+  applyMode: 'append' | 'replace';
+  createdCount: number;
+  restoredCount: number;
+  keptCount: number;
+  deactivatedCount: number;
+  items: CloseConditionItem[];
 }
 
 export interface ToggleCheckRequest {
@@ -859,7 +1087,7 @@ export interface ToggleCheckRequest {
 export interface ProjectFilters extends ListParams {
   statusCode?: ProjectStatusCode;
   stageCode?: ProjectStageCode;
-  customerId?: number;
+  customerId?: number | string;
 }
 
 interface ProjectListApiResponse {
@@ -886,10 +1114,13 @@ export const projectsApi = {
    */
   list: async (params?: ProjectFilters): Promise<ApiResponse<PaginatedResponse<Project>>> => {
     const requestParams = params
-      ? {
-          ...params,
-          ...(params.pageSize !== undefined && { limit: params.pageSize }),
-        }
+      ? (() => {
+          const { pageSize, ...rest } = params;
+          return {
+            ...rest,
+            ...(pageSize !== undefined && { limit: pageSize }),
+          };
+        })()
       : undefined;
     const response = await apiClient.get<ProjectListApiResponse>('/projects', {
       params: requestParams,
@@ -932,6 +1163,14 @@ export const projectsApi = {
    */
   getAccess: async (id: number): Promise<ApiResponse<PmsProjectAccessSnapshot>> => {
     const response = await apiClient.get<ApiResponse<PmsProjectAccessSnapshot>>(`/projects/${id}/access`);
+    return response.data;
+  },
+
+  /**
+   * 프로젝트 통제 대시보드 요약 조회
+   */
+  getDashboardSummary: async (id: number): Promise<ApiResponse<ProjectDashboardSummary>> => {
+    const response = await apiClient.get<ApiResponse<ProjectDashboardSummary>>(`/projects/${id}/dashboard/summary`);
     return response.data;
   },
 
@@ -993,10 +1232,64 @@ export const projectsApi = {
     return response.data;
   },
 
+  // ─── 인수인계 / 계약 스냅샷 ───
+
+  getHandoffs: async (projectId: number): Promise<ApiResponse<ProjectHandoff[]>> => {
+    const response = await apiClient.get<ApiResponse<ProjectHandoff[]>>(`/projects/${projectId}/handoffs`);
+    return response.data;
+  },
+
+  createHandoff: async (
+    projectId: number,
+    data: CreateProjectHandoffRequest,
+  ): Promise<ApiResponse<ProjectHandoff>> => {
+    const response = await apiClient.post<ApiResponse<ProjectHandoff>>(`/projects/${projectId}/handoffs`, data);
+    return response.data;
+  },
+
+  updateHandoff: async (
+    projectId: number,
+    handoffId: string,
+    data: UpdateProjectHandoffRequest,
+  ): Promise<ApiResponse<ProjectHandoff>> => {
+    const response = await apiClient.put<ApiResponse<ProjectHandoff>>(
+      `/projects/${projectId}/handoffs/${handoffId}`,
+      data,
+    );
+    return response.data;
+  },
+
+  getContracts: async (projectId: number): Promise<ApiResponse<ProjectContract[]>> => {
+    const response = await apiClient.get<ApiResponse<ProjectContract[]>>(`/projects/${projectId}/contracts`);
+    return response.data;
+  },
+
+  applyCrmContractHandoffSnapshot: async (
+    projectId: number,
+    data: ApplyCrmContractHandoffSnapshotRequest,
+  ): Promise<ApiResponse<ApplyCrmContractHandoffSnapshotResponse>> => {
+    const response = await apiClient.post<ApiResponse<ApplyCrmContractHandoffSnapshotResponse>>(
+      `/projects/${projectId}/contracts/crm-handoff-snapshot`,
+      data,
+    );
+    return response.data;
+  },
+
   // ─── 멤버 ───
 
   getMembers: async (projectId: number): Promise<ApiResponse<ProjectMember[]>> => {
     const response = await apiClient.get<ApiResponse<ProjectMember[]>>(`/projects/${projectId}/members`);
+    return response.data;
+  },
+
+  getMemberUserLookup: async (
+    projectId: number,
+    params?: FindProjectMemberUserLookupParams,
+  ): Promise<ApiResponse<ProjectMemberUserLookupItem[]>> => {
+    const response = await apiClient.get<ApiResponse<ProjectMemberUserLookupItem[]>>(
+      `/projects/${projectId}/members/lookup`,
+      { params },
+    );
     return response.data;
   },
 
@@ -1020,6 +1313,17 @@ export const projectsApi = {
   getProjectOrgs: async (projectId: number): Promise<ApiResponse<ProjectOrgItem[]>> => {
     const response = await apiClient.get<ApiResponse<ProjectOrgItem[]>>(
       `/projects/${projectId}/organizations`,
+    );
+    return response.data;
+  },
+
+  getProjectOrgLookup: async (
+    projectId: number,
+    params?: FindProjectOrgLookupParams,
+  ): Promise<ApiResponse<ProjectOrgLookupItem[]>> => {
+    const response = await apiClient.get<ApiResponse<ProjectOrgLookupItem[]>>(
+      `/projects/${projectId}/organizations/lookup`,
+      { params },
     );
     return response.data;
   },
@@ -1152,6 +1456,46 @@ export const projectsApi = {
     return response.data;
   },
 
+  getTaskEffortLogs: async (projectId: number): Promise<ApiResponse<TaskEffortLogItem[]>> => {
+    const response = await apiClient.get<ApiResponse<TaskEffortLogItem[]>>(
+      `/projects/${projectId}/tasks/effort-logs`,
+    );
+    return response.data;
+  },
+
+  createTaskEffortLog: async (
+    projectId: number,
+    data: CreateTaskEffortLogRequest,
+  ): Promise<ApiResponse<TaskEffortLogItem>> => {
+    const response = await apiClient.post<ApiResponse<TaskEffortLogItem>>(
+      `/projects/${projectId}/tasks/effort-logs`,
+      data,
+    );
+    return response.data;
+  },
+
+  updateTaskEffortLog: async (
+    projectId: number,
+    effortLogId: string,
+    data: UpdateTaskEffortLogRequest,
+  ): Promise<ApiResponse<TaskEffortLogItem>> => {
+    const response = await apiClient.put<ApiResponse<TaskEffortLogItem>>(
+      `/projects/${projectId}/tasks/effort-logs/${effortLogId}`,
+      data,
+    );
+    return response.data;
+  },
+
+  deleteTaskEffortLog: async (
+    projectId: number,
+    effortLogId: string,
+  ): Promise<ApiResponse<null>> => {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      `/projects/${projectId}/tasks/effort-logs/${effortLogId}`,
+    );
+    return response.data;
+  },
+
   createTask: async (projectId: number, data: CreateTaskRequest): Promise<ApiResponse<TaskItem>> => {
     const response = await apiClient.post<ApiResponse<TaskItem>>(`/projects/${projectId}/tasks`, data);
     return response.data;
@@ -1196,8 +1540,24 @@ export const projectsApi = {
     return response.data;
   },
 
-  createIssue: async (projectId: number, data: CreateIssueRequest): Promise<ApiResponse<IssueItem>> => {
-    const response = await apiClient.post<ApiResponse<IssueItem>>(`/projects/${projectId}/issues`, data);
+  getIssueCleanupSummary: async (projectId: number): Promise<ApiResponse<LegacyIssueCleanupSummary>> => {
+    const response = await apiClient.get<ApiResponse<LegacyIssueCleanupSummary>>(
+      `/projects/${projectId}/issues/cleanup-summary`,
+    );
+    return response.data;
+  },
+
+  archiveTerminalIssues: async (projectId: number): Promise<ApiResponse<LegacyIssueCleanupArchiveResult>> => {
+    const response = await apiClient.post<ApiResponse<LegacyIssueCleanupArchiveResult>>(
+      `/projects/${projectId}/issues/cleanup-terminal/archive`,
+    );
+    return response.data;
+  },
+
+  canonicalizePendingIssues: async (projectId: number): Promise<ApiResponse<LegacyIssueCleanupCanonicalizeResult>> => {
+    const response = await apiClient.post<ApiResponse<LegacyIssueCleanupCanonicalizeResult>>(
+      `/projects/${projectId}/issues/cleanup-pending/canonicalize`,
+    );
     return response.data;
   },
 
@@ -1426,8 +1786,50 @@ export const projectsApi = {
     return response.data;
   },
 
+  applyDeliverableTemplate: async (projectId: number, data: ApplyDeliverableTemplateRequest): Promise<ApiResponse<DeliverableTemplateApplyResult>> => {
+    const response = await apiClient.post<ApiResponse<DeliverableTemplateApplyResult>>(`/projects/${projectId}/deliverables/template`, data);
+    return response.data;
+  },
+
+  getDeliverableTemplateGroups: async (projectId: number): Promise<ApiResponse<DeliverableTemplateGroup[]>> => {
+    const response = await apiClient.get<ApiResponse<DeliverableTemplateGroup[]>>(`/projects/${projectId}/deliverables/templates`);
+    return response.data;
+  },
+
+  upsertDeliverableTemplateGroup: async (projectId: number, data: UpsertDeliverableTemplateGroupRequest): Promise<ApiResponse<DeliverableTemplateGroup>> => {
+    const response = await apiClient.post<ApiResponse<DeliverableTemplateGroup>>(`/projects/${projectId}/deliverables/templates`, data);
+    return response.data;
+  },
+
   updateDeliverableSubmission: async (projectId: number, statusCode: string, deliverableCode: string, data: UpdateSubmissionRequest): Promise<ApiResponse<DeliverableItem>> => {
     const response = await apiClient.patch<ApiResponse<DeliverableItem>>(`/projects/${projectId}/deliverables/${statusCode}/${deliverableCode}/submission`, data);
+    return response.data;
+  },
+
+  replaceDeliverableApprovalRoute: async (
+    projectId: number,
+    statusCode: string,
+    deliverableCode: string,
+    data: UpsertCloseoutApprovalRouteRequest,
+  ): Promise<ApiResponse<ProjectCloseoutApprovalStep[]>> => {
+    const response = await apiClient.put<ApiResponse<ProjectCloseoutApprovalStep[]>>(
+      `/projects/${projectId}/deliverables/${statusCode}/${encodeURIComponent(deliverableCode)}/approval-steps`,
+      data,
+    );
+    return response.data;
+  },
+
+  decideDeliverableApprovalStep: async (
+    projectId: number,
+    statusCode: string,
+    deliverableCode: string,
+    approvalStepId: string,
+    data: DecideCloseoutApprovalStepRequest,
+  ): Promise<ApiResponse<ProjectCloseoutApprovalStep[]>> => {
+    const response = await apiClient.patch<ApiResponse<ProjectCloseoutApprovalStep[]>>(
+      `/projects/${projectId}/deliverables/${statusCode}/${encodeURIComponent(deliverableCode)}/approval-steps/${approvalStepId}/decision`,
+      data,
+    );
     return response.data;
   },
 
@@ -1450,8 +1852,50 @@ export const projectsApi = {
     return response.data;
   },
 
+  applyCloseConditionTemplate: async (projectId: number, data: ApplyCloseConditionTemplateRequest): Promise<ApiResponse<CloseConditionTemplateApplyResult>> => {
+    const response = await apiClient.post<ApiResponse<CloseConditionTemplateApplyResult>>(`/projects/${projectId}/close-conditions/template`, data);
+    return response.data;
+  },
+
+  getCloseConditionTemplateGroups: async (projectId: number): Promise<ApiResponse<CloseConditionTemplateGroup[]>> => {
+    const response = await apiClient.get<ApiResponse<CloseConditionTemplateGroup[]>>(`/projects/${projectId}/close-conditions/templates`);
+    return response.data;
+  },
+
+  upsertCloseConditionTemplateGroup: async (projectId: number, data: UpsertCloseConditionTemplateGroupRequest): Promise<ApiResponse<CloseConditionTemplateGroup>> => {
+    const response = await apiClient.post<ApiResponse<CloseConditionTemplateGroup>>(`/projects/${projectId}/close-conditions/templates`, data);
+    return response.data;
+  },
+
   toggleCloseCondition: async (projectId: number, statusCode: string, conditionCode: string, data: ToggleCheckRequest): Promise<ApiResponse<CloseConditionItem>> => {
     const response = await apiClient.patch<ApiResponse<CloseConditionItem>>(`/projects/${projectId}/close-conditions/${statusCode}/${conditionCode}/check`, data);
+    return response.data;
+  },
+
+  replaceCloseConditionApprovalRoute: async (
+    projectId: number,
+    statusCode: string,
+    conditionCode: string,
+    data: UpsertCloseoutApprovalRouteRequest,
+  ): Promise<ApiResponse<ProjectCloseoutApprovalStep[]>> => {
+    const response = await apiClient.put<ApiResponse<ProjectCloseoutApprovalStep[]>>(
+      `/projects/${projectId}/close-conditions/${statusCode}/${encodeURIComponent(conditionCode)}/approval-steps`,
+      data,
+    );
+    return response.data;
+  },
+
+  decideCloseConditionApprovalStep: async (
+    projectId: number,
+    statusCode: string,
+    conditionCode: string,
+    approvalStepId: string,
+    data: DecideCloseoutApprovalStepRequest,
+  ): Promise<ApiResponse<ProjectCloseoutApprovalStep[]>> => {
+    const response = await apiClient.patch<ApiResponse<ProjectCloseoutApprovalStep[]>>(
+      `/projects/${projectId}/close-conditions/${statusCode}/${encodeURIComponent(conditionCode)}/approval-steps/${approvalStepId}/decision`,
+      data,
+    );
     return response.data;
   },
 

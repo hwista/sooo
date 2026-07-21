@@ -98,6 +98,9 @@ bootstrap 이후에도 DMS는 app-specific 후속 단계가 하나 더 있다.
 - `accessSnapshot.features.canReadDocuments === true` 일 때만 `refreshFileTree()` 실행
 - 따라서 공용 bootstrap 은 auth/access 까지만 담당하고,
   DMS-specific 파일 시스템 준비는 layout 의 후속 effect 로 유지한다.
+- `200 + []` 응답은 신규 사용자/권한 내 문서 없음으로 해석하며 오류 화면이 아니라 파일 트리 empty state 로 종료한다.
+- API 또는 control-plane sync 실패는 파일 트리 error state 로 표시하되, 사이드바 상단 새로고침과 error state 내부 retry control 로 `refreshFileTree({ forceSync: true })`를 다시 실행할 수 있어야 한다.
+- 정상 로그인 사용자를 문서 목록 전용 full-page blocking recovery 화면에 가두지 않는다.
 
 ### 4. 실제 shell 렌더링
 

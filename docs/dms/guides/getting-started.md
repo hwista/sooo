@@ -1,6 +1,6 @@
 # DMS 개발 환경 설정 가이드
 
-> 최종 업데이트: 2026-04-08
+> 최종 업데이트: 2026-07-16
 
 ---
 
@@ -42,7 +42,7 @@ pnpm db:setup
 
 ## 3. 환경 변수
 
-Docker compose 기준 server 컨테이너는 root `.env` 의 Azure 값을 `compose.yaml` `server.environment` 로 전달받습니다. `apps/web/dms/.env.local` 은 web-dms 로컬 override 용도입니다.
+로컬 Docker compose 기준 server 컨테이너는 root `.env` 의 Azure 값을 `compose.yaml + compose.local.yaml` `server.environment` 로 전달받습니다. `apps/web/dms/.env.local` 은 web-dms 로컬 override 용도입니다. 공개 배포는 이 로컬 env 파일들을 컨테이너에 주입하지 않고 `.env.production + compose.production.yaml`만 사용합니다.
 
 `apps/web/dms/.env.local` 예시:
 
@@ -76,7 +76,7 @@ DMS_DATABASE_URL=
 주의:
 
 - `apps/web/dms/.env.example`는 템플릿만 유지하고, 실제 값은 반드시 `apps/web/dms/.env.local`에 넣습니다.
-- 루트 `compose.yaml`도 `apps/web/dms/.env.local`을 선택적으로 읽으므로, Docker 경로를 쓸 때도 같은 파일을 기준으로 맞춥니다.
+- 로컬 `compose.yaml + compose.local.yaml`은 `apps/web/dms/.env.local`을 선택적으로 읽으므로, 로컬 Docker 경로를 쓸 때도 같은 파일을 기준으로 맞춥니다.
 - 동일 키를 중복 선언하면 아래쪽 값이 우선되어 잘못된 Azure 설정으로 요청이 나갈 수 있습니다.
 - `DMS_SERVER_API_URL`을 비워두면 로컬 direct dev 기준 `http://localhost:4000/api`가 사용되고, root compose에서는 기본적으로 내부 `server` 서비스 URL이 주입됩니다.
 - DMS 앱에 남아 있는 로컬 DB persistence는 `DATABASE_URL`을 우선 사용하고, `DMS_DATABASE_URL`은 호환용 fallback입니다.
@@ -100,7 +100,7 @@ DMS_DATABASE_URL=
 
 - GitLab binding 은 markdown working tree 에만 적용합니다.
 - attachment / reference / image 는 Git 비대상 external storage root 로 관리합니다.
-- Docker 배포에서는 위 경로들을 `compose.yaml` bind mount + env override 로 image 밖에 둡니다.
+- 로컬 Docker에서는 위 경로들을 기본 `.runtime` bind mount로 image 밖에 둡니다. 공개 배포에서는 `compose.production.yaml`이 세 host path를 서로 다른 기존 절대 경로로 강제합니다.
 - settings 화면(`/settings`)은 persisted config 와 runtime snapshot 을 함께 보여 줄 수 있으며, env override 가 실제 runtime path 를 덮어쓸 수 있습니다.
 - markdown working tree root 는 settings 에서 관측만 제공하고, 실제 변경은 deploy/runtime config 로 관리합니다.
 - Git binding 은 `DMS_INSTANCE_ENV` 역할 계약으로 runtime 에서 결정되며, settings 는 read-only observability 만 제공합니다.
@@ -151,7 +151,7 @@ DMS_GIT_BOOTSTRAP_BRANCH=master
 ```
 
 - ordinary local run 기본값은 `DMS_INSTANCE_ENV=dev` 입니다.
-- 배포 서버/운영 compose 는 `DMS_INSTANCE_ENV=prod` 로 명시하거나 compose default(prod)를 그대로 사용합니다.
+- 배포 서버/운영 compose는 `.env.production`에 `DMS_INSTANCE_ENV=prod`를 명시하고 `compose.production.yaml` gate를 통과해야 합니다.
 - `DMS_GIT_BOOTSTRAP_REMOTE_URL` 은 local-dev 기본 스위치가 아니라 cleanup/override 용으로만 사용합니다.
 
 ---

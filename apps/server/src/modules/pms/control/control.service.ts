@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@ssoo/database';
 import { DatabaseService } from '../../../database/database.service.js';
+import { CommonNotificationService } from '../../common/notification/notification.service.js';
 import { isDeliverableSubmissionCompleted } from '../deliverable/deliverable.constants.js';
 import type {
   CreateProjectIssueDto,
@@ -22,9 +23,48 @@ const PROJECT_STATUS_CODE_ORDER: Record<string, number> = {
   transition: 3,
 };
 
+const PMR_PRR_WORKFLOW_MEMO = 'pmr-prr-workflow';
+
+const PMR_PRR_WORKFLOW_STATUS_LABELS: Record<string, string> = {
+  planned: '발행 예정',
+  approval_requested: '승인 요청',
+  approved: '승인 완료',
+  rejected: '반려',
+  completed: '발행 완료',
+};
+
+const PMR_PRR_WORKFLOW_ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  planned: ['approval_requested'],
+  rejected: ['approval_requested'],
+  approval_requested: ['approved', 'rejected'],
+  approved: ['completed'],
+  completed: [],
+};
+
+const PMR_PRR_APPROVER_DECISION_STATUS_CODES = new Set(['approved', 'rejected']);
+
+const PMR_PRR_NOTIFY_PROJECT_OWNER_LABEL = '승인자와 프로젝트 담당자 알림';
+const PMR_PRR_NOTIFY_ACTIVE_MEMBERS_LABEL = '결재선과 활성 멤버 알림';
+const DEFAULT_PMR_PRR_ROLLOVER_BATCH_LIMIT = 20;
+const MAX_PMR_PRR_ROLLOVER_BATCH_LIMIT = 100;
+
+export interface PmrPrrWorkflowRolloverRunSummary {
+  trigger: string;
+  executedAt: string;
+  scannedCount: number;
+  rolledOverCount: number;
+  skippedCount: number;
+  eventIds: string[];
+}
+
 @Injectable()
 export class ControlService {
-  constructor(private readonly db: DatabaseService) {}
+  private readonly logger = new Logger(ControlService.name);
+
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly notificationService: CommonNotificationService,
+  ) {}
 
   async findProjectIssues(projectId: bigint) {
     return this.db.client.projectIssue.findMany({
@@ -418,7 +458,7 @@ export class ControlService {
   }
 
   async createEvent(projectId: bigint, dto: CreateProjectEventDto) {
-    return this.db.client.projectEvent.create({
+    const event = await this.db.client.projectEvent.create({
       data: {
         projectId,
         eventCode: dto.eventCode,
@@ -434,11 +474,20 @@ export class ControlService {
         memo: dto.memo,
       },
     });
+
+    await this.notifyPmrPrrWorkflowOwner(event, 'created');
+    return event;
   }
 
-  async updateEvent(projectId: bigint, eventId: bigint, dto: UpdateProjectEventDto) {
-    await this.findEvent(projectId, eventId);
-    return this.db.client.projectEvent.update({
+  async updateEvent(
+    projectId: bigint,
+    eventId: bigint,
+    dto: UpdateProjectEventDto,
+    actorUserId?: bigint,
+  ) {
+    const previous = await this.findEvent(projectId, eventId);
+    this.assertPmrPrrWorkflowUpdateAllowed(previous, dto, actorUserId);
+    const event = await this.db.client.projectEvent.update({
       where: { eventId },
       data: {
         ...(dto.eventName !== undefined && { eventName: dto.eventName }),
@@ -454,6 +503,82 @@ export class ControlService {
         ...(dto.memo !== undefined && { memo: dto.memo }),
       },
     });
+
+    await this.notifyPmrPrrWorkflowOwner(event, previous.statusCode === event.statusCode ? 'updated' : 'status');
+    return event;
+  }
+
+  async runDuePmrPrrWorkflowRollover({
+    projectId,
+    now = new Date(),
+    limit = DEFAULT_PMR_PRR_ROLLOVER_BATCH_LIMIT,
+    trigger = 'manual',
+  }: {
+    projectId?: bigint;
+    now?: Date;
+    limit?: number;
+    trigger?: string;
+  } = {}): Promise<PmrPrrWorkflowRolloverRunSummary> {
+    const batchLimit = this.normalizePmrPrrRolloverBatchLimit(limit);
+    const dueEvents = await this.db.client.projectEvent.findMany({
+      where: {
+        ...(projectId !== undefined && { projectId }),
+        isActive: true,
+        memo: PMR_PRR_WORKFLOW_MEMO,
+        statusCode: 'planned',
+        ownerUserId: { not: null },
+        scheduledAt: { lte: now },
+      },
+      orderBy: [
+        { scheduledAt: 'asc' },
+        { eventId: 'asc' },
+      ],
+      take: batchLimit,
+    });
+    const rolledOverEventIds: string[] = [];
+    let skippedCount = 0;
+
+    for (const dueEvent of dueEvents) {
+      const summary = this.appendPmrPrrWorkflowRolloverSummary(dueEvent.summary, now);
+      const updated = await this.db.client.projectEvent.updateMany({
+        where: {
+          eventId: dueEvent.eventId,
+          isActive: true,
+          memo: PMR_PRR_WORKFLOW_MEMO,
+          statusCode: 'planned',
+        },
+        data: {
+          statusCode: 'approval_requested',
+          occurredAt: now,
+          summary,
+        },
+      });
+
+      if (updated.count !== 1) {
+        skippedCount += 1;
+        continue;
+      }
+
+      const rolledOverEvent = await this.db.client.projectEvent.findUnique({
+        where: { eventId: dueEvent.eventId },
+      });
+      if (!rolledOverEvent) {
+        skippedCount += 1;
+        continue;
+      }
+
+      rolledOverEventIds.push(rolledOverEvent.eventId.toString());
+      await this.notifyPmrPrrWorkflowOwner(rolledOverEvent, 'status');
+    }
+
+    return {
+      trigger,
+      executedAt: now.toISOString(),
+      scannedCount: dueEvents.length,
+      rolledOverCount: rolledOverEventIds.length,
+      skippedCount,
+      eventIds: rolledOverEventIds,
+    };
   }
 
   async removeEvent(projectId: bigint, eventId: bigint) {
@@ -548,5 +673,170 @@ export class ControlService {
   ) {
     const resolvedOwnerUserId = ownerUserId !== undefined ? ownerUserId : assigneeUserId;
     return resolvedOwnerUserId ? BigInt(resolvedOwnerUserId) : null;
+  }
+
+  private normalizePmrPrrRolloverBatchLimit(limit: number): number {
+    if (!Number.isFinite(limit)) {
+      return DEFAULT_PMR_PRR_ROLLOVER_BATCH_LIMIT;
+    }
+
+    return Math.max(1, Math.min(Math.floor(limit), MAX_PMR_PRR_ROLLOVER_BATCH_LIMIT));
+  }
+
+  private appendPmrPrrWorkflowRolloverSummary(summary: string | null, now: Date): string {
+    const trimmedSummary = summary?.trim();
+    const rolloverMarker = `자동 승인 요청: ${now.toISOString()}`;
+    return trimmedSummary ? `${trimmedSummary} · ${rolloverMarker}` : rolloverMarker;
+  }
+
+  private assertPmrPrrWorkflowUpdateAllowed(
+    event: {
+      statusCode: string;
+      ownerUserId: bigint | null;
+      memo: string | null;
+    },
+    dto: UpdateProjectEventDto,
+    actorUserId?: bigint,
+  ): void {
+    if (event.memo !== PMR_PRR_WORKFLOW_MEMO) {
+      return;
+    }
+
+    if (dto.ownerUserId === null && event.statusCode !== 'completed') {
+      throw new BadRequestException('PMR/PRR 워크플로우에는 승인자가 필요합니다.');
+    }
+
+    if (dto.statusCode === undefined || dto.statusCode === event.statusCode) {
+      return;
+    }
+
+    const nextStatusCode = dto.statusCode;
+    const allowedNextStatusCodes = PMR_PRR_WORKFLOW_ALLOWED_TRANSITIONS[event.statusCode];
+    if (!allowedNextStatusCodes || !allowedNextStatusCodes.includes(nextStatusCode)) {
+      const fromLabel = PMR_PRR_WORKFLOW_STATUS_LABELS[event.statusCode] ?? event.statusCode;
+      const toLabel = PMR_PRR_WORKFLOW_STATUS_LABELS[nextStatusCode] ?? nextStatusCode;
+      throw new BadRequestException(
+        `PMR/PRR 워크플로우는 ${fromLabel}에서 ${toLabel} 상태로 전환할 수 없습니다.`,
+      );
+    }
+
+    if (nextStatusCode === 'approval_requested' && !event.ownerUserId && !dto.ownerUserId) {
+      throw new BadRequestException('PMR/PRR 승인 요청에는 승인자가 필요합니다.');
+    }
+
+    if (
+      PMR_PRR_APPROVER_DECISION_STATUS_CODES.has(nextStatusCode)
+      && (!event.ownerUserId || event.ownerUserId !== actorUserId)
+    ) {
+      throw new ForbiddenException('PMR/PRR 승인·반려는 지정 승인자만 처리할 수 있습니다.');
+    }
+  }
+
+  private async notifyPmrPrrWorkflowOwner(
+    event: {
+      eventId: bigint;
+      projectId: bigint;
+      eventName: string;
+      statusCode: string;
+      summary: string | null;
+      ownerUserId: bigint | null;
+      memo: string | null;
+    },
+    reason: 'created' | 'updated' | 'status',
+  ): Promise<void> {
+    if (event.memo !== PMR_PRR_WORKFLOW_MEMO) {
+      return;
+    }
+
+    const statusLabel = PMR_PRR_WORKFLOW_STATUS_LABELS[event.statusCode] ?? event.statusCode;
+    const title = reason === 'created'
+      ? 'PMR/PRR 발행 결재선 지정'
+      : `PMR/PRR 발행 ${statusLabel}`;
+
+    try {
+      const recipientUserIds = await this.resolvePmrPrrWorkflowRecipientUserIds(event);
+      if (recipientUserIds.length === 0) {
+        return;
+      }
+
+      await this.notificationService.notifyMany(
+        recipientUserIds.map((recipientUserId) => ({
+          recipientUserId,
+          sourceApp: 'pms',
+          notificationType: 'pms.pmr-prr.workflow',
+          severity: event.statusCode === 'rejected' ? 'warning' : 'info',
+          title,
+          message: event.summary || event.eventName,
+          reference: {
+            type: 'pms.project-event',
+            id: event.eventId.toString(),
+            path: `/?projectId=${event.projectId.toString()}&tab=review`,
+          },
+          action: {
+            type: 'open-pms-reference',
+            label: '리뷰 탭 열기',
+            payload: {
+              path: `/?projectId=${event.projectId.toString()}&tab=review`,
+              projectId: event.projectId.toString(),
+              eventId: event.eventId.toString(),
+            },
+          },
+          dedupeKey: `pms:pmr-prr-workflow:${event.eventId.toString()}:${event.statusCode}`,
+        })),
+      );
+    } catch (error) {
+      this.logger.warn(
+        `PMR/PRR 워크플로우 알림 생성 실패: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  private async resolvePmrPrrWorkflowRecipientUserIds(event: {
+    projectId: bigint;
+    summary: string | null;
+    ownerUserId: bigint | null;
+  }): Promise<bigint[]> {
+    const recipientIds = new Set<string>();
+    if (event.ownerUserId) {
+      recipientIds.add(event.ownerUserId.toString());
+    }
+
+    const summary = event.summary ?? '';
+    const shouldNotifyProjectOwner = summary.includes(PMR_PRR_NOTIFY_PROJECT_OWNER_LABEL);
+    const shouldNotifyActiveMembers = summary.includes(PMR_PRR_NOTIFY_ACTIVE_MEMBERS_LABEL);
+
+    if (!shouldNotifyProjectOwner && !shouldNotifyActiveMembers) {
+      return [...recipientIds].map((id) => BigInt(id));
+    }
+
+    const project = await this.db.client.project.findFirst({
+      where: { id: event.projectId, isActive: true },
+      select: {
+        currentOwnerUserId: true,
+        projectMembers: {
+          where: { isActive: true },
+          select: {
+            userId: true,
+            accessLevel: true,
+          },
+        },
+      },
+    });
+
+    if (!project) {
+      return [...recipientIds].map((id) => BigInt(id));
+    }
+
+    if (project.currentOwnerUserId) {
+      recipientIds.add(project.currentOwnerUserId.toString());
+    }
+
+    for (const member of project.projectMembers) {
+      if (shouldNotifyActiveMembers || member.accessLevel === 'owner') {
+        recipientIds.add(member.userId.toString());
+      }
+    }
+
+    return [...recipientIds].map((id) => BigInt(id));
   }
 }

@@ -69,8 +69,8 @@
 
 | 패키지 | 버전 | 용도 |
 |--------|------|------|
-| Node.js | ≥20.0.0 | 런타임 |
-| pnpm | 9.x | 패키지 매니저 |
+| Node.js | ≥22.13.0 | 런타임 (`.nvmrc` 정본) |
+| pnpm | 11.13.1 | 패키지 매니저 (루트 `packageManager` 정본) |
 | Turborepo | 2.x | 빌드 오케스트레이션 |
 | NestJS | 10.x | 백엔드 프레임워크 |
 | Next.js | 15.x | 프론트엔드 프레임워크 |
@@ -153,8 +153,8 @@ sooo/
 
 ### 사전 요구사항
 
-- **Node.js** ≥ 20.0.0
-- **pnpm** ≥ 9.0.0
+- **Node.js** ≥ 22.13.0 (`nvm use` 권장)
+- **pnpm** 11.13.1 (Corepack 사용)
 - **PostgreSQL** ≥ 15 (또는 Docker)
 
 ### 1. 저장소 클론 및 의존성 설치
@@ -164,8 +164,8 @@ sooo/
 git clone https://github.com/hwista/sooo.git
 cd sooo
 
-# pnpm 설치 (없는 경우)
-npm install -g pnpm
+# 루트 packageManager에 고정된 pnpm 활성화
+corepack enable
 
 # 의존성 설치
 pnpm install
@@ -203,6 +203,16 @@ pnpm docker:up
 # 최초 1회 또는 DB 초기화가 필요할 때
 pnpm db:setup
 ```
+
+`pnpm docker:*`는 `compose.yaml + compose.local.yaml`을 명시적으로 사용합니다. 로컬 Next/Nest production build가 localhost 개발값으로 실행될 수 있도록 인증 hardening bypass를 로컬 오버레이에만 격리합니다. 공개 배포에는 이 명령을 사용하지 않습니다.
+
+조직 TLS 프록시가 dependency/Prisma 바이너리 다운로드를 중계하는 환경은 root `.env`에 보안팀이 승인한 PEM의 절대 경로만 설정합니다. Compose는 CA를 이미지 layer나 일반 환경변수에 복사하지 않고 7개 이미지의 BuildKit secret으로 전달하며, runtime secret은 outbound Node TLS가 필요한 server/db-init에만 mount합니다. 각 deps stage는 전체 workspace manifest를 먼저 복사한 뒤 대상만 filtered install하고, pnpm store와 lockfile-keyed verification metadata는 각각 `sharing=locked` BuildKit cache로 공유합니다. 이 구조는 pnpm 11의 pre-run dependency 상태 검사와 최초 supply-chain verification을 유지하면서 검증된 동일 lockfile의 반복 registry 조회와 tarball 다운로드만 줄입니다.
+
+```env
+SSOO_TLS_CA_CERT_FILE=/secure/company-root-ca.pem
+```
+
+공개 Web PKI를 직접 사용하는 환경은 이 값을 비워 둡니다. 인증서 오류를 우회하기 위해 TLS 검증을 비활성화하지 않습니다.
 
 Docker compose는 컨테이너 내부 DB 연결에 `DOCKER_DATABASE_URL`/`DOCKER_DMS_DATABASE_URL`을 사용합니다.
 루트 `.env`의 `DATABASE_URL=...@localhost...` 값은 host CLI 기준으로 유지하고, compose 내부 주소 override가 필요할 때만 Docker 전용 키를 수정하세요.
@@ -267,9 +277,10 @@ Error: spawn EPERM
 Error: self-signed certificate in certificate chain
 ```
 
-**해결**: SSL 검증 임시 비활성화
+**해결**: 보안팀이 제공한 사내 root CA PEM을 Node 신뢰 저장소에 추가
 ```powershell
-$env:NODE_TLS_REJECT_UNAUTHORIZED=0
+$env:NODE_EXTRA_CA_CERTS='C:\secure\company-root-ca.pem'
+pnpm config set cafile 'C:\secure\company-root-ca.pem'
 ```
 
 ---
@@ -288,8 +299,9 @@ pnpm install --ignore-scripts
 # 3. 환경변수 파일 생성
 copy .env.example .env
 
-# 4. SSL 검증 비활성화 (사내 프록시 환경)
-$env:NODE_TLS_REJECT_UNAUTHORIZED=0
+# 4. 사내 root CA 신뢰 설정 (사내 프록시 환경)
+$env:NODE_EXTRA_CA_CERTS='C:\secure\company-root-ca.pem'
+pnpm config set cafile 'C:\secure\company-root-ca.pem'
 
 # 5. Prisma 클라이언트 생성
 cd packages/database
@@ -325,7 +337,7 @@ node ./node_modules/next/dist/bin/next dev --port 3002
 
 ### 주의사항
 
-- `NODE_TLS_REJECT_UNAUTHORIZED=0`은 **개발 환경에서만** 사용하세요.
+- TLS 인증서 검증을 비활성화하지 않습니다. 사내 프록시가 TLS를 종단하면 보안팀이 승인한 root CA PEM을 `NODE_EXTRA_CA_CERTS`/pnpm `cafile`로 주입합니다.
 - 관리자 권한 PowerShell로 실행하면 일부 문제가 해결되기도 합니다.
 - 보안팀에 Node.js 개발 도구 예외 등록을 요청하는 것이 근본적인 해결책입니다.
 - `--watch` 모드가 EPERM 에러를 발생시키면, 빌드 후 `node dist/main.js`로 실행하세요.
@@ -347,6 +359,9 @@ node ./node_modules/next/dist/bin/next dev --port 3002
 | `pnpm docker:ps` | Docker 서비스 상태 확인 |
 | `pnpm docker:logs` | Docker 로그 확인 |
 | `pnpm docker:down` | Docker 스택 종료 |
+| `pnpm docker:production:verify-env` | `.env.production` 보안/경로 계약 검증 |
+| `pnpm docker:production:config` | 프로덕션 Compose 병합 계약 검증 |
+| `pnpm docker:production:up` | 검증 후 프로덕션 오버레이로 전체 스택 빌드 + 실행 |
 | `pnpm clean` | 빌드 결과물 삭제 |
 
 ### 앱별 명령어
@@ -377,8 +392,12 @@ pnpm --filter @ssoo/database db:generate
 # 스키마를 DB에 반영 (개발용)
 pnpm --filter @ssoo/database db:push
 
-# 마이그레이션 생성 및 적용
-pnpm --filter @ssoo/database db:migrate
+# 새 DB/launch-managed DB migration 적용 및 상태 확인
+pnpm db:migrate:deploy
+pnpm db:migrate:status
+
+# 빈 일회용 DB에서 launch baseline 검증
+pnpm db:baseline:verify
 
 # Prisma Studio (DB GUI)
 pnpm --filter @ssoo/database db:studio

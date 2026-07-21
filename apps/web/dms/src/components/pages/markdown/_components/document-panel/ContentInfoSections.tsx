@@ -17,7 +17,7 @@ function WandButton({ loading, onClick, label }: { loading: boolean; onClick: ()
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="rounded p-1 text-ssoo-primary/50 transition-all hover:bg-black/5 hover:text-ssoo-primary disabled:opacity-40"
+      className="rounded p-1 text-ssoo-primary/50 transition-all hover:bg-foreground/5 hover:text-ssoo-primary disabled:opacity-40"
       aria-label={label}
       title={label}
     >
@@ -488,7 +488,7 @@ export function SourceLinksSection({
     <ActivityListSection
       title="링크"
       icon={<Link2 className="mr-1.5 h-4 w-4 shrink-0" />}
-      badge={!locked && items.length > 0 ? <span className="mr-1 text-caption text-gray-400">({items.length})</span> : undefined}
+      badge={!locked && items.length > 0 ? <span className="mr-1 text-caption text-muted-foreground">({items.length})</span> : undefined}
       items={locked ? [] : items}
       highlightedItemIds={newLinkSet}
       deletedItemIds={manualDeletedIds}

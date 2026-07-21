@@ -322,7 +322,7 @@ export function SsooAiSearchPage<T extends SsooAiSearchResultItem = SsooAiSearch
       items={breadcrumbItems}
       lastItemLabel={breadcrumbLastSegmentLabel}
       rootIconSlot={<Bot className="h-3.5 w-3.5" />}
-      separatorSlot={<ChevronRight className="mx-1 h-3.5 w-3.5 shrink-0 text-gray-400" />}
+      separatorSlot={<ChevronRight className="mx-1 h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
       ariaLabel="검색 경로"
     />
   );
@@ -437,8 +437,8 @@ export function SsooAiSearchPage<T extends SsooAiSearchResultItem = SsooAiSearch
       contentSurface="transparent-rounded"
       sidecarNarrowBehavior="overlay"
       sidecarControlSlots={{
-        collapseIcon: <ChevronRight className="h-4 w-4 text-gray-500" />,
-        expandIcon: <ChevronLeft className="h-4 w-4 text-gray-500" />,
+        collapseIcon: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
+        expandIcon: <ChevronLeft className="h-4 w-4 text-muted-foreground" />,
       }}
       compactMode={compactMode}
     />

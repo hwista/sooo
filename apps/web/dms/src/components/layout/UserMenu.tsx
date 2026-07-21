@@ -43,21 +43,15 @@ export function UserMenu({ dropdownWidth }: UserMenuProps) {
     });
   };
 
-  const openSettings = async () => {
-    if (!canManageSettings) {
-      openSection('system', 'documentAccess');
-      await openSettingsTab(getSettingsTabOptions('system', 'documentAccess'));
-      return;
-    }
-
+  const openSettingsSection = async (scope: 'system' | 'personal', sectionId: string) => {
     await loadSettings();
     const settingsState = useSettingsStore.getState();
     if (settingsState.config?.personal.workspace) {
       applyWorkspacePreferences(settingsState.config.personal.workspace);
     }
-    enterSettings(settingsState.access?.canManageSystem ? undefined : 'personal');
-    const settingsNavigation = useSettingsPageNavigationStore.getState();
-    await openSettingsTab(getSettingsTabOptions(settingsNavigation.activeScope, settingsNavigation.activeSectionId));
+    enterSettings(scope);
+    openSection(scope, sectionId);
+    await openSettingsTab(getSettingsTabOptions(scope, sectionId));
   };
 
   const handleLogout = useSharedLogout({
@@ -77,12 +71,34 @@ export function UserMenu({ dropdownWidth }: UserMenuProps) {
         personalSettings: { onSelect: () => openUserSurfaceTab('personal-settings') },
       }}
       actions={[
+        ...(canManageSettings
+          ? [
+              {
+                key: 'dms-system-settings',
+                label: '문서 시스템 설정',
+                icon: Settings,
+                onSelect: () => openSettingsSection('system', 'storage'),
+              },
+              {
+                key: 'dms-operations',
+                label: '문서 운영·진단',
+                icon: Settings,
+                onSelect: () => openSettingsSection('system', 'git'),
+              },
+              {
+                key: 'dms-management',
+                label: '문서 관리',
+                icon: Settings,
+                onSelect: () => openSettingsSection('system', 'documentAccess'),
+              },
+            ]
+          : []),
         {
-          key: 'dms-settings',
-          label: '문서 설정',
+          key: 'dms-personal-settings',
+          label: '내 문서 환경 설정',
           icon: Settings,
           disabled: !(canManageSettings || canUseAccessCenter),
-          onSelect: openSettings,
+          onSelect: () => openSettingsSection('personal', 'identity'),
         },
       ]}
     />

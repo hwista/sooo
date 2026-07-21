@@ -4,7 +4,7 @@ applyTo: "apps/web/dms/**"
 
 # Codex DMS Instructions
 
-> 최종 업데이트: 2026-06-17
+> 최종 업데이트: 2026-07-16
 > 정본: `.github/instructions/dms.instructions.md`
 
 ## 독립 배포 고려사항
@@ -17,7 +17,7 @@ applyTo: "apps/web/dms/**"
 
 DMS는 workspace 앱으로 통합되었지만, 파일/Git/스토리지 런타임과 `src/app/api/* -> server/*` 구조는 독립 배포 가능성을 고려해 유지합니다.
 
-Docker/compose도 DMS 런타임 계약의 일부입니다. DMS 포트, runtime path, 설정 노출 문구, server proxy/env 계약을 바꾸면 `apps/web/dms/Dockerfile`, 루트 `compose.yaml`, 루트 `.env.example`, Docker/E2E 스크립트, `docs/dms/guides/deployment.md` 를 같은 변경 범위에서 확인하고 같이 갱신합니다.
+Docker/compose도 DMS 런타임 계약의 일부입니다. DMS 포트, runtime path, 설정 노출 문구, server proxy/env 계약을 바꾸면 `apps/web/dms/Dockerfile`, 루트 `compose.yaml`과 환경별 overlay(`compose.local.yaml`, `compose.production.yaml`), 루트 env example, Docker/E2E 스크립트, `docs/dms/guides/deployment.md`를 같은 변경 범위에서 확인하고 같이 갱신합니다.
 
 ## 양방향 배포 표준
 
@@ -104,6 +104,10 @@ const useTabStore = create<TabStoreState & TabStoreActions>()(
 - 파일 트리는 MUI Tree View가 아니라 현재 커스텀 tree renderer 기준으로 유지한다
 - 트리 상태는 `file.store.ts` 가 소유하고, 렌더 컴포넌트는 presentation 역할만 맡는다
 - 폴더 생성/이동/이름변경 액션은 `/api/file` 계약과 동일한 action vocabulary를 사용한다
+- 로그인 후 파일 트리 preload 는 auth/access hydrate 이후 `canReadDocuments === true` 일 때만 수행한다
+- 문서 0건은 오류가 아니며 신규 사용자/권한 내 문서 없음은 empty state 로 종료한다
+- API/control-plane sync 실패는 error state 로 표시하되, 사용자가 `refreshFileTree({ forceSync: true })` 를 다시 실행할 수 있는 visible retry 동선을 유지한다
+- 정상 로그인 사용자를 문서 목록 전용 full-page blocking recovery 화면에 가두지 않는다
 
 ## UI primitive 사용법
 

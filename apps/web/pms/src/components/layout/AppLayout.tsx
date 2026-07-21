@@ -8,12 +8,14 @@ import {
 } from '@ssoo/web-auth';
 import {
   SSOO_GLOBAL_SEARCH_APP_PATH,
+  SSOO_SHELL_METRICS,
   SsooAppFrame,
-  SsooContentAreaState,
+  SsooMobileSidebarOverlay,
   SsooWorkbenchShell,
   getSsooGlobalSearchQueryFromPath,
   getSsooGlobalSearchTitle,
 } from '@ssoo/web-shell';
+import { SETTINGS_PATH } from '@/lib/constants/routes';
 import { useLayoutStore, useSidebarStore, useTabStore } from '@/stores';
 import { Sidebar } from './sidebar';
 import { Header } from './Header';
@@ -23,11 +25,16 @@ import { ContentArea } from './ContentArea';
 /**
  * 메인 앱 레이아웃
  * - Desktop: Sidebar + Header + TabBar + Content
- * - Mobile: 별도 UI (추후 개발)
+ * - Mobile: Header + TabBar + Content + overlay sidebar
  * - 탭 시스템 전용: URL 직접 접근 미지원
  */
 export function AppLayout() {
-  const { deviceType } = useLayoutStore();
+  const {
+    deviceType,
+    isMobileMenuOpen,
+    toggleMobileMenu,
+    closeMobileMenu,
+  } = useLayoutStore();
   const { isCollapsed } = useSidebarStore();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -54,6 +61,17 @@ export function AppLayout() {
     }
 
     if (!currentPath.startsWith(SSOO_GLOBAL_SEARCH_APP_PATH)) {
+      if (currentPath === SETTINGS_PATH) {
+        openTab({
+          menuCode: 'PMS-SETTINGS',
+          menuId: 'pms-settings',
+          title: '설정',
+          path: SETTINGS_PATH,
+          icon: 'Settings',
+          closable: true,
+          activate: true,
+        });
+      }
       return;
     }
 
@@ -70,17 +88,43 @@ export function AppLayout() {
     });
   }, [currentPath, openTab]);
 
-  // 모바일은 별도 UI (추후 개발)
+  useEffect(() => {
+    if (deviceType === 'desktop' && isMobileMenuOpen) {
+      closeMobileMenu();
+    }
+  }, [closeMobileMenu, deviceType, isMobileMenuOpen]);
+
   if (deviceType === 'mobile') {
+    const mobileSidebarWidth = `min(${SSOO_SHELL_METRICS.sidebar.expandedWidth}px, calc(100vw - 32px))`;
+
     return (
       <SsooAppFrame
-        mode="content-only"
-        contentSlot={(
-          <SsooContentAreaState
-            title="모바일 버전 준비 중"
-            description="데스크톱에서 접속해주세요."
+        mode="workbench"
+        sidebarMode="none"
+        sidebarSlot={isMobileMenuOpen ? (
+          <SsooMobileSidebarOverlay
+            id="pms-mobile-sidebar"
+            onDismiss={closeMobileMenu}
+            label="PMS 모바일 메뉴"
+          >
+            <Sidebar
+              expanded
+              width={mobileSidebarWidth}
+              onToggleCollapse={closeMobileMenu}
+              toggleLabel="모바일 메뉴 닫기"
+              variant="mobile"
+            />
+          </SsooMobileSidebarOverlay>
+        ) : null}
+        headerSlot={(
+          <Header
+            mobile
+            mobileMenuOpen={isMobileMenuOpen}
+            onMobileMenuClick={toggleMobileMenu}
           />
         )}
+        tabBarSlot={<TabBar />}
+        contentSlot={<ContentArea />}
       />
     );
   }

@@ -92,6 +92,7 @@ const useTabStore = create<TabStoreState & TabStoreActions>()(
 - 전체 reset은 실제 markdown content 변경 시에만 수행한다
 - `window.prompt()` / `window.open()` 직접 호출 대신 interaction contract를 사용한다
 - 파일 트리는 MUI Tree View가 아니라 현재 custom tree renderer 기준으로 유지한다
+- 문서 목록 hydrate 에서 문서 0건은 오류가 아니며, 오류 상태에는 `refreshFileTree({ forceSync: true })` 기반 visible retry 동선을 유지한다
 
 ---
 

@@ -70,10 +70,10 @@ export function SsooHeaderActionButton({
       disabled={disabled}
       className={cn(
         'flex h-control-h items-center gap-1 rounded-md px-3 text-sm font-medium transition-colors disabled:cursor-not-allowed [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0',
-        tone === 'primary-on-color' && 'bg-white text-ssoo-primary hover:bg-gray-100 disabled:bg-white/70 disabled:opacity-70',
-        tone === 'ghost-on-color' && 'bg-white/10 text-white hover:bg-white/15 disabled:text-white/70 disabled:opacity-70',
-        tone === 'disabled-on-color' && 'bg-white/10 text-white/70 opacity-70',
-        tone === 'neutral' && 'border border-ssoo-content-border bg-white text-ssoo-primary hover:bg-ssoo-sitemap-bg disabled:opacity-60',
+        tone === 'primary-on-color' && 'bg-card text-ssoo-primary hover:bg-muted disabled:bg-card/70 disabled:opacity-70',
+        tone === 'ghost-on-color' && 'bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/15 disabled:text-primary-foreground/70 disabled:opacity-70',
+        tone === 'disabled-on-color' && 'bg-primary-foreground/10 text-primary-foreground/70 opacity-70',
+        tone === 'neutral' && 'border border-ssoo-content-border bg-card text-ssoo-primary hover:bg-ssoo-sitemap-bg disabled:opacity-60',
         className
       )}
       {...props}
@@ -103,9 +103,9 @@ export const SsooHeaderIconButton = forwardRef<HTMLButtonElement, SsooHeaderIcon
       disabled={disabled}
       className={cn(
         'relative flex h-control-h w-control-h items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed [&>svg]:h-5 [&>svg]:w-5 [&>svg]:shrink-0',
-        tone === 'ghost-on-color' && 'text-white hover:bg-white/10 disabled:opacity-60',
-        tone === 'disabled-on-color' && 'text-white opacity-60',
-        tone === 'neutral' && 'border border-ssoo-content-border bg-white text-ssoo-primary hover:bg-ssoo-sitemap-bg disabled:opacity-60',
+        tone === 'ghost-on-color' && 'text-primary-foreground hover:bg-primary-foreground/10 disabled:opacity-60',
+        tone === 'disabled-on-color' && 'text-primary-foreground opacity-60',
+        tone === 'neutral' && 'border border-ssoo-content-border bg-card text-ssoo-primary hover:bg-ssoo-sitemap-bg disabled:opacity-60',
         className
       )}
       {...props}
@@ -121,6 +121,8 @@ export interface SsooHeaderSearchBoxProps {
   disabled?: boolean;
   readOnly?: boolean;
   value?: string;
+  name?: string;
+  autoComplete?: string;
   onChange?: (value: string) => void;
   onFocus?: FocusEventHandler<HTMLInputElement>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
@@ -136,6 +138,8 @@ export function SsooHeaderSearchBox({
   disabled = false,
   readOnly = false,
   value,
+  name = 'ssoo-global-search',
+  autoComplete = 'off',
   onChange,
   onFocus,
   onKeyDown,
@@ -145,12 +149,14 @@ export function SsooHeaderSearchBox({
   return (
     <div className={cn('relative w-full', className)}>
       {iconSlot ? (
-        <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/50 [&>svg]:h-4 [&>svg]:w-4">
+        <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-primary-foreground/50 [&>svg]:h-4 [&>svg]:w-4">
           {iconSlot}
         </div>
       ) : null}
       <Input
-        type="text"
+        type="search"
+        name={name}
+        autoComplete={autoComplete}
         placeholder={placeholder}
         disabled={disabled}
         readOnly={readOnly}
@@ -159,7 +165,7 @@ export function SsooHeaderSearchBox({
         onFocus={onFocus}
         onKeyDown={onKeyDown}
         className={cn(
-          'h-control-h w-full rounded-lg border border-white/20 bg-white/10 pl-9 pr-4 text-sm text-white placeholder-white/50',
+          'h-control-h w-full rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 pl-9 pr-4 text-sm text-primary-foreground placeholder:text-primary-foreground/50',
           disabled && 'cursor-not-allowed',
           inputClassName
         )}
@@ -202,6 +208,11 @@ export interface SsooAppHeaderNotificationDescriptor
   iconSlot: ReactNode;
 }
 
+export interface SsooAppHeaderLeadingActionDescriptor
+  extends Omit<SsooHeaderIconButtonProps, 'children'> {
+  iconSlot: ReactNode;
+}
+
 export interface SsooAppHeaderUserMenuContext {
   actionsWidth: number;
   dropdownWidth: number;
@@ -220,13 +231,14 @@ export function SsooHeaderUserMenuLoadingState({
   label = '로딩 중...',
 }: SsooHeaderUserMenuLoadingStateProps) {
   return (
-    <span className="text-sm text-white/70">{label}</span>
+    <span className="text-sm text-primary-foreground/70">{label}</span>
   );
 }
 
 export interface SsooAppHeaderProps {
   mode?: SsooHeaderMode;
   leading?: SsooHeaderLeadingDescriptor;
+  leadingAction?: SsooAppHeaderLeadingActionDescriptor | null;
   leadingSlot?: ReactNode;
   search?: SsooHeaderSearchBoxProps | null;
   searchSlot?: ReactNode;
@@ -242,6 +254,7 @@ export interface SsooAppHeaderProps {
 export function SsooAppHeader({
   mode = 'primary',
   leading,
+  leadingAction,
   leadingSlot,
   search,
   searchSlot,
@@ -271,11 +284,20 @@ export function SsooAppHeader({
   const resolvedLeadingSlot = leadingSlot ?? (
     leading ? (
       <div className="min-w-0">
-        <div className="truncate text-sm font-semibold text-white">{leading.title}</div>
-        {leading.subtitle ? <div className="truncate text-xs text-white/60">{leading.subtitle}</div> : null}
+        <div className="truncate text-sm font-semibold text-primary-foreground">{leading.title}</div>
+        {leading.subtitle ? <div className="truncate text-xs text-primary-foreground/60">{leading.subtitle}</div> : null}
       </div>
     ) : null
   );
+  const resolvedLeadingActionSlot = leadingAction ? (
+    <SsooAppHeaderLeadingAction action={leadingAction} />
+  ) : null;
+  const resolvedHeaderLeadingSlot = resolvedLeadingActionSlot || resolvedLeadingSlot ? (
+    <>
+      {resolvedLeadingActionSlot}
+      {resolvedLeadingSlot}
+    </>
+  ) : null;
   const resolvedSearchSlot = searchSlot ?? (search ? <SsooHeaderSearchBox {...search} /> : null);
   const resolvedUserMenuSlot =
     typeof userMenuSlot === 'function'
@@ -297,13 +319,26 @@ export function SsooAppHeader({
   return (
     <SsooHeader
       mode={mode}
-      leadingSlot={resolvedLeadingSlot}
+      leadingSlot={resolvedHeaderLeadingSlot}
       searchSlot={resolvedSearchSlot}
       centerSlot={centerSlot}
       actionsSlot={actionNodes.length > 0 ? <div ref={actionsRef} className="flex items-center gap-2">{actionNodes}</div> : null}
       actionsClassName="gap-0"
       className={className}
     />
+  );
+}
+
+function SsooAppHeaderLeadingAction({
+  action,
+}: {
+  action: SsooAppHeaderLeadingActionDescriptor;
+}) {
+  const { iconSlot, ...buttonProps } = action;
+  return (
+    <SsooHeaderIconButton {...buttonProps}>
+      {iconSlot}
+    </SsooHeaderIconButton>
   );
 }
 
@@ -335,7 +370,7 @@ function SsooHeaderNotificationBadgeView({ badge }: { badge: SsooHeaderNotificat
 
   const label = typeof badge === 'number' && badge > 99 ? '99+' : String(badge);
   return (
-    <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ls-red px-1 text-[10px] font-semibold leading-none text-white">
+    <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ls-red px-1 text-caption-xs font-semibold leading-none text-primary-foreground">
       {label}
     </span>
   );

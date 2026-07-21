@@ -267,7 +267,7 @@ export function SsooKeyValueSection({
       controlSlots={controlSlots}
     >
       {visibleItems.length === 0 && !children ? (
-        <p className="py-1 text-caption text-gray-400">{emptyText}</p>
+        <p className="py-1 text-caption text-muted-foreground">{emptyText}</p>
       ) : visibleItems.length > 0 ? (
         <dl className="space-y-2 text-body-sm">
           {visibleItems.map((item) => (
@@ -278,7 +278,7 @@ export function SsooKeyValueSection({
                 item.highlighted && 'border border-destructive/30 bg-destructive/5 px-2 py-1.5'
               )}
             >
-              <dt className={cn('flex items-center text-gray-500', item.indent && 'pl-[18px]')}>
+              <dt className={cn('flex items-center text-muted-foreground', item.indent && 'pl-[18px]')}>
                 {item.icon}
                 {item.label}
               </dt>
@@ -326,7 +326,7 @@ export function SsooTextSection({
           {text}
         </p>
       )
-      : <p className="py-1 text-caption text-gray-400">{emptyText}</p>
+      : <p className="py-1 text-caption text-muted-foreground">{emptyText}</p>
   );
 
   return (
@@ -400,7 +400,7 @@ export function SsooChipListSection({
       controlSlots={controlSlots}
     >
       {chips.length === 0 ? (
-        <p className="py-1 text-caption text-gray-400">{emptyText}</p>
+        <p className="py-1 text-caption text-muted-foreground">{emptyText}</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {chips.map((chip) => {
@@ -411,7 +411,7 @@ export function SsooChipListSection({
               ? 'inline-flex max-w-full items-center gap-1 truncate rounded-full border border-destructive/30 bg-destructive/5 px-3 py-1.5 text-caption text-destructive/60 line-through'
               : isHighlighted
                 ? 'inline-flex max-w-full items-center gap-1 truncate rounded-full border border-destructive/30 bg-destructive/5 px-3 py-1.5 text-caption text-ssoo-primary'
-                : 'inline-flex max-w-full items-center gap-1 truncate rounded-full border border-ssoo-content-border bg-white px-3 py-1.5 text-caption text-ssoo-primary';
+                : 'inline-flex max-w-full items-center gap-1 truncate rounded-full border border-ssoo-content-border bg-card px-3 py-1.5 text-caption text-ssoo-primary';
             const hoverCls = clickable && !isDeleted ? ' transition-colors ssoo-hover-border-primary-40 hover:bg-ssoo-content-bg' : '';
 
             const chipContent = (
@@ -437,7 +437,7 @@ export function SsooChipListSection({
                       event.stopPropagation();
                       onChipRemove(chip);
                     }}
-                    className="transition-colors hover:text-red-500"
+                    className="transition-colors hover:text-ssoo-danger"
                     aria-label={`"${chip.label}" 삭제`}
                   >
                     {removeIconSlot}
@@ -576,7 +576,7 @@ export function SsooActivityListSection({
       controlSlots={controlSlots}
     >
       {items.length === 0 ? (
-        <p className="py-1 text-caption text-gray-400">{emptyText}</p>
+        <p className="py-1 text-caption text-muted-foreground">{emptyText}</p>
       ) : (
         <div className="space-y-1.5">
           {visibleItems.map((item) => {
@@ -653,7 +653,7 @@ export function SsooActivityListSection({
                           className={cn(
                             'inline-flex h-6 w-6 items-center justify-center rounded border transition-colors',
                             action.tone === 'danger'
-                              ? 'border-red-200 text-red-500 hover:border-red-300 hover:bg-red-50'
+                              ? 'border-ssoo-danger-border text-ssoo-danger hover:border-ssoo-danger-border hover:bg-ssoo-danger-bg'
                               : 'border-ssoo-content-border ssoo-text-primary-70 ssoo-hover-border-primary-40 hover:text-ssoo-primary'
                           )}
                           title={action.title ?? action.label}
@@ -675,7 +675,7 @@ export function SsooActivityListSection({
                         className={cn(
                           'rounded border px-2 py-0.5 text-caption ssoo-hover-border-primary-40',
                           action.tone === 'danger'
-                            ? 'border-red-200 text-red-500'
+                            ? 'border-ssoo-danger-border text-ssoo-danger'
                             : 'border-ssoo-content-border text-ssoo-primary'
                         )}
                       >
@@ -691,7 +691,7 @@ export function SsooActivityListSection({
             <Button variant="plain" size="plain"
               type="button"
               onClick={() => setVisibleCount((previous) => Math.min(previous + pageSize, items.length))}
-              className="w-full rounded-md border border-ssoo-content-border bg-white px-2 py-1.5 text-caption text-ssoo-primary transition-colors hover:bg-ssoo-content-bg"
+              className="w-full rounded-md border border-ssoo-content-border bg-card px-2 py-1.5 text-caption text-ssoo-primary transition-colors hover:bg-ssoo-content-bg"
             >
               {loadMoreLabel(remainingCount)}
             </Button>

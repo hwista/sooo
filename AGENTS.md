@@ -1,6 +1,6 @@
 # SSOO Codex Agent Entry
 
-> 최종 업데이트: 2026-06-17
+> 최종 업데이트: 2026-07-16
 > 범위: SSOO 모노레포 전체 (`/home/hwista/src/ssoo`)
 
 ## 목적
@@ -27,9 +27,15 @@ Codex 작업 시 참조 순서, 규칙 정본, 검증 루틴을 고정해 일관
 - push 전: `pnpm run codex:push-guard`
 - DMS 변경 포함 시: `pnpm run codex:dms-guard`
 
+## 사용자-visible 동작 변경 게이트
+
+- 이미 구현된 화면, 버튼, 안내 문구, 오류/빈 상태, 수동 복구 동선, 권한 fallback 은 dead code로 간주하지 않습니다.
+- 명시 지시 없이 해당 동작을 삭제·축소·대체·흡수해야 한다고 판단되면 실행 전 사용자 확정 게이트를 거칩니다.
+- 자세한 기준은 `.codex/instructions/codex-instructions.md`와 `.github/copilot-instructions.md`의 `Behavior Impact Gate`를 따릅니다.
+
 ## 관측형 실행 규칙
 
-- `pnpm build`, `pnpm lint`, `pnpm docs:verify`, `pnpm codex:preflight`, `pnpm verify:access-*` 는 `package.json`의 `*:observed` 엔트리로 실행된다.
+- `pnpm build`, `pnpm lint`, `pnpm security:audit`, `pnpm docs:verify`, `pnpm codex:preflight`, `pnpm verify:access-*` 는 `package.json`의 `*:observed` 엔트리로 실행된다.
 - `*:observed` 는 `scripts/run-observed-command.sh` 를 통해 machine-local observer(`LSWIKI_COMMAND_OBSERVER` 또는 `agent-system/local/observe-command.sh`)가 있으면 연결하고, 없으면 raw 명령으로 즉시 fallback 한다.
 - raw 명령은 `:raw` suffix 를 사용한다. 예: `pnpm run build:raw`, `pnpm run lint:raw`.
 - 예전 `pnpm run harness:*` 명령은 compatibility stub 이며, ordinary workflow 에서는 사용하지 않는다. 필요 시 machine-local handler 를 `agent-system/local/harness-command.sh` 에 둔다.

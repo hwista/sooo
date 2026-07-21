@@ -122,6 +122,39 @@ export class TemplatesController {
     return success(this.sanitizeTemplate(template, currentUser));
   }
 
+  @Post(':id/review-confirmation')
+  @ApiOperation({ summary: 'DMS 템플릿 검토 확정' })
+  @ApiOkResponse({ description: '검토 확정된 템플릿 반환' })
+  @ApiBadRequestResponse({ type: ApiError, description: '잘못된 요청' })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: '서버 오류' })
+  async confirmReview(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+    @CurrentUser() currentUser: TokenPayload,
+    @Req() request: ExpressRequest,
+  ) {
+    const scope = body.scope === 'global' ? 'global' : body.scope === 'personal' ? 'personal' : null;
+    if (!id.trim() || !scope) {
+      throw new BadRequestException('id/scope는 필수입니다.');
+    }
+
+    await this.accessRequestService.ensureRepoControlPlaneSynced();
+    const template = await this.templateService.confirmReview(
+      id.trim(),
+      scope,
+      getRequestUserId(request),
+      {
+        memo: typeof body.memo === 'string' ? body.memo : undefined,
+      },
+      currentUser,
+    );
+    if (!template) {
+      throw new NotFoundException('템플릿을 찾을 수 없습니다.');
+    }
+
+    return success(this.sanitizeTemplate(template, currentUser));
+  }
+
   @Post()
   @ApiOperation({ summary: 'DMS 템플릿 저장' })
   @ApiOkResponse({ description: '저장된 템플릿 반환' })

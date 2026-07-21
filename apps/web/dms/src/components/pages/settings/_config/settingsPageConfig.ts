@@ -1,20 +1,20 @@
 import type { JsonFieldDescriptor } from '@/components/common/json';
-import type { SettingsScope, SettingsViewMode } from '@/types/settings';
+import type { SettingsScope, SettingsSurfaceId } from '@/types/settings';
 import {
   Bot,
   Database,
-  ExternalLink,
+  FileOutput,
   FileSearch,
   FolderOpen,
   GitBranch,
   HardDrive,
   PanelLeft,
+  Route,
   Search,
   Shapes,
   Shield,
   Upload,
   UserRound,
-  Workflow,
 } from 'lucide-react';
 
 
@@ -34,17 +34,21 @@ export interface SettingSection {
   id: string;
   scope: SettingsScope;
   group: SettingSectionGroup;
+  surface: SettingsSurfaceId;
+  settingKind: 'persisted-setting' | 'runtime-observability' | 'management-workflow';
+  audience: 'admin' | 'domain-manager' | 'user';
+  persistence: 'db' | 'runtime' | 'none';
   jsonPath: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   description: string;
   kind?: 'fields' | 'custom';
-  slotKey?: 'document-access' | 'admin-templates' | 'external-settings';
+  slotKey?: 'document-access' | 'admin-templates' | 'approval-route-policy' | 'contract-export-policy';
   indexItems?: SettingSectionIndexItem[];
   items: SettingItem[];
 }
 
-export type SettingSectionGroup = 'operations' | 'system' | 'management' | 'personal' | 'external';
+export type SettingSectionGroup = 'operations' | 'system' | 'management' | 'personal';
 
 export interface SettingSearchEntry {
   id: string;
@@ -102,11 +106,10 @@ export const SETTINGS_SCOPE_LABELS: Record<SettingsScope, string> = {
 };
 
 export const SETTINGS_SECTION_GROUP_LABELS: Record<SettingSectionGroup, string> = {
-  operations: '운영 상태',
-  system: '시스템 설정',
-  management: '관리 업무',
-  personal: '내 설정',
-  external: '외부 설정 링크',
+  operations: '문서 운영·진단',
+  system: '문서 시스템 설정',
+  management: '문서 관리',
+  personal: '내 문서 환경 설정',
 };
 
 export const SETTINGS_SECTION_GROUP_ORDER: SettingSectionGroup[] = [
@@ -114,24 +117,7 @@ export const SETTINGS_SECTION_GROUP_ORDER: SettingSectionGroup[] = [
   'system',
   'management',
   'personal',
-  'external',
 ];
-
-export const SETTINGS_VIEW_MODE_LABELS: Record<SettingsViewMode, string> = {
-  structured: '구조화',
-  json: 'JSON',
-  diff: 'Diff',
-};
-
-export const SETTINGS_VIEW_MODE_OPTIONS = [
-  { label: '구조화', value: 'structured' },
-  { label: 'JSON', value: 'json' },
-] as const;
-
-export const SETTINGS_SCOPE_OPTIONS = [
-  { label: '시스템 설정', value: 'system' },
-  { label: '내 설정', value: 'personal' },
-] as const;
 
 const VIEWER_ZOOM_OPTIONS = [
   { label: '75%', value: '75' },
@@ -155,6 +141,10 @@ export const SETTING_SECTIONS: SettingSection[] = [
     id: 'documentAccess',
     scope: 'system',
     group: 'management',
+    surface: 'management',
+    settingKind: 'management-workflow',
+    audience: 'domain-manager',
+    persistence: 'none',
     jsonPath: 'system.documentAccess',
     label: '문서 권한 관리',
     icon: Shield,
@@ -191,9 +181,79 @@ export const SETTING_SECTIONS: SettingSection[] = [
     items: [],
   },
   {
+    id: 'crmContractApprovalRoute',
+    scope: 'system',
+    group: 'management',
+    surface: 'management',
+    settingKind: 'management-workflow',
+    audience: 'domain-manager',
+    persistence: 'db',
+    jsonPath: 'system.crmContractApprovalRoute',
+    label: 'CRM 계약 결재선',
+    icon: Route,
+    description: 'CRM 계약 산출 lifecycle이 사용하는 DMS 승인 route 정책과 required roles를 관리합니다.',
+    kind: 'custom',
+    slotKey: 'approval-route-policy',
+    indexItems: [
+      {
+        id: 'status',
+        label: '현재 정책',
+        description: '현재 적용 중인 route key, policy version, 역할 수입니다.',
+      },
+      {
+        id: 'policy',
+        label: '정책 식별자',
+        description: 'route key/name, policy version, 조직 범위를 편집합니다.',
+      },
+      {
+        id: 'roles',
+        label: '승인 역할',
+        description: '결재선 순서에 포함할 역할을 추가하거나 제거합니다.',
+      },
+    ],
+    items: [],
+  },
+  {
+    id: 'crmContractExportPolicy',
+    scope: 'system',
+    group: 'management',
+    surface: 'management',
+    settingKind: 'management-workflow',
+    audience: 'domain-manager',
+    persistence: 'db',
+    jsonPath: 'system.crmContractExportPolicy',
+    label: 'CRM 계약 산출 정책',
+    icon: FileOutput,
+    description: 'CRM 계약 lifecycle이 생성하는 markdown evidence와 Word/PDF artifact의 조직 scope별 산출 경로를 관리합니다.',
+    kind: 'custom',
+    slotKey: 'contract-export-policy',
+    indexItems: [
+      {
+        id: 'status',
+        label: '현재 정책',
+        description: '현재 적용 중인 export policy, version, 조직 범위입니다.',
+      },
+      {
+        id: 'policy',
+        label: '정책 식별자',
+        description: 'policy key/version과 조직 scope를 편집합니다.',
+      },
+      {
+        id: 'paths',
+        label: '산출 경로',
+        description: 'markdown record root와 Word/PDF storage artifact root를 편집합니다.',
+      },
+    ],
+    items: [],
+  },
+  {
     id: 'git',
     scope: 'system',
     group: 'operations',
+    surface: 'operations',
+    settingKind: 'runtime-observability',
+    audience: 'domain-manager',
+    persistence: 'runtime',
     jsonPath: 'system.git',
     label: '문서 저장소 상태',
     icon: GitBranch,
@@ -228,6 +288,10 @@ export const SETTING_SECTIONS: SettingSection[] = [
     id: 'storage',
     scope: 'system',
     group: 'system',
+    surface: 'system-settings',
+    settingKind: 'persisted-setting',
+    audience: 'domain-manager',
+    persistence: 'db',
     jsonPath: 'system.storage',
     label: '첨부 저장소 정책',
     icon: HardDrive,
@@ -313,11 +377,29 @@ export const SETTING_SECTIONS: SettingSection[] = [
     ],
   },
   {
-    id: 'ingest',
+    id: 'storage-runtime',
     scope: 'system',
     group: 'operations',
+    surface: 'operations',
+    settingKind: 'runtime-observability',
+    audience: 'domain-manager',
+    persistence: 'runtime',
+    jsonPath: 'system.storage',
+    label: '첨부 저장소 상태',
+    icon: HardDrive,
+    description: 'Git 비대상 binary/runtime storage roots 의 실제 경로와 존재 여부를 확인합니다.',
+    items: [],
+  },
+  {
+    id: 'ingest',
+    scope: 'system',
+    group: 'system',
+    surface: 'system-settings',
+    settingKind: 'persisted-setting',
+    audience: 'domain-manager',
+    persistence: 'db',
     jsonPath: 'system.ingest',
-    label: '수집 큐 상태',
+    label: '수집 큐 정책',
     icon: Database,
     description: '빌드 이미지 밖의 ingest queue 경로와 게시 정책을 관리합니다.',
     items: [
@@ -353,9 +435,27 @@ export const SETTING_SECTIONS: SettingSection[] = [
     ],
   },
   {
+    id: 'ingest-runtime',
+    scope: 'system',
+    group: 'operations',
+    surface: 'operations',
+    settingKind: 'runtime-observability',
+    audience: 'domain-manager',
+    persistence: 'runtime',
+    jsonPath: 'system.ingest',
+    label: '수집 큐 상태',
+    icon: Database,
+    description: '수집 작업 큐 파일이 위치하는 실제 runtime 경로와 존재 여부를 확인합니다.',
+    items: [],
+  },
+  {
     id: 'templates-runtime',
     scope: 'system',
     group: 'operations',
+    surface: 'operations',
+    settingKind: 'runtime-observability',
+    audience: 'domain-manager',
+    persistence: 'runtime',
     jsonPath: 'system.templates',
     label: '템플릿 저장 위치',
     icon: FolderOpen,
@@ -366,6 +466,10 @@ export const SETTING_SECTIONS: SettingSection[] = [
     id: 'uploads',
     scope: 'system',
     group: 'system',
+    surface: 'system-settings',
+    settingKind: 'persisted-setting',
+    audience: 'domain-manager',
+    persistence: 'db',
     jsonPath: 'system.uploads',
     label: '업로드 한도',
     icon: Upload,
@@ -397,6 +501,10 @@ export const SETTING_SECTIONS: SettingSection[] = [
     id: 'search',
     scope: 'system',
     group: 'system',
+    surface: 'system-settings',
+    settingKind: 'persisted-setting',
+    audience: 'domain-manager',
+    persistence: 'db',
     jsonPath: 'system.search',
     label: '검색 정책',
     icon: Search,
@@ -462,6 +570,10 @@ export const SETTING_SECTIONS: SettingSection[] = [
     id: 'docAssist',
     scope: 'system',
     group: 'system',
+    surface: 'system-settings',
+    settingKind: 'persisted-setting',
+    audience: 'domain-manager',
+    persistence: 'db',
     jsonPath: 'system.docAssist',
     label: '문서 AI 보조 정책',
     icon: Bot,
@@ -523,6 +635,10 @@ export const SETTING_SECTIONS: SettingSection[] = [
     id: 'templates',
     scope: 'system',
     group: 'management',
+    surface: 'management',
+    settingKind: 'management-workflow',
+    audience: 'domain-manager',
+    persistence: 'db',
     jsonPath: 'system.templates',
     label: '관리자 템플릿',
     icon: Shapes,
@@ -552,6 +668,10 @@ export const SETTING_SECTIONS: SettingSection[] = [
     id: 'extraction',
     scope: 'system',
     group: 'system',
+    surface: 'system-settings',
+    settingKind: 'persisted-setting',
+    audience: 'domain-manager',
+    persistence: 'db',
     jsonPath: 'system.extraction',
     label: '문서 분석/추출 정책',
     icon: FileSearch,
@@ -630,33 +750,13 @@ export const SETTING_SECTIONS: SettingSection[] = [
     ],
   },
   {
-    id: 'externalSettings',
-    scope: 'system',
-    group: 'external',
-    jsonPath: 'system.externalLinks',
-    label: '공통 설정으로 이동',
-    icon: ExternalLink,
-    description: '플랫폼 공통은 Admin, 문서 도메인의 세부 시스템 설정/제어/운영은 이 설정 화면이라는 책임 경계를 보여 주고, SNS Profile/Account·Admin/조직·AI Control Plane 은 외부 surface로 분리합니다.',
-    kind: 'custom',
-    slotKey: 'external-settings',
-    indexItems: [
-      {
-        id: 'boundary',
-        label: '설정 경계',
-        description: '플랫폼 공통과 문서 도메인 설정의 책임 경계입니다.',
-      },
-      {
-        id: 'external-links',
-        label: '외부 설정 링크',
-        description: '다른 앱이나 공통 surface로 이동하는 진입점입니다.',
-      },
-    ],
-    items: [],
-  },
-  {
     id: 'identity',
     scope: 'personal',
     group: 'personal',
+    surface: 'personal-settings',
+    settingKind: 'persisted-setting',
+    audience: 'user',
+    persistence: 'db',
     jsonPath: 'personal.identity',
     label: 'Identity',
     icon: UserRound,
@@ -687,51 +787,13 @@ export const SETTING_SECTIONS: SettingSection[] = [
     ],
   },
   {
-    id: 'workspace',
-    scope: 'personal',
-    group: 'personal',
-    jsonPath: 'personal.workspace',
-    label: 'Workspace',
-    icon: Workflow,
-    description: '설정 화면 진입 방식과 개인 작업 선호값을 관리합니다.',
-    items: [
-      {
-        key: 'personal.workspace.defaultSettingsScope',
-        label: '기본 설정 스코프',
-        helpKey: 'personal.workspace.defaultSettingsScope',
-        description: '설정 모드 진입 시 기본으로 열 스코프입니다.',
-        type: 'select',
-        options: [...SETTINGS_SCOPE_OPTIONS],
-      },
-      {
-        key: 'personal.workspace.defaultSettingsView',
-        label: '기본 설정 보기',
-        helpKey: 'personal.workspace.defaultSettingsView',
-        description: '설정 모드 진입 시 기본으로 열 보기 모드입니다.',
-        type: 'select',
-        options: [...SETTINGS_VIEW_MODE_OPTIONS],
-      },
-      {
-        key: 'personal.workspace.showDiffByDefault',
-        label: '설정 진입 시 Diff 우선 표시',
-        helpKey: 'personal.workspace.showDiffByDefault',
-        description: '활성화 시 설정 모드 진입 시 diff 보기로 시작합니다.',
-        type: 'checkbox',
-      },
-      {
-        key: 'personal.workspace.preferredStorageProvider',
-        label: '선호 저장소',
-        helpKey: 'personal.workspace.preferredStorageProvider',
-        description: '개인 작업 시 우선적으로 사용할 저장소입니다.',
-        type: 'select',
-        options: [...STORAGE_PROVIDER_OPTIONS],
-      },
-    ],
-  },
-  {
     id: 'viewer',
     scope: 'personal',
     group: 'personal',
+    surface: 'personal-settings',
+    settingKind: 'persisted-setting',
+    audience: 'user',
+    persistence: 'db',
     jsonPath: 'personal.viewer',
     label: 'Viewer',
     icon: FileSearch,
@@ -759,6 +821,10 @@ export const SETTING_SECTIONS: SettingSection[] = [
     id: 'sidebar',
     scope: 'personal',
     group: 'personal',
+    surface: 'personal-settings',
+    settingKind: 'persisted-setting',
+    audience: 'user',
+    persistence: 'db',
     jsonPath: 'personal.sidebar',
     label: 'Sidebar',
     icon: PanelLeft,

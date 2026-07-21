@@ -52,7 +52,7 @@ export function SettingsPage() {
     <div className="max-w-2xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">설정</h1>
-        {saved && <span className="text-xs text-emerald-600">저장됨</span>}
+        {saved && <span className="text-xs text-ssoo-success">저장됨</span>}
       </div>
 
       <Card>

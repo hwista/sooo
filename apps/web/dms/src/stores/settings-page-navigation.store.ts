@@ -1,12 +1,12 @@
 'use client';
 
 import { create } from 'zustand';
-import type { PreferredSettingsViewMode, SettingsScope, SettingsViewMode } from '@/types/settings';
+import type { SettingsScope } from '@/types/settings';
 import { isUserScopeTransition, registerUserScopedReset } from '@/lib/user-scope';
 import { useTabStore } from './tab.store';
 
 const DEFAULT_SECTION_BY_SCOPE: Record<SettingsScope, string> = {
-  system: 'git',
+  system: 'storage',
   personal: 'identity',
 };
 
@@ -17,8 +17,19 @@ function parseSettingsTabPath(path: string | null | undefined): { scope: Setting
     return null;
   }
 
-  const [, , scope, sectionId] = path.split('/');
+  const [, , scopeOrSurface, sectionId] = path.split('/');
+
+  const scope = scopeOrSurface;
   if ((scope !== 'system' && scope !== 'personal') || !sectionId) {
+    if (!sectionId) {
+      return null;
+    }
+    if (scopeOrSurface === 'personal-settings') {
+      return { scope: 'personal', sectionId };
+    }
+    if (scopeOrSurface === 'system-settings' || scopeOrSurface === 'operations' || scopeOrSurface === 'management') {
+      return { scope: 'system', sectionId };
+    }
     return null;
   }
 
@@ -29,11 +40,8 @@ interface SettingsPageNavigationState {
   isActive: boolean;
   activeScope: SettingsScope;
   activeSectionId: string;
-  activeViewMode: SettingsViewMode;
   lastSectionByScope: Record<SettingsScope, string>;
   preferredScope: SettingsScope;
-  preferredViewMode: PreferredSettingsViewMode;
-  preferredShowDiff: boolean;
 }
 
 interface SettingsPageNavigationActions {
@@ -42,11 +50,8 @@ interface SettingsPageNavigationActions {
   openSection: (scope: SettingsScope, sectionId: string) => void;
   setScope: (scope: SettingsScope) => void;
   setSection: (sectionId: string) => void;
-  setViewMode: (mode: SettingsViewMode) => void;
   applyWorkspacePreferences: (preferences: {
     defaultSettingsScope: SettingsScope;
-    defaultSettingsView: PreferredSettingsViewMode;
-    showDiffByDefault: boolean;
   }) => void;
 }
 
@@ -54,11 +59,8 @@ export const useSettingsPageNavigationStore = create<SettingsPageNavigationState
   isActive: false,
   activeScope: 'system',
   activeSectionId: DEFAULT_SECTION_BY_SCOPE.system,
-  activeViewMode: 'structured',
   lastSectionByScope: { ...DEFAULT_SECTION_BY_SCOPE },
   preferredScope: 'system',
-  preferredViewMode: 'structured',
-  preferredShowDiff: false,
 
   enterSettings: (scope) => {
     const nextScope = scope ?? get().preferredScope;
@@ -67,7 +69,6 @@ export const useSettingsPageNavigationStore = create<SettingsPageNavigationState
       isActive: true,
       activeScope: nextScope,
       activeSectionId: nextSectionId,
-      activeViewMode: get().preferredShowDiff ? 'diff' : get().preferredViewMode,
     });
   },
 
@@ -104,15 +105,9 @@ export const useSettingsPageNavigationStore = create<SettingsPageNavigationState
     }));
   },
 
-  setViewMode: (mode) => {
-    set({ activeViewMode: mode });
-  },
-
   applyWorkspacePreferences: (preferences) => {
     set({
       preferredScope: preferences.defaultSettingsScope,
-      preferredViewMode: preferences.defaultSettingsView,
-      preferredShowDiff: preferences.showDiffByDefault,
     });
   },
 }));
@@ -166,7 +161,6 @@ registerUserScopedReset((next, prev) => {
       isActive: false,
       activeScope: 'system',
       activeSectionId: DEFAULT_SECTION_BY_SCOPE.system,
-      activeViewMode: 'structured',
       lastSectionByScope: { ...DEFAULT_SECTION_BY_SCOPE },
     });
   }

@@ -117,7 +117,7 @@ function DocumentAclNotice({ message }: { message: string }) {
       role="note"
       aria-label="문서 권한 안내"
     >
-      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-ssoo-primary/15 bg-white/45 text-ssoo-primary/45">
+      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-ssoo-primary/15 bg-card/45 text-ssoo-primary/45">
         <ShieldCheck className="h-2.5 w-2.5" aria-hidden="true" />
       </span>
       <span>{message}</span>
@@ -1057,8 +1057,8 @@ export function DocumentPage() {
         const prevOutlineOffset = el.style.outlineOffset;
         const prevRadius = el.style.borderRadius;
         const prevPadding = el.style.padding;
-        el.style.backgroundColor = '#fef08a';
-        el.style.outline = '2px solid #fb923c';
+        el.style.backgroundColor = 'var(--ssoo-warning-background)';
+        el.style.outline = '2px solid var(--ssoo-warning-border)';
         el.style.outlineOffset = '1px';
         el.style.borderRadius = '2px';
         el.style.padding = '0 2px';
@@ -1099,11 +1099,11 @@ export function DocumentPage() {
               // 하이라이트 마크 삽입
               const mark = document.createElement('mark');
               mark.className = 'search-highlight';
-              mark.style.backgroundColor = '#fef08a';
+              mark.style.backgroundColor = 'var(--ssoo-warning-background)';
               mark.style.color = 'inherit';
               mark.style.borderRadius = '2px';
               mark.style.padding = '0 2px';
-              mark.style.outline = '2px solid #fb923c';
+              mark.style.outline = '2px solid var(--ssoo-warning-border)';
               mark.style.outlineOffset = '1px';
               range.surroundContents(mark);
               setTimeout(() => {
@@ -2063,8 +2063,8 @@ export function DocumentPage() {
     />
   ) : null;
   const conflictDiffViewerNode = surfaceMode === 'conflict' && saveConflict ? (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-md border border-amber-200 bg-white">
-      <div className="grid shrink-0 grid-cols-2 border-b border-ssoo-content-border bg-amber-50/70 text-caption font-medium text-ssoo-primary/80">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-md border border-ssoo-warning-border bg-card">
+      <div className="grid shrink-0 grid-cols-2 border-b border-ssoo-content-border bg-ssoo-warning-bg text-caption font-medium text-ssoo-primary/80">
         <div className="border-r border-ssoo-content-border px-4 py-2">최신 저장본</div>
         <div className="px-4 py-2">현재 초안</div>
       </div>
@@ -2399,12 +2399,12 @@ export function DocumentPage() {
           const contentBody = (
             <>
               {isEditorMode && saveConflict && surfaceMode !== 'conflict' ? (
-                <div className="mb-3 flex flex-wrap items-start gap-3 rounded-md border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
+                <div className="mb-3 flex flex-wrap items-start gap-3 rounded-md border border-ssoo-warning-border bg-ssoo-warning-bg px-4 py-3 text-sm text-ssoo-warning">
                   <div className="flex min-w-0 flex-1 items-start gap-2">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                     <div className="min-w-0">
                       <p className="font-medium">최신 저장본과 충돌했습니다.</p>
-                      <p className="text-amber-950/80">
+                      <p className="text-ssoo-warning">
                         최신 저장본과 현재 초안 비교 화면을 열어 두었습니다. 내용을 확인한 뒤 병합해서 다시 저장하세요.
                       </p>
                     </div>
@@ -2501,7 +2501,7 @@ export function DocumentPage() {
                 <div className="flex w-full items-center gap-1">
                   {surfaceMode === 'conflict' ? (
                     <>
-                      <div className="flex items-center gap-2 text-sm text-amber-900">
+                      <div className="flex items-center gap-2 text-sm text-ssoo-warning">
                         <AlertTriangle className="h-4 w-4" />
                         <span>최신 저장본과 현재 초안을 비교 중입니다.</span>
                       </div>

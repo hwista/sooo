@@ -16,6 +16,7 @@ describe('JwtStrategy session lifecycle validation', () => {
     const findUniqueCalls: unknown[] = [];
     const configService = {
       get: () => 'test-jwt-secret',
+      getOrThrow: () => 'test-jwt-secret',
     };
     const userService = {
       findAuthUserById: async () => activeUser,

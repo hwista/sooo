@@ -62,6 +62,7 @@ export interface SsooSettingsPageIndexOptions {
   title?: ReactNode;
   description?: ReactNode;
   ariaLabel?: string;
+  showItemMeta?: boolean;
   onItemSelect: (item: SsooPageIndexRailItem) => void;
 }
 
@@ -226,7 +227,7 @@ function createSettingsBreadcrumbSlot({
       items={items}
       lastItemLabel={breadcrumbLastItemLabel}
       rootIconSlot={breadcrumbRootIconSlot === undefined ? <Settings className="h-3.5 w-3.5" /> : breadcrumbRootIconSlot}
-      separatorSlot={<ChevronRight className="mx-1 h-3.5 w-3.5 shrink-0 text-gray-400" />}
+      separatorSlot={<ChevronRight className="mx-1 h-3.5 w-3.5 shrink-0 ssoo-text-primary-60" />}
       onRootClick={onBreadcrumbRootClick}
       onItemClick={onBreadcrumbItemClick}
       ariaLabel={breadcrumbAriaLabel ?? '설정 경로'}
@@ -246,6 +247,7 @@ function createSettingsIndexSlot(index?: SsooSettingsPageIndexOptions | null) {
       title={index.title}
       description={index.description}
       items={index.items}
+      showItemMeta={index.showItemMeta}
       onItemSelect={index.onItemSelect}
     />
   );
@@ -292,10 +294,9 @@ function buildSsooSettingsPageTemplateProps(
   store?: SsooSettingsPageHeaderActionStore,
 ): SsooContentPageTemplateProps {
   const breadcrumbSlot = createSettingsBreadcrumbSlot(props);
-  const title = props.title === undefined ? '설정' : props.title;
   const headerSlot = (
     <SsooSettingsPageHeader
-      title={title}
+      title={props.title}
       description={props.description}
       actions={props.headerActions}
       store={store}

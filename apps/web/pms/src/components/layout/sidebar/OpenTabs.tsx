@@ -1,6 +1,6 @@
 'use client';
 
-import { useTabStore } from '@/stores';
+import { useLayoutStore, useTabStore } from '@/stores';
 import { X } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
 import {
@@ -16,6 +16,7 @@ import {
  */
 export function OpenTabs() {
   const { tabs, activeTabId, activateTab, closeTab } = useTabStore();
+  const closeMobileMenu = useLayoutStore((state) => state.closeMobileMenu);
 
   // 홈 탭 제외 (항상 열려있는 고정 탭)
   const openTabs = tabs.filter((tab) => tab.path !== '/home');
@@ -51,7 +52,10 @@ export function OpenTabs() {
           />
         ) : null
       )}
-      onNodeSelect={(tab) => activateTab(tab.id)}
+      onNodeSelect={(tab) => {
+        activateTab(tab.id);
+        closeMobileMenu();
+      }}
       emptyState={<SsooSidebarEmptyState>열린 페이지가 없습니다.</SsooSidebarEmptyState>}
     />
   );

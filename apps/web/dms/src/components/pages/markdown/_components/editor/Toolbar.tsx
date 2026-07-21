@@ -150,7 +150,7 @@ function ToolbarOverflowGroup({
             <MoreHorizontal className="h-4 w-4" />
           </Button>
           {open && (
-            <div className="absolute left-0 top-full z-30 mt-1 flex items-center gap-1 rounded-lg border border-ssoo-content-border bg-white p-1 shadow-md">
+            <div className="absolute left-0 top-full z-30 mt-1 flex items-center gap-1 rounded-lg border border-ssoo-content-border bg-card p-1 shadow-md">
               {overflow.map((command) => {
                 const Icon = command.icon;
                 return (

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, RefreshCw, Save, ShieldCheck, X } from 'lucide-react';
+import { SsooSettingsPage, type SsooPageHeaderAction } from '@ssoo/web-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -157,10 +158,10 @@ function formatDateTime(value?: string | null): string {
 
 function StatusBadge({ value }: { value: string }) {
   const tone = value === 'pending'
-    ? 'bg-amber-100 text-amber-700'
+    ? 'bg-ssoo-warning-bg text-ssoo-warning'
     : value === 'approved'
-      ? 'bg-green-100 text-green-700'
-      : 'bg-gray-100 text-gray-600';
+      ? 'bg-ssoo-success-bg text-ssoo-success'
+      : 'bg-muted text-muted-foreground';
 
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${tone}`}>
@@ -184,7 +185,7 @@ function ToggleField({
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded border-slate-300"
+        className="h-4 w-4 rounded border-border"
       />
       {label}
     </label>
@@ -235,7 +236,7 @@ export function AuthPolicyPage() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setSaveError(null);
 
     try {
@@ -244,7 +245,7 @@ export function AuthPolicyPage() {
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : '인증 설정 저장에 실패했습니다.');
     }
-  };
+  }, [form, updateSettingsMutation]);
 
   const updateApprovalRole = (id: string, roleCode: string) => {
     setApprovalRoleByRequestId((current) => ({ ...current, [id]: roleCode }));
@@ -265,22 +266,46 @@ export function AuthPolicyPage() {
     await rejectMutation.mutateAsync({ id, data: { memo } });
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">인증 정책</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            로그인 provider, Microsoft 365 가입 신청, 비밀번호 재설정 정책을 관리합니다.
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => settingsQuery.refetch()}>
-          <RefreshCw className="mr-1 h-4 w-4" />
-          새로고침
-        </Button>
-      </div>
+  const headerActions: SsooPageHeaderAction[] = [
+    {
+      label: settingsQuery.isFetching ? '갱신 중...' : '새로고침',
+      icon: <RefreshCw className="h-4 w-4" />,
+      variant: 'outline',
+      onClick: () => {
+        void settingsQuery.refetch();
+      },
+      disabled: settingsQuery.isFetching,
+    },
+    {
+      label: updateSettingsMutation.isPending ? '저장 중...' : '저장',
+      icon: <Save className="h-4 w-4" />,
+      variant: 'default',
+      onClick: () => {
+        void handleSave();
+      },
+      disabled: settingsQuery.isLoading || updateSettingsMutation.isPending,
+    },
+  ];
 
-      <div className="rounded-lg border bg-card p-5">
+  return (
+    <SsooSettingsPage
+      filePath="admin/auth"
+      headerActions={{
+        extraActions: headerActions,
+        extraActionsPosition: 'right',
+      }}
+      index={{
+        ariaLabel: '인증 정책 항목 색인',
+        items: [
+          { id: 'admin-auth-login-settings', label: '로그인 설정' },
+          { id: 'admin-auth-registration-requests', label: '가입 신청' },
+        ],
+        onItemSelect: (item) => {
+          document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+      }}
+    >
+      <div id="admin-auth-login-settings" className="scroll-mt-4 rounded-lg border bg-card p-5">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold text-foreground">로그인 설정</h2>
@@ -290,7 +315,7 @@ export function AuthPolicyPage() {
           </div>
           <span
             className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-              runtimeReady ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+              runtimeReady ? 'bg-ssoo-success-bg text-ssoo-success' : 'bg-muted text-muted-foreground'
             }`}
           >
             <ShieldCheck className="mr-1 h-3.5 w-3.5" />
@@ -460,17 +485,11 @@ export function AuthPolicyPage() {
 
             {saveError ? <p className="text-sm text-destructive">{saveError}</p> : null}
 
-            <div className="flex justify-end">
-              <Button onClick={handleSave} disabled={updateSettingsMutation.isPending}>
-                <Save className="mr-1 h-4 w-4" />
-                {updateSettingsMutation.isPending ? '저장 중...' : '저장'}
-              </Button>
-            </div>
           </div>
         )}
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div id="admin-auth-registration-requests" className="scroll-mt-4 rounded-lg border bg-card">
         <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
           <div>
             <h2 className="text-lg font-semibold text-foreground">가입 신청</h2>
@@ -545,7 +564,7 @@ export function AuthPolicyPage() {
                           disabled={approveMutation.isPending || rolesQuery.isLoading || roles.length === 0}
                           onClick={() => approve(request.registrationRequestId)}
                         >
-                          <Check className="h-4 w-4 text-green-700" />
+                          <Check className="h-4 w-4 text-ssoo-success" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -567,6 +586,6 @@ export function AuthPolicyPage() {
           </Table>
         )}
       </div>
-    </div>
+    </SsooSettingsPage>
   );
 }

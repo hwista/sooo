@@ -6,6 +6,7 @@ import type {
 
 export type AiIndexSourceApp = CommonSearchSourceApp;
 export type AiIndexEntityType = CommonSearchEntityType | string;
+export type AiIndexSourceRegistrationStatus = 'registered' | 'missing_adapter';
 
 export type AiIndexJobType = 'upsert' | 'delete' | 'refresh' | 'backfill';
 export type AiIndexJobStatus = 'pending' | 'running' | 'indexed' | 'skipped' | 'failed' | 'cancelled';
@@ -196,6 +197,45 @@ export interface AiIndexJobRunSummary {
   results: AiIndexJobRunResult[];
 }
 
+export interface AiIndexJobSchedulerStatus {
+  enabled: boolean;
+  running: boolean;
+  intervalMs: number;
+  batchLimit: number;
+  runOnStart: boolean;
+  lastTrigger?: string;
+  lastStartedAt?: string;
+  lastFinishedAt?: string;
+  lastErrorMessage?: string;
+  lastRun?: AiIndexJobRunSummary;
+}
+
+export interface AiIndexJobQueueMetric {
+  sourceApp: AiIndexSourceApp;
+  jobType: AiIndexJobType;
+  jobStatus: AiIndexJobStatus;
+  count: number;
+  runnableCount: number;
+  retryWaitingCount: number;
+  exhaustedCount: number;
+  oldestRequestedAt?: string;
+  nextRetryAt?: string;
+  lastErrorMessage?: string;
+}
+
+export interface AiIndexJobQueueMetrics {
+  generatedAt: string;
+  sourceApp?: AiIndexSourceApp;
+  totalCount: number;
+  pendingCount: number;
+  runnableCount: number;
+  retryWaitingCount: number;
+  runningCount: number;
+  failedCount: number;
+  exhaustedCount: number;
+  metrics: AiIndexJobQueueMetric[];
+}
+
 export interface AiIndexApplyResult extends AiIndexObjectRef {
   objectId: string;
   status: AiIndexObjectStatus;
@@ -211,6 +251,9 @@ export interface AiIndexSourceStatus {
   sourceApp: AiIndexSourceApp;
   label: string;
   registered: boolean;
+  registrationStatus?: AiIndexSourceRegistrationStatus;
+  sourceKind?: string;
+  adapterCode?: string;
   active: boolean;
   indexingEnabled: boolean;
   keywordSearchEnabled: boolean;

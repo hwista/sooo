@@ -5,13 +5,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { upsertRequestDetailSchema } from '@/lib/validations/project';
 import type { UpsertRequestDetailInput } from '@/lib/validations/project';
-import { useProjectAccess, useUpsertRequestDetail } from '@/hooks/queries';
+import { useProjectAccess, useProjectMembers, useUpsertRequestDetail } from '@/hooks/queries';
 import { FormField } from '@/components/common';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Pencil, Save, X } from 'lucide-react';
 import type { ProjectRequestDetail } from '@/lib/api/endpoints/projects';
+import { formatPmsDate } from '@/lib/pms-format';
+import {
+  formatProjectMemberOwnerLabel,
+  ProjectMemberOwnerSelect,
+} from './ProjectMemberOwnerSelect';
 
 interface Props {
   projectId: number;
@@ -23,6 +28,7 @@ export function RequestDetailTab({ projectId, detail, onSaved }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const upsertMutation = useUpsertRequestDetail();
   const { data: accessResponse } = useProjectAccess(projectId);
+  const { data: membersResponse } = useProjectMembers(projectId);
   const canEditProject = accessResponse?.data?.features.canEditProject ?? false;
 
   const form = useForm<UpsertRequestDetailInput>({
@@ -37,6 +43,11 @@ export function RequestDetailTab({ projectId, detail, onSaved }: Props) {
       memo: detail?.memo ?? '',
     },
   });
+  const requestOwnerUserId = form.watch('requestOwnerUserId');
+  const requestOwnerLabel = formatProjectMemberOwnerLabel(
+    membersResponse?.data ?? [],
+    detail?.requestOwnerUserId,
+  );
 
   const handleSave = async (data: UpsertRequestDetailInput) => {
     try {
@@ -76,15 +87,15 @@ export function RequestDetailTab({ projectId, detail, onSaved }: Props) {
           </div>
           <div>
             <p className="text-muted-foreground mb-1">접수일</p>
-            <p>{detail?.requestReceivedAt ? new Date(detail.requestReceivedAt).toLocaleDateString() : '-'}</p>
+            <p>{formatPmsDate(detail?.requestReceivedAt)}</p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1">우선순위</p>
             <p>{detail?.requestPriorityCode || '-'}</p>
           </div>
           <div>
-            <p className="text-muted-foreground mb-1">담당자 ID</p>
-            <p>{detail?.requestOwnerUserId ? String(detail.requestOwnerUserId) : '-'}</p>
+            <p className="text-muted-foreground mb-1">담당자</p>
+            <p>{requestOwnerLabel}</p>
           </div>
           <div className="col-span-2 lg:col-span-3">
             <p className="text-muted-foreground mb-1">요청 요약</p>
@@ -133,8 +144,19 @@ export function RequestDetailTab({ projectId, detail, onSaved }: Props) {
         <FormField label="우선순위">
           <Input {...form.register('requestPriorityCode')} placeholder="예: high, normal, low" />
         </FormField>
-        <FormField label="담당자 ID">
-          <Input {...form.register('requestOwnerUserId')} placeholder="담당자 ID" />
+        <FormField label="담당자">
+          <ProjectMemberOwnerSelect
+            projectId={projectId}
+            value={requestOwnerUserId}
+            disabled={!canEditProject}
+            onChange={(userId) =>
+              form.setValue(
+                'requestOwnerUserId',
+                userId ? Number(userId) : undefined,
+                { shouldDirty: true, shouldTouch: true },
+              )
+            }
+          />
         </FormField>
         <div className="col-span-2 lg:col-span-3">
           <FormField label="요청 요약">

@@ -1,9 +1,139 @@
 # DMS 변경 이력
 
-> 최종 업데이트: 2026-06-22
+> 최종 업데이트: 2026-07-16
 > 참고: 이 문서는 historical entry 를 보존하므로, 과거 항목에는 sidecar-era terminology 가 남아 있을 수 있습니다.
 
 ---
+
+## 2026-07-16
+
+### DMS 의존성 공급망 하드닝
+
+- DMS의 DOMPurify, Mermaid, simple-git, Next.js를 advisory patched 버전으로 갱신하고 production dependency audit 경로를 전 등급 0으로 정리했습니다.
+- 브라우저 DMS에서 실제 import하지 않던 `xlsx` 선언을 제거했습니다. spreadsheet text extraction은 서버 경계가 SheetJS 공식 CDN의 0.20.3 tarball을 사용합니다.
+- Node.js 22.13+/Docker Node.js 22 LTS와 pnpm 11.13.1의 24시간 release-age strict gate, package/version 단위 install-script allowlist를 적용해 리뷰되지 않은 postinstall 실행을 실패 처리합니다.
+- 변경 후 peer dependency issue 0, 서버 build, 44 suite/358 server test를 통과했습니다.
+
+### Docker 프로덕션 구성 fail-closed 분리
+
+- 로컬 `compose.yaml + compose.local.yaml`과 공개 배포 `compose.yaml + compose.production.yaml`을 분리해, localhost용 insecure-production auth bypass가 프로덕션 기본값으로 흘러가지 않도록 정리했습니다.
+- `verify-production-compose-env.mjs`가 실제 값은 출력하지 않고 프로덕션 DB/auth 비밀값, HTTPS origin, secure cookie, 절대·서로 다른 DMS host path, `prod` Git role과 secure remote를 검증합니다.
+- 프로덕션 overlay는 PostgreSQL host port를 제거하고 API/웹 포트를 loopback에만 bind하며, root `.env`와 DMS `.env.local`을 컨테이너에 주입하지 않습니다.
+- 다섯 Next.js 이미지가 Admin/CRM/PMS/DMS/SNS 공개 URL을 모두 build/runtime 입력으로 받아 공개 환경의 교차 앱 링크가 localhost로 fallback하지 않도록 정렬했습니다.
+- 7개 Docker build에서 TLS 인증서 검증을 유지해 dependency/Prisma engine 다운로드가 정상 CA 검증을 통과해야만 진행되도록 했습니다.
+- 조직 TLS 프록시가 필요한 환경은 `SSOO_TLS_CA_CERT_FILE`의 승인 PEM root CA를 7개 build의 BuildKit secret으로 mount하고, runtime secret은 server/db-init에만 제공합니다. 모든 deps stage는 전체 workspace manifest를 먼저 고정한 뒤 filtered install하며 잠금형 pnpm store와 lockfile-keyed verification metadata cache를 공유합니다. 이 구조는 pnpm 11 pre-run dependency 상태와 최초 release-age·lockfile·install-script 검증을 유지하면서 검증된 동일 lockfile의 반복 registry 조회/tarball 다운로드만 줄이고, verifier는 각 build의 manifest/secret/cache 및 프로덕션 입력의 절대 경로·가독성·X.509 PEM 형식을 검사합니다.
+- 기존 DB에 암호화된 Microsoft client secret이 있으면 `AUTH_CONFIG_ENCRYPTION_KEY`를 임의 교체하지 않고, 통제된 재입력/재암호화 절차를 먼저 수행해야 합니다.
+- db-init trigger 완료 표는 `trg_*_h` 73개 부분 집합이 아니라 application schema의 non-internal trigger 전체를 표시합니다. 현재 trigger source contract 78개와 migration-managed CRM contract trigger를 합친 DB 총 79개가 모두 enabled인지 구분해 운영 총계 오해를 방지합니다.
+
+### DMS 브라우저 WebSocket origin 정렬
+
+- DMS Socket.IO client는 `NEXT_PUBLIC_WS_URL`이 명시되면 해당 origin을 우선하고, 없으면 absolute `NEXT_PUBLIC_API_URL`의 origin을 사용하도록 정리했습니다.
+- 두 공개 URL이 모두 없거나 API URL이 same-origin 상대 경로이면 현재 브라우저 hostname의 `4000` 포트로 fallback하며, HTTPS 화면에서는 HTTPS origin을 사용합니다.
+- DMS Docker build가 `DMS_NEXT_PUBLIC_API_URL`/`DMS_NEXT_PUBLIC_WS_URL`을 client bundle build argument로 전달하도록 compose와 Dockerfile을 정렬해, non-default API 포트에서도 HTTP와 WebSocket이 같은 서버를 가리키도록 했습니다.
+
+## 2026-07-15
+
+### DMS 파일 경로와 WebSocket 인증 하드닝
+
+- 문서/첨부 저장소 경로 containment가 문자열 기반 `..` 검사에 그치지 않고 기존 ancestor의 실제 경로를 해석하도록 보강해, 저장소 root 내부 symlink를 통한 외부 파일 읽기/쓰기를 차단했습니다.
+- DMS WebSocket handshake가 JWT 서명/만료만 확인하지 않고 HTTP 인증과 같은 active access-token session, 현재 사용자 상태, 조직 membership을 검증하도록 공용 auth service에 연결했습니다.
+- WebSocket 연결 전에 현재 permission foundation의 `dms.document.read`를 다시 확인해, DMS 읽기 권한이 없는 인증 사용자는 문서 room과 tree event를 구독할 수 없도록 고정했습니다.
+- symlink root 이탈과 revoked session/읽기 권한 없는 WebSocket 연결 거부를 서버 회귀 테스트로 추가했습니다.
+
+## 2026-07-10
+
+### 문서 목록 hydrate empty/error/retry 계약 보강
+
+- 신규 사용자 또는 권한 내 문서 0건 사용자는 문서 목록 오류가 아니라 파일 트리 empty state 로 종료하도록 계약을 명시했습니다.
+- 파일 트리 오류 상태에 `문서 목록 다시 불러오기` retry control 을 추가해 기존 사이드바 force sync 경로와 같은 `refreshFileTree({ forceSync: true })` 동선을 제공합니다.
+- `check:document-hydration-contract` 검증을 추가하고 DMS guard에 연결해, 문서 목록 hydrate retry/empty 계약과 Behavior Impact Gate 문서화가 누락되면 실패하도록 했습니다.
+
+### CRM 계약 결재선 정책 설정 UI
+
+- DMS 설정에 `CRM 계약 결재선` management section을 추가해 `system.crmContractApprovalRoute`의 route key/name, policy version, organization scope, required roles를 편집합니다.
+- DMS CRM 계약 lifecycle 실행은 `DmsCrmContractApprovalRoutePolicy` 설정을 읽어 승인자 matrix, approval route evidence, 결재선 원장 sync evidence를 생성합니다.
+- CRM은 이 결재선 정책을 직접 편집하지 않고 DMS governance evidence만 소비합니다.
+
+### CRM 계약 산출 정책 설정 UI
+
+- DMS 설정에 `CRM 계약 산출 정책` management section을 추가해 `system.crmContractExportPolicy`의 policy key/version, organization scope, markdown record root, storage artifact root를 편집합니다.
+- DMS CRM 계약 lifecycle 실행은 이 정책을 읽어 `export-policy.md`와 `dmsExecution.governance.exportPolicy`를 생성하고, markdown evidence와 DOCX/PDF artifact를 `root/organizationScope/contractCode` 경로 아래 산출합니다.
+- CRM은 산출 policy를 직접 편집하지 않고 DMS가 생성한 evidence path와 governance snapshot만 소비합니다.
+
+### CRM 견적 템플릿 검토 확정 UI
+
+- DMS 템플릿 metadata에 `reviewConfirmation`을 추가하고, `POST /dms/templates/:id/review-confirmation`으로 검토 확정 상태/확정자/확정일/메모를 저장합니다.
+- DMS 설정의 관리자 템플릿 목록은 `crm-quote-v1` 또는 `crm-quote-document` taskKey 템플릿에 검토 확정 badge와 액션을 표시합니다.
+- Next proxy `/api/templates/:id/review-confirmation`과 DMS template API client를 통해 설정 화면이 서버 템플릿 metadata를 직접 갱신합니다.
+
+### CRM 견적 markdown draft handoff + lifecycle artifact 실행
+
+- DMS 기본 시스템 템플릿 registry에 `crm-quote-v1` 견적서 markdown 템플릿을 추가하고, CRM 견적 preview가 active template 이름/상태/source path를 evidence로 표시합니다.
+- CRM 견적 preview가 준비된 경우 `POST /crm/opportunities/:id/quote-dms-document-draft`에서 DMS 파일 서비스에 markdown 초안을 저장하고 `crm.crm_quote_dms_handoff_m` snapshot으로 saved path를 남깁니다.
+- DMS에 `POST /dms/crm-quote-lifecycle/executions` 실행 경계를 추가해 CRM 견적 handoff markdown 초안과 `crm-quote-v1` 활성 템플릿을 검증한 뒤 template-version snapshot, template-review record, DOCX, PDF artifact를 생성합니다.
+- CRM `POST /crm/opportunities/:id/quote-dms-document-lifecycle-execution`은 DMS quote lifecycle 실행 결과를 active quote handoff lifecycle에 반영하고, `POST /crm/opportunities/:id/quote-dms-document-execution-evidence`는 외부 DMS 실행 결과의 template-review, DOCX, PDF evidence path도 같은 계약으로 수신합니다.
+- 이 범위는 CRM이 DMS 문서 정본을 소유하지 않는 handoff/evidence 수신 경계이며, 견적 템플릿 검토 확정 상태는 DMS 설정의 `reviewConfirmation` metadata로 관리합니다.
+
+### CRM 계약 governance evidence 표시
+
+- CRM `/contracts` DMS 문서 패킷 패널이 DMS lifecycle 실행 결과의 `dmsExecution.governance`를 읽어 템플릿 버전, 템플릿 변경 원장, 첨부 확정 원장, 결재선 원장, 승인자 matrix를 표시하도록 반영했습니다.
+- 이 표시는 CRM handoff evidence 소비 범위이며, 결재선 정책과 산출 정책 편집은 DMS 설정이 소유합니다.
+
+## 2026-07-09
+
+### CRM 계약 lifecycle artifact 실행 1차
+
+- DMS에 `POST /dms/crm-contract-lifecycle/executions` 실행 경계를 추가해 CRM 계약 handoff markdown 초안과 `crm-contract-v1` 활성 템플릿을 검증한 뒤 템플릿 버전 snapshot, active 템플릿 재사용/변경 검토 기록, 템플릿 검토 기록, 첨부 확인 기록, 첨부 확정 원장, DOCX, PDF, 단일 승인 기록, 승인 route policy 기록, 결재선 원장 동기화 기록, 다자 승인 workflow record artifact를 생성합니다.
+- CRM은 생성된 artifact URI와 evidence path만 handoff snapshot에 반영하며, DMS 파일/템플릿/승인 정본을 CRM 내부 소유로 복제하지 않습니다.
+- 템플릿 변경 요청 원장은 `template-change-request-ledger.md`와 `dmsExecution.governance.templateChangeRequestLedger`로 남기며, active 템플릿 재사용으로 변경 요청이 필요 없으면 `closed-without-change` entry로 닫습니다.
+- 첨부 확정 원장은 CRM handoff의 공급자 CI/청구계획 별첨 evidence를 `attachment-finalization-ledger.md`와 `dmsExecution.governance.attachmentFinalizationLedger`로 남기며, `attachment-confirmation` lifecycle step은 이 확정 원장을 evidence path로 수신합니다.
+- approval route는 공용 `cm_user_m`/`cm_user_org_r`/`cm_organization_m`을 조회해 실행 승인자의 사용자/조직 snapshot, `directorySyncStatus`, `directorySource`, `directorySyncedAt`, `resolvedActors`를 evidence로 보존합니다.
+- 결재선 원장 동기화 기록은 `approval-route-ledger.md`와 `dmsExecution.governance.approvalRouteLedger`로 남기며, 승인 route policy와 다자 승인 workflow artifact를 실행 시점의 원장 evidence로 묶습니다.
+- 이번 범위는 export policy record, active 템플릿 버전, 템플릿 변경 검토 상태, 템플릿 변경 요청 원장, 첨부 확정 원장, DMS 소유 승인 route policy, 공용 사용자/조직 directory snapshot, 결재선 원장 동기화 기록, 다자 승인 matrix evidence까지이며, 결재선 정책과 산출 정책 편집은 DMS 설정이 소유합니다.
+
+## 2026-07-08
+
+### 최종 페이지 UI style boundary 확장
+
+- `verify:ui-style-boundary` 범위를 DMS `globals.css`, `components/pages/**` 최종 페이지 내부까지 확장하고 raw `white`/`black` visual token도 차단했습니다.
+- DMS 문서 페이지의 링크 하이라이트, 충돌 배너, CodeMirror editor theme hex/raw 색상을 플랫폼 semantic token과 CSS variable 기반으로 정리했습니다.
+- 제어 가능한 editor/viewer surface는 raw hex나 Tailwind 색상 계열 대신 `--ssoo-*` token을 소비하도록 고정했습니다.
+
+## 2026-07-07
+
+### 전역 UI style boundary 적용
+
+- DMS 설정 템플릿 section의 Input/NativeSelect/Textarea className에서 원자 컴포넌트 recipe 재정의 성격의 border/text/focus class를 제거하고 layout-only override만 남겼습니다.
+- DMS page-frame adapter와 legacy activity section의 gray 직접 토큰을 semantic SSOO token으로 정리했습니다.
+- 인쇄/export HTML의 폰트 하드코딩을 `--font-sans`/`--font-mono` 기반으로 바꿔 제어 가능한 renderer도 플랫폼 font token을 따르도록 했습니다.
+- 앱 globals/Tailwind/domain reusable surface drift는 `verify:ui-style-boundary`에서 차단합니다.
+
+## 2026-07-06
+
+### 설정/운영/관리 surface 재분류
+
+- Admin 앱의 DMS 관측 route와 navigation entry를 제거해 DMS 문서 도메인의 운영·진단/제어 화면이 DMS 앱에만 위치하도록 정리했습니다.
+- DMS 설정 메뉴를 `문서 운영·진단`, `문서 시스템 설정`, `문서 관리`, `내 문서 환경 설정` surface로 재분류하고, tab path를 `/settings/{surface}/{sectionId}` 기준으로 현행화했습니다.
+- runtime-only section(`문서 저장소 상태`, `첨부 저장소 상태`, `수집 큐 상태`, `템플릿 저장 위치`)은 저장 action 없이 상태만 표시하고, DB-backed 설정 section만 저장 action을 노출합니다.
+- 외부 설정 링크 section과 visible workspace preference form을 제거하고, 개인 설정 화면은 identity/viewer/sidebar 중심으로 축소했습니다.
+- Admin의 인증 정책/권한 관리성 화면은 공용 `SsooSettingsPage` 템플릿을 소비하도록 맞춰 settings page template 기준을 Admin에도 적용하기 시작했습니다.
+
+### 설정 페이지 structured-only 정리
+
+- 설정 페이지 본문을 `PageTemplate`의 settings grouped layout으로 재정렬해 좌측 색인 rail과 우측 설정 surface가 하나의 가운데 정렬 그룹으로 붙어서 배치되도록 조정했습니다.
+- 좌측 색인 rail은 우측 설정 컨텐츠와 같은 border/radius surface를 사용하고, 텍스트/active 상태는 메인 sidebar 톤에 맞췄습니다.
+- 공용 `SsooSettingsPage`/`SsooPageIndexRail` 기본 스타일을 미니멀 기준으로 조정해 `설정` 기본 제목, `항목` rail title, section 설명, `개요`, scope/status badge, field 보조 설명을 자동 노출하지 않도록 정리했습니다.
+- DMS 설정 편집은 DB JSONB 설정값을 structured form으로만 주고받도록 고정하고, JSON/Diff 보기 전환 UI와 `defaultSettingsView`, `showDiffByDefault` 개인 설정 키를 제거했습니다.
+- 기존 DB에 남아 있을 수 있는 legacy 설정 view-mode 키는 `20260706103000_remove_dms_settings_view_mode` migration으로 정리합니다.
+
+## 2026-07-03
+
+### DMS 파일 트리 missing row 재활성화
+
+- DMS 부팅 hydration이 디스크에 실제 존재하는 기존 문서를 `missing` 상태로만 남겨 파일 트리가 빈 목록이 되는 흐름을 보정했습니다.
+- 기존 DB row가 `syncStatusCode=missing`이어도 markdown 파일이 런타임 문서 repo에 있으면 `DocumentRecordService.ensureDocumentRecord()`로 `active/synced` projection을 다시 맞춥니다.
+- 원격 Git parity 확인 실패 시 repo-wide deactivate는 계속 보류하지만, 로컬에 존재하는 문서의 read surface는 빈 목록으로 막히지 않도록 분리했습니다.
+- 문서에는 정식화된 것으로 기록됐지만 산출물에서 누락된 `dms.dm_chat_session_m` migration을 추가해 DMS 채팅 기록 API의 테이블 누락 오류를 제거했습니다.
 
 ## 2026-06-22
 
@@ -1079,7 +1209,7 @@
 ### 내보내기 UX + AI 스트리밍 자동 스크롤 정비
 
 - viewer 헤더 `내보내기` 버튼을 텍스트 버튼에서 `Share` icon-only 트리거로 정리하고, 드롭다운 패널/hover 스타일을 문서 영역 TOC 패턴과 맞추도록 조정
-- 페이지 헤더와 쉘 툴바에서 텍스트가 보이는 버튼/토글/드롭다운 항목의 타이포그래피를 `text-body-sm`로 통일하되, 채워진 헤더 액션 버튼은 기존처럼 `text-white` 가시성을 유지하도록 보정
+- 페이지 헤더와 쉘 툴바에서 텍스트가 보이는 버튼/토글/드롭다운 항목의 타이포그래피를 `text-body-sm`로 통일하되, 채워진 헤더 액션 버튼은 `text-primary-foreground`로 가시성을 유지하도록 보정
 - TOC/export 드롭다운 항목은 `text-body-sm font-normal`로 맞추고, TOC 레벨 차이는 들여쓰기와 색상만 유지하도록 정리
 - `템플릿 전환` 클릭 후 참조 템플릿 조회 중에는 메뉴 항목이 아니라 export trigger 자체를 spinner 상태로 전환해, 메뉴가 닫힌 뒤에도 진행 중임을 인지할 수 있도록 변경
 - 새 `/doc/new-template` 탭에서 AI 초안 생성이 시작되면 shell과 sidecar는 유지한 채, 본문 에디터 영역에만 반투명 overlay + 로딩 문구를 표시하도록 보강

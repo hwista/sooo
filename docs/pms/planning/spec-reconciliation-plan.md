@@ -489,7 +489,7 @@
 ### 현재 상태 요약
 
 1. 현재 PMS는 `Project.customerId`, `plantId`, `systemInstanceId`, `ownerOrganizationId` 를 개별 필드로 가집니다.
-2. 실제 제품 표면은 아직 `Customer` 만 강하게 구현되어 있고 `Plant/Site`, `System Instance`, `Integration` 은 공백이 큽니다.
+2. `Customer` 는 PMS 원장 편집 표면을 제거하고 프로젝트 생성/수정 및 기준정보 선택에 필요한 읽기 조회만 유지합니다. `Plant/Site`, `System Catalog`, `System Instance`, `Integration` 은 PMS 실행 자산 기준정보로 1차 스키마/API/조회 화면/시드, 관리자 생성·수정·비활성화 표면, JSON 기반 dry-run/apply 반입과 기존 코드 갱신 1차, CSV/TSV 업로드·컬럼 매핑·템플릿 다운로드·브라우저 로컬 매핑 재사용 1차, 서버 공유 매핑 프로필 CRUD/재사용·기본 지정 UI·이력 조회/복구 1차, 프로젝트 생성/수정 선택 검증 1차가 추가된 상태입니다. 단, 고객사 원장 편집과 공용 Organization cutover 는 아직 남아 있습니다.
 3. 새 설계는 외부 조직을 `Organization(scope=external)` 로 보고, 프로젝트와의 관계는 `ProjectOrg.role` 로 표현합니다.
 
 ### EXT-01. external org 는 common `Organization` 으로 수렴
@@ -535,10 +535,10 @@
 ### EXT-06. `Customer`, `Plant/Site`, `System Instance`, `Integration` 은 PMS domain breadth lane 으로 유지한다
 
 - auth/access foundation 은 공용 `Organization` 까지로 제한합니다.
-- `customerId` 는 당분간 **domain breadth anchor 이면서 `ProjectOrg(customer)` 의 compatibility source** 를 겸합니다.
-- `plantId` / `systemInstanceId` 는 실제 `Plant/Site` / `System Instance` master 가 생기기 전까지 direct project anchor 로 유지합니다.
+- `customerId` 는 당분간 **domain breadth anchor 이면서 `ProjectOrg(customer)` 의 compatibility source** 를 겸하되, PMS에서는 읽기 조회만 사용합니다.
+- `plantId` / `systemInstanceId` 는 1차 `Plant/Site` / `System Instance` master 와 연결되는 direct project anchor 로 유지합니다.
 - 따라서 `plant/system` 은 아직 `ProjectOrg` / `ProjectRelation` / generic breadth relation 으로 승격하지 않습니다.
-- future cutover 가 필요해도 first owner 는 PMS domain master 이고, `ProjectOrg` 는 actor lane 에만 머물도록 합니다.
+- future cutover 가 필요해도 Plant/System/Integration 의 first owner 는 PMS domain master 이고, 고객사 원장 편집은 CRM/Admin/공용 조직 책임으로 둡니다. `ProjectOrg` 는 actor lane 에만 머물도록 합니다.
 
 ### 장기 백로그 반영 (ProjectOrg / external breadth slice)
 
@@ -747,7 +747,7 @@ Implementation note (2026-04-16):
 3. PMS `DeliverablesTab` / `CloseConditionsTab` 은 event linkage 를 직접 편집하고, linked event 의 neutral rollup 요약까지 함께 보여줍니다. 다만 phase scope 나 handoff detail 은 아직 노출하지 않습니다.
 4. 단계 완료 readiness 는 `checkTransitionReadiness()` 가 **status-level aggregate** 로 계속 계산하고, event 단위에서는 additive rollup mini-summary 를 함께 노출합니다.
 5. handoff 쪽은 standalone `ProjectHandoff` + `Project` inline latest summary 가 이미 존재하지만, PMS 클라이언트에는 아직 handoff 전용 hook/API surface 가 없어 event 와의 1:1 binding 을 전제로 한 UI 는 바로 구현할 수 없습니다.
-6. deliverable completion 판정도 현재 UI label(`not_submitted/submitted/confirmed/rejected`) 과 server helper(`approved/not_required`) 사이 vocabulary drift 가 있으므로, 다음 rollup 은 새로운 review-only 상태를 만들기보다 **neutral completed/pending aggregate + raw by-status count** 를 우선 노출하는 편이 안전합니다.
+6. deliverable completion 판정은 현재 `confirmed`/`approved`/`not_required`를 완료로 인정하고, 호환 입력 `before_submit`/`final`은 저장 시 표준 상태로 정규화합니다. 따라서 다음 rollup 은 새로운 review-only 상태를 만들기보다 **neutral completed/pending aggregate + raw by-status count** 를 우선 노출하는 편이 안전합니다.
 
 ### 결정
 
@@ -815,6 +815,7 @@ Implementation note (2026-04-16):
 
 | Date | Change |
 |------|--------|
+| 2026-07-06 | PMS 고객사 원장 편집 표면을 제거한 상태를 ProjectOrg/external breadth 기준선에 반영하고, Customer 는 읽기 조회로만 유지한다고 명시했다. |
 | 2026-04-16 | 계획 문서를 세션 전용 plan 에서 레포 planning 문서로 승격하고, `Organization / OrgMember` 를 다음 상세 설계 slice 로 고정. DMS/shared access 통합 맥락 재검토를 선행 조건으로 명시. |
 | 2026-04-16 | `Organization / OrgMember` 검토 범위를 DMS 단독 맥락이 아니라 PMS/SNS/DMS 공통 user/auth/access foundation 으로 확장하고, cross-app runtime parity 를 선행 검토 기준으로 명시. |
 | 2026-04-16 | shared auth/access foundation 과 PMS/SNS/DMS 도메인 특화 권한 해석의 경계를 구분하고, `Organization / OrgMember` 검토가 이 공용/도메인 경계를 보존해야 한다는 기준을 추가. |

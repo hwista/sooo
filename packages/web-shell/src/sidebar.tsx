@@ -189,13 +189,13 @@ function SsooSidebarBrandHeader({
       {(!collapsed || revealOnHover) && (
         <div className={cn('min-w-0 items-center gap-2', shouldHideBrandUntilHover ? 'hidden group-hover/sidebar:flex' : 'flex')}>
           {mark ?? (
-            <div className={cn('flex shrink-0 items-center justify-center rounded bg-white', revealOnHover ? 'h-8 w-8' : 'h-9 w-9')}>
+            <div className={cn('flex shrink-0 items-center justify-center rounded bg-card', revealOnHover ? 'h-8 w-8' : 'h-9 w-9')}>
               <span className={cn('font-bold text-ssoo-primary', revealOnHover ? 'text-sm' : 'text-base')}>S</span>
             </div>
           )}
           <div className={cn('min-w-0 leading-5 transition-opacity duration-200', revealOnHover && 'opacity-0 group-hover/sidebar:opacity-100')}>
-            <div className="truncate text-lg font-semibold text-white">{title}</div>
-            {subtitle ? <div className="truncate text-xs text-white/60">{subtitle}</div> : null}
+            <div className="truncate text-lg font-semibold text-primary-foreground">{title}</div>
+            {subtitle ? <div className="truncate text-xs text-primary-foreground/60">{subtitle}</div> : null}
           </div>
         </div>
       )}
@@ -258,7 +258,7 @@ export function SsooSidebarSearchBox({
     <div className={cn('relative flex-1', className)}>
       {hasIcon ? (
         <div className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2">
-          {iconSlot ?? (Icon ? <Icon className="h-4 w-4 text-gray-400" /> : null)}
+          {iconSlot ?? (Icon ? <Icon className="h-4 w-4 text-muted-foreground" /> : null)}
         </div>
       ) : null}
       <Input
@@ -274,7 +274,7 @@ export function SsooSidebarSearchBox({
         onBlur={onBlur}
         onKeyDown={onKeyDown}
         className={cn(
-          'h-control-h w-full rounded-lg border border-ssoo-content-border bg-white text-sm text-gray-700 outline-none transition focus:border-transparent focus:ring-2 focus:ring-ssoo-primary disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500',
+          'h-control-h w-full rounded-lg border border-ssoo-content-border bg-card text-sm text-muted-foreground outline-none transition focus:border-transparent focus:ring-2 focus:ring-ssoo-primary disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground',
           hasIcon ? 'pl-8' : 'pl-3',
           hasTrailingControl ? 'pr-8' : 'pr-3',
           inputClassName
@@ -285,7 +285,7 @@ export function SsooSidebarSearchBox({
           type="button"
           onMouseDown={(event) => event.preventDefault()}
           onClick={onClear}
-          className="absolute right-2 top-1/2 flex h-control-h-sm w-control-h-sm -translate-y-1/2 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="absolute right-2 top-1/2 flex h-control-h-sm w-control-h-sm -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-muted-foreground"
           aria-label={clearLabel}
         >
           {ClearIcon ? <ClearIcon className="h-3.5 w-3.5" /> : <span aria-hidden className="text-sm leading-none">×</span>}
@@ -300,7 +300,7 @@ interface SsooSidebarToolbarProps {
 }
 
 function SsooSidebarToolbar({ children }: SsooSidebarToolbarProps) {
-  return <div className="shrink-0 border-b border-gray-200 p-2">{children}</div>;
+  return <div className="shrink-0 border-b border-border p-2">{children}</div>;
 }
 
 interface SsooSidebarToolbarActionProps {
@@ -359,10 +359,10 @@ function SsooSidebarFooter({
   revealOnHover = false,
 }: SsooSidebarFooterProps) {
   const fullContent = (
-    <div className="space-y-0.5 text-xs text-gray-500">
-      {title ? <div className="font-medium text-gray-600">{title}</div> : null}
+    <div className="space-y-0.5 text-xs text-muted-foreground">
+      {title ? <div className="font-medium text-muted-foreground">{title}</div> : null}
       {description ? <div>{description}</div> : null}
-      {meta ? <div className="text-[10px] text-gray-400">{meta}</div> : null}
+      {meta ? <div className="text-caption-xs text-muted-foreground">{meta}</div> : null}
     </div>
   );
 
@@ -370,11 +370,11 @@ function SsooSidebarFooter({
     <div className="shrink-0 border-t border-ssoo-content-border bg-ssoo-content-bg px-3 py-2">
       {revealOnHover ? (
         <>
-          <div className="text-center text-[10px] text-gray-400 group-hover/sidebar:hidden">{collapsedLabel}</div>
+          <div className="text-center text-caption-xs text-muted-foreground group-hover/sidebar:hidden">{collapsedLabel}</div>
           <div className="hidden group-hover/sidebar:block">{fullContent}</div>
         </>
       ) : collapsed ? (
-        <div className="text-center text-[10px] text-gray-400">{collapsedLabel}</div>
+        <div className="text-center text-caption-xs text-muted-foreground">{collapsedLabel}</div>
       ) : (
         fullContent
       )}
@@ -440,6 +440,7 @@ export interface SsooSidebarSurfaceProps {
   expanded: boolean;
   onToggleCollapse: () => void;
   toggleIcon: SsooSidebarIcon;
+  toggleLabel?: string;
   width?: number | string;
   collapsedWidth?: number | string;
   brandTitle?: ReactNode;
@@ -457,6 +458,7 @@ export function SsooSidebarSurface({
   expanded,
   onToggleCollapse,
   toggleIcon: ToggleIcon,
+  toggleLabel,
   width,
   collapsedWidth,
   brandTitle = 'SSOT',
@@ -479,7 +481,7 @@ export function SsooSidebarSurface({
       disabled={brandAction.disabled}
       aria-label={brandAction.label}
       title={brandAction.label}
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-white text-ssoo-primary transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-card text-ssoo-primary transition-colors hover:bg-primary-foreground/90 disabled:cursor-not-allowed disabled:opacity-60"
     >
       <BrandActionIcon className="h-4 w-4" />
     </Button>
@@ -596,10 +598,11 @@ export function SsooSidebarSurface({
             <Button variant="plain" size="plain"
               type="button"
               onClick={onToggleCollapse}
-              className="rounded-lg p-2 transition-colors hover:bg-white/10"
-              title={isCollapsed ? '펼치기' : '접기'}
+              className="rounded-lg p-2 transition-colors hover:bg-primary-foreground/10"
+              title={toggleLabel ?? (isCollapsed ? '펼치기' : '접기')}
+              aria-label={toggleLabel ?? (isCollapsed ? '펼치기' : '접기')}
             >
-              <ToggleIcon className="h-5 w-5 text-white" />
+              <ToggleIcon className="h-5 w-5 text-primary-foreground" />
             </Button>
           }
         />
@@ -617,7 +620,7 @@ export interface SsooSidebarDividerProps {
 }
 
 export function SsooSidebarDivider({ className }: SsooSidebarDividerProps) {
-  return <div role="separator" className={cn('h-px bg-gray-200', className)} />;
+  return <div role="separator" className={cn('h-px bg-muted', className)} />;
 }
 
 export interface SsooSidebarEmptyStateProps {
@@ -643,13 +646,13 @@ export function SsooSidebarBadge({ children, tone = 'neutral', className }: Ssoo
   return (
     <span
       className={cn(
-        'inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none',
-        tone === 'neutral' && 'bg-gray-100 text-gray-600',
+        'inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-caption-xs font-medium leading-none',
+        tone === 'neutral' && 'bg-muted text-muted-foreground',
         tone === 'primary' && 'bg-ssoo-primary/10 text-ssoo-primary',
-        tone === 'success' && 'bg-green-100 text-green-700',
-        tone === 'warning' && 'bg-amber-100 text-amber-700',
+        tone === 'success' && 'bg-ssoo-success-bg text-ssoo-success',
+        tone === 'warning' && 'bg-ssoo-warning-bg text-ssoo-warning',
         tone === 'danger' && 'bg-ls-red/10 text-ls-red',
-        tone === 'muted' && 'bg-transparent text-gray-400',
+        tone === 'muted' && 'bg-transparent text-muted-foreground',
         className
       )}
     >
@@ -681,7 +684,7 @@ export function SsooSidebarState({
     <div
       className={cn(
         'px-3 py-4 text-center text-sm',
-        variant === 'error' ? 'text-red-500' : 'text-gray-400',
+        variant === 'error' ? 'text-ssoo-danger' : 'text-muted-foreground',
         className
       )}
     >
@@ -689,7 +692,7 @@ export function SsooSidebarState({
         <span className="inline-flex items-center justify-center gap-2">
           <span
             aria-hidden
-            className="h-4 w-4 animate-spin rounded-full border-2 border-gray-200 border-t-ssoo-primary"
+            className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-ssoo-primary"
           />
           <span>{content}</span>
         </span>
@@ -715,11 +718,11 @@ export function SsooSidebarSectionNote({
     <div
       className={cn(
         'px-3 pb-1 text-caption',
-        tone === 'danger' && 'text-red-600',
-        tone === 'warning' && 'text-amber-600',
+        tone === 'danger' && 'text-ssoo-danger',
+        tone === 'warning' && 'text-ssoo-warning',
         tone === 'primary' && 'text-ssoo-primary',
-        tone === 'success' && 'text-green-700',
-        (tone === 'neutral' || tone === 'muted') && 'text-gray-500',
+        tone === 'success' && 'text-ssoo-success',
+        (tone === 'neutral' || tone === 'muted') && 'text-muted-foreground',
         className
       )}
     >
@@ -764,7 +767,7 @@ export function SsooSidebarSection({
   );
 
   return (
-    <section className={cn('border-b border-gray-200', className)}>
+    <section className={cn('border-b border-border', className)}>
       {collapsible ? (
         <Button
           variant="plain"
@@ -819,11 +822,11 @@ export interface SsooSidebarTreeNodeIconProps {
 
 function getSidebarIconToneClass(tone: SsooSidebarBadgeTone, active: boolean, filled: boolean): string {
   if (tone === 'primary') return cn('text-ssoo-primary', filled && 'fill-ssoo-primary');
-  if (tone === 'success') return cn('text-green-700', filled && 'fill-green-600');
-  if (tone === 'warning') return cn('text-yellow-400', filled && 'fill-yellow-400');
-  if (tone === 'danger') return cn('text-red-500', filled && 'fill-red-500');
-  if (tone === 'muted') return cn('text-gray-400', filled && 'fill-gray-400');
-  return cn(active ? 'text-ssoo-primary' : 'text-gray-500', filled && 'fill-current');
+  if (tone === 'success') return cn('text-ssoo-success', filled && 'fill-ssoo-success');
+  if (tone === 'warning') return cn('text-ssoo-warning', filled && 'fill-ssoo-warning');
+  if (tone === 'danger') return cn('text-ssoo-danger', filled && 'fill-ssoo-danger');
+  if (tone === 'muted') return cn('text-muted-foreground', filled && 'fill-ssoo-neutral');
+  return cn(active ? 'text-ssoo-primary' : 'text-muted-foreground', filled && 'fill-current');
 }
 
 export function SsooSidebarTreeNodeIcon({
@@ -877,7 +880,7 @@ export function SsooSidebarTreeActionButton({
       aria-label={label}
       title={title ?? label}
       className={cn(
-        'flex h-control-h-sm w-control-h-sm items-center justify-center rounded opacity-0 transition-opacity hover:bg-gray-200 group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60',
+        'flex h-control-h-sm w-control-h-sm items-center justify-center rounded opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60',
         active && 'opacity-100',
         className
       )}
@@ -907,13 +910,13 @@ export function SsooSidebarTreeStatusBadge({
   return (
     <span
       className={cn(
-        'max-w-16 truncate text-[10px] font-medium',
-        tone === 'danger' && 'text-red-600',
-        tone === 'warning' && 'text-amber-600',
+        'max-w-16 truncate text-caption-xs font-medium',
+        tone === 'danger' && 'text-ssoo-danger',
+        tone === 'warning' && 'text-ssoo-warning',
         tone === 'primary' && 'text-ssoo-primary',
-        tone === 'success' && 'text-green-700',
-        tone === 'neutral' && 'text-gray-600',
-        tone === 'muted' && 'text-gray-400',
+        tone === 'success' && 'text-ssoo-success',
+        tone === 'neutral' && 'text-muted-foreground',
+        tone === 'muted' && 'text-muted-foreground',
         className
       )}
     >
@@ -1011,7 +1014,7 @@ function SsooSidebarTreeNode<TNode>({
       <div
         className={cn(
           'group flex h-control-h w-full min-w-0 items-center gap-1 rounded-md pr-2 text-sm transition-colors',
-          active ? 'bg-ssoo-content-border font-medium text-ssoo-primary' : 'text-gray-700 hover:bg-ssoo-sitemap-bg',
+          active ? 'bg-ssoo-content-border font-medium text-ssoo-primary' : 'text-muted-foreground hover:bg-ssoo-sitemap-bg',
           disabled && 'cursor-not-allowed opacity-50 hover:bg-transparent'
         )}
         style={{ paddingLeft: `${8 + level * SSOO_SIDEBAR_TREE_INDENT_STEP}px` }}
@@ -1030,7 +1033,7 @@ function SsooSidebarTreeNode<TNode>({
           {folder && hasChildren && DisclosureIcon ? (
             <DisclosureIcon
               className={cn(
-                'h-4 w-4 shrink-0 text-gray-400 transition-transform',
+                'h-4 w-4 shrink-0 text-muted-foreground transition-transform',
                 expanded && 'rotate-90'
               )}
             />
@@ -1040,7 +1043,7 @@ function SsooSidebarTreeNode<TNode>({
           {nodeIcon}
           <span
             title={getNodeTitle?.(node)}
-            className={cn('min-w-0 flex-1 truncate', active ? 'text-ssoo-primary' : 'text-gray-700')}
+            className={cn('min-w-0 flex-1 truncate', active ? 'text-ssoo-primary' : 'text-muted-foreground')}
           >
             {getNodeLabel(node)}
           </span>

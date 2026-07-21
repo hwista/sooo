@@ -13,6 +13,7 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { UserModule } from '../user/user.module.js';
 import { AccessFoundationModule } from '../access/access-foundation.module.js';
 import { DatabaseModule } from '../../../database/database.module.js';
+import { getRequiredJwtExpiry, getRequiredJwtSecret } from './jwt-config.js';
 
 @Module({
   imports: [
@@ -22,9 +23,9 @@ import { DatabaseModule } from '../../../database/database.module.js';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', { infer: true }),
+        secret: getRequiredJwtSecret(configService, 'JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_ACCESS_EXPIRES_IN', { infer: true }),
+          expiresIn: getRequiredJwtExpiry(configService, 'JWT_ACCESS_EXPIRES_IN'),
         },
       }),
     }),

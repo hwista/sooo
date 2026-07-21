@@ -1,10 +1,11 @@
 'use client';
 
 import type { MouseEvent } from 'react';
-import { useMemo } from 'react';
-import { ChevronRight, Folder, FolderOpen, FileText, File, FileCode, FileJson, ImageIcon, Bookmark } from 'lucide-react';
-import { useAuthStore, useFileStore, useSidebarStore, useTabStore, useActiveEditorFilePath } from '@/stores';
+import { useMemo, useState } from 'react';
+import { ChevronRight, Folder, FolderOpen, FileText, File, FileCode, FileJson, ImageIcon, Bookmark, RefreshCw } from 'lucide-react';
+import { useAccessStore, useAuthStore, useFileStore, useSidebarStore, useTabStore, useActiveEditorFilePath } from '@/stores';
 import { useOpenDocumentTab } from '@/hooks';
+import { Button } from '@/components/ui/button';
 import { getFileNodeDisplayTitle } from '@/lib/utils/fileTree';
 import type { FileNode } from '@/types';
 import {
@@ -63,12 +64,14 @@ function sortNodes(nodes: readonly FileNode[]): FileNode[] {
  */
 export function FileTree() {
   const currentUserId = useAuthStore((state) => state.user?.userId ?? null);
+  const canReadDocuments = useAccessStore((state) => state.snapshot?.features.canReadDocuments ?? false);
   const {
     files,
     filesOwnerUserId,
     isLoading,
     isInitialized,
     error,
+    refreshFileTree,
     addBookmark,
     removeBookmark,
     isBookmarked,
@@ -82,9 +85,11 @@ export function FileTree() {
   const activeTabId = useTabStore(state => state.activeTabId);
   const currentFilePath = useActiveEditorFilePath(activeTabId);
   const openDocumentTab = useOpenDocumentTab();
+  const [isRetrying, setIsRetrying] = useState(false);
   const isCurrentFileTree = Boolean(currentUserId && filesOwnerUserId === currentUserId);
   const isScopedInitialized = isInitialized && isCurrentFileTree;
   const shouldShowLoading = isLoading || Boolean(currentUserId && !isScopedInitialized && !error);
+  const canRetry = Boolean(currentUserId && canReadDocuments && !isLoading);
   
   const displayTree = useMemo(() => {
     const sourceFiles = isCurrentFileTree ? files : [];
@@ -128,6 +133,19 @@ export function FileTree() {
     });
   };
 
+  const handleRetry = async () => {
+    if (!canRetry) {
+      return;
+    }
+
+    setIsRetrying(true);
+    try {
+      await refreshFileTree({ forceSync: true });
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   if (shouldShowLoading) {
     return (
       <SsooSidebarState variant="loading">
@@ -138,8 +156,23 @@ export function FileTree() {
 
   if (error) {
     return (
-      <SsooSidebarState variant="error">
-        {error}
+      <SsooSidebarState variant="error" className="space-y-2">
+        <p>{error}</p>
+        <p className="text-caption text-muted-foreground">
+          문서가 있어야 하는데 보이지 않으면 목록을 다시 동기화하세요.
+        </p>
+        {canRetry ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            onClick={handleRetry}
+            disabled={isRetrying}
+          >
+            <RefreshCw className={isRetrying ? 'animate-spin' : undefined} />
+            문서 목록 다시 불러오기
+          </Button>
+        ) : null}
       </SsooSidebarState>
     );
   }
@@ -147,7 +180,7 @@ export function FileTree() {
   if (displayTree.length === 0) {
     return (
       <SsooSidebarEmptyState>
-        파일이 없습니다.
+        표시할 문서가 없습니다.
       </SsooSidebarEmptyState>
     );
   }
@@ -193,7 +226,7 @@ export function FileTree() {
       onNodeSelect={handleNodeSelect}
       sortChildren={sortNodes}
       disclosureIcon={ChevronRight}
-      emptyState={<SsooSidebarEmptyState>파일이 없습니다.</SsooSidebarEmptyState>}
+      emptyState={<SsooSidebarEmptyState>표시할 문서가 없습니다.</SsooSidebarEmptyState>}
     />
   );
 }

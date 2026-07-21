@@ -20,7 +20,7 @@ interface UserMenuProps {
 /**
  * 사용자 프로필 드롭다운 메뉴
  * - 사용자 정보 표시 (loginId)
- * - 설정 (준비 중)
+ * - 개인 설정
  * - 로그아웃
  */
 export function UserMenu({ dropdownWidth }: UserMenuProps) {

@@ -5,8 +5,8 @@ import type { TokenPayload } from '../../src/modules/common/auth/interfaces/auth
 const tokenFor = (userId = '42'): TokenPayload => ({
   userId,
   loginId: `user-${userId}`,
-  roleCode: 'user',
   sessionId: `session-${userId}`,
+  type: 'access',
 });
 
 function createClient(user = tokenFor()) {
@@ -21,11 +21,23 @@ function createClient(user = tokenFor()) {
 }
 
 describe('DmsEventsGateway', () => {
+  function createGateway(documentAclService: object) {
+    return new DmsEventsGateway(
+      documentAclService as never,
+      { validateToken: jest.fn(async () => tokenFor()) } as never,
+      {
+        getAccessSnapshot: jest.fn(async () => ({
+          features: { canReadDocuments: true },
+        })),
+      } as never,
+    );
+  }
+
   it('subscribes readable markdown documents to their document room', () => {
     const documentAclService = {
       isReadableAbsolutePath: jest.fn(() => true),
     };
-    const gateway = new DmsEventsGateway(documentAclService as never);
+    const gateway = createGateway(documentAclService);
     const client = createClient();
 
     const result = gateway.handleSubscribeDocument(client as never, { path: '/docs/a.md' });
@@ -43,7 +55,7 @@ describe('DmsEventsGateway', () => {
     const documentAclService = {
       isReadableAbsolutePath: jest.fn(() => false),
     };
-    const gateway = new DmsEventsGateway(documentAclService as never);
+    const gateway = createGateway(documentAclService);
     const client = createClient();
 
     const result = gateway.handleSubscribeDocument(client as never, { path: 'secret/a.md' });
@@ -57,7 +69,7 @@ describe('DmsEventsGateway', () => {
     const documentAclService = {
       isReadableAbsolutePath: jest.fn(() => true),
     };
-    const gateway = new DmsEventsGateway(documentAclService as never);
+    const gateway = createGateway(documentAclService);
     const client = createClient();
 
     const result = gateway.handleSubscribeDocument(client as never, { path: 'assets/a.png' });
@@ -65,5 +77,45 @@ describe('DmsEventsGateway', () => {
     expect(result).toEqual({ success: false, error: 'forbidden' });
     expect(documentAclService.isReadableAbsolutePath).not.toHaveBeenCalled();
     expect(client.join).not.toHaveBeenCalled();
+  });
+
+  it('rejects a WebSocket connection when the access-token session is no longer active', async () => {
+    const gateway = new DmsEventsGateway(
+      { isReadableAbsolutePath: jest.fn(() => true) } as never,
+      { validateToken: jest.fn(async () => null) } as never,
+      { getAccessSnapshot: jest.fn() } as never,
+    );
+    const client = {
+      id: 'socket-1',
+      handshake: { auth: { token: 'revoked-token' }, headers: {} },
+      data: {},
+      disconnect: jest.fn(),
+    };
+
+    await gateway.handleConnection(client as never);
+
+    expect(client.disconnect).toHaveBeenCalledWith(true);
+  });
+
+  it('rejects a WebSocket connection without DMS document read permission', async () => {
+    const gateway = new DmsEventsGateway(
+      { isReadableAbsolutePath: jest.fn(() => true) } as never,
+      { validateToken: jest.fn(async () => tokenFor()) } as never,
+      {
+        getAccessSnapshot: jest.fn(async () => ({
+          features: { canReadDocuments: false },
+        })),
+      } as never,
+    );
+    const client = {
+      id: 'socket-2',
+      handshake: { auth: { token: 'valid-token' }, headers: {} },
+      data: {},
+      disconnect: jest.fn(),
+    };
+
+    await gateway.handleConnection(client as never);
+
+    expect(client.disconnect).toHaveBeenCalledWith(true);
   });
 });

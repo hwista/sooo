@@ -32,11 +32,13 @@ BEGIN
   INSERT INTO pms.pr_deliverable_group_h (
     deliverable_group_id, history_seq, event_type, event_at,
     group_code, group_name, description, sort_order,
+    approval_status_code, version_no, approved_by, approved_at,
     is_active, memo, created_by, created_at, updated_by, updated_at,
     last_source, last_activity, transaction_id
   ) VALUES (
     v_record.deliverable_group_id, v_history_seq, v_event_type, NOW(),
     v_record.group_code, v_record.group_name, v_record.description, v_record.sort_order,
+    v_record.approval_status_code, v_record.version_no, v_record.approved_by, v_record.approved_at,
     v_record.is_active, v_record.memo, v_record.created_by, v_record.created_at, v_record.updated_by, v_record.updated_at,
     v_record.last_source, v_record.last_activity, v_record.transaction_id
   );

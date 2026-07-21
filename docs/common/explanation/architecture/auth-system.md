@@ -1,6 +1,6 @@
 # 인증 시스템 (Authentication)
 
-> 최종 업데이트: 2026-06-16
+> 최종 업데이트: 2026-07-16
 
 ## 1. 개요
 
@@ -242,6 +242,7 @@ useEffect(() => {
 | 앱 | Stage 1 bootstrap | Stage 2 bootstrap | 실제 초기화 반영 |
 |----|-------------------|-------------------|------------------|
 | PMS | `GET /api/menus/my` | `GET /api/projects/:id/access` (프로젝트 상세 진입 시 on-demand) | `access.store` 가 bootstrap lifecycle 을 관리하고, `menu.store` 가 navigation-centric snapshot 을 실제 메뉴/즐겨찾기/live navigation state로 반영 |
+| CRM | `GET /api/crm/opportunities/access/me` | `GET /api/crm/opportunities/:id/access` (영업기회 상세 진입 시 on-demand) | opportunity list/detail/quote-preview 는 role permission 으로 보호하고, selected opportunity capability 로 등록/수정/확정/차수 추가 action 을 노출 또는 disabled 처리 |
 | SNS | `GET /api/sns/access/me` | N/A | feed/board/search/profile 등 SNS baseline feature gate 와 visibility policy bootstrap |
 | DMS | `GET /api/dms/access/me` (`/api/access` proxy) | 문서별 ACL 해석은 file/content/search/ask/binary/storage-open runtime 에서 수행 | 파일 트리 bootstrap, assistant surface 노출, server-filtered document payload 소비 |
 
@@ -256,7 +257,9 @@ PMS project detail 은 이 navigation snapshot 위에 `GET /api/projects/:id/acc
 - 서버: project-scoped PMS route 는 `ProjectFeatureGuard` + `RequireProjectFeature(...)` 로 capability guard 를 공통화해 SNS/DMS의 feature guard 패턴과 같은 방식으로 보호합니다.
 - 웹: `access.store` / `menu.store` 는 여전히 navigation snapshot 을 소비하고, object-level capability 는 project detail 진입 시 `/api/projects/:id/access` 로 별도 hydrate 합니다.
 
-정리하면, **SNS/DMS access snapshot** 과 **PMS project access snapshot** 은 모두 `policy` trace 를 포함하며, 여기에 role/org/user-exception/domain/object grant-revoke 기여도가 함께 기록됩니다. 반면 `PmsAccessSnapshot` 자체는 메뉴/접근수준(`accessType`) 중심의 navigation snapshot 이며 `policy` trace 는 포함하지 않습니다. PMS operator surface(`GET /api/roles/:roleCode/menus`, `RoleManagementPage`)는 이 runtime semantics 를 그대로 따라, 일반 메뉴는 `baseline` 또는 `role-override` source 로 노출하고 관리자 메뉴는 `system.override` 기준의 read-only row 로 취급합니다.
+CRM opportunity 는 `crm.opportunity.read/write/confirm/version.manage` permission vocabulary 를 공용 permission foundation 에 등록하고, `CrmOpportunityFeatureGuard` + `RequireCrmOpportunityFeature(...)` 로 list/detail/quote-preview/create/update/confirm/reopen/add-version surface 를 보호합니다. `GET /api/crm/opportunities/access/me` 는 전역 create/read capability 를, `GET /api/crm/opportunities/:id/access` 는 선택 영업기회의 object policy 와 owner-name 보조 baseline 을 합성한 snapshot 을 반환합니다. `GET /api/crm/opportunities/:id/quote-preview` 는 같은 read capability 아래에서 영업기회 원장 기반 견적 후보를 읽기 전용으로 반환하며, PDF/Word/DMS 저장/계약 전환은 아직 실행하지 않습니다. owner-name baseline 은 현재 opportunity 원장에 owner user id 가 없기 때문에 임시 보조 신호이며, 고객/활동/담당자 모델이 들어오면 object owner policy 로 승격해야 합니다.
+
+정리하면, **CRM/SNS/DMS access snapshot** 과 **PMS project access snapshot** 은 모두 `policy` trace 를 포함하며, 여기에 role/org/user-exception/domain/object grant-revoke 기여도가 함께 기록됩니다. 반면 `PmsAccessSnapshot` 자체는 메뉴/접근수준(`accessType`) 중심의 navigation snapshot 이며 `policy` trace 는 포함하지 않습니다. PMS operator surface(`GET /api/roles/:roleCode/menus`, `RoleManagementPage`)는 이 runtime semantics 를 그대로 따라, 일반 메뉴는 `baseline` 또는 `role-override` source 로 노출하고 관리자 메뉴는 `system.override` 기준의 read-only row 로 취급합니다.
 
 DMS는 `GET /api/dms/access/me` 가 더 이상 hard-coded `all true` snapshot 을 반환하지 않고, 현재 단계에서 아래 축을 합성해 feature baseline 을 계산합니다.
 
@@ -552,7 +555,7 @@ location.reload();
 
 - **공용**: 로그인, shared session bootstrap(`/auth/session`), token 없는 `ssoo-auth` snapshot 형식, runtime access token memory, 로그아웃, `/auth/me`, password reset same-origin proxy, auth store/runtime, login UI shell/card/copy/footer
 - **공용 API client**: Admin/PMS/SNS Axios client는 `@ssoo/web-auth` `createSharedAxiosApiClient` 를 소비한다. 각 앱은 base URL만 주입하고 bearer 주입, 401 복원, common `ApiError` mapping은 공용 factory가 소유한다.
-- **로그인 UI/API surface 정렬**: `SharedAuthLoginPage` 가 `AuthPageShell` 을 직접 소유하며, Admin/CRM/PMS/DMS/SNS 의 `(auth)/layout.tsx` 는 app-specific chrome/theme 를 덧씌우지 않는다. 5앱 `/login` route 는 app-specific `appName`/`appDescription` 을 넘기지 않고 동일한 SSOT 로그인 화면을 사용하며, `homePath` 는 각 앱의 `APP_HOME_PATH` 상수로만 주입한다. 5앱 `/api/auth/[action]` route 는 `createAuthProxyPostHandler({ createServerApiUrl, createServerApiProxyInit })` thin adapter 로만 유지하고, `X-SSOO-App` 발급 앱 식별자는 각 앱의 `_shared/serverApiProxy.ts` helper 가 단일하게 소유한다. 브라우저 app-local auth proxy action allowlist 는 `login/session/logout/me` 로 제한하고 body 기반 `refresh` 는 노출하지 않는다. 플랫폼 명칭 확정 전까지 login surface 는 `SSOT` 로고, `로그인` 제목, `© 2026 SSOT` 푸터만 유지하고 설명성 tagline/copy 를 노출하지 않는다. 비밀번호 찾기, 가입 요청, 사내 SSO, Microsoft 365 로그인 action 은 우선 `GET /api/auth/public-config` 의 Admin-managed auth policy 를 따르고, 설정 API를 사용할 수 없는 환경에서는 `NEXT_PUBLIC_AUTH_*` URL 또는 `SharedAuthLoginPage` props fallback 을 사용한다. 기본 env 기반 provider 는 사내 SSO와 Microsoft 365만 포함하고, generic OAuth/Google 같은 추가 provider는 제품/보안 결정 전에는 기본 surface에 노출하지 않는다. 회원가입은 open signup보다 Microsoft OAuth 기반 `가입 요청` 링크를 우선한다.
+- **로그인 UI/API surface 정렬**: `SharedAuthLoginPage` 가 `AuthPageShell` 을 직접 소유하며, Admin/CRM/PMS/DMS/SNS 의 `(auth)/layout.tsx` 는 app-specific chrome/theme 를 덧씌우지 않는다. 5앱 `/login` route 는 app-specific `appName`/`appDescription` 을 넘기지 않고 동일한 SSOT 로그인 화면을 사용하며, `homePath` 는 각 앱의 `APP_HOME_PATH` 상수로만 주입한다. 공용 login/password-reset surface 는 앱 root `body[data-ssoo-theme]` 에서 상속되는 `@ssoo/web-ui`/`web-shell` theme token 을 소비하고, teal/slate 같은 하드코딩 색상이나 앱별 auth theme wrapper 를 두지 않는다. 5앱 `/api/auth/[action]` route 는 `createAuthProxyPostHandler({ createServerApiUrl, createServerApiProxyInit })` thin adapter 로만 유지하고, `X-SSOO-App` 발급 앱 식별자는 각 앱의 `_shared/serverApiProxy.ts` helper 가 단일하게 소유한다. 브라우저 app-local auth proxy action allowlist 는 `login/session/logout/me` 로 제한하고 body 기반 `refresh` 는 노출하지 않는다. 플랫폼 명칭 확정 전까지 login surface 는 `SSOT` 로고, `로그인` 제목, `© 2026 SSOT` 푸터만 유지하고 설명성 tagline/copy 를 노출하지 않는다. 비밀번호 찾기, 가입 요청, 사내 SSO, Microsoft 365 로그인 action 은 우선 `GET /api/auth/public-config` 의 Admin-managed auth policy 를 따르고, 설정 API를 사용할 수 없는 환경에서는 `NEXT_PUBLIC_AUTH_*` URL 또는 `SharedAuthLoginPage` props fallback 을 사용한다. 기본 env 기반 provider 는 사내 SSO와 Microsoft 365만 포함하고, generic OAuth/Google 같은 추가 provider는 제품/보안 결정 전에는 기본 surface에 노출하지 않는다. 회원가입은 open signup보다 Microsoft OAuth 기반 `가입 요청` 링크를 우선한다.
 - **공용 user-scope lifecycle**: 로그인 surface/프록시 정책 차이는 허용하지 않는다. 사용자 전환/로그아웃/세션 소실 시 client-side state 정리는 `@ssoo/web-auth` `createAuthUserScopeLifecycle`, `SharedAuthStateSync`, `useUserScopeQueryCacheReset` 를 통해 Admin/CRM/PMS/DMS/SNS가 모두 같은 이벤트 흐름을 소비한다. DMS 파일 트리, PMS 탭/메뉴/access, SNS access/profile query cache, Admin query cache는 앱별 adapter가 등록한 reset listener에서 정리하며, 로그인 submit/logout 메뉴에 별도 도메인 예외 hook을 두지 않는다. SNS auth snapshot의 `displayName`/`avatarUrl` 은 `ProfileSummary` 기반 `AuthIdentityProfileProjection` 으로만 허용하고, `AuthIdentity` 자체는 세션 식별자로 유지한다.
 - **공용 notification center surface**: Admin/CRM/PMS/DMS/SNS header 알림 slot 은 모두 `@ssoo/web-auth` `useCommonNotificationCenter` 와 `@ssoo/web-shell` `SsooHeaderNotificationCenter` 를 source filter 없이 소비해 사용자의 전체 수신 알림을 같은 패널 문구, dim/backdrop, read/unread, pagination 표면으로 표시한다. 공용 패널 상단에는 `전체`와 앱별 source filter chip/badge가 표시되며, 각 앱은 `preferredSourceApp` 으로 현재 앱 chip 순서만 힌트로 제공한다. 선택된 chip은 목록과 모두 읽음 범위를 바꾸지만 header trigger badge는 사용자 전체 미확인 수를 유지한다. 알림의 source app/path 전환은 `@ssoo/web-auth` app URL/path resolver 가 맡고, 도메인별 처리 버튼은 공통 header 패널에 노출하지 않는다.
 - **공용 server API proxy helper**: 5앱 `_shared/serverApiProxy.ts` 는 base URL과 `X-SSOO-App` 값만 주입하고, URL 생성/forward header/default header 병합은 `@ssoo/web-auth` `createServerApiProxyHelpers` 가 소유한다. DMS `raw`/`serve-attachment` binary proxy 와 assistant/notification SSE proxy 의 shared-session access token restore도 같은 helper가 소유해 binary/SSE 경로가 auth/session 복원 규칙에서 drift 나지 않게 한다. session restore가 401/429 같은 JSON 오류를 반환해도 SSE proxy는 오류 JSON을 EventSource에 직접 반환하지 않고 retry frame으로 정규화한다.
@@ -579,7 +582,7 @@ location.reload();
 
 - **공개 유지**: `/api/auth/login`, `/api/auth/session`
 - **세션 복원 단일화**: `/api/auth/refresh` 직접 엔드포인트는 제거되었다. 브라우저와 same-origin proxy는 `/api/auth/session`만 사용하고, 서버 내부 `AuthService.refreshTokens()` 는 HttpOnly shared session cookie 회전 구현 세부로만 남는다.
-- **세션 복원 throttle**: `/api/auth/session`은 현재 서버 코드의 10/min 기준을 따른다. credential login throttle은 별도로 5/min을 유지한다.
+- **세션 복원 throttle**: `/api/auth/session`은 한 브라우저가 5개 앱을 연속 bootstrap하는 정상 흐름을 수용하도록 60/min 기준을 따른다. credential login throttle은 별도로 5/min을 유지한다.
 - **인증 필수**: `dms/files`, `dms/file`, `dms/content`, `dms/templates`, `dms/search`, `dms/ask`, `dms/create`, `dms/doc-assist`, `dms/chat-sessions`, `dms/git`, `dms/storage`, `dms/settings`, `dms/ingest`, `dms/access`
 - **binary 예외 처리 방식 변경**: `dms/file/raw`, `dms/file/serve-attachment`, `dms/storage/open?download=1` 도 server에서는 `JwtAuthGuard + DmsFeatureGuard(canReadDocuments)` 를 사용하고, 브라우저 direct navigation 제약은 same-origin Next proxy가 shared session cookie로 access token을 복원해 해결합니다. `storage/open` 다운로드는 provider별 external `webUrl` 이 있어도 redirect 하지 않고 binary response + `Content-Disposition` 으로 내려 파일명과 파일 바이트를 같은 응답 경계에서 보존합니다.
 - **향후 세분화 대상**:
@@ -595,7 +598,7 @@ location.reload();
 - inspect 는 특정 사용자의 foundation action policy 와 optional object policy, active permission exception 을 함께 보여줍니다.
 - exceptions 는 user/loginId, axis, object target, permission code 기준으로 permission exception 목록을 조회합니다.
 - PMS `UserManagementPage` 는 operator 가 같은 API를 직접 호출할 수 있도록 `AccessInspectDialog` 를 제공합니다.
-- `pnpm verify:access-smoke` 는 로그인, profile contract, inspect success, 기본 demo runtime persona(`viewer.han`) 기준 PMS/SNS/DMS allow-deny boundary, non-admin inspect 403 을 자동 검증하는 repo-native smoke script 입니다. runtime 교차검증을 잠시 제외해야 하면 `--skip-runtime` 을 사용합니다.
+- `pnpm verify:access-smoke` 는 로그인, profile contract, inspect success, 기본 demo runtime persona(`viewer.han`) 기준 PMS/SNS/DMS/CRM allow-deny boundary, non-admin inspect 403 을 자동 검증하는 repo-native smoke script 입니다. runtime 교차검증을 잠시 제외해야 하면 `--skip-runtime` 을 사용합니다.
 - `pnpm verify:access-admin` 은 PMS role-menu operator semantics(read/update/reset), admin user CRUD legacy-field regression, internal/external primary affiliation switching, temp user inspect/organizationIds parity 를 검증하는 stateful admin regression script 입니다.
 - `pnpm verify:access-dms` 는 admin 기준 temp DMS probe document/image/attachment/local storage fixture 를 생성한 뒤, `files/file/content/raw/serve-attachment/search/ask/settings/git/storage/open` surface 와 `GET /api/dms/access/me` / inspect parity 를 fixture-driven 으로 검증하는 domain regression script 입니다.
 - 운영 흐름은 **runtime 결과 확인 → inspect trace 확인 → exception 목록 확인 → 조정 여부 판단** 순서를 기준으로 합니다.
@@ -627,6 +630,10 @@ location.reload();
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-15 | HTTP와 DMS WebSocket이 동일한 active access-token session 검증을 사용하도록 `AuthService.validateToken()`을 현재 사용자/조직/session revoke·expiry 기준으로 강화하고, WebSocket 연결 전에 DMS 문서 읽기 permission을 재검증하도록 정렬 |
+| 2026-07-06 | CRM opportunity quote-preview read surface를 `crm.opportunity.read` 보호 범위로 추가하고 문서 생성/계약 전환은 미구현 action으로 명시 |
+| 2026-07-03 | CRM opportunity access snapshot/feature guard와 `crm.opportunity.*` permission vocabulary를 공용 auth/access 흐름에 추가 |
+| 2026-07-03 | 공용 login/password-reset surface 가 앱 root `body[data-ssoo-theme]` theme token 을 상속하도록 기준을 보강하고, legacy teal/slate 하드코딩 회귀를 `verify:auth-commonization` 에서 차단 |
 | 2026-06-22 | 공용 account center resolver 기본 profile/settings href를 canonical `/__user/profile/me`, `/__user/settings`로 고정하고 legacy `/profile/*`, `/settings` 입력을 shared resolver boundary에서 정규화하도록 user menu/account center 접근 계약 검증을 추가 |
 | 2026-06-22 | 공용 user profile/settings surface의 page-level action을 shared header action bridge에 등록하고 user-surface route/content/body 조립을 `@ssoo/web-auth` `createSsooUserSurfaceRouteContentPageElement()`로 중앙화해 앱별 `SsooUserSurfacePage` 직접 렌더링과 page metadata 조립 회귀 검증을 추가 |
 | 2026-06-22 | `useProtectedAppBootstrap`가 초기 blocking auth check 완료 전 domain access hydrate/unauth redirect/protected render를 시작하지 않도록 고정해 access API 401→retry 부트스트랩 레이스를 차단 |
@@ -695,9 +702,9 @@ location.reload();
 
 ---
 
-## Current policies snapshot (2026-01-23)
+## Current policies snapshot (2026-07-16)
 - Token TTLs: access 15m, refresh 7d; stored refresh hash invalidated on logout.
-- Throttling: login 5/min, shared session restore 10/min; default 600/min.
+- Throttling: login 5/min, shared session restore 60/min; default 600/min.
 - Password & lockout: >=8 chars incl. upper/lower/number/special; 5 failed logins -> 30m lock.
 - Error contract: GlobalHttpExceptionFilter + ApiError/ApiSuccess; Swagger documents 401/403/404/429/500 with examples.
 - Module boundary: auth/user live in common module; no direct dependency from domain modules to each other.

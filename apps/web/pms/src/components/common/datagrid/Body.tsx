@@ -107,7 +107,7 @@ export function Body<TData, TValue>({
                   onClick={() => onRowClick?.(row.original)}
                   className={cn(
                     'transition-colors',
-                    row.index % 2 === 1 ? 'bg-gray-50' : 'bg-white',
+                    row.index % 2 === 1 ? 'ssoo-settings-subtle-surface' : 'bg-card',
                     onRowClick && 'cursor-pointer hover:bg-ssoo-sitemap-bg',
                     isActive && 'bg-ssoo-content-border'
                   )}

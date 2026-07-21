@@ -1,6 +1,6 @@
 # DMS 백로그
 
-> 최종 업데이트: 2026-06-05 (런칭 검증/DB/소켓 권한 경계 보강)
+> 최종 업데이트: 2026-07-10 (CRM 견적 lifecycle artifact 실행 + 계약 governance evidence 반영)
 
 ---
 
@@ -68,6 +68,8 @@
 | DMS-QA-01 | 저장소/수집/딥리서치/auth-access 시나리오 테스트 자동화 | P1 | 통합/e2e 스크립트 추가 필요. DMS access live gate는 복구 완료 |
 | DMS-TEST-D3 | controller HTTP 통합 테스트 (file/collaboration/content/access) | P1 | C-3·C-4 회귀 안전망 강화. 7 slices 후속 |
 | DMS-QA-02 | hard refresh client-side error live 재현 자동화 | P1 | 현재 CLI/HTTP/build 기준 문제 없음. 브라우저에서 재현 시 console 첫 오류를 기준으로 regression case 추가 |
+| DMS-AI-RAG-01 | 공용 AI/RAG runtime smoke + DMS vector/RAG capability gate | P1 | `AI-RAG-10A`와 연동. provider readiness 기반 capability gate, placeholder deployment unavailable guard, Docker Postgres provider-unavailable smoke, runtime runbook, `DB_INIT_PRISMA_PUSH_MODE=auto` legacy DB init guard, preflight/push-guard 정적 AI/RAG verifier 통합, provider-ready env precheck, retrieval log item audit coverage, provider-ready run-source audit coverage, provider-ready legacy/common comparison assertion, runtime smoke JSON report, `verify:ai-rag-runtime-report` 검증, Markdown evidence summary, artifact upload, provider mode-separated `.github/workflows/ai-rag-runtime.yml` 수동 CI/운영 gate는 완료. 남은 항목은 실제 Azure embedding deployment로 provider-ready vector/RAG workflow green 결과와 검증된 `ai-rag-runtime-smoke-ready.md` summary artifact 확인 |
+| DMS-AI-RAG-02 | legacy `dms_document_embeddings` store 이관 계획 | P1 | 기준 문서화 완료. `docs/common/guides/ai-rag-runtime-runbook.md`의 `Legacy DMS Vector Store Transition`에 병행/전환/rollback/금지 기준을 고정했다. 실제 전환 실행은 provider-ready workflow green과 검증된 legacy/common retrieval artifact 이후 진행 |
 | DMS-FE-versionHistory | git commit history 기반 versionHistory 자동 채움 + UI 표시 | P3 | 2026-04-30 dead code 제거 후 backlog 등재. 향후 `gitService.getFileHistory()` 기반 on-demand projection 으로 재구현 |
 | DMS-REF-C5 | `DocumentPage.tsx` 1997줄 분해 | P2 | C-1 트랙 후속 (frontend god component) |
 | DMS-REF-C6 | `ensureRepoControlPlaneSynced` proxy 제거 | P3 | 21 controller 가 `controlPlaneSyncService` 직접 inject. C-4 Slice 5 잔여 정리 |
@@ -118,6 +120,8 @@
 | DMS-STO-02-B | Resync 요청 이후 DB metadata projection 실제 갱신 파이프라인 연결 | ⬜ 대기 | 현재는 작업 등록 중심 |
 | DMS-ING-01-A | Teams/네트워크 드라이브/수집폴더 입력 채널 어댑터 연결 | ⬜ 대기 | ingest API는 구현 완료 |
 | DMS-AI-01-A | Ask/Search 화면에 citations/confidence 표시 | ⬜ 대기 | API 응답 확장 완료 |
+| DMS-AI-RAG-01-A | DMS common AI index smoke | 🔄 부분 완료 | placeholder deployment 환경의 unavailable/stale/fallback은 Docker Postgres에서 통과. 확인 범위는 DMS 저장 지점 common projection, chunk/state stale, zero common embedding, retrieval log header/item, Ask conversation/run audit다. provider 설정 환경의 `cm_ai_embedding_m` vector retrieval, Ask context assembly, legacy/common retrieval 비교는 smoke assertion, report verifier, Markdown summary artifact로 추가됐고, 실제 Azure 환경에서 green 결과 확보는 잔여 |
+| DMS-AI-RAG-01-B | DMS adapter capability 정합화 | ✅ 완료 | `DmsAiIndexAdapter`의 `semantic`/`vector`/`ragContext` capability는 embedding provider readiness를 따른다. provider unavailable 또는 placeholder deployment는 false/stale/fallback, provider configured는 true/vector retrieval 대상으로 고정 |
 | DMS-QA-01 | 저장소/수집/딥리서치 7개 시나리오 테스트 자동화 | ⬜ 대기 | 통합/e2e 스크립트 추가 필요. 런칭 권한/댓글/링크/soft lock 브라우저 스모크 5건은 별도 추가 완료 |
 | DMS-QA-03-A | 숨김 검증 문서와 DMS access live gate 계약 정렬 | ✅ 완료 | 사용자 표면 제외 prefix 아래 probe 문서는 파일 트리/검색 비노출을 정상으로 검증하고, 직접 파일/본문/첨부 권한 검증은 계속 수행 |
 | DMS-PERM-UX-01-A | Search/Ask 전체 차단 소스 수와 제외 사유 요약 표시 | ✅ 완료 | 검색/Ask 응답과 스트리밍 이벤트, 검색 화면/어시스턴트 대화 UI에 반영 |
@@ -136,6 +140,29 @@
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-10 | DMS 설정에 `CRM 계약 산출 정책` section을 추가해 `system.crmContractExportPolicy`의 policy key/version, organization scope, markdown record root, Word/PDF storage artifact root를 편집하도록 연결. DMS CRM 계약 lifecycle은 이 정책으로 `export-policy.md`와 `dmsExecution.governance.exportPolicy`를 생성하며, markdown evidence와 DOCX/PDF artifact를 조직 scope별 경로 아래 산출 |
+| 2026-07-10 | DMS 설정에 `CRM 계약 결재선` section을 추가해 `system.crmContractApprovalRoute`의 route key/name, policy version, organization scope, required roles를 편집하도록 연결. DMS CRM 계약 lifecycle은 이 정책으로 승인 route evidence와 결재선 원장 sync evidence를 생성 |
+| 2026-07-10 | DMS 템플릿 metadata에 `reviewConfirmation`을 추가하고, `POST /dms/templates/:id/review-confirmation`과 DMS 설정 관리자 템플릿 목록에서 `crm-quote-v1` 검토 확정 상태/확정자/확정일을 기록하도록 연결 |
+| 2026-07-10 | CRM 견적 handoff markdown 초안과 DMS `crm-quote-v1` 템플릿을 입력으로 template-version snapshot, template-review record, DOCX, PDF artifact를 생성하는 `POST /dms/crm-quote-lifecycle/executions` 1차 실행기를 추가. CRM은 생성 artifact evidence와 governance snapshot만 active quote handoff lifecycle에 수신하며, 템플릿 검토 확정 상태는 DMS 설정의 reviewConfirmation metadata로 관리 |
+| 2026-07-10 | DMS 기본 시스템 템플릿 registry에 `crm-quote-v1` 견적서 markdown 템플릿을 추가. CRM 견적 preview는 active template 이름/상태/source path를 evidence로 표시하며, 이 템플릿은 DMS quote lifecycle artifact 실행 입력과 DMS 설정 검토 확정 대상으로 재사용한다 |
+| 2026-07-10 | CRM 견적 DMS lifecycle evidence 수신 계약을 추가. CRM은 `POST /crm/opportunities/:id/quote-dms-document-execution-evidence`로 외부 DMS 실행 결과가 만든 template-review, DOCX, PDF evidence path도 active quote handoff lifecycle에 기록하며, 템플릿 검토 확정 자체는 DMS 설정 metadata로 보존한다 |
+| 2026-07-10 | CRM 견적 DMS markdown 초안 handoff를 추가. CRM은 `crm.crm_quote_dms_handoff_m` snapshot과 saved path/lifecycle을 남기고 DMS 파일 서비스에 quote markdown draft를 저장하며, Word/PDF artifact는 DMS quote lifecycle 실행 경계에서 생성한다 |
+| 2026-07-10 | CRM `/contracts` DMS 문서 패킷 패널이 DMS lifecycle 실행 결과의 `dmsExecution.governance`를 읽어 템플릿 버전, 템플릿 변경 원장, 첨부 확정 원장, 결재선 원장, 승인자 matrix를 표시하도록 보강. CRM은 governance evidence를 소비만 하며 결재선 정책과 산출 정책 편집은 DMS 설정이 소유 |
+| 2026-07-09 | CRM 계약 handoff markdown 초안과 DMS `crm-contract-v1` 템플릿을 입력으로 export policy record, 템플릿 버전 snapshot, 템플릿 변경 검토 기록, 템플릿 변경 요청 원장, 템플릿 검토 기록, 첨부 확인 기록, 첨부 확정 원장, DOCX, PDF, 단일 승인 기록, 승인 route policy 기록, 공용 사용자/조직 directory snapshot, 결재선 원장 동기화 기록, 다자 승인 workflow record artifact를 생성하는 `POST /dms/crm-contract-lifecycle/executions` 1차 실행기를 추가. CRM은 생성 artifact evidence와 `dmsExecution.governance`만 handoff snapshot에 수신 |
+| 2026-07-09 | CRM 계약 handoff가 DMS lifecycle 실행 evidence를 수신할 수 있도록 `dms-document-execution-evidence` 계약을 추가. DMS가 만든 Word/PDF/승인 artifact reference를 CRM snapshot에 반영하는 수신 경계이며, DMS export/approval runtime 자체는 후속 실행 범위로 유지 |
+| 2026-07-09 | CRM 계약 문서 handoff가 공급자 CI `ciStorageRef`와 청구계획 별첨 후보를 첨부 evidence path로 넘기고, DMS lifecycle 실행이 이를 `attachment-finalization-ledger.md`와 `dmsExecution.governance.attachmentFinalizationLedger`에 확정 원장으로 보존하도록 보강 |
+| 2026-07-09 | CRM 계약 문서 handoff가 참조할 수 있도록 DMS 기본 시스템 템플릿 registry에 `crm-contract-v1` 계약서 markdown 템플릿을 추가. 실제 검토 승인, Word/PDF export 운영 정책은 DMS 후속 실행 범위로 유지 |
+| 2026-07-02 | runtime smoke Markdown evidence summary artifact 기준을 DMS AI/RAG backlog에 반영 |
+| 2026-07-02 | runtime smoke report verifier 기준을 DMS AI/RAG backlog에 반영 |
+| 2026-07-02 | runtime smoke JSON report와 GitHub Actions artifact upload 기준을 DMS AI/RAG backlog에 반영 |
+| 2026-07-02 | provider-ready runtime smoke에 legacy `dms_document_embeddings` chunk와 common retrieval result/context 비교 검증을 추가 |
+| 2026-07-02 | legacy `dms_document_embeddings` 전환 기준과 provider mode별 runtime workflow env 분리 기준을 DMS AI/RAG backlog에 반영 |
+| 2026-07-02 | provider-ready AI/RAG runtime smoke를 위한 `.github/workflows/ai-rag-runtime.yml` 수동 CI/운영 gate를 DMS backlog에 반영 |
+| 2026-07-02 | 강화된 retrieval log item audit 기준으로 provider-unavailable runtime smoke가 재통과한 상태를 반영 |
+| 2026-07-02 | 공용 AI/RAG provider-unavailable runtime smoke 통과를 반영. placeholder embedding deployment 환경에서 DMS 저장 지점이 common object/chunk/state stale projection과 retrieval/Ask audit를 남기며, ready-mode vector/RAG 검증은 잔여로 유지 |
+| 2026-07-02 | Azure embedding deployment placeholder 값을 provider ready로 보지 않는 guard를 DMS AI/RAG 잔여 기준에 반영 |
+| 2026-07-02 | DMS AI/RAG adapter capability gate를 provider readiness 기반으로 구현 완료 처리하고, 실제 Docker runtime smoke는 `DMS-AI-RAG-01-A` 잔여로 유지 |
+| 2026-07-02 | 공용 AI/RAG 설계 점검 결과를 DMS 백로그에 반영. DMS는 common AI index reference adapter지만 vector/RAG capability gate와 Docker runtime smoke가 남아 있으며, legacy `dms_document_embeddings`는 공용 path 검증 전까지 유지한다. |
 | 2026-06-05 | 문서 권한 안내 바 시각 분리. 읽기/편집 모드 모두 문서 본문 상단 슬롯 안에 같은 방식으로 표시하고, 사이드카 권한 칩과 중복되는 권한명 설명 대신 현재 가능한 본문 작업과 제한 작업만 안내하며, 작은 아이콘/점선 경계/낮은 대비 배경/caption 텍스트로 본문과 구분 |
 | 2026-06-05 | 협업 WebSocket 인증 재연결 보강. 새로고침 직후 HTTP 세션은 복구됐지만 WebSocket 이 만료 토큰으로 거부되어 문서 구독이 빠질 수 있던 경로를 막고, 인증/권한 부트스트랩 이후 소켓 연결과 토큰 교체 시 재연결/재구독을 적용 |
 | 2026-06-05 | 패널 스크롤 동작 보정. 댓글 최초 로드/실시간 갱신은 자동 하단 이동하지 않고 사용자가 댓글/답글을 작성한 직후에만 최신 댓글로 이동하며, 접힌 섹션을 펼칠 때 긴 내용은 섹션 제목이 패널 상단 기준점에 오도록 정렬 |

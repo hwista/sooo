@@ -1,136 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, MaxLength, IsEmail } from 'class-validator';
-
-export class CreateCustomerDto {
-  @ApiProperty({ description: '고객사 코드', maxLength: 50 })
-  @IsString()
-  @MaxLength(50)
-  customerCode!: string;
-
-  @ApiProperty({ description: '고객사명', maxLength: 200 })
-  @IsString()
-  @MaxLength(200)
-  customerName!: string;
-
-  @ApiPropertyOptional({ description: '고객사 유형', maxLength: 50 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  customerType?: string;
-
-  @ApiPropertyOptional({ description: '업종', maxLength: 100 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(100)
-  industry?: string;
-
-  @ApiPropertyOptional({ description: '주소', maxLength: 500 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(500)
-  address?: string;
-
-  @ApiPropertyOptional({ description: '전화번호', maxLength: 50 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  phone?: string;
-
-  @ApiPropertyOptional({ description: '이메일', maxLength: 200 })
-  @IsEmail()
-  @IsOptional()
-  @MaxLength(200)
-  email?: string;
-
-  @ApiPropertyOptional({ description: '담당자명', maxLength: 100 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(100)
-  contactPerson?: string;
-
-  @ApiPropertyOptional({ description: '담당자 연락처', maxLength: 50 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  contactPhone?: string;
-
-  @ApiPropertyOptional({ description: '웹사이트', maxLength: 300 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(300)
-  website?: string;
-
-  @ApiPropertyOptional({ description: '메모' })
-  @IsString()
-  @IsOptional()
-  memo?: string;
-}
-
-export class UpdateCustomerDto {
-  @ApiPropertyOptional({ description: '고객사명', maxLength: 200 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(200)
-  customerName?: string;
-
-  @ApiPropertyOptional({ description: '고객사 유형', maxLength: 50 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  customerType?: string;
-
-  @ApiPropertyOptional({ description: '업종', maxLength: 100 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(100)
-  industry?: string;
-
-  @ApiPropertyOptional({ description: '주소', maxLength: 500 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(500)
-  address?: string;
-
-  @ApiPropertyOptional({ description: '전화번호', maxLength: 50 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  phone?: string;
-
-  @ApiPropertyOptional({ description: '이메일', maxLength: 200 })
-  @IsEmail()
-  @IsOptional()
-  @MaxLength(200)
-  email?: string;
-
-  @ApiPropertyOptional({ description: '담당자명', maxLength: 100 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(100)
-  contactPerson?: string;
-
-  @ApiPropertyOptional({ description: '담당자 연락처', maxLength: 50 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  contactPhone?: string;
-
-  @ApiPropertyOptional({ description: '웹사이트', maxLength: 300 })
-  @IsString()
-  @IsOptional()
-  @MaxLength(300)
-  website?: string;
-
-  @ApiPropertyOptional({ description: '활성 여부' })
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
-
-  @ApiPropertyOptional({ description: '메모' })
-  @IsString()
-  @IsOptional()
-  memo?: string;
-}
+import { IsString, IsOptional } from 'class-validator';
 
 export class FindCustomersDto {
   @ApiPropertyOptional({ default: 1 })
@@ -159,6 +28,21 @@ export class CustomerDto {
 
   @ApiPropertyOptional({ description: '고객사 유형' })
   customerType?: string;
+
+  @ApiPropertyOptional({ description: '공용 Organization ID' })
+  organizationId?: string | null;
+
+  @ApiPropertyOptional({ description: '공용 Organization 코드' })
+  organizationCode?: string | null;
+
+  @ApiPropertyOptional({ description: '공용 Organization 명' })
+  organizationName?: string | null;
+
+  @ApiPropertyOptional({ description: '공용 Organization 유형' })
+  organizationType?: string | null;
+
+  @ApiPropertyOptional({ description: '공용 Organization 범위' })
+  organizationScope?: string | null;
 
   @ApiPropertyOptional({ description: '업종' })
   industry?: string;

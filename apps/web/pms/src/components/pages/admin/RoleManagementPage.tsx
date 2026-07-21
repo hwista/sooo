@@ -90,7 +90,7 @@ function MenuRow({
 
   return (
     <>
-      <TableRow className="border-b hover:bg-gray-50 transition-colors">
+      <TableRow className="border-b hover:bg-muted transition-colors">
         <TableCell className="px-4 py-2.5">
           <div className="flex items-center" style={{ paddingLeft: `${depth * 24}px` }}>
             {hasChildren && (
@@ -98,25 +98,25 @@ function MenuRow({
             )}
             {!hasChildren && <span className="w-5 mr-1.5" />}
             <Icon className={cn('h-4 w-4 mr-2', {
-              'text-green-600': currentAccess === 'full',
-              'text-blue-500': currentAccess === 'read',
-              'text-gray-400': currentAccess === 'none',
+              'text-ssoo-success': currentAccess === 'full',
+              'text-ssoo-info': currentAccess === 'read',
+              'text-muted-foreground': currentAccess === 'none',
             })} />
              <span className={cn('text-sm', hasChildren && 'font-medium')}>
                {node.menuName}
              </span>
             {node.accessSource !== 'baseline' && (
               <span className={cn(
-                'ml-2 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide',
+                'ml-2 px-1.5 py-0.5 rounded text-caption-xs uppercase tracking-wide',
                 node.accessSource === 'role-override'
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'bg-slate-100 text-slate-700',
+                  ? 'bg-ssoo-info-bg text-ssoo-info'
+                  : 'bg-muted text-muted-foreground',
               )}>
                 {sourceLabel}
               </span>
             )}
             {node.isAdminMenu && (
-              <span className="ml-2 px-1.5 py-0.5 rounded text-xs bg-amber-100 text-amber-700">
+              <span className="ml-2 px-1.5 py-0.5 rounded text-xs bg-ssoo-warning-bg text-ssoo-warning">
                 관리자
               </span>
             )}
@@ -141,7 +141,7 @@ function MenuRow({
             </SelectContent>
           </Select>
           {!node.isEditable && (
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1 text-caption-xs text-muted-foreground">
               이 메뉴는 system.override 기준으로 계산됩니다.
             </p>
           )}
@@ -250,7 +250,7 @@ export function RoleManagementPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
         <div className="flex items-center gap-2">
           <UserCog className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-lg font-semibold">역할 관리</h1>
@@ -270,8 +270,8 @@ export function RoleManagementPage() {
       {/* Content: 2-panel layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Role List */}
-        <div className="w-72 border-r bg-gray-50 flex flex-col">
-          <div className="px-4 py-3 border-b bg-white">
+        <div className="w-72 border-r bg-muted flex flex-col">
+          <div className="px-4 py-3 border-b bg-card">
             <h2 className="text-sm font-medium text-muted-foreground">역할 목록</h2>
           </div>
           <div className="flex-1 overflow-auto">
@@ -287,7 +287,7 @@ export function RoleManagementPage() {
                         'w-full text-left px-4 py-2.5 text-sm flex items-center justify-between transition-colors',
                         selectedRole === role.codeValue
                           ? 'bg-ssoo-primary/10 text-ssoo-primary font-medium'
-                          : 'text-gray-700 hover:bg-gray-100',
+                          : 'text-muted-foreground hover:bg-muted',
                       )}
                     >
                       <div className="flex flex-col">
@@ -296,7 +296,7 @@ export function RoleManagementPage() {
                           'text-xs mt-0.5',
                           selectedRole === role.codeValue
                             ? 'text-ssoo-primary/70'
-                            : 'text-gray-400',
+                            : 'text-muted-foreground',
                         )}>
                           {role.codeValue}
                         </span>
@@ -317,7 +317,7 @@ export function RoleManagementPage() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between px-6 py-3 border-b bg-white">
+              <div className="flex items-center justify-between px-6 py-3 border-b bg-card">
                 <div>
                   <h2 className="text-sm font-semibold">
                     {roles.find((r) => r.codeValue === selectedRole)?.displayNameKo ?? selectedRole}
@@ -329,7 +329,7 @@ export function RoleManagementPage() {
                   </p>
                 </div>
                 {isDirty && (
-                  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                  <span className="text-xs text-ssoo-warning bg-ssoo-warning-bg px-2 py-1 rounded">
                     {localPermissions.size}건 변경됨
                   </span>
                 )}
@@ -345,7 +345,7 @@ export function RoleManagementPage() {
                 ) : (
                   <Table className="w-full text-sm">
                     <TableHeader>
-                      <TableRow className="border-b bg-gray-50">
+                      <TableRow className="border-b bg-muted">
                         <TableHead className="text-left px-4 py-2.5 font-medium text-muted-foreground">
                           메뉴명
                         </TableHead>

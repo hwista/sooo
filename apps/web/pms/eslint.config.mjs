@@ -1,0 +1,21 @@
+import { FlatCompat } from '@eslint/eslintrc';
+
+const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
+
+export default [
+  { ignores: ['.next/**', 'out/**', 'build/**', 'next-env.d.ts'] },
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ExportAllDeclaration',
+          message: '와일드카드 export(export * from) 금지: 명시적 re-export를 사용하세요.',
+        },
+      ],
+    },
+  },
+];

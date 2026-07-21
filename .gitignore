@@ -13,6 +13,7 @@ out/
 
 # Environment
 .env
+.env.production
 .env.local
 .env.local-test
 .env.*.local
@@ -38,6 +39,13 @@ coverage/
 playwright-report/
 test-results/
 output/
+!output/
+output/*
+!output/playwright/
+output/playwright/*
+!output/playwright/pms-launch-visual-qa/
+output/playwright/pms-launch-visual-qa/*
+!output/playwright/pms-launch-visual-qa/check.mjs
 .playwright-cli/
 
 # Prisma

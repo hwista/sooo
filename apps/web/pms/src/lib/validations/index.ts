@@ -49,12 +49,12 @@ export {
   projectDoneResultCodeSchema,
   createProjectSchema,
   updateProjectSchema,
-  createCustomerRequestSchema,
+  createProjectRequestSchema,
 } from './project';
 export type {
   CreateProjectInput,
   UpdateProjectInput,
-  CreateCustomerRequestInput,
+  CreateProjectRequestInput,
 } from './project';
 
 // 추후 추가

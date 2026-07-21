@@ -6,7 +6,13 @@ import { ProjectFeatureGuard } from '../project/project-feature.guard.js';
 import { RequireProjectFeature } from '../project/require-project-feature.decorator.js';
 import { success, deleted } from '../../../common/index.js';
 import { serializeBigInt } from '../../../common/utils/bigint.util.js';
-import type { CreateTaskDto, UpdateTaskDto } from '@ssoo/types';
+import type {
+  CreateTaskDto,
+  CreateTaskEffortLogDto,
+  TaskAiIndexBackfillRequest,
+  UpdateTaskDto,
+  UpdateTaskEffortLogDto,
+} from '@ssoo/types';
 
 @ApiTags('tasks')
 @ApiBearerAuth()
@@ -21,6 +27,63 @@ export class TaskController {
   async findByProject(@Param('projectId') projectId: string) {
     const data = await this.taskService.findByProject(BigInt(projectId));
     return success(data.map((t) => serializeBigInt(t)));
+  }
+
+  @Post('ai-index/backfill')
+  @RequireProjectFeature('canManageTasks')
+  @ApiOperation({ summary: 'PMS 태스크 AI 인덱스 backfill job 등록' })
+  async queueAiIndexBackfill(
+    @Param('projectId') projectId: string,
+    @Body() body: TaskAiIndexBackfillRequest | undefined,
+  ) {
+    const result = await this.taskService.queueAiIndexBackfill(BigInt(projectId), body ?? {});
+    return success(result);
+  }
+
+  @Get('effort-logs')
+  @RequireProjectFeature('canViewProject')
+  @ApiOperation({ summary: '프로젝트 태스크 일일 공수 기록 목록' })
+  async findEffortLogs(@Param('projectId') projectId: string) {
+    const data = await this.taskService.findEffortLogsByProject(BigInt(projectId));
+    return success(data.map((row) => serializeBigInt(row)));
+  }
+
+  @Post('effort-logs')
+  @RequireProjectFeature('canManageTasks')
+  @ApiOperation({ summary: '프로젝트 태스크 일일 공수 기록 생성' })
+  async createEffortLog(
+    @Param('projectId') projectId: string,
+    @Body() dto: CreateTaskEffortLogDto,
+  ) {
+    const result = await this.taskService.createEffortLog(BigInt(projectId), dto);
+    return success(serializeBigInt(result));
+  }
+
+  @Put('effort-logs/:effortLogId')
+  @RequireProjectFeature('canManageTasks')
+  @ApiOperation({ summary: '프로젝트 태스크 일일 공수 기록 수정' })
+  async updateEffortLog(
+    @Param('projectId') projectId: string,
+    @Param('effortLogId') effortLogId: string,
+    @Body() dto: UpdateTaskEffortLogDto,
+  ) {
+    const result = await this.taskService.updateEffortLog(
+      BigInt(projectId),
+      BigInt(effortLogId),
+      dto,
+    );
+    return success(serializeBigInt(result));
+  }
+
+  @Delete('effort-logs/:effortLogId')
+  @RequireProjectFeature('canManageTasks')
+  @ApiOperation({ summary: '프로젝트 태스크 일일 공수 기록 비활성화' })
+  async removeEffortLog(
+    @Param('projectId') projectId: string,
+    @Param('effortLogId') effortLogId: string,
+  ) {
+    await this.taskService.removeEffortLog(BigInt(projectId), BigInt(effortLogId));
+    return deleted(true);
   }
 
   @Get(':id')

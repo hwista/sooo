@@ -70,7 +70,7 @@ export function AssistantSessionHistoryList({
         <Button variant="plain" size="plain"
           type="button"
           onClick={() => setVisibleCount((prev) => Math.min(prev + STEP, items.length))}
-          className="w-full rounded-md border border-ssoo-content-border bg-white px-2 py-1.5 text-caption text-ssoo-primary transition-colors hover:bg-ssoo-content-bg"
+          className="w-full rounded-md border border-ssoo-content-border bg-card px-2 py-1.5 text-caption text-ssoo-primary transition-colors hover:bg-ssoo-content-bg"
         >
           more (+{Math.min(STEP, items.length - visibleCount)})
         </Button>

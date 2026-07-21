@@ -46,7 +46,7 @@ export function FloatingAssistantButton({
       className={cn(
         'z-50 h-14 w-14 rounded-full shadow-lg',
         'flex items-center justify-center',
-        'bg-ssoo-primary text-white hover:bg-ssoo-primary/90',
+        'bg-ssoo-primary text-primary-foreground hover:bg-ssoo-primary/90',
         isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab',
         isDocumentActiveAfterMount && !isDragging && 'opacity-45 hover:opacity-100',
       )}

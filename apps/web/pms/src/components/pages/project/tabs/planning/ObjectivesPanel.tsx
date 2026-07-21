@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Plus, Target, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,8 @@ import {
   useProjectObjectives,
   useUpdateObjective,
 } from '@/hooks/queries/useProjects';
+import type { ObjectiveItem } from '@/lib/api/endpoints/projects';
+import { formatPmsDate } from '@/lib/pms-format';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
 
 const NO_PARENT_OBJECTIVE = '__none__';
@@ -57,6 +59,51 @@ const INITIAL_FORM: ObjectiveFormState = {
   dueAt: '',
   description: '',
 };
+
+interface ObjectiveMetaFieldProps {
+  label: string;
+  children: ReactNode;
+}
+
+function formatObjectiveDate(value?: string | null) {
+  return formatPmsDate(value);
+}
+
+function ObjectiveMetaField({ label, children }: ObjectiveMetaFieldProps) {
+  return (
+    <div className="space-y-1">
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div className="text-sm">{children}</div>
+    </div>
+  );
+}
+
+interface ObjectiveStatusSelectProps {
+  objective: ObjectiveItem;
+  canManageObjectives: boolean;
+  onChange: (objectiveId: string, statusCode: string) => void;
+}
+
+function ObjectiveStatusSelect({ objective, canManageObjectives, onChange }: ObjectiveStatusSelectProps) {
+  return (
+    <Select
+      value={objective.statusCode}
+      onValueChange={(value) => onChange(String(objective.id), value)}
+      disabled={!canManageObjectives}
+    >
+      <SelectTrigger className="h-8 w-full text-xs md:mx-auto md:h-7 md:w-24">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {STATUS_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 interface Props {
   projectId: number;
@@ -122,13 +169,13 @@ export function ObjectivesPanel({ projectId, canManageObjectives }: Props) {
 
   return (
     <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h4 className="flex items-center gap-2 text-sm font-semibold">
           <Target className="h-4 w-4" />
           목표 ({objectives.length})
         </h4>
         {canManageObjectives && (
-          <Button size="sm" variant="outline" onClick={handleOpenDialog}>
+          <Button size="sm" variant="outline" onClick={handleOpenDialog} className="w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             목표 추가
           </Button>
@@ -140,7 +187,55 @@ export function ObjectivesPanel({ projectId, canManageObjectives }: Props) {
       ) : objectives.length === 0 ? (
         <div className="text-sm text-muted-foreground">아직 등록된 목표가 없습니다.</div>
       ) : (
-        <div className="overflow-hidden rounded-md border bg-white">
+        <>
+        <div className="space-y-3 md:hidden">
+          {objectives.map((objective) => {
+            const parentObjective = objective.parentObjectiveId
+              ? objectiveMap.get(String(objective.parentObjectiveId))
+              : null;
+
+            return (
+              <div key={String(objective.id)} className="rounded-lg border bg-card p-3 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1">
+                    <div className="font-mono text-xs text-muted-foreground">{objective.objectiveCode}</div>
+                    <div className="break-words text-sm font-semibold">{objective.objectiveName}</div>
+                  </div>
+                  {canManageObjectives && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDelete(String(objective.id))}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <ObjectiveMetaField label="상위목표">
+                    <span className="text-muted-foreground">
+                      {parentObjective ? `${parentObjective.objectiveCode} · ${parentObjective.objectiveName}` : '-'}
+                    </span>
+                  </ObjectiveMetaField>
+                  <ObjectiveMetaField label="상태">
+                    <ObjectiveStatusSelect
+                      objective={objective}
+                      canManageObjectives={canManageObjectives}
+                      onChange={handleStatusChange}
+                    />
+                  </ObjectiveMetaField>
+                  <ObjectiveMetaField label="기한">
+                    <span className="text-muted-foreground">{formatObjectiveDate(objective.dueAt)}</span>
+                  </ObjectiveMetaField>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="hidden overflow-hidden rounded-md border bg-card md:block">
           <Table className="w-full text-sm">
             <TableHeader className="bg-muted/40">
               <TableRow>
@@ -168,25 +263,14 @@ export function ObjectivesPanel({ projectId, canManageObjectives }: Props) {
                       {parentObjective ? `${parentObjective.objectiveCode} · ${parentObjective.objectiveName}` : '-'}
                     </TableCell>
                     <TableCell className="p-3 text-center">
-                      <Select
-                        value={objective.statusCode}
-                        onValueChange={(value) => handleStatusChange(String(objective.id), value)}
-                        disabled={!canManageObjectives}
-                      >
-                        <SelectTrigger className="mx-auto h-7 w-24 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STATUS_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ObjectiveStatusSelect
+                        objective={objective}
+                        canManageObjectives={canManageObjectives}
+                        onChange={handleStatusChange}
+                      />
                     </TableCell>
                     <TableCell className="p-3 text-muted-foreground">
-                      {objective.dueAt ? new Date(objective.dueAt).toLocaleDateString('ko-KR') : '-'}
+                      {formatObjectiveDate(objective.dueAt)}
                     </TableCell>
                     <TableCell className="p-3 text-center">
                       {canManageObjectives && (
@@ -206,17 +290,18 @@ export function ObjectivesPanel({ projectId, canManageObjectives }: Props) {
             </TableBody>
           </Table>
         </div>
+        </>
       )}
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>목표 추가</DialogTitle>
             <DialogDescription>마일스톤과 WBS를 연결할 planning 목표를 등록합니다.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">코드 *</label>
                 <Input
@@ -235,7 +320,7 @@ export function ObjectivesPanel({ projectId, canManageObjectives }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium">상위목표</label>
                 <Select
@@ -295,7 +380,7 @@ export function ObjectivesPanel({ projectId, canManageObjectives }: Props) {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">
               취소
             </Button>
             <Button
@@ -306,6 +391,7 @@ export function ObjectivesPanel({ projectId, canManageObjectives }: Props) {
                 || !formData.objectiveName.trim()
                 || createObjective.isPending
               }
+              className="w-full sm:w-auto"
             >
               {createObjective.isPending ? '저장 중...' : '저장'}
             </Button>

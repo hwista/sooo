@@ -10,6 +10,11 @@ export interface CustomerItem {
   customerCode: string;
   customerName: string;
   customerType?: string | null;
+  organizationId?: string | null;
+  organizationCode?: string | null;
+  organizationName?: string | null;
+  organizationType?: string | null;
+  organizationScope?: string | null;
   industry?: string | null;
   address?: string | null;
   phone?: string | null;
@@ -27,34 +32,6 @@ export interface CustomerFilters {
   page?: number;
   pageSize?: number;
   search?: string;
-}
-
-export interface CreateCustomerRequest {
-  customerCode: string;
-  customerName: string;
-  customerType?: string;
-  industry?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  contactPerson?: string;
-  contactPhone?: string;
-  website?: string;
-  memo?: string;
-}
-
-export interface UpdateCustomerRequest {
-  customerName?: string;
-  customerType?: string;
-  industry?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  contactPerson?: string;
-  contactPhone?: string;
-  website?: string;
-  isActive?: boolean;
-  memo?: string;
 }
 
 // Server paginated response shape
@@ -77,10 +54,13 @@ interface CustomerListApiResponse {
 export const customersApi = {
   list: async (params?: CustomerFilters): Promise<ApiResponse<PaginatedResponse<CustomerItem>>> => {
     const requestParams = params
-      ? {
-          ...params,
-          ...(params.pageSize !== undefined && { limit: params.pageSize }),
-        }
+      ? (() => {
+          const { pageSize, ...rest } = params;
+          return {
+            ...rest,
+            ...(pageSize !== undefined && { limit: pageSize }),
+          };
+        })()
       : undefined;
     const response = await apiClient.get<CustomerListApiResponse>('/customers', {
       params: requestParams,
@@ -112,21 +92,6 @@ export const customersApi = {
 
   getById: async (id: string): Promise<ApiResponse<CustomerItem>> => {
     const response = await apiClient.get<ApiResponse<CustomerItem>>(`/customers/${id}`);
-    return response.data;
-  },
-
-  create: async (data: CreateCustomerRequest): Promise<ApiResponse<CustomerItem>> => {
-    const response = await apiClient.post<ApiResponse<CustomerItem>>('/customers', data);
-    return response.data;
-  },
-
-  update: async (id: string, data: UpdateCustomerRequest): Promise<ApiResponse<CustomerItem>> => {
-    const response = await apiClient.put<ApiResponse<CustomerItem>>(`/customers/${id}`, data);
-    return response.data;
-  },
-
-  deactivate: async (id: string): Promise<ApiResponse<null>> => {
-    const response = await apiClient.delete<ApiResponse<null>>(`/customers/${id}`);
     return response.data;
   },
 };

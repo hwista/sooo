@@ -4,6 +4,8 @@ export type TemplateVisibility = 'shared' | 'public' | 'private';
 export type TemplateStatus = 'active' | 'archived';
 export type TemplateSourceType = 'markdown-file';
 export type TemplateOriginType = 'referenced' | 'generated';
+export type TemplateReviewStatus = 'pending' | 'confirmed';
+export type TemplateReviewSource = 'dms-settings' | 'system-seed';
 
 export interface TemplateReferenceDoc {
   path: string;
@@ -22,6 +24,15 @@ export interface TemplateGeneration {
   source: 'ai' | 'manual';
   taskKey?: string;
   profileKey?: string;
+}
+
+export interface TemplateReviewConfirmation {
+  status: TemplateReviewStatus;
+  confirmedAt?: string;
+  confirmedByLoginId?: string;
+  confirmedByName?: string;
+  memo?: string;
+  source?: TemplateReviewSource;
 }
 
 export interface ScrapeEntry {
@@ -58,4 +69,5 @@ export interface TemplateItem {
   originType?: TemplateOriginType;
   referenceDocuments?: TemplateReferenceDoc[];
   generation?: TemplateGeneration;
+  reviewConfirmation?: TemplateReviewConfirmation;
 }

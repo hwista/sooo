@@ -1,15 +1,21 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { ListPageTemplate } from '@/components/templates';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import {
+  SsooDataGrid,
+  SsooDataWorkspacePage,
+  type SsooDataGridColumnDef,
+  type SsooDataWorkspaceFilterValues,
+} from '@ssoo/web-shell';
 import { useTabStore } from '@/stores';
-import { DataGrid, ColumnDef } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { FilterValues } from '@/components/common/page/Header';
-import { useProjectList } from '@/hooks/queries';
+import { useCustomerList, useProjectList, useProjectMembers } from '@/hooks/queries';
 import type { Project, ProjectFilters, ProjectRequestDetail, ProjectStageCode, ProjectStatusCode } from '@/lib/api/endpoints/projects';
+import { formatCustomerLookupLabel, formatProjectCustomerLabel, formatProjectExecutionAssetLabel } from '@/lib/project-display';
+import { formatPmsDate } from '@/lib/pms-format';
+import { formatProjectMemberOwnerLabel } from '@/components/pages/project/tabs/ProjectMemberOwnerSelect';
 
 const stageOptions: { label: string; value: ProjectStageCode }[] = [
   { label: '대기', value: 'waiting' },
@@ -30,7 +36,11 @@ const stageLabels: Record<ProjectStageCode, string> = {
   done: '완료',
 };
 
-const columns: ColumnDef<Project>[] = [
+type RequestDetailRow = ProjectRequestDetail & {
+  requestOwnerLabel: string;
+};
+
+const columns: SsooDataGridColumnDef<Project>[] = [
   {
     accessorKey: 'id',
     header: '요청번호',
@@ -65,10 +75,16 @@ const columns: ColumnDef<Project>[] = [
     size: 220,
   },
   {
-    accessorKey: 'customerId',
+    id: 'customer',
     header: '고객사',
-    size: 120,
-    cell: ({ row }) => row.original.customerId ? String(row.original.customerId) : '-',
+    size: 180,
+    cell: ({ row }) => formatProjectCustomerLabel(row.original),
+  },
+  {
+    id: 'executionAsset',
+    header: '실행 자산',
+    size: 220,
+    cell: ({ row }) => formatProjectExecutionAssetLabel(row.original),
   },
   {
     accessorKey: 'statusCode',
@@ -77,7 +93,7 @@ const columns: ColumnDef<Project>[] = [
     cell: ({ row }) => {
       const status = row.original.statusCode;
       return (
-        <Badge variant="outline" className="rounded border-transparent bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+        <Badge variant="outline" className="rounded border-transparent bg-ssoo-info-bg px-2 py-1 text-xs font-medium text-ssoo-info">
           {statusLabels[status]}
         </Badge>
       );
@@ -90,9 +106,9 @@ const columns: ColumnDef<Project>[] = [
     cell: ({ row }) => {
       const stage = row.original.stageCode;
       const colorMap: Record<ProjectStageCode, string> = {
-        waiting: 'bg-yellow-100 text-yellow-800',
-        in_progress: 'bg-green-100 text-green-800',
-        done: 'bg-gray-100 text-gray-800',
+        waiting: 'bg-ssoo-warning-bg text-ssoo-warning',
+        in_progress: 'bg-ssoo-success-bg text-ssoo-success',
+        done: 'bg-muted text-foreground',
       };
       return (
         <Badge variant="outline" className={`rounded border-transparent px-2 py-1 text-xs font-medium ${colorMap[stage]}`}>
@@ -105,11 +121,11 @@ const columns: ColumnDef<Project>[] = [
     accessorKey: 'createdAt',
     header: '요청일',
     size: 130,
-    cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+    cell: ({ row }) => formatPmsDate(row.original.createdAt),
   },
 ];
 
-const detailColumns: ColumnDef<ProjectRequestDetail>[] = [
+const detailColumns: SsooDataGridColumnDef<RequestDetailRow>[] = [
   {
     accessorKey: 'requestSourceCode',
     header: '요청구분',
@@ -132,10 +148,7 @@ const detailColumns: ColumnDef<ProjectRequestDetail>[] = [
     accessorKey: 'requestReceivedAt',
     header: '접수일',
     size: 140,
-    cell: ({ row }) => {
-      const value = row.original.requestReceivedAt;
-      return value ? new Date(value).toLocaleDateString() : '-';
-    },
+    cell: ({ row }) => formatPmsDate(row.original.requestReceivedAt),
   },
   {
     accessorKey: 'requestPriorityCode',
@@ -144,10 +157,10 @@ const detailColumns: ColumnDef<ProjectRequestDetail>[] = [
     cell: ({ row }) => row.original.requestPriorityCode || '-',
   },
   {
-    accessorKey: 'requestOwnerUserId',
+    accessorKey: 'requestOwnerLabel',
     header: '담당자',
-    size: 120,
-    cell: ({ row }) => row.original.requestOwnerUserId ? String(row.original.requestOwnerUserId) : '-',
+    size: 140,
+    cell: ({ row }) => row.original.requestOwnerLabel,
   },
   {
     accessorKey: 'memo',
@@ -173,44 +186,35 @@ export function RequestListPage() {
     page,
     pageSize,
   });
+  const { data: customersResponse } = useCustomerList({ page: 1, pageSize: 100 });
+  const selectedProjectId = selectedProject ? Number(selectedProject.id) : 0;
+  const { data: selectedProjectMembersResponse } = useProjectMembers(selectedProjectId);
 
   const projects = useMemo(() => response?.data?.items ?? [], [response]);
   const total = response?.data?.total ?? 0;
   const apiError = response && !response.success
     ? new Error(response.message || '요청 처리 중 오류가 발생했습니다.')
     : null;
-  const filtersApplied = Boolean(filters.search || filters.stageCode || filters.customerId);
-  const filteredProjects = useMemo(() => {
-    if (!filtersApplied) {
-      return projects;
-    }
+  const customerOptions = useMemo(() => (
+    customersResponse?.data?.items.map((customer) => ({
+      label: formatCustomerLookupLabel(customer),
+      value: String(customer.id),
+    })) ?? []
+  ), [customersResponse]);
 
-    return projects.filter((project) => {
-      if (filters.search) {
-        const keyword = filters.search.toLowerCase();
-        if (!project.projectName.toLowerCase().includes(keyword)) {
-          return false;
-        }
-      }
+  const selectedProjectMembers = useMemo(
+    () => selectedProjectMembersResponse?.data ?? [],
+    [selectedProjectMembersResponse],
+  );
 
-      if (filters.stageCode && project.stageCode !== filters.stageCode) {
-        return false;
-      }
-
-      if (filters.customerId && project.customerId !== filters.customerId) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [filters, filtersApplied, projects]);
-
-  const detailRows = useMemo<ProjectRequestDetail[]>(() => {
+  const detailRows = useMemo<RequestDetailRow[]>(() => {
     if (!selectedProject) {
       return [];
     }
     const detail = selectedProject.requestDetail;
     const fallbackDate = new Date(selectedProject.createdAt).toISOString();
+    const requestOwnerUserId = detail?.requestOwnerUserId ?? selectedProject.currentOwnerUserId ?? null;
+
     return [
       {
         requestSourceCode: detail?.requestSourceCode ?? 'RFP',
@@ -218,11 +222,12 @@ export function RequestListPage() {
         requestSummary: detail?.requestSummary ?? `${selectedProject.projectName} 요청`,
         requestReceivedAt: detail?.requestReceivedAt ?? fallbackDate,
         requestPriorityCode: detail?.requestPriorityCode ?? 'normal',
-        requestOwnerUserId: detail?.requestOwnerUserId ?? selectedProject.currentOwnerUserId ?? null,
+        requestOwnerUserId,
+        requestOwnerLabel: formatProjectMemberOwnerLabel(selectedProjectMembers, requestOwnerUserId),
         memo: detail?.memo ?? selectedProject.memo ?? '요청 상세 테스트 데이터',
       },
     ];
-  }, [selectedProject]);
+  }, [selectedProject, selectedProjectMembers]);
 
   const handleCreate = () => {
     openTab({
@@ -233,21 +238,13 @@ export function RequestListPage() {
     });
   };
 
-  const handleDelete = () => {
-    alert('선택된 항목을 삭제합니다.');
-  };
-
-  const handleSearch = useCallback((values: FilterValues) => {
+  const handleSearch = useCallback((values: SsooDataWorkspaceFilterValues) => {
     const nextFilters: ProjectFilters = {
       statusCode: 'request',
       search: values.projectName?.trim() || undefined,
       stageCode: values.stageCode as ProjectStageCode | undefined,
+      customerId: values.customerId || undefined,
     };
-
-    const customerId = Number(values.customerId);
-    if (!Number.isNaN(customerId) && values.customerId?.trim()) {
-      nextFilters.customerId = customerId;
-    }
 
     setFilters(nextFilters);
     setPage(1);
@@ -264,9 +261,9 @@ export function RequestListPage() {
   }, []);
 
   return (
-    <ListPageTemplate
+    <SsooDataWorkspacePage
       breadcrumb={['요청', '요청 목록']}
-      header={{
+      toolbar={{
         collapsible: true,
         actions: [
           {
@@ -274,16 +271,10 @@ export function RequestListPage() {
             icon: <Plus className="h-4 w-4" />,
             onClick: handleCreate,
           },
-          {
-            label: '삭제',
-            icon: <Trash2 className="h-4 w-4" />,
-            variant: 'destructive',
-            onClick: handleDelete,
-          },
         ],
         filters: [
           { key: 'projectName', type: 'text', placeholder: '프로젝트명' },
-          { key: 'customerId', type: 'text', placeholder: '고객사 ID' },
+          { key: 'customerId', type: 'select', placeholder: '고객사', options: customerOptions, width: '240px' },
           { key: 'stageCode', type: 'select', placeholder: '단계', options: stageOptions },
         ],
         onSearch: handleSearch,
@@ -291,7 +282,7 @@ export function RequestListPage() {
       }}
       table={{
         columns,
-        data: filteredProjects,
+        data: projects,
         loading: isLoading,
         error: apiError || error,
         onRetry: () => refetch(),
@@ -303,7 +294,7 @@ export function RequestListPage() {
         secondGrid: {
           enabled: true,
           content: (
-            <DataGrid
+            <SsooDataGrid
               columns={detailColumns}
               data={detailRows}
               loading={false}
@@ -321,7 +312,7 @@ export function RequestListPage() {
         pagination: {
           page,
           pageSize,
-          total: filtersApplied ? filteredProjects.length : total,
+          total,
           onPageChange: setPage,
           onPageSizeChange: setPageSize,
         },

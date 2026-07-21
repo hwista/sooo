@@ -42,15 +42,15 @@ export default function GlobalError({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f9fafb',
+          backgroundColor: 'Canvas',
           fontFamily: 'system-ui, -apple-system, sans-serif', // design/font-override: global-error는 CSS 미로드 상태에서 렌더링
         }}>
           <div style={{ textAlign: 'center', maxWidth: '400px', padding: '24px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'CanvasText', marginBottom: '8px' }}>
               페이지를 불러올 수 없습니다
             </h2>
-            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px' }}>
+            <p style={{ fontSize: '14px', color: 'GrayText', marginBottom: '24px' }}>
               {isChunkError 
                 ? '페이지 리소스를 불러오는 데 실패했습니다. 새로고침을 시도해주세요.'
                 : '예기치 않은 오류가 발생했습니다.'}
@@ -60,8 +60,8 @@ export default function GlobalError({
                 onClick={() => window.location.reload()}
                 style={{
                   padding: '8px 24px',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
+                  backgroundColor: 'Highlight',
+                  color: 'HighlightText',
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '14px',
@@ -75,9 +75,9 @@ export default function GlobalError({
                 onClick={() => { window.location.href = LOGIN_PATH; }}
                 style={{
                   padding: '8px 24px',
-                  backgroundColor: 'white',
-                  color: '#374151',
-                  border: '1px solid #d1d5db',
+                  backgroundColor: 'ButtonFace',
+                  color: 'ButtonText',
+                  border: '1px solid ButtonBorder',
                   borderRadius: '6px',
                   fontSize: '14px',
                   fontWeight: 500,

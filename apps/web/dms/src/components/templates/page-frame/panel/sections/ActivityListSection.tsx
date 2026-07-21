@@ -86,7 +86,7 @@ function LegacyActivityListSection({
       controlSlots={controlSlots}
     >
       {items.length === 0 ? (
-        <p className="py-1 text-caption text-gray-400">{emptyText}</p>
+        <p className="py-1 text-caption ssoo-text-primary-60">{emptyText}</p>
       ) : (
         <div className="space-y-1.5">
           {visibleItems.map((item) => {
@@ -169,7 +169,7 @@ function LegacyActivityListSection({
                           className={cn(
                             'inline-flex h-6 w-6 items-center justify-center rounded border shadow-none transition-colors focus-visible:ring-0 [&_svg]:h-3 [&_svg]:w-3',
                             action.tone === 'danger'
-                              ? 'border-red-200 text-red-500 hover:border-red-300 hover:bg-red-50'
+                              ? 'border-ssoo-danger-border ssoo-tone-danger hover:border-ssoo-danger hover:bg-ssoo-danger-bg'
                               : 'border-ssoo-content-border text-ssoo-primary/70 hover:border-ssoo-primary/40 hover:text-ssoo-primary'
                           )}
                           title={action.title ?? action.label}
@@ -193,7 +193,7 @@ function LegacyActivityListSection({
                         className={cn(
                           'rounded border px-2 py-0.5 text-caption font-normal shadow-none focus-visible:ring-0',
                           action.tone === 'danger'
-                            ? 'border-red-200 text-red-500'
+                            ? 'border-ssoo-danger-border ssoo-tone-danger'
                             : 'border-ssoo-content-border text-ssoo-primary hover:border-ssoo-primary/40'
                         )}
                       >
@@ -211,7 +211,7 @@ function LegacyActivityListSection({
               size="plain"
               type="button"
               onClick={() => setVisibleCount((prev) => Math.min(prev + pageSize, items.length))}
-              className="w-full rounded-md border border-ssoo-content-border bg-white px-2 py-1.5 text-caption font-normal text-ssoo-primary shadow-none transition-colors hover:bg-ssoo-content-bg focus-visible:ring-0"
+              className="w-full rounded-md border border-ssoo-content-border bg-card px-2 py-1.5 text-caption font-normal text-ssoo-primary shadow-none transition-colors hover:bg-ssoo-content-bg focus-visible:ring-0"
             >
               {loadMoreLabel(remainingCount)}
             </Button>

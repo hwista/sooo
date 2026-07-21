@@ -1,6 +1,6 @@
 # 상태 관리 (State Management)
 
-> 최종 업데이트: 2026-06-22
+> 최종 업데이트: 2026-07-06
 
 DMS의 Zustand 기반 상태 관리 구조를 정의합니다.
 
@@ -235,14 +235,13 @@ interface SettingsStore {
 
 #### `useSettingsPageNavigationStore`
 
-설정 모드 전환과 내부 active scope/section/view mode 관리 store입니다. 별도 설정 shell store 파일은 만들지 않습니다.
+설정 모드 전환과 내부 active scope/section 관리 store입니다. 별도 설정 shell store 파일은 만들지 않습니다. UI tab path 는 `operations`, `system-settings`, `management`, `personal-settings` surface 를 쓰지만, 저장 snapshot 과 접근 제어는 기존 `system`/`personal` scope 를 유지합니다.
 
 ```typescript
 interface SettingsPageNavigationStore {
   isActive: boolean;
   activeScope: 'system' | 'personal';
   activeSectionId: string;
-  activeViewMode: 'structured' | 'json' | 'diff';
   lastSectionByScope: Record<'system' | 'personal', string>;
 
   enterSettings: (scope?: SettingsScope) => void;
@@ -250,16 +249,16 @@ interface SettingsPageNavigationStore {
   openSection: (scope: SettingsScope, sectionId: string) => void;
   setScope: (scope: SettingsScope) => void;
   setSection: (sectionId: string) => void;
-  setViewMode: (mode: SettingsViewMode) => void;
   applyWorkspacePreferences: (...) => void;
 }
 ```
 
 **특징:**
-- `enterSettings()` 는 settings mode를 켜고 열 scope/section/view 기준을 맞춥니다.
+- `enterSettings()` 는 settings mode를 켜고 열 scope/section 기준을 맞춥니다.
 - `exitSettings()` 는 settings mode를 끄고 workspace frame content로 복귀합니다.
 - `activeScope` 는 settings sidebar 메뉴 트리와 현재 settings tab의 scope 선택 상태를 담당합니다.
 - `activeSectionId` 는 settings sidebar active section과 현재 settings tab path의 section 동기화 상태를 담당합니다.
+- surface path 는 tab routing/IA 표현만 담당합니다. `operations`, `system-settings`, `management`는 store 안에서 `system` scope로, `personal-settings`는 `personal` scope로 해석합니다.
 - settings 검색 UI는 workspace 파일 검색과 input primitive를 공유하지만, query/result 상태는 `useSidebarStore.searchQuery` 와 분리된 settings sidebar local 상태로 유지합니다.
 
 ### 5. Assistant Stores
@@ -391,6 +390,7 @@ persist(
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-06 | settings tab surface 와 저장 scope 를 분리해 `operations`/`system-settings`/`management`는 system scope, `personal-settings`는 personal scope 로 해석하는 기준 추가 |
 | 2026-06-15 | settings active scope/section을 settings sidebar 메뉴 트리와 settings tab path 동기화 상태로 재정의 |
 | 2026-06-12 | `settings-page-navigation.store.ts`가 settings mode 활성/종료와 내부 active scope/section/view 상태를 함께 소유하도록 재정렬 |
 | 2026-04-02 | 과거 설정 전용 frame 실험에서 outer scope navigation과 `SettingsPage` inner section navigation 책임을 분리 |

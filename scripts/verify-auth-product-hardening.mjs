@@ -524,9 +524,13 @@ check(
 
 check(
   'apps/web/dms/src/components/pages/settings/_components/SettingsCustomSlot.tsx',
-  'DMS external settings surface must open the shared user surface as a frame tab',
-  (content) => content.includes('useOpenTabWithConfirm')
-      && content.includes('getSsooUserSurfaceTabPath')
+  'DMS custom settings slots must remain domain-owned and must not implement shared user-surface navigation',
+  (content) => content.includes("'document-access'")
+      && content.includes("'admin-templates'")
+      && content.includes("'approval-route-policy'")
+      && content.includes("'contract-export-policy'")
+      && !content.includes('useOpenTabWithConfirm')
+      && !content.includes('getSsooUserSurfaceTabPath')
       && !content.includes('resolveSsooUserSurfaceHref')
       && !content.includes('NEXT_PUBLIC_USER_SURFACE_APP_URL')
       && !content.includes("href: 'http://localhost:3004/settings'"),
@@ -639,9 +643,15 @@ check(
 
 check(
   'apps/web/dms/src/components/layout/UserMenu.tsx',
-  'DMS user menu must keep DMS settings separate from global account settings',
-  (content) => content.includes("key: 'dms-settings'")
-    && content.includes("label: '문서 설정'"),
+  'DMS user menu must keep domain settings separate from shared profile and account settings',
+  (content) => content.includes("key: 'dms-system-settings'")
+    && content.includes("label: '문서 시스템 설정'")
+    && content.includes("key: 'dms-operations'")
+    && content.includes("label: '문서 운영·진단'")
+    && content.includes("key: 'dms-management'")
+    && content.includes("label: '문서 관리'")
+    && content.includes("key: 'dms-personal-settings'")
+    && content.includes("label: '내 문서 환경 설정'"),
 );
 
 check(

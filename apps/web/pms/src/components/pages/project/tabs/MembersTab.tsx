@@ -2,9 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Users, Plus, X } from 'lucide-react';
-import { useProjectAccess, useProjectMembers, useAddMember, useRemoveMember } from '@/hooks/queries/useProjects';
+import {
+  useAddMember,
+  useProjectAccess,
+  useProjectMembers,
+  useProjectMemberUserLookup,
+  useRemoveMember,
+} from '@/hooks/queries/useProjects';
 import { useCodesByGroup } from '@/hooks/queries/useCodes';
+import type { CodeItem } from '@/lib/api/endpoints/codes';
 import type { ProjectMember } from '@/lib/api/endpoints/projects';
+import { formatPmsDate } from '@/lib/pms-format';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -26,20 +34,6 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
 
 const PROJECT_MEMBER_ROLE_GROUP = 'PROJECT_MEMBER_ROLE';
-const DEFAULT_ROLE_CODE = 'developer';
-
-const DEFAULT_ROLE_OPTIONS = [
-  { code: 'pm', label: 'PM' },
-  { code: 'pmo', label: 'PMO' },
-  { code: 'am', label: '영업담당' },
-  { code: 'sm', label: 'SM담당' },
-  { code: 'developer', label: '개발자' },
-  { code: 'consultant', label: '컨설턴트' },
-  { code: 'architect', label: '아키텍트' },
-  { code: 'qa', label: '품질관리' },
-  { code: 'reviewer', label: '검수자' },
-  { code: 'customer_rep', label: '고객대표' },
-] as const;
 
 const ACCESS_LEVEL_OPTIONS = [
   { value: 'owner', label: '소유' },
@@ -56,15 +50,18 @@ const ACCESS_LEVEL_LABELS: Record<(typeof ACCESS_LEVEL_OPTIONS)[number]['value']
 type MemberAccessLevel = (typeof ACCESS_LEVEL_OPTIONS)[number]['value'];
 
 interface MemberFormState {
-  userId: string;
   roleCode: string;
   accessLevel: MemberAccessLevel;
   isPhaseOwner: boolean;
   allocationRate: number;
 }
 
-const createInitialForm = (roleCode = DEFAULT_ROLE_CODE): MemberFormState => ({
-  userId: '',
+interface RoleOption {
+  code: string;
+  label: string;
+}
+
+const createInitialForm = (roleCode = ''): MemberFormState => ({
   roleCode,
   accessLevel: 'participant',
   isPhaseOwner: false,
@@ -80,22 +77,43 @@ export function MembersTab({ projectId }: Props) {
   const { data, isLoading } = useProjectMembers(projectId);
   const members = data?.data ?? [];
   const canManageMembers = accessResponse?.data?.features.canManageMembers ?? false;
-  const { data: roleCodesResponse } = useCodesByGroup(PROJECT_MEMBER_ROLE_GROUP);
+  const {
+    data: roleCodesResponse,
+    isLoading: isLoadingRoleCodes,
+    isError: isRoleCodesError,
+    error: roleCodesError,
+    refetch: refetchRoleCodes,
+  } = useCodesByGroup(PROJECT_MEMBER_ROLE_GROUP);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState('');
   const [formData, setFormData] = useState(createInitialForm());
   const addMember = useAddMember();
   const removeMember = useRemoveMember();
+  const {
+    data: userLookupResponse,
+    isLoading: isLoadingUserLookup,
+    isError: isUserLookupError,
+    error: userLookupError,
+    refetch: refetchUserLookup,
+  } = useProjectMemberUserLookup(
+    projectId,
+    { search: userSearch, limit: 20 },
+    { enabled: showAddDialog && canManageMembers },
+  );
 
-  const roleOptions = useMemo(() => {
-    const apiOptions = roleCodesResponse?.success && roleCodesResponse.data?.length
-      ? roleCodesResponse.data.map((code) => ({
-          code: code.codeValue,
-          label: code.displayNameKo,
-        }))
-      : [];
+  const roleOptions = useMemo<RoleOption[]>(() => {
+    if (!roleCodesResponse?.success) {
+      return [];
+    }
 
-    return apiOptions.length > 0 ? apiOptions : [...DEFAULT_ROLE_OPTIONS];
+    return (roleCodesResponse.data ?? [])
+      .filter((code: CodeItem) => code.isActive)
+      .map((code: CodeItem) => ({
+        code: code.codeValue,
+        label: code.displayNameKo,
+      }));
   }, [roleCodesResponse]);
 
   const roleLabels = useMemo(
@@ -106,32 +124,49 @@ export function MembersTab({ projectId }: Props) {
     [roleOptions],
   );
 
+  const hasRoleOptions = roleOptions.length > 0;
+  const userOptions = userLookupResponse?.data ?? [];
+  const selectedUser = userOptions.find((user) => user.userId === selectedUserId);
+  const canOpenAddDialog = canManageMembers && !isLoadingRoleCodes && hasRoleOptions;
+  const roleCodeStatusMessage = isRoleCodesError
+    ? `역할 코드를 불러오지 못했습니다: ${roleCodesError?.message ?? '알 수 없는 오류'}`
+    : !isLoadingRoleCodes && !hasRoleOptions
+      ? '프로젝트 멤버 역할 코드가 없습니다. 코드 관리에서 PROJECT_MEMBER_ROLE 그룹을 먼저 활성화하세요.'
+      : null;
+
   useEffect(() => {
-    if (roleOptions.length === 0) {
+    if (!hasRoleOptions) {
       return;
     }
 
     if (!roleOptions.some((option) => option.code === formData.roleCode)) {
       setFormData((prev) => ({
         ...prev,
-        roleCode: roleOptions[0]?.code ?? DEFAULT_ROLE_CODE,
+        roleCode: roleOptions[0]?.code ?? '',
       }));
     }
-  }, [formData.roleCode, roleOptions]);
+  }, [formData.roleCode, hasRoleOptions, roleOptions]);
 
   const handleAdd = async () => {
+    if (!canManageMembers || !selectedUserId || !formData.roleCode || !hasRoleOptions) {
+      return;
+    }
+
     await addMember.mutateAsync({
       projectId,
-        data: {
-          userId: formData.userId,
-          roleCode: formData.roleCode,
-          accessLevel: formData.accessLevel,
-          isPhaseOwner: formData.isPhaseOwner,
-          allocationRate: formData.allocationRate,
-        },
-      });
+      data: {
+        userId: selectedUserId,
+        roleCode: formData.roleCode,
+        organizationId: selectedUser?.primaryOrganizationId ?? undefined,
+        accessLevel: formData.accessLevel,
+        isPhaseOwner: formData.isPhaseOwner,
+        allocationRate: formData.allocationRate,
+      },
+    });
     setShowAddDialog(false);
-    setFormData(createInitialForm(roleOptions[0]?.code ?? DEFAULT_ROLE_CODE));
+    setUserSearch('');
+    setSelectedUserId('');
+    setFormData(createInitialForm(roleOptions[0]?.code ?? ''));
   };
 
   const handleRemove = async (userId: string, roleCode: string) => {
@@ -148,12 +183,32 @@ export function MembersTab({ projectId }: Props) {
           프로젝트 멤버 ({members.length})
         </h3>
         {canManageMembers && (
-          <Button size="sm" onClick={() => setShowAddDialog(true)}>
+          <Button
+            size="sm"
+            disabled={!canOpenAddDialog}
+            onClick={() => {
+              setFormData(createInitialForm(roleOptions[0]?.code ?? ''));
+              setUserSearch('');
+              setSelectedUserId('');
+              setShowAddDialog(true);
+            }}
+          >
             <Plus className="h-4 w-4" />
             멤버 추가
           </Button>
         )}
       </div>
+
+      {canManageMembers && roleCodeStatusMessage && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-ssoo-warning-border bg-ssoo-warning-bg px-3 py-2 text-sm text-ssoo-warning">
+          <span>{roleCodeStatusMessage}</span>
+          {isRoleCodesError && (
+            <Button variant="outline" size="sm" onClick={() => refetchRoleCodes()}>
+              다시 시도
+            </Button>
+          )}
+        </div>
+      )}
 
       {members.length === 0 ? (
         <div className="text-sm text-muted-foreground py-8 text-center">
@@ -179,12 +234,12 @@ export function MembersTab({ projectId }: Props) {
                 <TableRow key={`${m.userId}-${m.roleCode}`} className="hover:bg-muted/30">
                   <TableCell className="p-3">{m.user?.displayName || m.user?.userName || '-'}</TableCell>
                   <TableCell className="p-3">
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                    <span className="inline-flex items-center rounded-full bg-ssoo-info-bg px-2 py-0.5 text-xs font-medium text-ssoo-info">
                       {roleLabels[m.roleCode] || m.roleCode}
                     </span>
                   </TableCell>
                   <TableCell className="p-3">
-                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                    <span className="inline-flex items-center rounded-full bg-ssoo-success-bg px-2 py-0.5 text-xs font-medium text-ssoo-success">
                       {ACCESS_LEVEL_LABELS[m.accessLevel]}
                     </span>
                   </TableCell>
@@ -192,7 +247,7 @@ export function MembersTab({ projectId }: Props) {
                   <TableCell className="p-3 text-muted-foreground">{m.user?.departmentCode || '-'}</TableCell>
                   <TableCell className="p-3 text-center">{m.allocationRate}%</TableCell>
                   <TableCell className="p-3 text-muted-foreground">
-                    {m.assignedAt ? new Date(m.assignedAt).toLocaleDateString('ko-KR') : '-'}
+                    {formatPmsDate(m.assignedAt)}
                   </TableCell>
                   <TableCell className="p-3 text-center">
                     {canManageMembers ? (
@@ -225,12 +280,63 @@ export function MembersTab({ projectId }: Props) {
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">사용자 ID</label>
+              <label className="text-sm font-medium">사용자 검색</label>
               <Input
-                placeholder="사용자 ID를 입력하세요"
-                value={formData.userId}
-                onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+                placeholder="이름, 로그인 ID, 이메일"
+                value={userSearch}
+                onChange={(e) => {
+                  setUserSearch(e.target.value);
+                  setSelectedUserId('');
+                }}
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">추가할 사용자</label>
+              <Select
+                value={selectedUserId}
+                onValueChange={setSelectedUserId}
+                disabled={isLoadingUserLookup || userOptions.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={isLoadingUserLookup ? '조회 중...' : '사용자 선택'}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {userOptions.length === 0 ? (
+                    <SelectItem value="__empty" disabled>
+                      조회 결과 없음
+                    </SelectItem>
+                  ) : (
+                    userOptions.map((user) => (
+                      <SelectItem key={user.userId} value={user.userId}>
+                        {(user.displayName || user.userName)}
+                        {user.loginId ? ` · ${user.loginId}` : ''}
+                        {user.primaryOrganizationName ? ` · ${user.primaryOrganizationName}` : ''}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {isUserLookupError ? (
+                <div className="flex items-center justify-between gap-3 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                  <span>{userLookupError?.message ?? '사용자 목록을 불러오지 못했습니다.'}</span>
+                  <Button variant="outline" size="sm" onClick={() => refetchUserLookup()}>
+                    다시 시도
+                  </Button>
+                </div>
+              ) : selectedUser ? (
+                <p className="text-xs text-muted-foreground">
+                  {[selectedUser.email, selectedUser.primaryOrganizationName, selectedUser.departmentCode]
+                    .filter(Boolean)
+                    .join(' · ') || '소속 정보 없음'}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  활성 공용 사용자 조회 결과에서 프로젝트 멤버를 선택합니다.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -306,7 +412,13 @@ export function MembersTab({ projectId }: Props) {
             </Button>
             <Button
               onClick={handleAdd}
-              disabled={!formData.userId.trim() || addMember.isPending || !canManageMembers}
+              disabled={
+                !selectedUserId
+                || !formData.roleCode
+                || addMember.isPending
+                || !canManageMembers
+                || !hasRoleOptions
+              }
             >
               {addMember.isPending ? '추가 중...' : '추가'}
             </Button>

@@ -56,27 +56,27 @@ const STATUS_META: Record<RequestStatus, {
 }> = {
   pending: {
     label: '대기 중',
-    className: 'border-amber-200 bg-amber-50 text-amber-700',
+    className: 'ssoo-tone-warning-surface',
   },
   approved: {
     label: '승인됨',
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    className: 'ssoo-tone-success-surface',
   },
   rejected: {
     label: '거절됨',
-    className: 'border-rose-200 bg-rose-50 text-rose-700',
+    className: 'ssoo-tone-danger-surface',
   },
   expired: {
     label: '만료됨',
-    className: 'border-zinc-200 bg-zinc-50 text-zinc-600',
+    className: 'border-ssoo-content-border ssoo-settings-subtle-surface ssoo-text-primary-70',
   },
   cancelled: {
     label: '취소됨',
-    className: 'border-orange-200 bg-orange-50 text-orange-700',
+    className: 'ssoo-tone-warning-surface',
   },
   revoked: {
     label: '회수됨',
-    className: 'border-orange-200 bg-orange-50 text-orange-700',
+    className: 'ssoo-tone-warning-surface',
   },
 };
 
@@ -110,7 +110,7 @@ function SummaryCard({
   icon: ReactNode;
 }) {
   return (
-    <article className="rounded-lg border border-ssoo-content-border bg-white px-4 py-3">
+    <article className="rounded-lg border border-ssoo-content-border bg-card px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-badge text-ssoo-primary/70">{title}</p>
@@ -192,7 +192,7 @@ function GrantRow({
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 gap-1 px-2 text-badge text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+            className="h-6 gap-1 px-2 text-badge ssoo-tone-danger ssoo-tone-danger-hover hover:bg-ssoo-danger-bg"
             disabled={isRevoking}
             onClick={() => onRevoke(documentId, grant.grantId!)}
           >
@@ -236,7 +236,7 @@ function ManagedDocumentCard({
   const [showGrants, setShowGrants] = useState(false);
 
   return (
-    <article className="rounded-lg border border-ssoo-content-border bg-white px-4 py-3">
+    <article className="rounded-lg border border-ssoo-content-border bg-card px-4 py-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -266,8 +266,8 @@ function ManagedDocumentCard({
               className={cn(
                 'rounded-full px-2 py-0.5',
                 document.syncStatusCode === 'repair_needed'
-                  ? 'border-amber-200 bg-amber-50 text-amber-700'
-                  : 'border-emerald-200 bg-emerald-50 text-emerald-700',
+                  ? 'ssoo-tone-warning-surface'
+                  : 'ssoo-tone-success-surface',
               )}
             >
               {formatSyncStatus(document.syncStatusCode)}
@@ -346,12 +346,12 @@ function ManagedDocumentCard({
       </div>
 
       {document.syncStatusCode === 'repair_needed' && document.repairReason && (
-        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-body-sm text-amber-800">
+        <div className="mt-3 rounded-lg border px-4 py-3 text-body-sm ssoo-tone-warning-surface">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
               <p className="font-medium">이 문서는 control-plane 메타 보정이 필요합니다.</p>
-              <p className="mt-1 break-all text-caption text-amber-700">사유: {document.repairReason}</p>
+              <p className="mt-1 break-all text-caption ssoo-tone-warning">사유: {document.repairReason}</p>
             </div>
           </div>
         </div>
@@ -392,7 +392,7 @@ function ManagedDocumentCard({
               value={transferLoginId}
               onChange={(event) => setTransferLoginId(event.target.value)}
               placeholder="새 소유자 loginId"
-              className="flex-1 border-ssoo-content-border bg-white text-ssoo-primary focus:border-ssoo-primary/40 focus-visible:ring-ssoo-primary/10"
+              className="flex-1 border-ssoo-content-border bg-card text-ssoo-primary focus:border-ssoo-primary/40 focus-visible:ring-ssoo-primary/10"
             />
             <Button
               size="sm"
@@ -489,7 +489,7 @@ function RequestCard({
     <article
       id={`dms-access-request-${request.requestId}`}
       className={cn(
-        'rounded-lg border bg-white px-4 py-3 transition-shadow',
+        'rounded-lg border bg-card px-4 py-3 transition-shadow',
         isHighlighted
           ? 'border-ssoo-primary shadow-[0_0_0_3px_rgba(30,64,175,0.16)]'
           : 'border-ssoo-content-border',
@@ -538,7 +538,7 @@ function RequestCard({
                 onChange={(event) => onActionDraftChange(request.requestId, { responseMessage: event.target.value })}
                 rows={3}
                 maxLength={500}
-                className="w-full rounded-md border border-ssoo-content-border bg-white px-3 py-2 text-body-sm text-ssoo-primary outline-none transition focus:border-ssoo-primary/40 focus:ring-2 focus:ring-ssoo-primary/10"
+                className="w-full rounded-md border border-ssoo-content-border bg-card px-3 py-2 text-body-sm text-ssoo-primary outline-none transition focus:border-ssoo-primary/40 focus:ring-2 focus:ring-ssoo-primary/10"
                 placeholder="승인/거절 사유를 남겨 주세요."
               />
             </label>
@@ -548,7 +548,7 @@ function RequestCard({
                 type="date"
                 value={actionDraft?.grantExpiresAt ?? ''}
                 onChange={(event) => onActionDraftChange(request.requestId, { grantExpiresAt: event.target.value })}
-                className="border-ssoo-content-border bg-white text-ssoo-primary focus:border-ssoo-primary/40 focus-visible:ring-ssoo-primary/10"
+                className="border-ssoo-content-border bg-card text-ssoo-primary focus:border-ssoo-primary/40 focus-visible:ring-ssoo-primary/10"
               />
             </label>
           </div>
@@ -648,7 +648,7 @@ function DirectGrantSection({
   const canSubmit = !!draft.documentId && !!draft.principalUserId && !isSubmitting;
 
   return (
-    <section id={anchorId} className="scroll-mt-4 space-y-3 rounded-lg border border-ssoo-content-border bg-white px-4 py-3">
+    <section id={anchorId} className="scroll-mt-4 space-y-3 rounded-lg border border-ssoo-content-border bg-card px-4 py-3">
       <header>
         <h3 className="text-label-strong text-ssoo-primary">권한 직접 부여</h3>
         <p className="text-caption text-ssoo-primary/70">
@@ -662,7 +662,7 @@ function DirectGrantSection({
           <NativeSelect
             value={draft.documentId}
             onChange={(event) => onDraftChange({ documentId: event.target.value })}
-            className="mt-1 w-full rounded border border-ssoo-content-border bg-white px-2 py-1.5 text-body-sm text-ssoo-primary"
+            className="mt-1 w-full rounded border border-ssoo-content-border bg-card px-2 py-1.5 text-body-sm text-ssoo-primary"
           >
             <option value="">선택...</option>
             {documents.map((document) => (
@@ -681,7 +681,7 @@ function DirectGrantSection({
             onChange={(event) => onDraftChange({ principalUserId: event.target.value.trim() })}
             placeholder="예: 12345"
             inputMode="numeric"
-            className="mt-1 border-ssoo-content-border bg-white text-ssoo-primary"
+            className="mt-1 border-ssoo-content-border bg-card text-ssoo-primary"
           />
         </label>
 
@@ -690,7 +690,7 @@ function DirectGrantSection({
           <NativeSelect
             value={draft.role}
             onChange={(event) => onDraftChange({ role: event.target.value as DmsDocumentAccessRequestRole })}
-            className="mt-1 w-full rounded border border-ssoo-content-border bg-white px-2 py-1.5 text-body-sm text-ssoo-primary"
+            className="mt-1 w-full rounded border border-ssoo-content-border bg-card px-2 py-1.5 text-body-sm text-ssoo-primary"
           >
             {ACCESS_ROLE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -706,7 +706,7 @@ function DirectGrantSection({
             type="date"
             value={draft.grantExpiresAt}
             onChange={(event) => onDraftChange({ grantExpiresAt: event.target.value })}
-            className="mt-1 border-ssoo-content-border bg-white text-ssoo-primary"
+            className="mt-1 border-ssoo-content-border bg-card text-ssoo-primary"
           />
         </label>
 
@@ -718,7 +718,7 @@ function DirectGrantSection({
             rows={2}
             maxLength={500}
             placeholder="부여 사유를 남겨두면 향후 감사에 도움이 됩니다."
-            className="mt-1 w-full rounded border border-ssoo-content-border bg-white px-2 py-1.5 text-body-sm text-ssoo-primary"
+            className="mt-1 w-full rounded border border-ssoo-content-border bg-card px-2 py-1.5 text-body-sm text-ssoo-primary"
           />
         </label>
       </div>
@@ -975,7 +975,7 @@ export function DocumentAccessSurface({ anchorIds = {} }: { anchorIds?: Record<s
 
   return (
     <div className="space-y-4">
-      <article id={anchorIds.status} className="scroll-mt-4 rounded-lg border border-ssoo-content-border bg-white px-4 py-3">
+      <article id={anchorIds.status} className="scroll-mt-4 rounded-lg border border-ssoo-content-border bg-card px-4 py-3">
         <p className="text-badge text-ssoo-primary/70">현재 운영 중</p>
         <h3 className="mt-1 text-label-strong text-ssoo-primary">권한 요청/승인</h3>
         <p className="mt-2 text-body-sm text-ssoo-primary/80">

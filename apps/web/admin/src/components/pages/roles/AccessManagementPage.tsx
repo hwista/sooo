@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { RefreshCcw, Search, Shield, AlertTriangle, Users } from 'lucide-react';
+import { SsooSettingsPage } from '@ssoo/web-shell';
 import type {
   AccessInspectionResult,
   PermissionCatalogGroup,
@@ -70,7 +71,7 @@ function CodeList({
           {codes.map((code) => (
             <span
               key={code}
-              className="rounded-full border bg-muted/50 px-2 py-0.5 text-[11px] font-medium"
+              className="rounded-full border bg-muted/50 px-2 py-0.5 text-caption-2xs font-medium"
             >
               {code}
             </span>
@@ -147,8 +148,8 @@ function ExceptionRow({ item }: { item: PermissionExceptionRecord }) {
         <span
           className={
             item.effectType === 'grant'
-              ? 'rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700'
-              : 'rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700'
+              ? 'rounded-full bg-ssoo-success-bg px-2 py-0.5 text-xs font-medium text-ssoo-success'
+              : 'rounded-full bg-ssoo-danger-bg px-2 py-0.5 text-xs font-medium text-ssoo-danger'
           }
         >
           {item.effectType}
@@ -171,7 +172,7 @@ function ExceptionRow({ item }: { item: PermissionExceptionRecord }) {
       <TableCell>
         <span
           className={
-            item.isActive ? 'text-xs text-emerald-600' : 'text-xs text-muted-foreground'
+            item.isActive ? 'text-xs text-ssoo-success' : 'text-xs text-muted-foreground'
           }
         >
           {item.isActive ? 'active' : 'inactive'}
@@ -219,7 +220,7 @@ function ExceptionTable({
                   <TableCell>
                     <span
                       className={
-                        item.effectType === 'grant' ? 'text-emerald-600' : 'text-destructive'
+                        item.effectType === 'grant' ? 'text-ssoo-success' : 'text-destructive'
                       }
                     >
                       {item.effectType}
@@ -240,7 +241,7 @@ function ExceptionTable({
                     <span
                       className={
                         item.isActive
-                          ? 'text-xs text-emerald-600'
+                          ? 'text-xs text-ssoo-success'
                           : 'text-xs text-muted-foreground'
                       }
                     >
@@ -292,7 +293,7 @@ function CatalogGroupCard({ group }: { group: PermissionCatalogGroup }) {
         <span
           className={
             group.launchFocus
-              ? 'rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700'
+              ? 'rounded-full border border-ssoo-success-border bg-ssoo-success-bg px-2 py-0.5 text-xs font-medium text-ssoo-success'
               : 'rounded-full border px-2 py-0.5 text-xs text-muted-foreground'
           }
         >
@@ -324,9 +325,9 @@ function CatalogGroupCard({ group }: { group: PermissionCatalogGroup }) {
                   <span
                     className={
                       item.status === 'launch-active'
-                        ? 'rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700'
+                        ? 'rounded-full bg-ssoo-success-bg px-2 py-0.5 text-xs font-medium text-ssoo-success'
                         : item.status === 'foundation'
-                          ? 'rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700'
+                          ? 'rounded-full bg-ssoo-warning-bg px-2 py-0.5 text-xs font-medium text-ssoo-warning'
                           : 'rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
                     }
                   >
@@ -485,7 +486,7 @@ function InspectTab() {
               >
                 <span className="min-w-0 flex-1 truncate">{u.userName}</span>
                 <span className="text-xs text-muted-foreground">{u.loginId}</span>
-                <span className="rounded-full border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                <span className="rounded-full border px-1.5 py-0.5 text-caption-xs text-muted-foreground">
                   {u.roleCode}
                 </span>
               </Button>
@@ -504,7 +505,7 @@ function InspectTab() {
             <h3 className="text-sm font-semibold">
               {selectedUser.userName} ({selectedUser.loginId})
             </h3>
-            <span className="rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground">
+            <span className="rounded-full border px-2 py-0.5 text-caption-xs text-muted-foreground">
               {selectedUser.roleCode}
             </span>
           </div>
@@ -767,14 +768,18 @@ export function AccessManagementPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">역할 & 권한</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Admin/platform 권한과 앱별 도메인 권한을 분류하고, 사용자별 실제 해석/예외를 검증합니다.
-        </p>
-      </div>
-
+    <SsooSettingsPage
+      filePath="admin/roles"
+      index={{
+        ariaLabel: '역할과 권한 항목 색인',
+        activeItemId: activeTab,
+        items: tabItems.map((item) => ({ id: item.id, label: item.label })),
+        onItemSelect: (item) => {
+          setActiveTab(item.id as TabId);
+          document.getElementById(`admin-roles-${item.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+      }}
+    >
       <div className="flex flex-wrap gap-1 rounded-lg border bg-muted/30 p-1">
         {tabItems.map((item) => {
           const Icon = item.icon;
@@ -796,11 +801,13 @@ export function AccessManagementPage() {
         })}
       </div>
 
-      {activeTab === 'catalog'
-        ? <CatalogTab />
+      <div id={`admin-roles-${activeTab}`} className="scroll-mt-4">
+        {activeTab === 'catalog'
+          ? <CatalogTab />
         : activeTab === 'inspect'
           ? <InspectTab />
-          : <ExceptionsTab />}
-    </div>
+            : <ExceptionsTab />}
+      </div>
+    </SsooSettingsPage>
   );
 }

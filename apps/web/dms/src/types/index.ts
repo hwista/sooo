@@ -47,11 +47,10 @@ export type {
 } from './layout';
 
 export type {
-  PreferredSettingsViewMode,
   SettingsAccessMode,
   SettingsProfileKey,
   SettingsScope,
-  SettingsViewMode,
+  SettingsSurfaceId,
 } from './settings';
 
 export type {

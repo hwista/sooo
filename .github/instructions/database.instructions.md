@@ -25,15 +25,17 @@ applyTo: "packages/database/**"
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["common", "pms", "dms"]
+  schemas  = ["common", "crm", "pms", "dms", "sns"]
 }
 ```
 
 | 스키마 | 테이블 접두사 | 용도 |
 |--------|--------------|------|
 | `common` | `cm_user_*` | 공통 사용자 관리 (전체 공유) |
+| `crm` | `crm_*` | CRM 영업·계약·원가 계획 |
 | `pms` | `cm_*`, `pr_*` | PMS 전용 (코드, 메뉴, 프로젝트) |
-| `dms` | `dm_*` | DMS 전용 (문서 관리, 미래 확장) |
+| `dms` | `dm_*` | DMS 전용 (문서, 설정, 대화 세션) |
+| `sns` | `sns_*` | SNS 게시물·댓글·반응 |
 
 ---
 
@@ -142,18 +144,19 @@ model CmUserM {
 
 ## 새 테이블 추가 체크리스트
 
-새 마스터 테이블 추가 시 **8가지 필수 작업**:
+새 마스터 테이블 추가 시 **9가지 필수 작업**:
 
 | # | 작업 | 파일/위치 |
 |---|------|----------|
 | 1 | Prisma 마스터 모델 정의 | `prisma/schema.prisma` |
 | 2 | Prisma 히스토리 모델 정의 | `prisma/schema.prisma` (같은 파일) |
-| 3 | DB에 스키마 적용 | `pnpm db:push` |
-| 4 | 트리거 SQL 작성 | `prisma/triggers/{스키마}/tr_{테이블명}.sql` |
-| 5 | apply-triggers.ts에 등록 | `scripts/apply-triggers.ts` |
-| 6 | 트리거 설치 실행 | `pnpm db:triggers` |
-| 7 | 문서 업데이트 | `docs/common/reference/db/` |
-| 8 | README Changelog 추가 | `packages/database/README.md` |
+| 3 | Launch migration 반영 | `prisma/launch-migrations/` |
+| 4 | 빈 DB 기준선 검증 | `pnpm db:baseline:verify` |
+| 5 | 트리거 SQL 작성 | `prisma/triggers/{스키마}/tr_{테이블명}.sql` |
+| 6 | apply-triggers.ts에 등록 | `scripts/apply-triggers.ts` |
+| 7 | 트리거 설치 실행 | `pnpm db:triggers` |
+| 8 | 문서 업데이트 | `docs/common/reference/db/` |
+| 9 | README Changelog 추가 | `packages/database/README.md` |
 
 ---
 
@@ -251,11 +254,18 @@ export { PrismaClient } from '@prisma/client';
 ## 주요 명령어
 
 ```bash
-# 스키마 적용 (개발)
+# 스키마 적용 (개발 중 임시 동기화)
 pnpm --filter @ssoo/database db:push
 
-# 마이그레이션 생성
-pnpm --filter @ssoo/database db:migrate
+# 새 DB/launch-managed DB 마이그레이션 적용·상태 확인
+pnpm --filter @ssoo/database db:migrate:deploy
+pnpm --filter @ssoo/database db:migrate:status
+
+# launch-managed 개발 DB에서 다음 migration 생성
+pnpm --filter @ssoo/database db:migrate -- --name <migration_name>
+
+# 빈 일회용 DB에서 launch baseline 재현성 검증
+pnpm --filter @ssoo/database db:baseline:verify
 
 # Prisma Client 재생성
 pnpm --filter @ssoo/database db:generate
@@ -272,7 +282,14 @@ pnpm --filter @ssoo/database docs:db
 2. **네이밍 규칙 무시** - 접두사 없이 테이블 생성
 3. **감사 필드 누락** - createdAt, updatedAt 등 필수
 4. **BigInt → Number 변환** - 정밀도 손실 위험
-5. **직접 SQL 실행** - 반드시 Prisma 통해 관리
+5. **이력 밖 직접 SQL 실행** - Prisma로 표현할 수 없는 제약·인덱스는 검토된 launch migration SQL과 검증 스크립트로 관리
+
+## Launch migration 규칙
+
+- 신규 배포 이력 정본은 `prisma.launch.config.ts`와 `prisma/launch-migrations/`입니다.
+- `prisma/migrations/`의 기존 SQL은 pre-baseline volume 호환과 protected patch 검증을 위해 보존합니다.
+- 기존 DB baseline resolve는 자동화하지 않습니다. 백업 후 schema drift가 0인 경우에만 `DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline`을 명시합니다.
+- 신규 launch migration 변경은 `pnpm db:baseline:verify`로 빈 DB deploy/status, master seed, schema parity, database-native 계약, source/migration-managed trigger 설치를 검증합니다.
 
 ---
 

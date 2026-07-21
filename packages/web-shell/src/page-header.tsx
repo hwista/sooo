@@ -51,19 +51,7 @@ export interface SsooPageHeaderProps {
   className?: string;
 }
 
-function getButtonClass(variant: SsooPageHeaderActionVariant, iconOnly = false) {
-  return cn(
-    'inline-flex items-center justify-center rounded-md font-medium transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 ssoo-ring-primary-30',
-    'disabled:pointer-events-none disabled:opacity-60',
-    iconOnly ? 'h-control-h w-control-h' : 'h-control-h px-3 text-[0.8125rem]',
-    variant === 'default' && 'bg-ssoo-primary text-white ssoo-hover-bg-primary-90',
-    variant === 'secondary' && 'ssoo-bg-primary-80 text-white ssoo-hover-bg-primary-70',
-    variant === 'outline' && 'border border-ssoo-content-border bg-white text-ssoo-primary hover:bg-ssoo-content-bg',
-    variant === 'destructive' && 'bg-destructive text-white hover:bg-destructive/90',
-    variant === 'ghost' && 'text-ssoo-primary hover:bg-ssoo-content-bg'
-  );
-}
+const pageHeaderButtonFocusClass = 'ssoo-ring-primary-30';
 
 function IconText({
   icon,
@@ -74,7 +62,7 @@ function IconText({
 }) {
   return (
     <>
-      {icon ? <span className="mr-1.5 inline-flex shrink-0 items-center">{icon}</span> : null}
+      {icon ? <span className="inline-flex shrink-0 items-center">{icon}</span> : null}
       {children}
     </>
   );
@@ -105,12 +93,14 @@ export function SsooPageHeader({
     const icon = action.loading ? iconSlots?.loading : action.icon;
 
     return (
-      <Button variant="plain" size="plain"
+      <Button
         key={index}
         type="button"
+        variant={variant}
+        size="pageAction"
         onClick={action.onClick}
         disabled={action.disabled || action.loading}
-        className={getButtonClass(variant)}
+        className={pageHeaderButtonFocusClass}
       >
         <IconText icon={icon}>{action.label}</IconText>
       </Button>
@@ -133,7 +123,7 @@ export function SsooPageHeader({
               <h1 className="truncate text-title-card text-ssoo-primary">{title}</h1>
             ) : null}
             {description ? (
-              <p className={cn(title ? 'mt-0.5 truncate text-body-sm' : 'text-[0.8125rem]', 'ssoo-text-primary-70')}>
+              <p className={cn(title ? 'mt-0.5 truncate' : '', 'text-body-sm ssoo-text-primary-70')}>
                 {description}
               </p>
             ) : null}
@@ -141,7 +131,7 @@ export function SsooPageHeader({
         ) : null}
 
         {mode === 'viewer' && onEdit ? (
-          <Button variant="plain" size="plain" type="button" onClick={onEdit} className={getButtonClass('default')}>
+          <Button variant="default" size="pageAction" type="button" onClick={onEdit} className={pageHeaderButtonFocusClass}>
             <IconText icon={iconSlots?.edit}>편집</IconText>
           </Button>
         ) : null}
@@ -149,15 +139,17 @@ export function SsooPageHeader({
         {(mode === 'editor' || mode === 'create') ? (
           <>
             {onBack ? (
-              <Button variant="plain" size="plain" type="button" onClick={onBack} className={getButtonClass('ghost')}>
+              <Button variant="ghost" size="pageAction" type="button" onClick={onBack} className={pageHeaderButtonFocusClass}>
                 <IconText icon={iconSlots?.back}>뒤로가기</IconText>
               </Button>
             ) : onCancel ? (
-              <Button variant="plain" size="plain"
+              <Button
                 type="button"
+                variant="ghost"
+                size="pageAction"
                 onClick={onCancel}
                 disabled={saving}
-                className={getButtonClass('ghost')}
+                className={pageHeaderButtonFocusClass}
               >
                 <IconText icon={iconSlots?.cancel}>{mode === 'create' ? '작성취소' : '편집종료'}</IconText>
               </Button>
@@ -174,10 +166,12 @@ export function SsooPageHeader({
           <>
             {viewerRightSlot}
             {onHistory ? (
-              <Button variant="plain" size="plain"
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={onHistory}
-                className={getButtonClass('ghost', true)}
+                className={pageHeaderButtonFocusClass}
                 aria-label="이력"
               >
                 {iconSlots?.history}
@@ -189,21 +183,25 @@ export function SsooPageHeader({
         {(mode === 'editor' || mode === 'create') && !isPreview ? (
           <>
             {onSave ? (
-              <Button variant="plain" size="plain"
+              <Button
                 type="button"
+                variant="default"
+                size="pageAction"
                 onClick={onSave}
                 disabled={saving || saveDisabled}
-                className={getButtonClass('default')}
+                className={pageHeaderButtonFocusClass}
               >
                 <IconText icon={saving ? iconSlots?.loading : iconSlots?.save}>저장</IconText>
               </Button>
             ) : null}
             {onDelete ? (
-              <Button variant="plain" size="plain"
+              <Button
                 type="button"
+                variant="destructive"
+                size="pageAction"
                 onClick={onDelete}
                 disabled={saving}
-                className={getButtonClass('destructive')}
+                className={pageHeaderButtonFocusClass}
               >
                 <IconText icon={iconSlots?.delete}>삭제</IconText>
               </Button>

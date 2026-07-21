@@ -28,8 +28,8 @@ export function SsooAiSearchToolbarTocMenu({
         variant="ghost"
         type="button"
         className={cn(
-          'gap-1.5 px-3 text-[0.8125rem] hover:bg-gray-100',
-          tocHovered && 'bg-gray-100'
+          'gap-1.5 px-3 text-body-xs hover:bg-muted',
+          tocHovered && 'bg-muted'
         )}
       >
         <List className="h-4 w-4" />
@@ -41,7 +41,7 @@ export function SsooAiSearchToolbarTocMenu({
           className={cn(
             'absolute left-0 top-full z-50',
             'w-72 max-h-80 overflow-y-auto',
-            'rounded-lg rounded-tl-none bg-gray-100',
+            'rounded-lg rounded-tl-none bg-muted',
             'shadow-lg',
             'animate-in fade-in-0 zoom-in-95 duration-100'
           )}
@@ -54,11 +54,11 @@ export function SsooAiSearchToolbarTocMenu({
                   key={item.id}
                   onClick={() => onItemClick?.(item.id)}
                   className={cn(
-                    'w-full justify-start truncate px-2 text-left text-[0.8125rem] leading-6 tracking-normal hover:bg-white hover:text-ssoo-primary',
-                    listStyle === 'hierarchy' && item.level === 1 && 'font-medium text-gray-900',
-                    listStyle === 'hierarchy' && item.level === 2 && 'font-normal text-gray-700',
-                    listStyle === 'hierarchy' && item.level >= 3 && 'font-normal text-gray-500',
-                    listStyle === 'flat' && 'text-gray-800'
+                    'w-full justify-start truncate px-2 text-left text-body-xs leading-6 tracking-normal hover:bg-card hover:text-ssoo-primary',
+                    listStyle === 'hierarchy' && item.level === 1 && 'font-medium text-foreground',
+                    listStyle === 'hierarchy' && item.level === 2 && 'font-normal text-muted-foreground',
+                    listStyle === 'hierarchy' && item.level >= 3 && 'font-normal text-muted-foreground',
+                    listStyle === 'flat' && 'text-foreground'
                   )}
                   style={{ paddingLeft: `${(item.level - 1) * 12 + 8}px` }}
                   title={item.text}

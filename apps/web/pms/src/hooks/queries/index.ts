@@ -19,10 +19,53 @@ export {
   customerKeys,
   useCustomerList,
   useCustomerDetail,
-  useCreateCustomer,
-  useUpdateCustomer,
-  useDeactivateCustomer,
 } from './useCustomers';
+
+// PMS Master
+export {
+  pmsMasterKeys,
+  useCreatePmsMasterImportProfile,
+  useCreatePlantSite,
+  useCreateSystemCatalog,
+  useCreateSystemInstance,
+  useCreateSystemIntegration,
+  useDeactivatePmsMasterImportProfile,
+  useDeactivatePlantSite,
+  useDeactivateSystemCatalog,
+  useDeactivateSystemInstance,
+  useDeactivateSystemIntegration,
+  useImportPmsMaster,
+  usePmsMasterImportProfileHistory,
+  usePmsMasterImportProfiles,
+  usePmsMasterSummary,
+  usePlantSites,
+  useRestorePmsMasterImportProfile,
+  useSystemCatalogs,
+  useSystemInstances,
+  useSystemIntegrations,
+  useUpdatePmsMasterImportProfile,
+  useUpdatePlantSite,
+  useUpdateSystemCatalog,
+  useUpdateSystemInstance,
+  useUpdateSystemIntegration,
+} from './usePmsMaster';
+
+// PMS Templates
+export {
+  pmsTemplateKeys,
+  useDeactivatePmsCloseConditionTemplateGroup,
+  useDeactivatePmsDeliverableTemplateGroup,
+  usePmsCloseConditionTemplateGroupHistory,
+  usePmsCloseConditionTemplateGroups,
+  usePmsDeliverableTemplateGroupHistory,
+  usePmsDeliverableTemplateGroups,
+  useRestorePmsCloseConditionTemplateGroup,
+  useRestorePmsDeliverableTemplateGroup,
+  useSavePmsCloseConditionTemplateGroup,
+  useSavePmsDeliverableTemplateGroup,
+  useUpdatePmsCloseConditionTemplateGroupApproval,
+  useUpdatePmsDeliverableTemplateGroupApproval,
+} from './usePmsTemplates';
 
 // Menus
 export {
@@ -38,17 +81,30 @@ export {
   useHomeSummary,
 } from './useHomeSummary';
 
+// CRM Handoff
+export {
+  crmHandoffKeys,
+  useCrmContractHandoffCandidates,
+  useCrmContractPmsHandoffPreview,
+} from './useCrmHandoff';
+
 // Projects
 export {
   projectKeys,
+  projectDashboardKeys,
+  taskEffortLogKeys,
   useProjectList,
   useProjectDetail,
   useProjectAccess,
+  useProjectDashboardSummary,
+  useProjectMembers,
+  useProjectMemberUserLookup,
   useCreateProject,
   useUpdateProject,
   useDeleteProject,
   useCreateProjectOrg,
   useRemoveProjectOrg,
+  useProjectOrgLookup,
   useProjectOrgs,
   useCreateProjectRelation,
   useRemoveProjectRelation,
@@ -78,6 +134,19 @@ export {
   useUpsertExecutionDetail,
   useUpsertTransitionDetail,
   useTransitionReadiness,
+  useProjectHandoffs,
+  useCreateProjectHandoff,
+  useUpdateProjectHandoff,
+  useProjectContracts,
+  useApplyCrmContractHandoffSnapshot,
+  useProjectTaskEffortLogs,
+  useCreateTaskEffortLog,
+  useUpdateTaskEffortLog,
+  useDeleteTaskEffortLog,
+  useReplaceDeliverableApprovalRoute,
+  useDecideDeliverableApprovalStep,
+  useReplaceCloseConditionApprovalRoute,
+  useDecideCloseConditionApprovalStep,
 } from './useProjects';
 
 // Roles

@@ -166,7 +166,7 @@ export function AssistantReferenceChips({
                 ? 'border-destructive/30 bg-destructive/5 text-destructive/60 line-through'
                 : isTemplateUsed
                   ? 'border-ssoo-content-border bg-ssoo-content-border text-ssoo-primary'
-                  : 'border-ssoo-content-border bg-white text-ssoo-primary'
+                  : 'border-ssoo-content-border bg-card text-ssoo-primary'
             }`}
             title={template.name}
           >
@@ -216,7 +216,7 @@ export function AssistantReferenceChips({
                     ? 'border-amber-200 bg-amber-50 text-amber-800'
                   : isUsed
                     ? 'border-ssoo-content-border bg-ssoo-content-border text-ssoo-primary'
-                    : 'border-ssoo-content-border bg-white text-ssoo-primary'
+                    : 'border-ssoo-content-border bg-card text-ssoo-primary'
               }`}
               title={fileIssue ? `${file.name} - ${fileIssue}` : file.name}
             >

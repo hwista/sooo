@@ -36,12 +36,14 @@ const pageComponents: Record<string, React.LazyExoticComponent<React.ComponentTy
   '/execution': lazy(() => import('@/components/pages/execution/ListPage').then(m => ({ default: m.ExecutionListPage }))),
   '/transition': lazy(() => import('@/components/pages/transition/ListPage').then(m => ({ default: m.TransitionListPage }))),
   '/project/detail': lazy(() => import('@/components/pages/project/DetailPage').then(m => ({ default: m.ProjectDetailPage }))),
+  '/settings': lazy(() => import('@/components/pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage }))),
   // Settings/Admin pages are no longer primary PMS sidebar entries; keep routable as direct admin paths.
   [SSOO_GLOBAL_SEARCH_APP_PATH]: lazy(() => import('@/components/pages/search/GlobalSearchPage').then(m => ({ default: m.PmsGlobalSearchPage }))),
   '/admin/code': lazy(() => import('@/components/pages/admin/CodeManagementPage').then(m => ({ default: m.CodeManagementPage }))),
   '/admin/role': lazy(() => import('@/components/pages/admin/RoleManagementPage').then(m => ({ default: m.RoleManagementPage }))),
   '/admin/menu': lazy(() => import('@/components/pages/admin/MenuManagementPage').then(m => ({ default: m.MenuManagementPage }))),
-  '/admin/customer': lazy(() => import('@/components/pages/admin/CustomerManagementPage').then(m => ({ default: m.CustomerManagementPage }))),
+  '/admin/master': lazy(() => import('@/components/pages/admin/MasterDataPage').then(m => ({ default: m.MasterDataPage }))),
+  '/admin/templates': lazy(() => import('@/components/pages/admin/TemplateManagementPage').then(m => ({ default: m.TemplateManagementPage }))),
 };
 
 function stripQuery(path: string): string {
@@ -58,7 +60,7 @@ function renderPmsPage(tab: TabItem) {
     return (
       <SsooContentAreaState
         title={tab.title}
-        description={`페이지 준비 중: ${path}`}
+        description={`등록되지 않은 화면 경로입니다: ${path}`}
       />
     );
   }
@@ -151,7 +153,7 @@ export function ContentArea() {
       unknownRouteSlot={(tab) => (
         <SsooContentAreaState
           title={tab.title}
-          description={`페이지 준비 중: ${tab.path}`}
+          description={`등록되지 않은 화면 경로입니다: ${tab.path}`}
         />
       )}
     />

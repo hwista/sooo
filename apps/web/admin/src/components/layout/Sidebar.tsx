@@ -25,11 +25,13 @@ const ADMIN_APP_IDENTITY = getSsooAppIdentity('admin');
 interface AdminSidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  toggleLabel?: string;
 }
 
 export function AdminSidebar({
   isCollapsed,
   onToggleCollapse,
+  toggleLabel,
 }: AdminSidebarProps) {
   const router = useRouter();
   const tabs = useTabStore((state) => state.tabs);
@@ -44,6 +46,7 @@ export function AdminSidebar({
       expanded={!isCollapsed}
       onToggleCollapse={onToggleCollapse}
       toggleIcon={Menu}
+      toggleLabel={toggleLabel}
       brandTitle={ADMIN_APP_IDENTITY.brandTitle}
       search={{
         value: searchQuery,

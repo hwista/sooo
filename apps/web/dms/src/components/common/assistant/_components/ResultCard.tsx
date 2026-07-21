@@ -161,7 +161,7 @@ export function SearchResultCard({
       </h3>
 
       <div className={cn(compact ? 'mt-1.5' : 'mt-2', 'flex flex-wrap items-center gap-2')}>
-        <span className="inline-flex items-center rounded-full border border-ssoo-content-border bg-white px-1.5 py-0 text-badge text-ssoo-primary/75">
+        <span className="inline-flex items-center rounded-full border border-ssoo-content-border bg-card px-1.5 py-0 text-badge text-ssoo-primary/75">
           {renderVisibilityLabel(result.visibilityScope)}
         </span>
         {result.owner && (
@@ -231,7 +231,7 @@ export function SearchResultCard({
   const rootClassName = cn(
     'block w-full min-w-0 overflow-hidden whitespace-normal rounded-lg border border-ssoo-content-border text-left transition-colors',
     'items-stretch justify-start gap-0',
-    highlighted ? 'bg-ssoo-content-bg' : 'bg-white',
+    highlighted ? 'bg-ssoo-content-bg' : 'bg-card',
     onClick && 'hover:bg-ssoo-content-bg/40',
     className,
   );

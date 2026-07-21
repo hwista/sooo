@@ -10,13 +10,24 @@ import {
   type SsooUserSurfaceTabKind,
 } from '@ssoo/web-auth';
 import { SsooAppHeader, SsooHeaderUserMenuLoadingState, useSsooGlobalHeaderSearch } from '@ssoo/web-shell';
-import { Plus } from 'lucide-react';
+import { Menu, Plus, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTabStore } from '@/stores/tab.store';
 import { HeaderNotifications } from './HeaderNotifications';
 
 const LOGIN_PATH = '/login';
-export function AdminHeader() {
+
+interface AdminHeaderProps {
+  mobile?: boolean;
+  mobileMenuOpen?: boolean;
+  onMobileMenuClick?: () => void;
+}
+
+export function AdminHeader({
+  mobile = false,
+  mobileMenuOpen = false,
+  onMobileMenuClick,
+}: AdminHeaderProps) {
   const user = useAuthStore((s) => s.user);
   const openTab = useTabStore((s) => s.openTab);
   const router = useRouter();
@@ -61,8 +72,17 @@ export function AdminHeader() {
   return (
     <SsooAppHeader
       mode="primary"
-      search={globalHeaderSearch.search}
-      primaryAction={{
+      leading={mobile ? { title: 'Admin / 플랫폼', subtitle: '시스템 관리' } : undefined}
+      leadingAction={mobile ? {
+        iconSlot: mobileMenuOpen ? <X /> : <Menu />,
+        'aria-controls': 'admin-mobile-sidebar',
+        'aria-expanded': mobileMenuOpen,
+        'aria-label': mobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기',
+        title: mobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기',
+        onClick: onMobileMenuClick,
+      } : null}
+      search={mobile ? null : globalHeaderSearch.search}
+      primaryAction={mobile ? null : {
         label: '새 사용자',
         iconSlot: <Plus />,
         onClick: handleCreateUser,

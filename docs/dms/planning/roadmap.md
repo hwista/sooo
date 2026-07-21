@@ -1,6 +1,6 @@
 # DMS 로드맵
 
-> 최종 업데이트: 2026-06-02 (활성 문서 저장 반영 보강)
+> 최종 업데이트: 2026-07-02 (공용 AI/RAG runtime smoke 선행 조건 반영)
 
 ---
 
@@ -21,6 +21,7 @@
 - 사용자별 DMS client state isolation 적용: 로그인 사용자 변경 시 tab/file tree/sidebar/editor/settings/query cache 상태를 분리하고, user-scope contract 검증을 추가
 - 권한 요청 취소와 수신자 알림 cleanup 적용: requester pending 취소, owner 알림 archive/read 처리, notification archived 이벤트 기반 패널 갱신 연결
 - AI 검색 런칭 정리: 검색 결과 AI 요약 표시, DB 기반 내 자주 검색/인기 검색어/검색 기록, 인기 검색어 최소 노출 조건과 검증/테스트 검색어 저장 차단 적용
+- 공용 AI/RAG reference adapter 기준선: DMS markdown 문서를 `CommonAiIndexModule` projection으로 동기화하고 DMS Ask가 common retrieval/conversation/run audit/model gateway를 우선 호출하는 경로를 보유한다. DMS vector/RAG capability는 embedding provider readiness 기반으로 정합화됐고, placeholder embedding deployment는 unavailable로 처리한다. provider-unavailable runtime smoke는 retrieval log header/item audit까지 Docker Postgres에서 통과했다. provider-ready smoke는 legacy `dms_document_embeddings` chunk와 common retrieval result/context 비교까지 수행하고 JSON report artifact를 남기도록 보강됐으며, report JSON은 `verify:ai-rag-runtime-report`로 검증하고 Markdown evidence summary를 생성한다. 실제 Azure embedding 환경의 green 결과는 남아 있다. legacy `dms_document_embeddings` 전환 기준은 runbook에 고정됐다.
 - 잠긴 문서 미리보기 적용: unreadable 검색/AI 결과 클릭 시 즉시 팝업 대신 문서 탭을 열고, 서버 preview-only 응답 기반 잠금 화면과 권한 요청 CTA를 표시
 - 검색/권한 런칭 게이트 closeout: unreadable 검색 결과 원문 발췌 redaction, Search/Ask 차단 소스 수와 제외 사유 요약, 권한 요청 승인/거절/grant 회수/소유권 이전 live HTTP 회귀 검증, DB 검색 기록 migration 산출물 반영
 - 협업/권한/알림/댓글 closeout: 문서 사이드카 상태/권한/댓글 UX, 알림 읽음 상태 제어, 대상 문서 자동 읽음, DB 기반 댓글, 댓글 실시간 갱신, AI 요약 첨부 유지, 내부/외부 링크 라우팅, WebSocket soft lock, 잠금 해제 요청 승인 lifecycle 반영
@@ -38,17 +39,19 @@
 
 **런칭 스모크 / 운영 freeze**:
 
-1. AI 요약 새 문서 저장과 첨부 확인: 외부 모델/API 설정이 준비된 런칭 환경에서 수동 또는 별도 isolated smoke 로 확인
-2. 런칭 체크리스트 freeze 및 운영 데이터/계정 seed 상태 확인
-3. 원격 push 상태와 배포 대상 브랜치 확인: GitHub `main`, GitLab `development`
-4. **DMS-QA-02** hard refresh client-side error 브라우저 재현 케이스 확보: 현재 CLI/HTTP/build 기준 문제 없음, 재현 시 console 첫 오류 기준으로 regression 추가
+1. 공용 AI/RAG runtime smoke runbook: Docker Postgres에서 compat/trigger apply, DMS 저장 지점 common projection, common retrieval, DMS Ask JSON, retrieval log header/item, conversation/run audit 절차는 `docs/common/guides/ai-rag-runtime-runbook.md`로 고정. AI/RAG 정적 guard, provider-ready env precheck, provider-ready run-source audit coverage, provider-ready legacy/common comparison assertion, runtime smoke JSON report, `verify:ai-rag-runtime-report` 검증, Markdown evidence summary, artifact upload, provider mode-separated `.github/workflows/ai-rag-runtime.yml` 수동 CI/운영 gate, legacy `dms_document_embeddings` 전환 기준은 완료. 남은 항목은 실제 Azure embedding deployment로 provider-ready workflow를 통과시키고 검증된 summary artifact 결과를 기록하는 것
+2. DMS vector/RAG runtime proof: provider 미설정 또는 placeholder deployment 환경은 unavailable/stale/fallback 통과 완료. provider 설정 환경은 `cm_ai_embedding_m` vector retrieval, Ask context assembly, legacy/common retrieval 비교 assertion을 실제 Azure 환경에서 green으로 증명
+3. AI 요약 새 문서 저장과 첨부 확인: 외부 모델/API 설정이 준비된 런칭 환경에서 수동 또는 별도 isolated smoke 로 확인
+4. 런칭 체크리스트 freeze 및 운영 데이터/계정 seed 상태 확인
+5. 원격 push 상태와 배포 대상 브랜치 확인: GitHub `main`, GitLab `development`
+6. **DMS-QA-02** hard refresh client-side error 브라우저 재현 케이스 확보: 현재 CLI/HTTP/build 기준 문제 없음, 재현 시 console 첫 오류 기준으로 regression 추가
 
 **기타 P1**:
 
-5. 저장소 어댑터 3종(Local/SharePoint/NAS) 라우팅 관통 적용
-6. 정본/첨부 Open/Copy/Resync UX 고도화 (에러 표준화 — Phase C)
-7. 자동 수집 채널 연동 + 컨펌 후 게시 운영화
-8. Ask/Search 화면의 citations/confidence UI 완결
+7. 저장소 어댑터 3종(Local/SharePoint/NAS) 라우팅 관통 적용
+8. 정본/첨부 Open/Copy/Resync UX 고도화 (에러 표준화 — Phase C)
+9. 자동 수집 채널 연동 + 컨펌 후 게시 운영화
+10. Ask/Search 화면의 citations/confidence UI 완결
 
 ## 3. 중기 우선순위 (P2)
 
@@ -67,11 +70,28 @@
 - `docs/dms/planning/auth-access-readiness.md`
 - `docs/dms/planning/backlog.md`
 - `docs/dms/planning/storage-and-second-brain-architecture.md`
+- `docs/common/explanation/architecture/ai-rag-platform-roadmap.md`
+- `docs/common/explanation/architecture/ai-rag-platform-handoff.md`
 
 ## Changelog
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-02 | runtime smoke Markdown evidence summary artifact 기준을 DMS P1 운영 증거에 반영 |
+| 2026-07-02 | runtime smoke report verifier 기준을 DMS P1 운영 증거에 반영 |
+| 2026-07-02 | runtime smoke JSON report와 workflow artifact upload 기준을 DMS P1 운영 증거에 반영 |
+| 2026-07-02 | provider-ready runtime smoke에 legacy/common retrieval 비교 검증을 추가한 상태를 DMS P1 기준에 반영 |
+| 2026-07-02 | legacy `dms_document_embeddings` 전환 기준과 provider mode별 workflow env 분리를 DMS 단기 P1 기준에 반영 |
+| 2026-07-02 | provider-ready AI/RAG runtime smoke를 위한 `.github/workflows/ai-rag-runtime.yml` 수동 CI/운영 gate 반영. 실제 Azure embedding deployment로 green 결과를 남기는 작업은 단기 P1 잔여 |
+| 2026-07-02 | 강화된 retrieval log item audit 기준으로 provider-unavailable runtime smoke가 재통과한 상태를 반영 |
+| 2026-07-02 | provider-ready runtime smoke가 retrieval log item과 DMS Ask run-source audit까지 확인하도록 coverage 기준을 반영 |
+| 2026-07-02 | provider-ready smoke 전 Azure OpenAI endpoint/deployment/credential precheck 기준을 반영 |
+| 2026-07-02 | AI/RAG 정적 verifier가 preflight/push-guard에 연결된 상태를 반영. provider-ready green workflow 결과는 단기 P1 잔여로 유지 |
+| 2026-07-02 | 공용 AI/RAG runtime runbook과 `DB_INIT_PRISMA_PUSH_MODE=auto` legacy DB init guard를 반영. provider-ready green workflow 결과는 단기 P1 잔여로 유지 |
+| 2026-07-02 | 공용 AI/RAG provider-unavailable runtime smoke 통과를 반영. DMS 저장 지점에서 common object/chunk/state stale projection과 retrieval/Ask audit를 확인했고, provider-ready vector/RAG workflow green 결과는 단기 P1 잔여로 유지 |
+| 2026-07-02 | embedding deployment placeholder 값은 provider unavailable로 처리하는 기준을 runtime proof 항목에 반영 |
+| 2026-07-02 | DMS vector/RAG capability를 embedding provider readiness 기반으로 정합화한 상태를 반영하고, 잔여를 unavailable/ready runtime proof로 좁힘 |
+| 2026-07-02 | 공용 AI/RAG reference adapter 상태를 현재 완료 범위에 추가하되, DMS vector/RAG capability gate와 Docker runtime smoke를 단기 P1 선행 항목으로 재정렬 |
 | 2026-06-02 | 비소유 편집 권한자 저장 권한 분리. 본문 저장은 허용하되 보류 메타데이터 플러시는 수행하지 않고 최신 메타데이터를 재조회하도록 정리. 저장 직전 metadata projection 변경은 문서 소유자/관리 가능 권한일 때만 생성 |
 | 2026-06-02 | soft lock 유령 잠금 방지. lock 활성 판정에서 사용자 WebSocket 접속 여부를 제거하고 현재 편집 세션의 최근 renew 시간만 기준으로 삼도록 정리. stale 편집 presence 도 접속 중 사용자라는 이유로 유지되지 않게 해 강력 새로고침 뒤 거짓 `편집 중` 상태가 남는 경로를 차단 |
 | 2026-06-02 | soft lock 즉시 구독 보강. 문서 화면이 전역 에디터 스토어 경로 갱신만 기다리지 않고 현재 문서 경로를 WebSocket 구독 대상으로 직접 요청하도록 연결하고, 양방향 lock 브라우저 회귀를 2.5초 즉시 차단 기준으로 강화 |

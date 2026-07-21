@@ -150,7 +150,7 @@ DMS는 다음 구조를 사용합니다.
 - `/api/search`, `/api/ask`, `/api/create` 는 DMS Route Handler가 요청을 `apps/server` Nest API로 넘기고, Nest가 Azure OpenAI와 검색 저장소를 직접 다룹니다.
 - `/api/doc-assist` 도 포함한 주요 DMS AI/business 경로는 same-origin Route Handler를 거쳐 `apps/server` DMS module로 전달됩니다.
 - Entra 토큰 취득 실패 시 `AZURE_OPENAI_API_KEY` 경로로 폴백할 수 있습니다.
-- Docker 배포에서는 Azure 환경변수가 `server` 컨테이너에 주입되어야 합니다. `web-dms`의 `.env.local` 만 채우면 `/api/dms/ask` 쪽 server 런타임에는 값이 없습니다.
+- Docker 배포에서는 Azure 환경변수가 `server` 컨테이너에 주입되어야 합니다. 로컬은 root `.env`/DMS `.env.local`의 공통 키를 compose가 server에 전달하고, 프로덕션은 `.env.production` interpolation만 사용합니다. DMS 앱만 직접 실행하면서 `web-dms`의 `.env.local`만 채우면 `/api/dms/ask` 쪽 server 런타임에는 값이 없습니다.
 
 ### 권장 환경 변수
 

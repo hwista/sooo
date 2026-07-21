@@ -1,6 +1,6 @@
 # 페이지 라우팅 (Page Routing)
 
-> 최종 업데이트: 2026-06-22
+> 최종 업데이트: 2026-07-06
 
 DMS의 탭 기반 라우팅과 설정 모드 구조를 정의합니다.
 
@@ -11,7 +11,7 @@ DMS의 탭 기반 라우팅과 설정 모드 구조를 정의합니다.
 DMS는 Next.js App Router를 사용하지만, 브라우저 공개 진입점은 **`/`, `/login`, `/password-reset`** 만 사용하고 실제 업무 화면 전환은 **workspace 탭 frame** 안에서 처리합니다.
 
 - 브라우저 공개 URL: `/`, `/login`, `/password-reset`
-- 내부 탭 경로: `/home`, `/doc/...`, `/doc/new*`, `/ai/chat`, `/ssoo/search`
+- 내부 탭 경로: `/home`, `/doc/...`, `/doc/new*`, `/ai/chat`, `/ssoo/search`, `/settings/{surface}/{sectionId}`
 - 정책: 내부 탭 경로는 주소창에 직접 노출하거나 딥링크로 사용하는 대상이 아니다.
 - `/settings` 는 현재 기준의 workspace 탭 경로가 아니라, stale session/tab migration 을 위한 legacy handoff 경로다.
 
@@ -122,9 +122,11 @@ DMS 검색 진입점은 `/ssoo/search` 하나다. DMS에서 검색을 열어도 
 
 ### Settings mode 전환
 
-- 사용자 메뉴, 알림, assistant help action은 workspace `settings` 탭을 열지 않고 `useSettingsPageNavigationStore.enterSettings()` 또는 `openSection()` 으로 settings mode를 켠 뒤, `/settings/{scope}/{sectionId}` 설정 탭을 엽니다.
+- 사용자 메뉴, 알림, assistant help action은 workspace `settings` 탭을 열지 않고 `useSettingsPageNavigationStore.enterSettings()` 또는 `openSection()` 으로 settings mode를 켠 뒤, `/settings/{surface}/{sectionId}` 설정 탭을 엽니다.
+- 현재 settings surface 는 `operations`, `system-settings`, `management`, `personal-settings` 입니다. 이 surface 는 정보구조/탭 경로용 구분이며, 저장 API snapshot 의 `system`/`personal` scope 와 별개입니다.
+- `/settings/{scope}/{sectionId}` 형식의 legacy tab path 는 세션 복원 호환을 위해 파싱만 유지합니다.
 - `useSettingsPageNavigationStore.isActive` 가 true이면 `AppLayout`은 같은 `SsooAppFrame`의 sidebar/header/tabbar/content slot을 유지하면서 settings variant 데이터를 주입합니다.
-- settings mode가 켜진 동안 active content tab은 `/settings/{scope}/{sectionId}` 경로여야 합니다. `AppLayout`은 설정 모드와 활성 탭을 첫 페인트 전에 맞추고, `ContentArea`는 설정 모드에서 문서 탭을 active pane으로 렌더링하지 않습니다.
+- settings mode가 켜진 동안 active content tab은 `/settings/{surface}/{sectionId}` 경로여야 합니다. `AppLayout`은 설정 모드와 활성 탭을 첫 페인트 전에 맞추고, `ContentArea`는 설정 모드에서 문서 탭을 active pane으로 렌더링하지 않습니다.
 - section 탐색은 settings sidebar 메뉴 트리 클릭으로 시작하고, 클릭 결과는 같은 `TabBar`의 settings tab으로 열립니다.
 - 설정 본문 내부 anchor index는 `PageTemplate`의 `leftSubContentSlot` rail로 렌더링합니다.
 - 세션 복원 등으로 `/settings` 탭이 남아 있는 경우 `ContentArea` 의 `LegacySettingsRedirect` 가 settings mode로 handoff하고 해당 탭을 닫습니다.
@@ -275,6 +277,7 @@ const pageComponents = {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-06 | settings tab path 를 `/settings/{surface}/{sectionId}` 기준으로 현행화하고 operations/system-settings/management/personal-settings surface 구분을 문서화 |
 | 2026-06-15 | settings mode 활성 중 active content tab이 문서 탭으로 남아 문서 panel이 설정 화면에 표시되는 혼합 상태를 차단하는 라우팅 invariant를 문서화 |
 | 2026-06-15 | settings sidebar 메뉴 클릭이 `/settings/{scope}/{sectionId}` 탭을 열고, 같은 `TabBar`/`ContentArea` 슬롯에서 `SettingsPage`를 렌더링하는 기준으로 보정 |
 | 2026-06-12 | `/settings` 일반 탭을 settings mode legacy handoff로 되돌리고, 설정 section navigation은 settings tabbar로 정리 |

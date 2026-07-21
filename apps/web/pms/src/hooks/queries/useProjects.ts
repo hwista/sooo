@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { projectsApi } from '@/lib/api';
+import { homeSummaryKeys } from './useHomeSummary';
 import type {
   Project,
   ProjectFilters,
@@ -15,12 +16,22 @@ import type {
   ProjectProposalDetail,
   ProjectExecutionDetail,
   ProjectTransitionDetail,
+  ProjectDashboardSummary,
   AdvanceStageRequest,
   TransitionResult,
+  ProjectHandoff,
+  CreateProjectHandoffRequest,
+  UpdateProjectHandoffRequest,
+  ApplyCrmContractHandoffSnapshotRequest,
+  ApplyCrmContractHandoffSnapshotResponse,
   ProjectMember,
+  ProjectMemberUserLookupItem,
+  FindProjectMemberUserLookupParams,
   CreateMemberRequest,
   UpdateMemberRequest,
   ProjectOrgRoleCode,
+  ProjectOrgLookupItem,
+  FindProjectOrgLookupParams,
   CreateProjectOrgRequest,
   ProjectRelationTypeCode,
   CreateProjectRelationRequest,
@@ -45,19 +56,35 @@ import type {
   TaskItem,
   CreateTaskRequest,
   UpdateTaskRequest,
+  TaskEffortLogItem,
+  CreateTaskEffortLogRequest,
+  UpdateTaskEffortLogRequest,
   MilestoneItem,
   CreateMilestoneRequest,
   UpdateMilestoneRequest,
   IssueItem,
-  CreateIssueRequest,
+  LegacyIssueCleanupArchiveResult,
+  LegacyIssueCleanupCanonicalizeResult,
+  LegacyIssueCleanupSummary,
   UpdateIssueRequest,
   ProjectIssueItem,
   CreateProjectIssueRequest,
   UpdateProjectIssueRequest,
   DeliverableItem,
+  DeliverableTemplateGroup,
+  ApplyDeliverableTemplateRequest,
+  DeliverableTemplateApplyResult,
+  UpsertDeliverableTemplateGroupRequest,
   UpsertDeliverableRequest,
   UpdateSubmissionRequest,
+  ProjectCloseoutApprovalStep,
+  UpsertCloseoutApprovalRouteRequest,
+  DecideCloseoutApprovalStepRequest,
   CloseConditionItem,
+  CloseConditionTemplateGroup,
+  ApplyCloseConditionTemplateRequest,
+  CloseConditionTemplateApplyResult,
+  UpsertCloseConditionTemplateGroupRequest,
   UpsertCloseConditionRequest,
   ToggleCheckRequest,
 } from '@/lib/api/endpoints/projects';
@@ -76,8 +103,24 @@ export const projectKeys = {
   access: (id: number) => [...projectKeys.detail(id), 'access'] as const,
 };
 
+export const projectDashboardKeys = {
+  summary: (projectId: number) => [...projectKeys.detail(projectId), 'dashboard-summary'] as const,
+};
+
+function invalidateProjectDashboard(queryClient: ReturnType<typeof useQueryClient>, projectId: number) {
+  queryClient.invalidateQueries({ queryKey: projectDashboardKeys.summary(projectId) });
+}
+
 const transitionReadinessKey = (projectId: number) =>
   [...projectKeys.all, 'transition-readiness', projectId] as const;
+
+export const projectHandoffKeys = {
+  all: (projectId: number) => [...projectKeys.detail(projectId), 'handoffs'] as const,
+};
+
+export const projectContractKeys = {
+  all: (projectId: number) => [...projectKeys.detail(projectId), 'contracts'] as const,
+};
 
 /**
  * 프로젝트 목록 조회
@@ -123,6 +166,22 @@ export function useProjectAccess(
   return useQuery({
     queryKey: projectKeys.access(id),
     queryFn: () => projectsApi.getAccess(id),
+    enabled: !!id,
+    staleTime: 60 * 1000,
+    ...options,
+  });
+}
+
+export function useProjectDashboardSummary(
+  id: number,
+  options?: Omit<
+    UseQueryOptions<ApiResponse<ProjectDashboardSummary>, Error>,
+    'queryKey' | 'queryFn'
+  >,
+) {
+  return useQuery({
+    queryKey: projectDashboardKeys.summary(id),
+    queryFn: () => projectsApi.getDashboardSummary(id),
     enabled: !!id,
     staleTime: 60 * 1000,
     ...options,
@@ -244,6 +303,81 @@ export function useAdvanceStage() {
     onSuccess: (_: ApiResponse<TransitionResult>, variables) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      invalidateProjectDashboard(queryClient, variables.id);
+    },
+  });
+}
+
+// ─── 인수인계 / 계약 스냅샷 ───
+
+export function useProjectHandoffs(projectId: number) {
+  return useQuery({
+    queryKey: projectHandoffKeys.all(projectId),
+    queryFn: () => projectsApi.getHandoffs(projectId),
+    enabled: !!projectId,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useCreateProjectHandoff() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId, data }: { projectId: number; data: CreateProjectHandoffRequest }) =>
+      projectsApi.createHandoff(projectId, data),
+    onSuccess: (_: ApiResponse<ProjectHandoff>, variables) => {
+      queryClient.invalidateQueries({ queryKey: projectHandoffKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: memberKeys.all(variables.projectId) });
+    },
+  });
+}
+
+export function useUpdateProjectHandoff() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      handoffId,
+      data,
+    }: {
+      projectId: number;
+      handoffId: string;
+      data: UpdateProjectHandoffRequest;
+    }) => projectsApi.updateHandoff(projectId, handoffId, data),
+    onSuccess: (_: ApiResponse<ProjectHandoff>, variables) => {
+      queryClient.invalidateQueries({ queryKey: projectHandoffKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: memberKeys.all(variables.projectId) });
+    },
+  });
+}
+
+export function useProjectContracts(projectId: number) {
+  return useQuery({
+    queryKey: projectContractKeys.all(projectId),
+    queryFn: () => projectsApi.getContracts(projectId),
+    enabled: !!projectId,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useApplyCrmContractHandoffSnapshot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      data,
+    }: {
+      projectId: number;
+      data: ApplyCrmContractHandoffSnapshotRequest;
+    }) => projectsApi.applyCrmContractHandoffSnapshot(projectId, data),
+    onSuccess: (_: ApiResponse<ApplyCrmContractHandoffSnapshotResponse>, variables) => {
+      queryClient.invalidateQueries({ queryKey: projectContractKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: projectHandoffKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
     },
   });
 }
@@ -252,10 +386,14 @@ export function useAdvanceStage() {
 
 export const memberKeys = {
   all: (projectId: number) => [...projectKeys.detail(projectId), 'members'] as const,
+  lookup: (projectId: number, filters?: FindProjectMemberUserLookupParams) =>
+    [...memberKeys.all(projectId), 'lookup', filters] as const,
 };
 
 export const projectOrgKeys = {
   all: (projectId: number) => [...projectKeys.detail(projectId), 'organizations'] as const,
+  lookup: (projectId: number, filters?: FindProjectOrgLookupParams) =>
+    [...projectOrgKeys.all(projectId), 'lookup', filters] as const,
 };
 
 export const projectRelationKeys = {
@@ -271,12 +409,46 @@ export function useProjectMembers(projectId: number) {
   });
 }
 
+export function useProjectMemberUserLookup(
+  projectId: number,
+  filters?: FindProjectMemberUserLookupParams,
+  options?: Omit<
+    UseQueryOptions<ApiResponse<ProjectMemberUserLookupItem[]>, Error>,
+    'queryKey' | 'queryFn'
+  >,
+) {
+  return useQuery({
+    queryKey: memberKeys.lookup(projectId, filters),
+    queryFn: () => projectsApi.getMemberUserLookup(projectId, filters),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  });
+}
+
 export function useProjectOrgs(projectId: number) {
   return useQuery({
     queryKey: projectOrgKeys.all(projectId),
     queryFn: () => projectsApi.getProjectOrgs(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useProjectOrgLookup(
+  projectId: number,
+  filters?: FindProjectOrgLookupParams,
+  options?: Omit<
+    UseQueryOptions<ApiResponse<ProjectOrgLookupItem[]>, Error>,
+    'queryKey' | 'queryFn'
+  >,
+) {
+  return useQuery({
+    queryKey: projectOrgKeys.lookup(projectId, filters),
+    queryFn: () => projectsApi.getProjectOrgLookup(projectId, filters),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+    ...options,
   });
 }
 
@@ -422,6 +594,7 @@ export function useCreateObjective() {
     onSuccess: (_: ApiResponse<ObjectiveItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: objectiveKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: milestoneKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -441,6 +614,7 @@ export function useUpdateObjective() {
     onSuccess: (_: ApiResponse<ObjectiveItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: objectiveKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: milestoneKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -453,6 +627,7 @@ export function useDeleteObjective() {
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: objectiveKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: milestoneKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -519,12 +694,25 @@ export const taskKeys = {
   all: (projectId: number) => [...projectKeys.detail(projectId), 'tasks'] as const,
 };
 
+export const taskEffortLogKeys = {
+  all: (projectId: number) => [...taskKeys.all(projectId), 'effort-logs'] as const,
+};
+
 export function useProjectTasks(projectId: number) {
   return useQuery({
     queryKey: taskKeys.all(projectId),
     queryFn: () => projectsApi.getTasks(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useProjectTaskEffortLogs(projectId: number) {
+  return useQuery({
+    queryKey: taskEffortLogKeys.all(projectId),
+    queryFn: () => projectsApi.getTaskEffortLogs(projectId),
+    enabled: !!projectId,
+    staleTime: 60 * 1000,
   });
 }
 
@@ -535,6 +723,66 @@ export function useCreateTask() {
       projectsApi.createTask(projectId, data),
     onSuccess: (_: ApiResponse<TaskItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useCreateTaskEffortLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      data,
+    }: {
+      projectId: number;
+      data: CreateTaskEffortLogRequest;
+    }) => projectsApi.createTaskEffortLog(projectId, data),
+    onSuccess: (_: ApiResponse<TaskEffortLogItem>, variables) => {
+      queryClient.invalidateQueries({ queryKey: taskEffortLogKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
+    },
+  });
+}
+
+export function useUpdateTaskEffortLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      effortLogId,
+      data,
+    }: {
+      projectId: number;
+      effortLogId: string;
+      data: UpdateTaskEffortLogRequest;
+    }) => projectsApi.updateTaskEffortLog(projectId, effortLogId, data),
+    onSuccess: (_: ApiResponse<TaskEffortLogItem>, variables) => {
+      queryClient.invalidateQueries({ queryKey: taskEffortLogKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
+    },
+  });
+}
+
+export function useDeleteTaskEffortLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      effortLogId,
+    }: {
+      projectId: number;
+      effortLogId: string;
+    }) => projectsApi.deleteTaskEffortLog(projectId, effortLogId),
+    onSuccess: (_: ApiResponse<null>, variables) => {
+      queryClient.invalidateQueries({ queryKey: taskEffortLogKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
     },
   });
 }
@@ -546,6 +794,7 @@ export function useUpdateTask() {
       projectsApi.updateTask(projectId, taskId, data),
     onSuccess: (_: ApiResponse<TaskItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -557,6 +806,7 @@ export function useDeleteTask() {
       projectsApi.deleteTask(projectId, taskId),
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -583,6 +833,7 @@ export function useCreateMilestone() {
       projectsApi.createMilestone(projectId, data),
     onSuccess: (_: ApiResponse<MilestoneItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: milestoneKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -594,6 +845,7 @@ export function useUpdateMilestone() {
       projectsApi.updateMilestone(projectId, milestoneId, data),
     onSuccess: (_: ApiResponse<MilestoneItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: milestoneKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -605,6 +857,7 @@ export function useDeleteMilestone() {
       projectsApi.deleteMilestone(projectId, milestoneId),
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: milestoneKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -613,6 +866,7 @@ export function useDeleteMilestone() {
 
 export const issueKeys = {
   all: (projectId: number) => [...projectKeys.detail(projectId), 'issues'] as const,
+  cleanupSummary: (projectId: number) => [...projectKeys.detail(projectId), 'issues', 'cleanup-summary'] as const,
 };
 
 export function useProjectIssues(projectId: number, filters?: { statusCode?: string; issueTypeCode?: string }) {
@@ -624,14 +878,12 @@ export function useProjectIssues(projectId: number, filters?: { statusCode?: str
   });
 }
 
-export function useCreateIssue() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ projectId, data }: { projectId: number; data: CreateIssueRequest }) =>
-      projectsApi.createIssue(projectId, data),
-    onSuccess: (_: ApiResponse<IssueItem>, variables) => {
-      queryClient.invalidateQueries({ queryKey: issueKeys.all(variables.projectId) });
-    },
+export function useProjectLegacyIssueCleanupSummary(projectId: number) {
+  return useQuery<ApiResponse<LegacyIssueCleanupSummary>>({
+    queryKey: issueKeys.cleanupSummary(projectId),
+    queryFn: () => projectsApi.getIssueCleanupSummary(projectId),
+    enabled: !!projectId,
+    staleTime: 60 * 1000,
   });
 }
 
@@ -640,10 +892,43 @@ export function useUpdateIssue() {
   return useMutation({
     mutationFn: ({ projectId, issueId, data }: { projectId: number; issueId: string; data: UpdateIssueRequest }) =>
       projectsApi.updateIssue(projectId, issueId, data),
-    onSuccess: (_: ApiResponse<IssueItem>, variables) => {
+    onSuccess: (response: ApiResponse<IssueItem>, variables) => {
+      upsertIssueCache(queryClient, variables.projectId, response.data);
       queryClient.invalidateQueries({ queryKey: issueKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: issueKeys.cleanupSummary(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
+}
+
+function upsertIssueCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  projectId: number,
+  issue: IssueItem | null,
+) {
+  if (!issue) {
+    return;
+  }
+
+  queryClient.setQueriesData<ApiResponse<IssueItem[]>>(
+    { queryKey: issueKeys.all(projectId) },
+    (current) => {
+      if (!current?.success || !Array.isArray(current.data)) {
+        return current;
+      }
+
+      const issueId = String(issue.id);
+      const index = current.data.findIndex((item) => String(item.id) === issueId);
+      if (index < 0) {
+        return current;
+      }
+
+      return {
+        ...current,
+        data: current.data.map((item, itemIndex) => (itemIndex === index ? issue : item)),
+      };
+    },
+  );
 }
 
 export function useDeleteIssue() {
@@ -653,6 +938,37 @@ export function useDeleteIssue() {
       projectsApi.deleteIssue(projectId, issueId),
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: issueKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: issueKeys.cleanupSummary(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useArchiveTerminalLegacyIssues() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId }: { projectId: number }) =>
+      projectsApi.archiveTerminalIssues(projectId),
+    onSuccess: (_: ApiResponse<LegacyIssueCleanupArchiveResult>, variables) => {
+      queryClient.invalidateQueries({ queryKey: issueKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: issueKeys.cleanupSummary(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useCanonicalizePendingLegacyIssues() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId }: { projectId: number }) =>
+      projectsApi.canonicalizePendingIssues(projectId),
+    onSuccess: (_: ApiResponse<LegacyIssueCleanupCanonicalizeResult>, variables) => {
+      queryClient.invalidateQueries({ queryKey: issueKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: issueKeys.cleanupSummary(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: projectIssueKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: riskKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: changeRequestKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -679,6 +995,8 @@ export function useCreateProjectIssue() {
       projectsApi.createProjectIssue(projectId, data),
     onSuccess: (_: ApiResponse<ProjectIssueItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: projectIssueKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
     },
   });
 }
@@ -697,6 +1015,8 @@ export function useUpdateProjectIssue() {
     }) => projectsApi.updateProjectIssue(projectId, projectIssueId, data),
     onSuccess: (_: ApiResponse<ProjectIssueItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: projectIssueKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
     },
   });
 }
@@ -708,6 +1028,8 @@ export function useDeleteProjectIssue() {
       projectsApi.deleteProjectIssue(projectId, projectIssueId),
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: projectIssueKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
     },
   });
 }
@@ -732,6 +1054,7 @@ export function useCreateRequirement() {
       projectsApi.createRequirement(projectId, data),
     onSuccess: (_: ApiResponse<ProjectRequirementItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: requirementKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -750,6 +1073,7 @@ export function useUpdateRequirement() {
     }) => projectsApi.updateRequirement(projectId, requirementId, data),
     onSuccess: (_: ApiResponse<ProjectRequirementItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: requirementKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -761,6 +1085,7 @@ export function useDeleteRequirement() {
       projectsApi.deleteRequirement(projectId, requirementId),
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: requirementKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -785,6 +1110,7 @@ export function useCreateRisk() {
       projectsApi.createRisk(projectId, data),
     onSuccess: (_: ApiResponse<ProjectRiskItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: riskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -796,6 +1122,7 @@ export function useUpdateRisk() {
       projectsApi.updateRisk(projectId, riskId, data),
     onSuccess: (_: ApiResponse<ProjectRiskItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: riskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -807,6 +1134,7 @@ export function useDeleteRisk() {
       projectsApi.deleteRisk(projectId, riskId),
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: riskKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -831,6 +1159,7 @@ export function useCreateChangeRequest() {
       projectsApi.createChangeRequest(projectId, data),
     onSuccess: (_: ApiResponse<ProjectChangeRequestItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: changeRequestKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -849,6 +1178,7 @@ export function useUpdateChangeRequest() {
     }) => projectsApi.updateChangeRequest(projectId, changeRequestId, data),
     onSuccess: (_: ApiResponse<ProjectChangeRequestItem>, variables) => {
       queryClient.invalidateQueries({ queryKey: changeRequestKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -860,6 +1190,7 @@ export function useDeleteChangeRequest() {
       projectsApi.deleteChangeRequest(projectId, changeRequestId),
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: changeRequestKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -882,8 +1213,10 @@ export function useCreateEvent() {
   return useMutation({
     mutationFn: ({ projectId, data }: { projectId: number; data: CreateProjectEventRequest }) =>
       projectsApi.createEvent(projectId, data),
-    onSuccess: (_: ApiResponse<ProjectEventItem>, variables) => {
+    onSuccess: (response: ApiResponse<ProjectEventItem>, variables) => {
+      upsertProjectEventCache(queryClient, variables.projectId, response.data);
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -893,10 +1226,42 @@ export function useUpdateEvent() {
   return useMutation({
     mutationFn: ({ projectId, eventId, data }: { projectId: number; eventId: string; data: UpdateProjectEventRequest }) =>
       projectsApi.updateEvent(projectId, eventId, data),
-    onSuccess: (_: ApiResponse<ProjectEventItem>, variables) => {
+    onSuccess: (response: ApiResponse<ProjectEventItem>, variables) => {
+      upsertProjectEventCache(queryClient, variables.projectId, response.data);
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
+}
+
+function upsertProjectEventCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  projectId: number,
+  event: ProjectEventItem | null,
+) {
+  if (!event) {
+    return;
+  }
+
+  queryClient.setQueryData<ApiResponse<ProjectEventItem[]>>(
+    eventKeys.all(projectId),
+    (current) => {
+      if (!current?.success || !Array.isArray(current.data)) {
+        return current;
+      }
+
+      const eventId = String(event.eventId);
+      const index = current.data.findIndex((item) => String(item.eventId) === eventId);
+      const nextData = index >= 0
+        ? current.data.map((item, itemIndex) => (itemIndex === index ? event : item))
+        : [event, ...current.data];
+
+      return {
+        ...current,
+        data: nextData,
+      };
+    },
+  );
 }
 
 export function useDeleteEvent() {
@@ -906,6 +1271,7 @@ export function useDeleteEvent() {
       projectsApi.deleteEvent(projectId, eventId),
     onSuccess: (_: ApiResponse<null>, variables) => {
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -914,6 +1280,7 @@ export function useDeleteEvent() {
 
 export const deliverableKeys = {
   all: (projectId: number) => [...projectKeys.detail(projectId), 'deliverables'] as const,
+  templates: (projectId: number) => [...deliverableKeys.all(projectId), 'templates'] as const,
 };
 
 export function useProjectDeliverables(projectId: number, statusCode?: string) {
@@ -934,6 +1301,41 @@ export function useUpsertDeliverable() {
       queryClient.invalidateQueries({ queryKey: deliverableKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useApplyDeliverableTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId, data }: { projectId: number; data: ApplyDeliverableTemplateRequest }) =>
+      projectsApi.applyDeliverableTemplate(projectId, data),
+    onSuccess: (_: ApiResponse<DeliverableTemplateApplyResult>, variables) => {
+      queryClient.invalidateQueries({ queryKey: deliverableKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useDeliverableTemplateGroups(projectId: number) {
+  return useQuery({
+    queryKey: deliverableKeys.templates(projectId),
+    queryFn: () => projectsApi.getDeliverableTemplateGroups(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useSaveDeliverableTemplateGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId, data }: { projectId: number; data: UpsertDeliverableTemplateGroupRequest }) =>
+      projectsApi.upsertDeliverableTemplateGroup(projectId, data),
+    onSuccess: (_: ApiResponse<DeliverableTemplateGroup>, variables) => {
+      queryClient.invalidateQueries({ queryKey: deliverableKeys.templates(variables.projectId) });
     },
   });
 }
@@ -947,6 +1349,57 @@ export function useUpdateDeliverableSubmission() {
       queryClient.invalidateQueries({ queryKey: deliverableKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useReplaceDeliverableApprovalRoute() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      statusCode,
+      deliverableCode,
+      data,
+    }: {
+      projectId: number;
+      statusCode: string;
+      deliverableCode: string;
+      data: UpsertCloseoutApprovalRouteRequest;
+    }) => projectsApi.replaceDeliverableApprovalRoute(projectId, statusCode, deliverableCode, data),
+    onSuccess: (_: ApiResponse<ProjectCloseoutApprovalStep[]>, variables) => {
+      queryClient.invalidateQueries({ queryKey: deliverableKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
+    },
+  });
+}
+
+export function useDecideDeliverableApprovalStep() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      statusCode,
+      deliverableCode,
+      approvalStepId,
+      data,
+    }: {
+      projectId: number;
+      statusCode: string;
+      deliverableCode: string;
+      approvalStepId: string;
+      data: DecideCloseoutApprovalStepRequest;
+    }) => projectsApi.decideDeliverableApprovalStep(projectId, statusCode, deliverableCode, approvalStepId, data),
+    onSuccess: (_: ApiResponse<ProjectCloseoutApprovalStep[]>, variables) => {
+      queryClient.invalidateQueries({ queryKey: deliverableKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
     },
   });
 }
@@ -960,6 +1413,7 @@ export function useDeleteDeliverable() {
       queryClient.invalidateQueries({ queryKey: deliverableKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }
@@ -968,6 +1422,7 @@ export function useDeleteDeliverable() {
 
 export const closeConditionKeys = {
   all: (projectId: number) => [...projectKeys.detail(projectId), 'close-conditions'] as const,
+  templates: (projectId: number) => [...closeConditionKeys.all(projectId), 'templates'] as const,
 };
 
 export function useProjectCloseConditions(projectId: number, statusCode?: string) {
@@ -988,6 +1443,41 @@ export function useUpsertCloseCondition() {
       queryClient.invalidateQueries({ queryKey: closeConditionKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useApplyCloseConditionTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId, data }: { projectId: number; data: ApplyCloseConditionTemplateRequest }) =>
+      projectsApi.applyCloseConditionTemplate(projectId, data),
+    onSuccess: (_: ApiResponse<CloseConditionTemplateApplyResult>, variables) => {
+      queryClient.invalidateQueries({ queryKey: closeConditionKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useCloseConditionTemplateGroups(projectId: number) {
+  return useQuery({
+    queryKey: closeConditionKeys.templates(projectId),
+    queryFn: () => projectsApi.getCloseConditionTemplateGroups(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useSaveCloseConditionTemplateGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId, data }: { projectId: number; data: UpsertCloseConditionTemplateGroupRequest }) =>
+      projectsApi.upsertCloseConditionTemplateGroup(projectId, data),
+    onSuccess: (_: ApiResponse<CloseConditionTemplateGroup>, variables) => {
+      queryClient.invalidateQueries({ queryKey: closeConditionKeys.templates(variables.projectId) });
     },
   });
 }
@@ -1001,6 +1491,57 @@ export function useToggleCloseCondition() {
       queryClient.invalidateQueries({ queryKey: closeConditionKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+    },
+  });
+}
+
+export function useReplaceCloseConditionApprovalRoute() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      statusCode,
+      conditionCode,
+      data,
+    }: {
+      projectId: number;
+      statusCode: string;
+      conditionCode: string;
+      data: UpsertCloseoutApprovalRouteRequest;
+    }) => projectsApi.replaceCloseConditionApprovalRoute(projectId, statusCode, conditionCode, data),
+    onSuccess: (_: ApiResponse<ProjectCloseoutApprovalStep[]>, variables) => {
+      queryClient.invalidateQueries({ queryKey: closeConditionKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
+    },
+  });
+}
+
+export function useDecideCloseConditionApprovalStep() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      statusCode,
+      conditionCode,
+      approvalStepId,
+      data,
+    }: {
+      projectId: number;
+      statusCode: string;
+      conditionCode: string;
+      approvalStepId: string;
+      data: DecideCloseoutApprovalStepRequest;
+    }) => projectsApi.decideCloseConditionApprovalStep(projectId, statusCode, conditionCode, approvalStepId, data),
+    onSuccess: (_: ApiResponse<ProjectCloseoutApprovalStep[]>, variables) => {
+      queryClient.invalidateQueries({ queryKey: closeConditionKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
+      queryClient.invalidateQueries({ queryKey: homeSummaryKeys.all });
     },
   });
 }
@@ -1014,6 +1555,7 @@ export function useDeleteCloseCondition() {
       queryClient.invalidateQueries({ queryKey: closeConditionKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: eventKeys.all(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: transitionReadinessKey(variables.projectId) });
+      invalidateProjectDashboard(queryClient, variables.projectId);
     },
   });
 }

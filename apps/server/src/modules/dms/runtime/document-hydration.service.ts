@@ -4,11 +4,13 @@ import crypto from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../../database/database.service.js';
 import { configService } from '../runtime/dms-config.service.js';
+import { DocumentRecordService } from '../access/document-record.service.js';
 
 const logger = new Logger('DocumentHydrationService');
 
 interface HydrationResult {
   documentsCreated: number;
+  documentsReactivated: number;
   documentsSkipped: number;
   documentsMissing: number;
   templatesCreated: number;
@@ -76,7 +78,10 @@ function collectMarkdownFiles(rootDir: string, relativeTo: string): string[] {
 
 @Injectable()
 export class DocumentHydrationService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly documentRecordService: DocumentRecordService,
+  ) {}
 
   async hydrateFromDisk(): Promise<HydrationResult> {
     const docDir = configService.getDocDir();
@@ -86,13 +91,13 @@ export class DocumentHydrationService {
 
     if (!fs.existsSync(docDir)) {
       logger.warn('문서 루트 디렉토리 없음 — 하이드레이션 스킵');
-      return { documentsCreated: 0, documentsSkipped: 0, documentsMissing: 0, templatesCreated: 0, templatesSkipped: 0 };
+      return { documentsCreated: 0, documentsReactivated: 0, documentsSkipped: 0, documentsMissing: 0, templatesCreated: 0, templatesSkipped: 0 };
     }
 
     const adminUser = await this.findAdminUser();
     if (!adminUser) {
       logger.warn('admin 사용자 미발견 — 하이드레이션 스킵');
-      return { documentsCreated: 0, documentsSkipped: 0, documentsMissing: 0, templatesCreated: 0, templatesSkipped: 0 };
+      return { documentsCreated: 0, documentsReactivated: 0, documentsSkipped: 0, documentsMissing: 0, templatesCreated: 0, templatesSkipped: 0 };
     }
 
     const docResult = await this.hydrateDocuments(docDir, templateDir, adminUser.id);
@@ -104,7 +109,7 @@ export class DocumentHydrationService {
     };
 
     logger.log(
-      `하이드레이션 완료 — 문서: +${result.documentsCreated} 신규, ${result.documentsSkipped} 스킵, ${result.documentsMissing} missing | ` +
+      `하이드레이션 완료 — 문서: +${result.documentsCreated} 신규, ${result.documentsReactivated} 재활성화, ${result.documentsSkipped} 스킵, ${result.documentsMissing} missing | ` +
       `템플릿: +${result.templatesCreated} 신규, ${result.templatesSkipped} 스킵`,
     );
 
@@ -125,7 +130,7 @@ export class DocumentHydrationService {
     docDir: string,
     templateDir: string,
     adminUserId: bigint,
-  ): Promise<Pick<HydrationResult, 'documentsCreated' | 'documentsSkipped' | 'documentsMissing'>> {
+  ): Promise<Pick<HydrationResult, 'documentsCreated' | 'documentsReactivated' | 'documentsSkipped' | 'documentsMissing'>> {
     const allFiles = collectMarkdownFiles(docDir, docDir);
     const templatePrefix = path.relative(docDir, templateDir);
 
@@ -134,15 +139,29 @@ export class DocumentHydrationService {
 
     const existingDocs = await this.db.client.dmsDocument.findMany({
       where: { isActive: true },
-      select: { relativePath: true },
+      select: {
+        relativePath: true,
+        syncStatusCode: true,
+      },
     });
-    const existingPaths = new Set(existingDocs.map((d) => d.relativePath));
+    const existingDocsByPath = new Map(existingDocs.map((d) => [d.relativePath, d]));
 
     let created = 0;
+    let reactivated = 0;
     let skipped = 0;
 
     for (const relPath of docFiles) {
-      if (existingPaths.has(relPath)) {
+      const existing = existingDocsByPath.get(relPath);
+      if (existing) {
+        if (existing.syncStatusCode === 'missing') {
+          try {
+            await this.documentRecordService.ensureDocumentRecord(relPath);
+            reactivated++;
+            continue;
+          } catch (err) {
+            logger.warn(`missing 문서 재활성화 실패: ${relPath}`, err instanceof Error ? err.message : String(err));
+          }
+        }
         skipped++;
         continue;
       }
@@ -298,7 +317,7 @@ export class DocumentHydrationService {
           bootstrapRemoteConfigured,
         });
       }
-      return { documentsCreated: created, documentsSkipped: skipped, documentsMissing: 0 };
+      return { documentsCreated: created, documentsReactivated: reactivated, documentsSkipped: skipped, documentsMissing: 0 };
     }
 
     const diskPaths = new Set(docFiles);
@@ -323,7 +342,7 @@ export class DocumentHydrationService {
       }
     }
 
-    return { documentsCreated: created, documentsSkipped: skipped, documentsMissing: missing };
+    return { documentsCreated: created, documentsReactivated: reactivated, documentsSkipped: skipped, documentsMissing: missing };
   }
 
   private async hydrateTemplates(

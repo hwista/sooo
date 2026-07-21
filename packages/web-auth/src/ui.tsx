@@ -97,10 +97,10 @@ function AuthStandardLoginHeader({
 }: Pick<AuthStandardLoginCardProps, 'title'>) {
   return (
     <div className="text-center">
-      <h1 className="text-5xl font-extrabold text-[#0B3B3B]">
+      <h1 className="text-5xl font-extrabold text-ssoo-primary">
         SSOT
       </h1>
-      <h2 className="mt-6 text-2xl font-semibold text-slate-950">{title}</h2>
+      <h2 className="mt-6 text-2xl font-semibold text-foreground">{title}</h2>
     </div>
   );
 }
@@ -119,7 +119,7 @@ function actionLinkProps(link: AuthLoginActionLink | AuthIdentityProviderAction)
 
 function AuthStandardLoginFooter() {
   return (
-    <p className="text-center text-sm text-slate-400">
+    <p className="text-center text-sm text-ssoo-primary/50">
       © 2026 SSOT
     </p>
   );
@@ -127,7 +127,7 @@ function AuthStandardLoginFooter() {
 
 export function AuthPageShell({ children }: AuthPageShellProps) {
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-ssoo-background px-4 py-10 text-foreground">
       <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center">
         <div className="w-full max-w-md">{children}</div>
       </div>
@@ -141,8 +141,8 @@ export function AuthLoadingScreen({
   return (
     <AuthPageShell>
       <div className="text-center">
-        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-[#0B3B3B] border-t-transparent" />
-        <p className="text-slate-600">{message}</p>
+        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-ssoo-primary border-t-transparent" />
+        <p className="text-ssoo-primary/70">{message}</p>
       </div>
     </AuthPageShell>
   );
@@ -207,19 +207,19 @@ export function AuthLoginCard({
   };
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="rounded-lg border border-ssoo-content-border bg-card p-8 text-card-foreground shadow-sm">
       <div className="mb-7">{header}</div>
 
       {passwordLoginEnabled ? (
         <form className="space-y-5" onSubmit={handleSubmit}>
           {formError && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-md border px-4 py-3 text-sm ssoo-tone-danger-surface">
               {formError}
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-900" htmlFor="loginId">
+            <label className="block text-sm font-medium text-foreground" htmlFor="loginId">
               {loginIdLabel}
             </label>
             <Input
@@ -228,23 +228,23 @@ export function AuthLoginCard({
               autoComplete="username"
               value={loginId}
               onChange={(event) => setLoginId(event.target.value)}
-              className="h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#0B3B3B] focus:ring-2 focus:ring-[#0B3B3B]/15"
+              className="h-11"
               placeholder={loginIdPlaceholder}
             />
             {fieldErrors.loginId && (
-              <p className="text-sm text-red-700">{fieldErrors.loginId}</p>
+              <p className="text-sm ssoo-tone-danger">{fieldErrors.loginId}</p>
             )}
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <label className="block text-sm font-medium text-slate-900" htmlFor="password">
+              <label className="block text-sm font-medium text-foreground" htmlFor="password">
                 {passwordLabel}
               </label>
               {passwordResetHref ? (
                 <a
                   href={passwordResetHref}
-                  className="text-sm font-medium text-[#0B3B3B] underline-offset-4 transition-colors hover:text-[#114F4F] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3B3B]/20"
+                  className="text-sm font-medium text-ssoo-primary underline-offset-4 transition-colors hover:text-ssoo-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ssoo-primary/20"
                   {...actionLinkProps({ href: passwordResetHref, label: '비밀번호 찾기' })}
                 >
                   비밀번호 찾기
@@ -257,18 +257,18 @@ export function AuthLoginCard({
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#0B3B3B] focus:ring-2 focus:ring-[#0B3B3B]/15"
+              className="h-11"
               placeholder={passwordPlaceholder}
             />
             {fieldErrors.password && (
-              <p className="text-sm text-red-700">{fieldErrors.password}</p>
+              <p className="text-sm ssoo-tone-danger">{fieldErrors.password}</p>
             )}
           </div>
 
-          <Button variant="plain" size="plain"
+          <Button
             type="submit"
             disabled={isLoading}
-            className="h-11 w-full cursor-pointer rounded-md bg-[#0B3B3B] px-4 text-sm font-medium text-white transition hover:bg-[#114F4F] disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-11 w-full cursor-pointer"
           >
             {isLoading ? loadingLabel : submitLabel}
           </Button>
@@ -278,24 +278,24 @@ export function AuthLoginCard({
       {identityProviders.length > 0 ? (
         <div className="mt-6 space-y-3">
           <div className="flex items-center gap-3">
-            <span className="h-px flex-1 bg-slate-200" />
-            <span className="text-xs font-medium text-slate-500">또는</span>
-            <span className="h-px flex-1 bg-slate-200" />
+            <span className="h-px flex-1 bg-ssoo-content-border" />
+            <span className="text-xs font-medium text-ssoo-primary/60">또는</span>
+            <span className="h-px flex-1 bg-ssoo-content-border" />
           </div>
           <div className="grid gap-2">
             {identityProviders.map((provider) => {
               const Icon = provider.icon ?? KeyRound;
 
               return (
-                <a
-                  key={provider.key}
-                  href={provider.href}
-                  className="flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-900 transition-colors hover:border-[#0B3B3B] hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3B3B]/20"
-                  {...actionLinkProps(provider)}
-                >
-                  <Icon aria-hidden className="h-4 w-4 text-slate-600" />
-                  {provider.label}
-                </a>
+                <Button key={provider.key} asChild variant="outline" className="h-11 w-full">
+                  <a
+                    href={provider.href}
+                    {...actionLinkProps(provider)}
+                  >
+                    <Icon aria-hidden className="h-4 w-4 text-ssoo-primary/70" />
+                    {provider.label}
+                  </a>
+                </Button>
               );
             })}
           </div>
@@ -303,12 +303,12 @@ export function AuthLoginCard({
       ) : null}
 
       {registrationLink ? (
-        <div className="mt-5 rounded-md bg-slate-50 px-4 py-3 text-center text-sm text-slate-600">
+        <div className="mt-5 rounded-md bg-ssoo-content-bg/40 px-4 py-3 text-center text-sm text-ssoo-primary/75">
           계정이 필요하신가요?
           {' '}
           <a
             href={registrationLink.href}
-            className="font-medium text-[#0B3B3B] underline-offset-4 transition-colors hover:text-[#114F4F] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3B3B]/20"
+            className="font-medium text-ssoo-primary underline-offset-4 transition-colors hover:text-ssoo-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ssoo-primary/20"
             {...actionLinkProps(registrationLink)}
           >
             {registrationLink.label}

@@ -11,6 +11,7 @@ export function JsonRenderer({
   readOnly = false,
   emptyMessage = '표시할 설정 항목이 없습니다.',
   getItemAnchorId,
+  showDescription = false,
 }: {
   items: JsonFieldDescriptor[];
   localConfig: Record<string, unknown>;
@@ -21,6 +22,7 @@ export function JsonRenderer({
   readOnly?: boolean;
   emptyMessage?: string;
   getItemAnchorId?: (item: JsonFieldDescriptor) => string;
+  showDescription?: boolean;
 }) {
   if (items.length === 0) {
     return (
@@ -31,7 +33,7 @@ export function JsonRenderer({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="overflow-hidden rounded-md border border-ssoo-content-border bg-card divide-y divide-ssoo-content-border">
       {items.map((item) => (
         <JsonFieldRow
           key={item.key}
@@ -42,6 +44,7 @@ export function JsonRenderer({
           errorMessage={validationErrors[item.key]}
           onChange={onChange}
           readOnly={readOnly}
+          showDescription={showDescription}
         />
       ))}
     </div>

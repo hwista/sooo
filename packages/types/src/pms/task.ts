@@ -66,3 +66,81 @@ export interface UpdateTaskDto {
   isActive?: boolean;
   memo?: string;
 }
+
+export interface TaskEffortLogTask {
+  id: string;
+  taskCode: string;
+  taskName: string;
+}
+
+export interface TaskEffortLogUser {
+  id: string;
+  userName: string;
+  displayName: string | null;
+}
+
+export interface TaskEffortLog {
+  effortLogId: string;
+  projectId: string;
+  taskId: string;
+  userId: string | null;
+  workDate: string;
+  actualHours: number;
+  workTypeCode: string;
+  summary: string | null;
+  isActive: boolean;
+  memo: string | null;
+  createdAt: string;
+  updatedAt: string;
+  task?: TaskEffortLogTask | null;
+  user?: TaskEffortLogUser | null;
+}
+
+export interface CreateTaskEffortLogDto {
+  taskId: string;
+  userId?: string | null;
+  workDate: string;
+  actualHours: number;
+  workTypeCode?: string;
+  summary?: string | null;
+  memo?: string | null;
+}
+
+export interface UpdateTaskEffortLogDto {
+  taskId?: string;
+  userId?: string | null;
+  workDate?: string;
+  actualHours?: number;
+  workTypeCode?: string;
+  summary?: string | null;
+  isActive?: boolean;
+  memo?: string | null;
+}
+
+export interface TaskAiIndexBackfillRequest {
+  taskIds?: string[];
+  limit?: number;
+  includeInactive?: boolean;
+  reasonCode?: string;
+}
+
+export interface TaskAiIndexBackfillItem {
+  taskId: string;
+  status: 'queued' | 'failed';
+  errorMessage?: string;
+}
+
+export interface TaskAiIndexBackfillResponse {
+  sourceApp: 'pms';
+  entityType: 'task';
+  jobType: 'backfill';
+  projectId: string;
+  requestedCount: number;
+  selectedCount: number;
+  queuedCount: number;
+  failedCount: number;
+  limit: number;
+  includeInactive: boolean;
+  reasonCode: string;
+  items: TaskAiIndexBackfillItem[];
+}

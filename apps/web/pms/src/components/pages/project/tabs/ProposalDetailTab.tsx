@@ -5,13 +5,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { upsertProposalDetailSchema } from '@/lib/validations/project';
 import type { UpsertProposalDetailInput } from '@/lib/validations/project';
-import { useProjectAccess, useUpsertProposalDetail } from '@/hooks/queries';
+import { useProjectAccess, useProjectMembers, useUpsertProposalDetail } from '@/hooks/queries';
 import { FormField } from '@/components/common';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Pencil, Save, X } from 'lucide-react';
 import type { ProjectProposalDetail } from '@/lib/api/endpoints/projects';
+import { formatPmsAmount, formatPmsDate } from '@/lib/pms-format';
+import {
+  formatProjectMemberOwnerLabel,
+  ProjectMemberOwnerSelect,
+} from './ProjectMemberOwnerSelect';
 
 interface Props {
   projectId: number;
@@ -23,6 +28,7 @@ export function ProposalDetailTab({ projectId, detail, onSaved }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const upsertMutation = useUpsertProposalDetail();
   const { data: accessResponse } = useProjectAccess(projectId);
+  const { data: membersResponse } = useProjectMembers(projectId);
   const canEditProject = accessResponse?.data?.features.canEditProject ?? false;
 
   const form = useForm<UpsertProposalDetailInput>({
@@ -39,6 +45,11 @@ export function ProposalDetailTab({ projectId, detail, onSaved }: Props) {
       memo: detail?.memo ?? '',
     },
   });
+  const proposalOwnerUserId = form.watch('proposalOwnerUserId');
+  const proposalOwnerLabel = formatProjectMemberOwnerLabel(
+    membersResponse?.data ?? [],
+    detail?.proposalOwnerUserId,
+  );
 
   const handleSave = async (data: UpsertProposalDetailInput) => {
     try {
@@ -69,16 +80,16 @@ export function ProposalDetailTab({ projectId, detail, onSaved }: Props) {
           </div>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground mb-1">제안 담당자 ID</p>
-            <p>{detail?.proposalOwnerUserId ? String(detail.proposalOwnerUserId) : '-'}</p>
+            <p className="text-muted-foreground mb-1">제안 담당자</p>
+            <p>{proposalOwnerLabel}</p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1">제안 마감일</p>
-            <p>{detail?.proposalDueAt ? new Date(detail.proposalDueAt).toLocaleDateString() : '-'}</p>
+            <p>{formatPmsDate(detail?.proposalDueAt)}</p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1">제안 제출일</p>
-            <p>{detail?.proposalSubmittedAt ? new Date(detail.proposalSubmittedAt).toLocaleDateString() : '-'}</p>
+            <p>{formatPmsDate(detail?.proposalSubmittedAt)}</p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1">제안 버전</p>
@@ -86,11 +97,11 @@ export function ProposalDetailTab({ projectId, detail, onSaved }: Props) {
           </div>
           <div>
             <p className="text-muted-foreground mb-1">견적 금액</p>
-            <p>{detail?.estimateAmount ? `${Number(detail.estimateAmount).toLocaleString()} ${detail.estimateUnitCode || ''}` : '-'}</p>
+            <p>{formatPmsAmount(detail?.estimateAmount, detail?.estimateUnitCode ?? '')}</p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1">의사결정 마감일</p>
-            <p>{detail?.decisionDeadlineAt ? new Date(detail.decisionDeadlineAt).toLocaleDateString() : '-'}</p>
+            <p>{formatPmsDate(detail?.decisionDeadlineAt)}</p>
           </div>
           <div className="col-span-2 lg:col-span-3">
             <p className="text-muted-foreground mb-1">제안 범위 요약</p>
@@ -127,8 +138,19 @@ export function ProposalDetailTab({ projectId, detail, onSaved }: Props) {
         </Button>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <FormField label="제안 담당자 ID">
-          <Input {...form.register('proposalOwnerUserId')} />
+        <FormField label="제안 담당자">
+          <ProjectMemberOwnerSelect
+            projectId={projectId}
+            value={proposalOwnerUserId}
+            disabled={!canEditProject}
+            onChange={(userId) =>
+              form.setValue(
+                'proposalOwnerUserId',
+                userId ? Number(userId) : undefined,
+                { shouldDirty: true, shouldTouch: true },
+              )
+            }
+          />
         </FormField>
         <FormField label="제안 마감일">
           <Input type="date" {...form.register('proposalDueAt')} />

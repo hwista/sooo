@@ -219,12 +219,12 @@ export const markdownHighlight = HighlightStyle.define([
   { tag: tags.emphasis, fontStyle: 'italic' },
   { tag: tags.strikethrough, textDecoration: 'line-through' },
   { tag: tags.monospace, fontFamily: 'var(--font-mono)', fontSize: '0.875em' },
-  { tag: tags.link, color: '#6366f1' },
-  { tag: tags.url, color: '#9ca3af', fontSize: '0.875em' },
-  { tag: tags.quote, color: '#6b7280' },
-  { tag: tags.processingInstruction, color: '#8b96c9', opacity: '0.55' },
-  { tag: tags.meta, color: '#8b96c9', opacity: '0.55' },
-  { tag: tags.punctuation, color: '#8b96c9', opacity: '0.55' },
+  { tag: tags.link, color: 'var(--ssoo-info)' },
+  { tag: tags.url, color: 'var(--ssoo-neutral)', fontSize: '0.875em' },
+  { tag: tags.quote, color: 'var(--ssoo-neutral)' },
+  { tag: tags.processingInstruction, color: 'var(--ssoo-primary)', opacity: '0.55' },
+  { tag: tags.meta, color: 'var(--ssoo-primary)', opacity: '0.55' },
+  { tag: tags.punctuation, color: 'var(--ssoo-primary)', opacity: '0.55' },
 ]);
 
 export const savedSelectionField = createSelectionDecorationField(
@@ -302,8 +302,8 @@ export const editorTheme = EditorView.theme({
   '&.cm-focused': { outline: 'none' },
   '.cm-line': { padding: 0, lineHeight: 'var(--doc-content-line-height)' },
   '.cm-activeLine': { backgroundColor: 'transparent' },
-  '.cm-selectionBackground': { backgroundColor: '#dbeafe' },
-  '&.cm-focused .cm-selectionBackground': { backgroundColor: '#93c5fd' },
+  '.cm-selectionBackground': { backgroundColor: 'color-mix(in srgb, var(--ssoo-info) 18%, transparent)' },
+  '&.cm-focused .cm-selectionBackground': { backgroundColor: 'color-mix(in srgb, var(--ssoo-info) 32%, transparent)' },
   '.cm-mdHighlight': {
     backgroundColor: 'rgba(250, 204, 21, 0.35)',
     borderRadius: '2px',
@@ -321,7 +321,7 @@ export const editorTheme = EditorView.theme({
     marginRight: '0.125rem',
     padding: '0.3125rem 0.625rem',
     borderRadius: '9999px',
-    backgroundColor: '#e8ebf6',
+    backgroundColor: 'var(--ssoo-content-background)',
     color: 'rgba(55, 65, 81, 0.9)',
     font: '400 0.8125rem/1.5 var(--font-mono)',
     boxShadow: '0 0 0 1px rgba(148, 163, 184, 0.16) inset',
@@ -331,7 +331,7 @@ export const editorTheme = EditorView.theme({
     height: '0.8125rem',
     borderRadius: '9999px',
     border: '2px solid rgba(79, 70, 229, 0.2)',
-    borderTopColor: '#6d28d9',
+    borderTopColor: 'var(--ssoo-accent-tone)',
     animation: 'cm-spin 0.8s linear infinite',
     boxSizing: 'border-box',
     flexShrink: '0',
@@ -339,7 +339,7 @@ export const editorTheme = EditorView.theme({
   '.cm-pendingInsertSpinnerLabel': {
     whiteSpace: 'nowrap',
   },
-  '.cm-placeholder': { color: '#9ca3af', fontStyle: 'normal' },
+  '.cm-placeholder': { color: 'var(--ssoo-neutral)', fontStyle: 'normal' },
   '@keyframes cm-spin': {
     from: { transform: 'rotate(0deg)' },
     to: { transform: 'rotate(360deg)' },

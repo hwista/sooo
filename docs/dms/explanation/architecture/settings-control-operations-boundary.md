@@ -1,7 +1,7 @@
 # DMS Settings / Control / Operations Boundary
 
 > Status: launch architecture baseline
-> Last updated: 2026-06-10 11:33 KST
+> Last updated: 2026-07-06
 > Scope: DMS-owned system settings, control, operations, and the boundary with Admin/platform settings.
 
 ## Decision summary
@@ -35,12 +35,12 @@ DMS owns the settings/control/operations that directly govern document-domain be
 | Access workflow | document permission request/approval, document-only grants, owner/author document responsibility | Organization roles/app access grants remain Admin-owned. |
 | Templates | DMS document template management and template runtime location | Domain template lifecycle belongs in DMS. |
 | Runtime operations | DMS health/status/read-only diagnostics that help operate the document domain | Admin may summarize or link to these, but the control owner is DMS. |
-| Personal document preferences | author fallback, viewer zoom, sidebar/workspace preferences | Does not replace account security or SNS profile identity. |
+| Personal document preferences | author fallback, viewer zoom, sidebar defaults | Does not replace account security or SNS profile identity. Legacy workspace keys may still be read by the shell but are not a visible settings form. |
 
 ## Access model
 
 - Authenticated users may open this settings surface for **내 설정**.
-- Only an admin account may open or mutate **시스템 설정**, **운영 상태 runtime details**, and **관리 업무** sections in the settings tab page.
+- Only an admin account may open or mutate **문서 시스템 설정**, **문서 운영·진단 runtime details**, and **문서 관리** sections in the settings tab page.
 - Non-admin users must not see the system settings scope, system menu rows, or system search results in the settings tab page.
 - The `dms.settings.manage` permission is an admin-only system settings capability, not a prerequisite for personal DMS preferences.
 - The DMS settings API returns `config.personal` for authenticated users, but returns `config.system`, `docDir`, and runtime snapshots only when `access.canManageSystem=true`.
@@ -56,7 +56,7 @@ Admin owns platform/base settings, control, and operations:
 - organization-level SSO/Microsoft tenant policy
 - AI Control Plane ownership when the AI surface is platform-wide
 
-Admin can expose a DMS observability bridge only when the operator needs a platform overview. That bridge must be read-only or clearly link back to DMS for domain-owned control. It must not be labelled as the owner of DMS system settings/control/operations.
+Admin may expose platform-wide summaries or links when the operator needs orientation, but the current baseline removes Admin-owned DMS observation pages. DMS diagnostics, controls, and document-domain policies remain in DMS.
 
 ## DMS screen IA
 
@@ -64,11 +64,10 @@ The DMS settings screen should keep this grouping:
 
 | Group | Ownership meaning |
 | --- | --- |
-| 운영 상태 | DMS-owned runtime/operational status, mostly read-only or constrained by runtime config |
-| 시스템 설정 | DMS-owned editable document-domain policies |
-| 관리 업무 | DMS-owned domain management actions such as document access workflow and templates |
-| 내 설정 | current-user document preferences only |
-| 외부 설정 링크 | links/status cards for SNS Profile/Account, Admin/Organization, AI Control Plane |
+| 문서 운영·진단 | DMS-owned runtime/operational status, mostly read-only or constrained by runtime config |
+| 문서 시스템 설정 | DMS-owned editable document-domain policies |
+| 문서 관리 | DMS-owned domain management actions such as document access workflow and templates |
+| 내 문서 환경 설정 | current-user document preferences only |
 
 ## Implementation rules
 
@@ -76,7 +75,7 @@ The DMS settings screen should keep this grouping:
 - Do not add organization hierarchy, app access grants, or role administration to DMS settings.
 - Do not add global AI provider/model/persona/soul/agent management to DMS settings.
 - Do not move DMS repository/storage/search/index/template/access/runtime controls to Admin merely because they are “system settings.”
-- If Admin has a DMS route, name it as observability/inspector/status, not as the DMS control owner.
+- Do not add Admin `/dms/*` observation pages as a parallel DMS control/diagnostic surface in the current baseline.
 - If a cross-app link points to a surface that is not implemented yet, mark it as planned instead of pretending the route exists.
 - Do not use `dms.settings.manage` to block the settings entry point itself; use it only for DMS system/admin settings capabilities.
 
@@ -84,8 +83,8 @@ The DMS settings screen should keep this grouping:
 
 - Common architecture docs state the corrected Admin/domain split.
 - DMS docs list every DMS-owned settings/control/operations area above.
-- DMS settings UI exposes the grouping and boundary copy.
-- Admin DMS pages, if visible, are labelled as read-only observability/inspector surfaces rather than DMS-owned management/control surfaces.
+- DMS settings UI exposes 문서 운영·진단 / 문서 시스템 설정 / 문서 관리 / 내 문서 환경 설정.
+- Admin navigation does not expose DMS-owned observation/control pages in the current baseline.
 - Non-admin DMS users can open and save personal DMS preferences, while the settings tab page hides system scope/menu/search entries and system updates return 403.
 - Build/preflight and Docker runtime checks are run before closeout.
 
@@ -93,5 +92,6 @@ The DMS settings screen should keep this grouping:
 
 | 날짜 | 변경 내용 |
 | --- | --- |
+| 2026-07-06 | Admin DMS 관측 route baseline 을 제거하고 DMS 운영·진단/시스템 설정/관리/개인 설정 4개 surface 기준으로 갱신 |
 | 2026-06-10 | DMS settings access model 을 personal entry 허용 + admin-only system/runtime 관리로 명시 |
 | 2026-06-10 | Admin/platform vs DMS/domain-specific settings-control-operations boundary 정본 신설 |

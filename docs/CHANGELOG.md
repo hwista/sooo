@@ -2,7 +2,215 @@
 
 ## [Unreleased]
 
+### Documentation
+
+* **database, security, ci, docs, instructions:** 새 DB를 `prisma/launch-migrations`에서 재현하고 기존 pre-baseline DB는 비파괴 호환 경로로 유지하는 launch baseline 운영 규칙을 문서화했다. CI는 저장소 `.nvmrc`와 `packageManager`를 사용하고 production dependency audit, 문서 검증, CRM 타입 검사·조건부 빌드, launch migration deploy/status를 필수 검증에 포함한다.
+
+* **web-dms, docs, instructions:** DMS 문서 목록 hydrate 계약과 에이전트 작업 게이트를 보강했다. 문서 0건은 오류가 아닌 empty state로 처리하고, 파일 트리 오류 상태에는 `문서 목록 다시 불러오기` retry control을 노출하며, `check:document-hydration-contract`가 retry/empty 계약과 Behavior Impact Gate 문서화를 검증한다.
+
+* **docs/common, docs/dms, docs/crm, docs/pms:** legacy `dms_document_embeddings` 전환 기준을 확정했다. `docs/common/guides/ai-rag-runtime-runbook.md`는 provider-ready workflow green, legacy/common retrieval 비교, rollback, `parallel read/write -> common default -> legacy read disable -> archival/drop` 순서를 기준으로 삼고, provider-ready 증거 전에는 DMS legacy 삭제와 CRM full/SNS residual/Admin adapter production rollout을 금지하도록 정렬했다. PMS와 CRM opportunity는 RDB projection adapter를 먼저 시작하되 vector/RAG production readiness는 같은 provider-ready 증거에 묶는다.
+
+* **docs/common, docs/dms:** AI/RAG runtime smoke runbook을 추가했다. `docs/common/guides/ai-rag-runtime-runbook.md`는 provider-unavailable/ready smoke, legacy local DB repair, `DB_INIT_PRISMA_PUSH_MODE=auto|force|skip` 기준, `prisma db push --accept-data-loss` 금지 원칙을 정본화한다.
+
+* **docs/common, docs/dms, docs/pms, docs/crm:** AI/RAG 설계 점검 결과를 로드맵과 백로그에 반영했다. 도메인 RDB를 원천 정본으로 두고 common AI projection/pgvector/vector retrieval/audit 계층을 얹는 방향을 고정했으며, embedding model 미지정 상태의 provider unavailable fallback, DMS vector/RAG capability gate, DMS runtime smoke 선행 조건, CRM/PMS adapter 후속 확장 순서를 문서화했다.
+
+* **docs/common:** 현 AI/RAG workstream의 LangChain/LangGraph 도입 결정을 고정했다. `AI-RAG-10A`, DMS reference path hardening, CRM/PMS/SNS/Admin adapter expansion 범위에서는 LangChain/LangGraph를 병행 도입하지 않고, custom pipeline + AI SDK provider/model boundary + PostgreSQL pgvector 기준으로 구현한다.
+
 ### Features
+
+* **security, dependencies, server, web, dms, ci:** `adm-zip`을 0.6.0으로 올려 production audit high 취약점을 제거하고 서버 lint의 암묵적 `--fix`를 읽기 전용 검사와 명시적 `lint:fix`로 분리했다. Admin/CRM/PMS/DMS/SNS는 기존 Next 규칙을 보존한 ESLint 9 flat config와 `eslint src`로 전환해 deprecated `next lint`를 제거했고, `pnpm security:audit`와 전체 workspace lint를 다시 통과시켰다.
+* **database, docker, ci:** Prisma 6 launch migration config와 재현 가능한 `0_launch_baseline`, Prisma가 표현하지 못하는 JSON·PMS 값 범위 CHECK/부분 고유 인덱스/CRM 계약 히스토리 트리거 migration, 일회용 DB parity verifier, zero-drift 확인 전에는 기존 DB baseline resolve를 거부하는 보호 스크립트를 추가했다. raw SQL seed와 Prisma가 같은 감사 컬럼 계약을 쓰도록 109개 `updatedAt` 필드에 DB `now()` 기본값을 정렬했으며, verifier는 빈 DB deploy/status, master seed 35개, source 78개 + migration-managed 1개 trigger, schema parity를 확인한다. `db-init`은 fresh/launch-managed DB에서 migrate deploy를 사용하고 기존 pre-baseline volume만 보호된 legacy compat 경로를 유지한다.
+
+* **security, dependencies, server, web, docker, dms, instructions, docs:** Node.js 22.13+/Docker Node.js 22 LTS와 pnpm 11.13.1을 기준으로 고정하고 24시간 release-age strict gate, package/version 단위 install-script `allowBuilds`, 관측형 `pnpm security:audit`를 공급망 기준으로 추가했다. NestJS 11, Next 15.5 보안 패치, Axios, DOMPurify, Mermaid, simple-git과 advisory transitive dependency를 갱신하고 서버 spreadsheet extraction을 SheetJS 공식 0.20.3 tarball로 전환했다. DMS/PMS의 미사용 `xlsx`는 제거했으며 production 910 dependencies audit 전 등급 0, peer dependency 0, 서버 build와 44 suite/358 test 통과를 확인했다. JWT 11의 엄격한 타입 계약에 맞춰 JWT secret lookup도 `getOrThrow` fail-closed 경계로 고정했다.
+* **docker, security, web, docs:** 로컬 `compose.yaml + compose.local.yaml`과 프로덕션 `compose.yaml + compose.production.yaml`을 분리했다. 프로덕션 gate는 placeholder/중복 auth secret, 비보안 cookie/origin, 잘못된 내부 DB URL, 상대 DMS 저장 경로와 비보안 Git remote를 값 노출 없이 거부하고, DB 포트를 비공개로 두며 앱 포트를 loopback에 bind한다. 다섯 Next.js Docker build에는 전체 교차 앱 공개 URL을 주입해 공개 환경의 localhost fallback을 차단했다. 7개 이미지 build는 전체 workspace manifest를 먼저 고정한 filtered install, TLS 검증을 유지하는 승인 PEM CA BuildKit secret, 잠금형 pnpm store와 lockfile-keyed verification metadata cache를 사용해 pnpm 11 pre-run 상태와 최초 공급망 검증을 유지하며, runtime secret은 server/db-init에만 mount한다. verifier는 각 build의 manifest/secret/cache 및 프로덕션 CA 파일 계약을 검사한다.
+* **database, docker, scripts:** trigger 설치 완료 검증을 `trg_*_h` 이름 73개만 표시하던 부분 집합에서 common/PMS/DMS/CRM/SNS의 non-internal trigger 전체로 확장했다. 현재 source trigger contract 78개와 migration-managed CRM contract trigger를 합친 DB 총 79개를 구분하며, TypeScript installer는 source contract 누락·비활성화·파일 적용 실패를 exit 1로 처리한다.
+* **codex, web, docs:** push guard의 shared browser package 영향 매핑을 보강했다. `packages/types`, `packages/web-auth`, `packages/web-shell`, `packages/web-ui`가 바뀌면 Admin/CRM/PMS/DMS/SNS 5개 production build를 모두 실행해 공용 셸·인증·UI 변경이 일부 앱 빌드만으로 통과하지 않게 한다.
+* **scripts, docs:** CRM 데모 이식 완료 기준을 사용자 제공 데모 실행 소스와 DB 스키마의 SSOO CRM 이식/로컬 재현성으로 재정렬했다. 기본 `verify:crm-migration-completion`은 `verify:crm-launch`와 `verify:crm-local`만 blocking으로 판단하고, 외부 ERP/API provider execution report, CRM AI/RAG provider-ready runtime report, 보호 발표자료 reflection report와 반영 marker 제거는 `verify:crm-migration-completion:with-extensions` 또는 `--require-extensions` 확장 readiness에서만 blocking으로 판단한다.
+* **scripts, docs:** CRM migration input inspector를 추가했다. `inspect:crm-migration-inputs`는 completion env, report path, `.runtime` Office 후보, DMS sidecar source metadata를 진단하며, `protectedSourceCandidateSummary`로 같은 SHA-256 후보를 중복 그룹화하고 `requiredExternalInputs`로 남은 외부 입력 요청을 구조화한다. RMS 보호 Office 후보는 경로 복원 단서로만 취급하고 완료 증거로 간주하지 않는다.
+* **scripts, docs:** CRM migration completion evidence bundle preparer를 추가했다. `prepare:crm-migration-evidence`는 report template 3종, `crm-migration-input-inspection` JSON/Markdown, `crm-migration-required-external-inputs` JSON/Markdown request packet, env template, README, manifest를 생성하고 self-test에서 draft report가 verifier를 통과하지 못하는지, input inspection이 diagnostic-only로 남는지, required inputs가 request-only로 남는지 확인한다.
+* **scripts, docs:** CRM local build/test verification gate를 추가했다. `verify:crm-local`은 `verify:crm-launch`, CRM 관련 server Jest suite, DMS/PMS CRM boundary test, `pnpm build:web-crm` production build를 실행하며, `verify:crm-migration-completion`은 이 로컬 gate도 완료 판정에 포함한다.
+* **scripts, docs:** CRM migration evidence bundle manifest와 README에 `verify:crm-local -- --report-path=crm-local-verification-report.json` 실행 단계를 추가해 completion audit 전 로컬 build/test evidence 생성 경로를 고정했다.
+* **scripts, docs:** CRM migration required external input request packet을 보강했다. 각 `requiredExternalInputs` 항목은 completion audit의 `completionCheckId`와 자료별 `verificationCommand`를 포함해 외부 provider/protected-source 증거 수집 후 통과시켜야 할 verifier를 명시한다.
+* **scripts, docs:** CRM migration evidence bundle verifier를 추가했다. `verify:crm-migration-evidence-bundle`은 prepared bundle의 로컬 검증 report와 외부 evidence report 3종이 각 verifier를 통과하는지 제출 전 확인하며, `verify:crm-migration-completion`을 대체하지 않는다.
+* **scripts, docs:** CRM migration evidence bundle preparer에 로컬 검증 report 포함 옵션을 추가했다. `prepare:crm-migration-evidence -- --local-verification-report-path=<report.json>`는 통과한 `verify:crm-local` JSON을 bundle 내부 `crm-local-verification-report.json`으로 복사하고 manifest에 포함 여부를 기록한다.
+* **scripts, docs:** CRM local evidence bundle preparer를 추가했다. `prepare:crm-local-evidence-bundle`은 로컬 검증 report 생성 또는 기존 report 복사, migration evidence bundle 준비, 선택적으로 제공된 `--accounting-payment-report-path`, `--crm-ai-rag-report-path`, `--protected-source-reflection-report-path` passed report 적용, bundle verifier 실행을 한 번에 수행하고 남은 외부 evidence report가 draft뿐이면 `local-ready-pending-external` 상태를 wrapper report에 기록한다.
+* **scripts, docs:** CRM completion report verifier와 `verify:crm-migration-completion`의 확장 readiness evidence 판정을 강화했다. 회계·지급, CRM AI/RAG, 보호자료 reflection report verifier는 synthetic/self-test evidence marker를 기본 거부해 verifier self-test용 JSON이 provider/protected-source 증거로 오인되지 않게 한다.
+* **scripts, docs:** CRM migration completion audit 실패 출력과 JSON report에 diagnostic-only input inspection을 포함했다. `verify:crm-migration-completion`은 실패 시 로컬 후보 경로와 남은 외부 입력 요청을 함께 남기지만, 이 진단 snapshot은 완료 증거로 취급하지 않는다.
+* **scripts, docs:** CRM 완료 evidence report 3종에 draft JSON template 출력을 추가했다. `verify:crm-accounting-payment-provider-report:template`, `verify:crm-ai-rag-runtime-report:template`, `verify:crm-protected-source-reflection-report:template`는 작성 양식만 출력하며, `status: draft`라 그대로 완료 증거가 될 수 없다.
+* **scripts, docs:** CRM launch readiness 문서 assertion을 완료 전 미완료 문구 강제에서 완료 판정 evidence 계약 확인으로 조정했다. 실제 완료 여부는 `verify:crm-migration-completion`의 report evidence와 marker 제거가 판단한다.
+* **scripts, docs:** CRM launch readiness 정적 gate를 추가했다. `verify:crm-launch`는 CRM 웹 surface, Next API proxy, 서버 모듈/테스트, CRM DB migration/seed/trigger, PMS/DMS 경계, 완료 판정 evidence 계약 문서화를 함께 점검하며, 통과해도 실제 외부 ERP/API 반영, SSOO 공통 AI/RAG provider-ready runtime artifact, 보호된 발표자료 반영을 완료로 간주하지 않는다.
+* **scripts, docs:** CRM 회계·지급 외부 ERP/API 실행 report verifier를 추가했다. `verify:crm-accounting-payment-provider-report`는 `external-api` 실행 report에서 전표, 지급 요청, 지급 실행, 외부 시스템 sync evidence와 운영 대조 `matched`/`reconciled` 상태를 검증하며, placeholder evidence path를 허용하지 않는다.
+* **scripts, docs:** CRM AI/RAG provider-ready runtime report verifier를 추가했다. `verify:crm-ai-rag-runtime-report`는 CRM opportunity/customer/activity report의 indexed object, embedding, retrieval audit evidence가 provider-ready 상태인지 검증한다.
+* **scripts, docs:** CRM 보호 발표자료 reflection report verifier를 추가했다. `verify:crm-protected-source-reflection-report`는 해제본 파일 SHA-256, 텍스트 추출, CRM README/backlog/PRD 반영 대상, 미매핑 0건을 검증한다.
+* **scripts, docs:** CRM 데모 이식 완료 감사 gate를 추가했다. `verify:crm-migration-completion`은 기본적으로 `verify:crm-launch`와 `verify:crm-local`을 묶어 사용자 제공 데모 실행 소스와 DB 스키마의 SSOO CRM 이식/로컬 재현성을 검사한다. 외부 회계·지급 provider-ready precheck, provider execution report, CRM AI/RAG provider-ready precheck/runtime report, 보호 발표자료 reflection report와 미반영 marker 제거는 명시적 확장 readiness로 분리했다.
+* **scripts, docs:** CRM 회계·지급 외부 ERP/API provider 환경 precheck를 추가했다. `verify:crm-accounting-payment-provider:ready-precheck`는 `CRM_ACCOUNTING_PAYMENT_API_URL` 또는 `CRM_ACCOUNTING_PAYMENT_API_BASE_URL` 기반 endpoint readiness와 필수 evidence step 계약을 점검하지만, 실제 전표·지급 반영이나 운영 대조 증거를 완료로 간주하지 않는다.
+* **server, types, docs:** CRM 원가/AMS 회계·지급 실행에 provider-gated 외부 ERP/API mode를 추가했다. `POST /crm/cost-plan/accounting-payment-handoffs/:id/execute`는 기본 `demo` mode에서 기존 CRM demo evidence를 생성하고, `mode: external-api`와 `CRM_ACCOUNTING_PAYMENT_API_URL` 또는 `CRM_ACCOUNTING_PAYMENT_API_BASE_URL`이 설정된 경우 active handoff snapshot을 외부 회계·지급 API로 전송한 뒤 API가 반환한 전표/지급/sync evidence를 CRM handoff snapshot에 기록한다. 이 경로는 outbound 계약이며 실환경 ERP/API 반영 완료 증거는 provider 실행 결과와 운영 대조가 필요하다.
+
+* **server, web-crm, types, scripts, docs:** CRM 계약 DMS 문서 패킷의 공급자 CI 참조 검증을 추가했다. `ciStorageRef`를 DMS working tree 또는 `local://`/`sharepoint://`/`nas://` storage adapter 참조로 확인하고, `/contracts` 첨부 카드가 `referenceStatus`와 사유를 표시하며 누락/잘못된 참조는 DMS 초안 readiness를 차단한다. CI 파일 업로드와 템플릿 관리는 계속 DMS 경계에 둔다.
+
+* **server, web-dms, types, scripts, docs:** CRM 계약 DMS 결재선 정책 편집 UI를 추가했다. `system.crmContractApprovalRoute` 설정과 `DmsCrmContractApprovalRoutePolicy` 공유 타입을 추가하고, DMS 설정의 `CRM 계약 결재선`에서 route key/name, policy version, organization scope, required roles를 저장한다. DMS 계약 lifecycle 실행은 이 설정을 읽어 승인 route, 승인자 matrix, 결재선 원장 evidence를 생성한다.
+
+* **server, web-dms, dms, types, scripts, docs:** CRM 계약 DMS 산출 정책 UI를 추가했다. `system.crmContractExportPolicy` 설정과 `DmsCrmContractExportPolicy` 공유 타입을 추가하고, DMS 설정의 `CRM 계약 산출 정책`에서 policy key/version, organization scope, markdown record root, Word/PDF storage artifact root를 저장한다. DMS 계약 lifecycle 실행은 이 설정을 읽어 `export-policy.md` governance evidence를 만들고, markdown evidence와 DOCX/PDF artifact를 `root/organizationScope/contractCode` 경로로 산출한다.
+
+* **server, web-dms, types, scripts, docs:** CRM 견적 템플릿 검토 확정 UI를 추가했다. DMS 템플릿 metadata에 `reviewConfirmation`을 저장하고, `POST /dms/templates/:id/review-confirmation` 및 `/api/templates/:id/review-confirmation` proxy로 DMS 설정의 관리자 템플릿 목록에서 `crm-quote-v1` 검토 확정을 기록한다. CRM은 견적 Word/PDF 생성 runtime을 직접 소유하지 않으며, 실제 외부 ERP/API와 SSOO 공통 AI/RAG provider-backed runtime 검증은 별도 확장 readiness다.
+
+* **server, web-crm, dms, types, scripts, docs:** CRM 견적 DMS lifecycle artifact 실행 1차를 추가했다. `POST /crm/opportunities/:id/quote-dms-document-lifecycle-execution`은 DMS `crm-quote-v1` 템플릿과 active 견적 markdown handoff를 입력으로 template-version snapshot, template-review record, DOCX, PDF artifact를 만들고 active `crm.crm_quote_dms_handoff_m` lifecycle snapshot에 evidence를 기록한다. CRM은 견적 Word/PDF 생성 runtime을 직접 소유하지 않으며, 템플릿 검토 확정은 DMS 설정의 `crm-quote-v1` reviewConfirmation으로 기록한다.
+
+* **server, web-crm, types, scripts, docs:** CRM 견적 DMS lifecycle execution evidence 수신 계약을 추가했다. `POST /crm/opportunities/:id/quote-dms-document-execution-evidence`는 외부 DMS 실행 결과가 만든 견적 템플릿 검토, DOCX, PDF evidence path를 active `crm.crm_quote_dms_handoff_m` snapshot의 lifecycle step에 `completed`로 기록하고, `/opportunities` 견적 패널은 DMS 견적 lifecycle 상태와 evidence path를 읽기 전용으로 표시한다.
+
+* **server, dms, web-crm, types, scripts, docs:** CRM 견적 DMS template registry evidence를 추가했다. DMS 기본 시스템 템플릿에 `crm-quote-v1` 견적서 markdown 템플릿을 등록하고, `/crm/opportunities/:id/quote-preview`와 `/opportunities` DMS 견적 초안 패널이 active template 이름, 상태, source path를 표시한다. 이 evidence는 견적 초안 handoff 이후 DMS quote lifecycle artifact 실행의 입력이며, DMS 설정의 관리자 템플릿 목록에서 검토 확정 상태를 관리한다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 견적 DMS markdown 초안 handoff를 추가했다. `POST /crm/opportunities/:id/quote-dms-document-draft`는 영업기회 견적 preview를 markdown 초안으로 렌더링해 DMS 파일 서비스에 저장하고 `crm.crm_quote_dms_handoff_m` handoff snapshot 원장에 문서/변수/saved path를 기록한다. `/opportunities`는 DMS 견적 초안 readiness, 최신 handoff, 저장/갱신 버튼을 표시하며, CRM 직접 Word/PDF 생성은 수행하지 않는다.
+
+* **web-crm, scripts, docs:** CRM 계약 DMS governance evidence 표시를 추가했다. `/contracts` DMS 문서 패킷 패널은 lifecycle 실행 후 `dmsExecution.governance`의 템플릿 버전, 템플릿 변경 원장, 첨부 확정 원장, 결재선 원장, 승인자 matrix를 읽기 전용 evidence로 표시하며, CRM은 DMS 결재선/첨부/문서 정본을 편집하지 않는다.
+
+* **server, web-crm, dms, types, scripts, docs:** CRM 계약 DMS attachment finalization ledger evidence를 추가했다. `POST /dms/crm-contract-lifecycle/executions`는 CRM handoff의 공급자 CI/청구계획 별첨 evidence를 `attachment-finalization-ledger.md` artifact와 `dmsExecution.governance.attachmentFinalizationLedger`에 확정 원장으로 보존하고, `attachment-confirmation` lifecycle step은 이 확정 원장을 evidence path로 수신한다. 운영 조직 기준 export 정책은 DMS 설정의 `CRM 계약 산출 정책`과 `export-policy.md` evidence로 연결됐다.
+
+* **server, web-crm, dms, types, scripts, docs:** CRM 계약 DMS approval route ledger sync evidence를 추가했다. `POST /dms/crm-contract-lifecycle/executions`는 승인 route policy와 다자 승인 workflow를 `approval-route-ledger.md` artifact와 `dmsExecution.governance.approvalRouteLedger`에 동기화하고, 공용 사용자/조직 directory snapshot의 sync status와 resolved actor 수를 함께 남긴다. 운영 조직 기준 export 정책은 DMS 설정의 `CRM 계약 산출 정책`과 `export-policy.md` evidence로 연결됐다.
+
+* **server, web-crm, types, scripts, docs:** CRM 원가/AMS 회계·지급 데모 실행 evidence 생성을 추가했다. `POST /crm/cost-plan/accounting-payment-handoffs/:id/execute`는 active handoff snapshot의 확정 내부원가/AMS 정산 line을 기반으로 전표, 지급 요청, 지급 실행, 외부 동기화 demo artifact evidence를 생성하고 기존 execution evidence 수신 계약으로 `execution_evidence_snapshot`에 기록한다. 이 흐름은 CRM demo runner 증빙이며 실제 ERP/API 반영은 외부 회계·지급 시스템 경계다.
+
+* **server, web-crm, dms, types, scripts, docs:** CRM 계약 DMS template change request ledger evidence를 추가했다. `POST /dms/crm-contract-lifecycle/executions`는 active 템플릿 재사용 판단을 `template-change-request-ledger.md` artifact와 `dmsExecution.governance.templateChangeRequestLedger`에 남기며, 변경 요청이 필요 없으면 `closed-without-change` 원장 entry로 닫는다. 운영 조직 기준 export 정책은 DMS 설정의 `CRM 계약 산출 정책`과 `export-policy.md` evidence로 연결됐다.
+
+* **server, web-crm, dms, types, scripts, docs:** CRM 계약 DMS approval route가 공용 사용자/조직 directory snapshot을 보존하도록 보강했다. `POST /dms/crm-contract-lifecycle/executions`는 `common.cm_user_m`, `common.cm_user_org_r`, `common.cm_organization_m`을 조회해 `directorySyncStatus`, `directorySource`, `directorySyncedAt`, `resolvedActors`를 `dmsExecution.governance.approvalRoute`와 `approval-route.md` evidence에 남기고, 공용 사용자와 조직이 확인되면 `externalDirectorySynced=true`로 표시한다. 운영 조직 기준 export 정책은 DMS 설정의 `CRM 계약 산출 정책`과 `export-policy.md` evidence로 연결됐다.
+
+* **server, web-crm, dms, types, scripts, docs:** CRM 계약 DMS lifecycle governance evidence를 추가했다. `POST /dms/crm-contract-lifecycle/executions`는 active `crm-contract-v1` 템플릿 버전 snapshot, export policy record, active 템플릿 재사용/변경 검토 record, 첨부 확정 원장, 승인 route policy record, 다자 승인 workflow record, 결재선 원장 동기화 record를 `template-version.md`, `export-policy.md`, `template-change-review.md`, `attachment-finalization-ledger.md`, `approval-route.md`, `approval-workflow.md`, `approval-route-ledger.md` artifact로 생성하고, CRM `POST /crm/contracts/:id/dms-document-lifecycle-execution` 응답은 `dmsExecution.governance`의 `templateVersion`, `exportPolicy`, `templateChangeReview`, `attachmentFinalizationLedger`, `approvalRoute`, `approvalRouteLedger`, `approvalActors`와 artifact 목록을 그대로 노출한다.
+
+* **server, web-crm, dms, types, scripts, docs:** CRM 계약 DMS lifecycle artifact 실행 1차를 추가했다. `POST /crm/contracts/:id/dms-document-lifecycle-execution`은 DMS `crm-contract-v1` 템플릿과 CRM handoff markdown 초안을 입력으로 `POST /dms/crm-contract-lifecycle/executions` DMS 서비스를 호출하고, 템플릿 변경 검토 기록, 템플릿 검토 기록, 첨부 확인/확정 원장, DOCX, PDF, 승인 기록, 승인 route policy artifact, 결재선 원장 동기화 artifact를 생성한 뒤 CRM handoff snapshot에 evidence를 반영한다. 실제 외부 ERP/API 반영은 계속 후속이다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 원가/AMS 회계·지급 실행 evidence 수신 계약을 추가했다. `POST /crm/cost-plan/accounting-payment-handoffs/:id/execution-evidence`는 외부 회계·지급 시스템이 만든 전표/지급 evidence path를 active handoff snapshot의 `execution_evidence_snapshot`에 기록하고 이전 active row는 `replaced`로 남긴다. `/cost-plan`은 최신 handoff의 evidence path를 표시하며, 실제 ERP/API 반영 자체는 계속 외부 회계·지급 시스템 경계다.
+
+* **server, web-crm, types, scripts, docs:** CRM 계약 DMS lifecycle 실행 evidence 수신 계약을 추가했다. `/crm/contracts/:id/dms-document-execution-evidence`는 DMS가 생성한 Word/PDF/승인 등 실행 결과 evidence path를 active handoff snapshot의 lifecycle step에 `completed`로 기록하고, `/contracts` preview reload 시 해당 completed evidence를 유지한다. 이 계약은 DMS 실행 결과를 CRM 원장에 반영하는 수신 경계이며 Word/PDF 생성기나 승인 워크플로 자체는 계속 DMS 소유다.
+
+* **server, web-crm, types, scripts, docs:** CRM 계약 DMS 문서 패킷의 첨부 evidence를 명시했다. 공급자 CI `ciStorageRef`와 청구계획 별첨 후보를 attachment evidence path로 내려주고, `/contracts` DMS 문서 패킷 패널과 lifecycle snapshot이 해당 경로를 표시한다. DMS lifecycle 실행은 해당 evidence를 첨부 확정 원장으로 보존하며, 승인 route와 산출 경로 정책은 DMS 설정이 소유한다.
+
+* **server, dms, scripts, docs:** CRM 계약 DMS lifecycle이 실제 DMS 템플릿 registry 증거를 읽도록 연결했다. DMS 기본 시스템 템플릿에 `crm-contract-v1` 계약서 markdown 템플릿을 추가하고, `/crm/contracts/:id/dms-document-preview`는 active 템플릿 source path를 `DMS 템플릿 검토` lifecycle evidence로 표시한다. 템플릿 변경 승인과 조직 승인 라우팅은 계속 DMS 후속 경계다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 원가/AMS Preview에 회계·지급 handoff snapshot을 추가했다. `/api/crm/cost-plan/accounting-payment-preview`는 확정 내부원가와 AMS 정산 확정 row만 모아 handoff 후보와 최신 snapshot을 표시하고, `POST /api/crm/cost-plan/accounting-payment-handoff`는 현재 필터 기준 line snapshot을 `crm.crm_cost_plan_accounting_handoff_m`에 저장한다. 이 snapshot은 CRM 증빙이며 실제 ERP/API 반영은 외부 회계·지급 시스템 경계다.
+
+* **server, types, scripts, docs:** CRM AI/RAG runtime evidence gate를 추가했다. `verify:crm-ai-rag-runtime*`는 CRM opportunity/customer/activity를 실제 API로 선택하고, opportunity 공용 job과 customer/activity controlled backfill을 queue/run한 뒤 common AI object/chunk/ACL/index state/retrieval audit를 검증한다. 공용 검색 entity type에 `activity`를 추가해 CRM customer activity retrieval filter도 정식 경로로 닫았다. SSOO 공통 AI/RAG provider-backed runtime 품질 검증은 별도 ready 실행 증거가 필요하다.
+
+* **server, web-crm, types, scripts, docs:** CRM 계약 DMS handoff에 문서 lifecycle checklist를 추가했다. `/crm/contracts/:id/dms-document-preview`와 `/contracts`는 CRM markdown 초안, DMS 템플릿 검토, 첨부 확인, Word 산출, PDF 저장, 승인 단계를 소유자/상태/증거 경로와 함께 표시하고, `POST /crm/contracts/:id/dms-document-draft`는 같은 lifecycle snapshot을 markdown 초안과 `crm.crm_contract_dms_handoff_m` handoff evidence에 남긴다. 실제 템플릿 검토, 첨부 확정, Word/PDF export, 승인은 계속 DMS 실행 범위다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 계약 DMS 초안 저장 후 handoff snapshot 원장을 남기도록 보강했다. `POST /crm/contracts/:id/dms-document-draft`는 DMS markdown 초안 저장 성공 후 `crm.crm_contract_dms_handoff_m`에 문서/변수/첨부 snapshot과 saved path를 기록하고, `/crm/contracts/:id/dms-document-preview`와 `/contracts`는 최신 handoff id/status/savedAt을 재조회해 표시한다. Word/PDF 산출, 템플릿 검토, 첨부/승인은 계속 DMS 후속 범위다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 보고 Preview 확정 snapshot 원장을 추가했다. `POST /crm/reports/confirm`은 현재 `/reports` 필터의 pipeline/계약대비실적 집계를 `crm.crm_report_confirmation_m`에 summary/monthly trend/drilldown/확인 항목 snapshot으로 저장하고, `/reports`는 최신 확정 상태와 `POST /crm/reports/confirmations/:id/reopen` 확정 해제를 표시한다. 이 확정은 CRM 보고 snapshot만 닫으며 회계 전표, PMS 수행 KPI, DMS 문서 저장 확정은 잔여다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 사업계획대비실적에 월별 직접 실적 입력을 추가했다. `POST /crm/business-plan/performance-actual/monthly`는 사업년도/사업구분/계열/담당자/국내외/WBS 기준 12개월 매출·원가 실적을 `crm.crm_business_plan_performance_actual_d` 별도 원장에 저장하고, `/business-plan-performance`는 이를 `manual-actual` source row로 합산한다. 이 입력은 계약/원가/회계 정본을 덮어쓰지 않으며 회계/지급 반영은 잔여다.
+
+* **server, web-crm, types, scripts, docs:** CRM 사업계획대비실적 Preview가 확정 AMS 외부원가와 같은 WBS의 계약 성과 외부원가를 중복 계산하지 않도록 조정했다. 같은 WBS에 정산 확정된 AMS row가 있으면 계약 월별 성과 row의 외부원가 계획/실적을 제외하고, summary와 `/business-plan-performance`에 조정 WBS 수와 제외 금액을 표시한다. 이 중복 조정 slice 당시에는 회계/지급 반영과 직접 실적 입력 write UI를 잔여로 두었다.
+
+* **server, web-crm, types, scripts, docs:** CRM 계약 DMS 문서 패킷을 DMS markdown 초안 저장까지 확장했다. `POST /crm/contracts/:id/dms-document-draft`는 준비 완료 계약 preview를 markdown으로 렌더링해 DMS `FileCrudService.write`에 저장하고, 계약 `dms_link_status_code`를 `draft-created`로 표시한다. preview는 deterministic draft path와 저장된 draft path를 반환하므로 `/contracts`는 재조회 후에도 DMS 초안 저장 경로와 갱신 버튼을 표시한다. Word/PDF 산출과 템플릿 검토/첨부/승인은 DMS 후속으로 남긴다.
+
+* **server, web-crm, types, scripts, docs:** CRM 사업계획대비실적 Preview가 확정 내부원가/AMS 외부원가 입력을 별도 `confirmed-cost` source row로 읽어 계획/실적 원가와 손익 차이에 합산하도록 보강했다. 이 slice 당시에는 회계/지급 반영과 계약 외부원가 중복 조정을 잔여로 두었다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 원가/AMS Preview에 AMS 외부원가 월별 입력 정산 확정/해제를 추가했다. `POST /crm/cost-plan/ams/external-cost/monthly/:id/confirm`과 `/reopen`은 저장된 업체-WBS 월별 외부원가 계획·실적 입력을 `crm_cost_plan_ams_external_monthly_d.status_code/confirmed/confirmed_at` 기준으로 잠그거나 해제하고, `/cost-plan`은 AMS 정산 확정 건수, 입력 상태, 정산 확정/해제 버튼을 표시한다. 회계 전표/지급 정산 연계는 잔여다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 원가/AMS Preview에 내부원가 월별 입력 확정/해제를 추가했다. `POST /crm/cost-plan/internal-cost/monthly/:id/confirm`과 `/reopen`은 저장된 내부원가 계획·실적 입력을 `crm_cost_plan_internal_monthly_d.status_code/confirmed/confirmed_at` 기준으로 잠그거나 해제하고, `/cost-plan`은 확정 건수, 입력 상태, 확정/해제 버튼을 표시한다. 이 내부원가 slice 당시에는 AMS 외부원가 정산 확정과 사업계획/회계 연동을 잔여로 두었다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 원가/AMS Preview에 AMS 외부원가 월별 계획/실적 입력 원장을 추가했다. `POST /crm/cost-plan/ams/external-cost/monthly`은 사업년도/사업구분/계열/담당자/WBS/업체 기준 12개월 외부원가 계획·실적을 `crm_cost_plan_ams_external_monthly_d`에 저장하고, `/cost-plan`은 저장 입력을 preview 합계와 월별 표에 병합한다. 이 입력 slice 당시에는 내부원가 확정과 AMS 외부원가 정산 확정을 잔여로 두었다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 원가/AMS Preview에 AMS 업체-WBS 매핑 저장을 추가했다. `POST /crm/cost-plan/ams/vendor-wbs`는 확정 계약 WBS 기준 업체명과 계약/발주 번호를 `crm_cost_plan_ams_vendor_wbs_r`에 저장하고, `/cost-plan`은 저장된 업체 매핑이 있어야 AMS ready로 계산한다. 이 매핑 slice 당시에는 내부원가 확정과 AMS 외부원가 정산 확정을 잔여로 두었다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 원가/AMS Preview에 내부원가 월별 계획/실적 입력 원장을 추가했다. `POST /crm/cost-plan/internal-cost/monthly`은 사업년도/사업구분/계열/담당자/WBS 기준 12개월 내부원가 계획·실적을 `crm_cost_plan_internal_monthly_d`에 저장하고, `/cost-plan`은 저장 입력을 preview 합계와 월별 표에 병합한다.
+
+* **server, web-crm, database, types, scripts, docs:** CRM 사업계획 draft line 월별 계획 매출 직접 입력을 추가했다. `POST /crm/business-plan/plans/:id/lines/:lineId/monthly-plan`은 12개월 계획 매출을 `crm_business_plan_line_d.plan_monthly_revenue_amounts`에 저장하고 line/plan 합계를 재계산하며, 확정 사업계획대비실적은 월별 입력값을 우선 사용하고 미입력 line만 월 균등 배분한다. 이 계획 입력 slice 당시에는 실적 직접 편집과 내부원가 확정/AMS 정산 확정을 잔여로 두었다.
+
+* **web-ui, web-shell, scripts, docs:** SSOO custom typography token과 color token이 같이 보존되도록 `@ssoo/web-ui` `cn()` merge 정본을 고정하고, DMS 문서 페이지 header action 리듬(36px control, 12px horizontal padding, 13px medium label)을 Button `pageAction` 역할 size로 공용화했다. `SsooPageHeader`와 data workspace header action은 사용처 recipe 재조합 대신 공용 Button size를 소비하며, gate는 해당 공용 템플릿의 Button height/spacing/typography override 회귀를 차단한다.
+
+* **server, web-pms, types, scripts, docs:** PMS 프로젝트 상세 인수인계 탭에서 준비 완료 CRM 계약 인계 preview를 기존 프로젝트의 계약/대금/accepted handoff 스냅샷으로 명시 반영하는 흐름을 추가했다. CRM 계약 원장 소유권, PMS 신규 프로젝트 자동 생성, 계약/청구 직접 편집은 제외한다.
+
+* **server, web-crm, types, scripts, docs:** CRM 사업계획 전년 이월을 추가했다. `POST /api/crm/business-plan/plans/carry-forward`와 `/business-plan` 차수 패널에서 전년도 확정 차수의 겹치는 연도 line을 새 기준년도 draft로 이월하고 현재 preview 신규 후보를 보강한다. 이 시점에는 내부원가 확정/AMS 정산 확정을 잔여로 두었다.
+
+* **server, web-crm, types, scripts, docs:** CRM 사업계획대비실적 preview가 확정 사업계획 차수 원장을 기준으로 연간 계획 매출을 월 균등 배분하고 확정 계약 월별 실적과 비교하도록 보강했다. 확정 차수가 없을 때는 기존 pipeline 후보와 계약 청구계획 fallback을 유지하며, 이 시점에는 계획/실적 직접 편집과 내부원가/AMS 정산 확정을 잔여로 두었다.
+
+* **web-crm, scripts, docs:** CRM 고객/활동 Workspace가 customer/activity access snapshot을 소비하도록 연결했다. `/api/crm/customers/access`와 `/api/crm/customers/:id/access`를 조회해 고객 등록/수정, 활동 조회/등록 버튼과 입력 상태를 `canCreateCustomer`, `canEditCustomer`, `canViewCustomerActivity`, `canCreateCustomerActivity` 기준으로 제어하고, 권한 확인/거부 상태를 화면에 표시한다. Provider-ready vector evidence는 잔여다.
+
+* **server, database, web-crm, types, scripts, docs:** CRM 고객/활동 API access guard/snapshot 1차를 추가했다. `crm.customer.read/write`, `crm.customer.activity.read/write` permission seed와 `crm.customer` object policy를 추가하고, 기존 `crm.opportunity.read/write` grant는 재시드 전 호환 매핑으로 유지한다. `/crm/customers/access/me`, `/crm/customers/:id/access`, web-crm proxy route, `CrmCustomerFeatureGuard`/decorator, owner-user/name baseline 후 object revoke 우선 테스트를 추가했다. Provider-ready vector evidence는 잔여다.
+
+* **server, types, scripts, docs:** CRM 고객/활동 controlled AI index backfill을 추가했다. `POST /crm/customers/ai-index/backfill`은 system-override/admin 권한에서 customer/activity row를 제한된 batch로 `sourceApp: "crm"`/`entityType: "customer"|"activity"`/`jobType: "backfill"` job에 enqueue하고, `@ssoo/types`는 backfill 요청/응답 계약을 제공한다. `CrmAiIndexAdapter`는 customer/activity ACL snapshot에 owner 후보와 object id를 명시한다. Provider-ready vector evidence는 잔여다.
+
+* **web-crm, docs:** CRM 고객/활동 Workspace 1차를 추가했다. `/customers` 메뉴는 고객 원장 목록 검색/유형 필터/정렬, 고객 상세, 고객 생성/수정, 최근 활동 표시, 활동 등록을 기존 `/api/crm/customers` 원장에 연결했다. 이 시점에는 customer/activity object policy와 provider-ready vector evidence를 후속으로 남겼다.
+
+* **server, web-pms, types, scripts, docs:** PMS 홈이 리뷰 탭에서 수집된 열린 launch feedback 이슈를 별도 피드백 지표와 리뷰 탭 대상 운영 신호로 표시하도록 보강했다. 기존 PMS 전체 보고/PMO/PMR/PRR 자동화는 아직 완료 범위로 보지 않는다.
+
+* **web-pms, scripts, docs:** PMS 런칭 브라우저 QA가 프로젝트 상세 컨트롤 탭에 QA 전용 기존 `Issue` 행을 만들고, 화면의 정식 전환 버튼을 실제 클릭해 정식 이슈 생성과 기존 행 종료 상태를 desktop/mobile 기준으로 확인하도록 확장했다.
+
+* **web-pms, scripts, docs:** PMS 프로젝트 상세 컨트롤 탭의 기존 `Issue` 호환성 인박스에서 유형별로 정식 이슈, 리스크, 변경요청을 생성하고 기존 행을 종료 처리하는 수동 전환 동선을 추가했다. 이는 legacy 테이블 제거 전 1차 cleanup 흐름이며, `verify:pms-launch`가 전환 액션과 정식 mutation 의존성을 확인한다.
+
+* **web-pms, scripts, docs:** PMS 프로젝트 상세 closeout 패널에 현재 단계의 미해결 산출물과 종료조건을 읽기용 처리 큐로 노출하고, 큐 항목 클릭으로 산출물/종료조건/리뷰 관리 탭으로 이동하도록 보강했다. 런칭 브라우저 QA와 `verify:pms-launch`는 처리 큐와 탭 이동 회귀를 확인한다.
+
+* **web-pms, scripts, docs:** PMS 프로젝트 상세 closeout 패널에 산출물, 종료조건, 리뷰/피드백 탭으로 바로 전환하는 조치 바로가기를 추가하고, 런칭 브라우저 QA가 desktop/mobile에서 실제 탭 전환을 확인하도록 확장했다.
+
+* **web-pms, scripts, docs:** PMS 런칭 브라우저 QA가 프로젝트 리뷰 탭에서 실제 피드백 이슈와 리뷰 이벤트를 저장하고, 저장 결과가 피드백 큐와 보고/리뷰 이벤트 목록에 다시 표시되는지 desktop/mobile 기준으로 확인하도록 확장했다.
+
+* **web-pms, scripts, docs:** PMS 런칭 브라우저 QA를 홈/요청 등록 확인에서 홈→프로젝트 상세 리허설로 확장했다. QA는 태스크, 마일스톤, 컨트롤, 산출물, 종료조건, 인수인계, 리뷰 탭을 desktop/mobile에서 실제로 열고 오류·overflow·내부 ID 노출 회귀를 확인하며, 프로젝트 상세 탭 레일은 작은 화면에서 가로 스크롤로 동작하도록 보강했다.
+
+* **web-pms, scripts, docs:** PMS 프로젝트 멤버 역할 선택을 코드 테이블 기반으로 고정했다. 멤버 추가 화면은 `PROJECT_MEMBER_ROLE` 활성 코드만 선택지로 사용하고 정적 역할 fallback을 제거했으며, `verify:pms-launch`는 코드 시드, 화면 의존성, 런타임 코드 API 조회를 함께 검증한다.
+
+* **web-pms, scripts, docs:** PMS 프로젝트 상세에 리뷰 탭을 추가했다. 보고/리뷰 이벤트, 연결 산출물/종료조건 readiness, 열린 이슈/리스크/변경/인수인계 피드백 큐를 기존 PMS 실행 데이터에서 읽기용으로 요약하며, `verify:pms-launch`는 리뷰 탭 정적 surface와 이벤트 rollup 런타임 응답을 함께 검증한다. 기존 PMS 전체 보고/PMO/PMR/PRR 자동화는 아직 런칭 완료 범위로 보지 않는다.
+
+* **scripts, docs:** PMS 런칭 검증을 인증 후 런타임 API smoke로 확장했다. `verify:pms-launch`는 서버/PMS 웹 응답뿐 아니라 관리자 로그인 후 프로젝트 상세, access/readiness, 조직/관계, objective/WBS, 작업, control 객체, 산출물, 종료조건, 인수인계, 계약 스냅샷 조회를 실제 Docker 런타임에서 확인한다.
+
+* **server, database, web-crm, types, docs:** CRM opportunity 매출/원가 라인을 원천 데모식 세부 그리드에 가깝게 확장했다. `crm_opportunity_line_d`는 수량/M-M, 단가, 절사, 이익률, 소속/성명/등급, 내부/외부 구분, 원가-매출 연동 metadata를 보존하고, 서버는 수량×단가 기준으로 합계를 계산하며, CRM 웹 등록/수정 패널은 매출 상품/용역과 원가 상품/내부용역/외부용역 그룹 입력을 제공한다.
+
+* **web-pms, types, scripts, docs:** PMS 프로젝트 상세에 인수인계 탭을 추가했다. 사용자는 프로젝트별 인계 목록을 보고 신규 인계를 등록하며 대기 인계를 수락/반려/취소할 수 있고, 계약/대금 정보는 CRM 정본에서 넘어온 읽기 전용 스냅샷으로만 노출된다.
+
+* **web-auth, scripts, docs/common:** 공용 로그인/비밀번호 재설정 surface가 앱 root `body[data-ssoo-theme]`에서 상속되는 SSOO theme token을 소비하도록 정렬했다. 기존 legacy teal/slate 하드코딩을 제거하고 `verify:auth-commonization`에서 공용 auth surface의 하드코딩 색상 회귀를 차단한다.
+
+* **server, database, web-crm, types, docs:** CRM opportunity 차수 흐름을 추가했다. `crm_opportunity_m`에 `opportunity_group_code`를 두고 목록은 최신 차수 기준으로 집계하며, `GET/POST /crm/opportunities/:id/versions`가 이전 차수 조회와 확정 최신 차수 기반 차수 추가를 제공한다. 일반 수정은 더 이상 formal `versionNo`를 증가시키지 않고, 차수 추가 이벤트는 `opportunity_version_added` AI index job으로 queue된다.
+
+* **server, web-crm, types, docs:** CRM opportunity 생성/수정/확정/해제 1차 흐름을 추가했다. 서버는 `POST/PUT /crm/opportunities`에서 기본정보와 매출/원가 line을 RDB 원장에 저장하고, `POST /crm/opportunities/:id/confirm|reopen`에서 현재 차수 확정 잠금을 토글하며, 저장 후 `sourceApp: "crm"`/`entityType: "opportunity"` AI index job을 queue한다. CRM 웹은 SSOO shell 안에서 영업기회 create/edit/confirm/reopen panel을 제공하고, 견적/계약/DMS/PMS 연결은 계속 후속 상태로 분리한다.
+
+* **server, types, scripts, docs:** AI/RAG 중앙 공용 기반과 service rollout backlog의 진척도를 분리했다. 공용 job 운영 endpoint는 system-override/admin guard를 요구하고, pending job 실행은 `AiIndexWorkerService` boundary를 통과하며, env-gated `AiIndexSchedulerService`와 `/ai-index/jobs/metrics`가 scheduler binding 및 runnable/pending/running/failed/exhausted/retry-waiting queue 상태를 제공한다. `verify:ai-rag-central-foundation:complete`는 provider-ready report 없이는 실패하도록 고정해 100% 완료 주장을 provider-ready runtime evidence에 묶었고, 직접 실행 시에도 `verify:ai-rag-runtime-report --provider-mode=ready`를 재실행해 source coverage/retrieval audit/Ask audit/legacy-common comparison schema를 통과한 artifact만 완료 증거로 인정한다. provider-ready precheck는 Managed Identity를 암묵 credential로 보지 않고 `AZURE_USE_MANAGED_IDENTITY=true`가 명시된 경우에만 인정한다. `record:ai-rag-provider-ready-evidence`는 provider-ready report/summary digest를 roadmap/handoff에 기록한 뒤 central completion gate가 그 기록을 검증하도록 하며, provider-ready workflow는 dry-run evidence block artifact를 생성한다. `complete:ai-rag-central-foundation`은 provider-ready precheck, live smoke, report verification, evidence recording, central completion gate를 한 순서로 묶고, workflow `provider_mode=ready`는 `--docker-runtime --docker-runtime-cleanup --dry-run`으로 같은 runner를 통해 live smoke와 evidence block artifact를 생성한다. 검증 host에서도 같은 Docker runtime mode로 Docker server runtime start, `/api/health` 대기, non-volume cleanup까지 수행할 수 있으며, `--env-file`/`AI_RAG_PROVIDER_READY_ENV_FILE`과 `compose.yaml` Azure OpenAI interpolation으로 provider-ready env file을 smoke runner와 Docker server runtime에 같은 기준으로 전달할 수 있다. `verify:ai-rag-evidence-recorder`와 `verify:ai-rag-central-foundation:flow` self-test는 temp ready report/summary/evidence-block/docs-digest flow를 runtime/central completion verifier에 통과시키고, AI/RAG 변경 시 preflight/push-guard에서 실행된다. Roadmap 기준 전체 platform progress는 77.90%, central common foundation progress는 89.26%로 기록했다.
+
+* **server, scripts, docs:** SNS post AI index adapter와 저장 이벤트 queue hook을 추가했다. `SnsAiIndexAdapter`는 active post row, board/category/tag/count metadata, conservative visibility ACL snapshot을 provider-gated `AiIndexObjectProjection`으로 변환하고, `PostService`는 post create/update/delete 후 `sourceApp: "sns"`/`entityType: "post"` job을 queue한다. Runtime source coverage는 이제 DMS/CRM/PMS/SNS를 `registered`, Admin을 `missing_adapter`로 검증한다. `AI-RAG-08C`는 board/comment projection, controlled backfill, provider-ready vector evidence가 남은 partial 상태다.
+
+* **server, database, web-crm, types, scripts, docs:** CRM customer/activity 원장과 AI projection 1차를 추가했다. `crm.crm_customer_m`/`crm.crm_customer_activity_d`와 history trigger, opportunity row 기반 migration/seed backfill, `/crm/customers`와 `/crm/customers/:id/activities`, web-crm proxy route, 공용 검색 고객 결과를 추가했고, `CrmAiIndexAdapter`가 opportunity/customer/activity를 provider-gated `AiIndexObjectProjection`으로 변환한다. `CustomerService`는 customer create/update와 activity create 후 `sourceApp: "crm"`/`entityType: "customer"|"activity"` job을 queue한다. 이 시점의 `AI-RAG-08A`는 controlled backfill endpoint, customer/activity object policy refinement, provider-ready vector evidence가 남은 partial 상태였다.
+
+* **server, database, scripts, docs:** CRM opportunity RDB ledger와 AI index adapter를 추가했다. `crm.crm_opportunity_m`/`crm.crm_opportunity_line_d`와 history trigger/seed를 도입하고, CRM opportunity service를 fixture 대신 RDB read model로 전환했으며, `CrmAiIndexAdapter`가 opportunity와 매출/원가 line을 provider-gated `AiIndexObjectProjection`으로 변환한다. `AI-RAG-08A`는 customer/activity projection, controlled backfill, provider-ready vector evidence가 남은 partial 상태다.
+
+* **server, types, scripts, docs:** PMS task controlled AI index backfill endpoint를 추가했다. `POST /projects/:projectId/tasks/ai-index/backfill`은 `canManageTasks` 프로젝트 capability 범위에서 active task row를 제한된 batch로 `sourceApp: "pms"`/`entityType: "task"`/`jobType: "backfill"` job에 enqueue하고, `@ssoo/types`는 task backfill 요청/응답 계약을 제공한다. `AI-RAG-08B`의 남은 PMS 기준은 provider-ready vector/RAG evidence다.
+
+* **server, scripts, docs:** PMS task RDB projection과 저장 이벤트 AI index queue hook을 추가했다. `PmsAiIndexAdapter`는 task row, WBS, assignee, project/member/org ACL snapshot을 `entityType: "task"` projection으로 변환하고, `TaskService`는 task create/update/delete 후 `sourceApp: "pms"`/`entityType: "task"` job을 queue한다. Provider-ready vector/RAG evidence는 `AI-RAG-08B` 잔여로 남긴다.
+
+* **server, types, scripts, docs:** PMS project controlled AI index backfill endpoint를 추가했다. `POST /projects/ai-index/backfill`은 system-override/admin 권한에서 active project row를 제한된 batch로 `sourceApp: "pms"`/`entityType: "project"`/`jobType: "backfill"` job에 enqueue하고, `@ssoo/types`는 backfill 요청/응답 계약을 제공한다. Provider-ready vector/RAG evidence는 `AI-RAG-08B` 잔여로 남긴다.
+
+* **server, scripts, docs:** PMS project 저장 지점을 공용 AI index job queue에 연결했다. `ProjectService`는 project create/update/delete, request/proposal/execution/transition detail upsert, stage transition 후 `sourceApp: "pms"`/`entityType: "project"` job을 queue하고, queue 실패는 PMS 도메인 저장 실패로 전파하지 않는다. Provider-ready vector/RAG evidence는 `AI-RAG-08B` 잔여로 남긴다.
+
+* **server, scripts, docs:** PMS project RDB AI index adapter를 추가했다. `PmsAiIndexAdapter`는 PMS project/detail/status/member/org 데이터를 `AiIndexObjectProjection`으로 변환하고 ACL snapshot, PMS target, provider-gated semantic/vector/RAG capability를 등록한다.
+
+* **server, scripts, docs:** AI/RAG adapter projection runtime validator를 추가했다. `AiIndexingService`는 adapter가 반환한 `AiIndexObjectProjection`을 DB/object/chunk/embedding write 전에 검증하며 source/target drift, ACL search/context eligibility 역전, invalid JSON metadata/snapshot, duplicate/empty chunk를 차단한다.
+
+* **scripts, docs:** AI/RAG runtime smoke report에 planned source coverage evidence를 추가했다. `/ai-index/status` 전체 조회 결과를 `sourceCoverage`로 남기고, `verify:ai-rag-runtime-report`가 registered/missing adapter 상태를 검증한 뒤 Markdown summary를 생성한다.
+
+* **server, types, docs:** `/ai-index/status`가 planned source coverage를 반환하도록 보강했다. 등록된 adapter는 `registrationStatus: "registered"`로 유지하고, 아직 adapter가 없는 planned source는 `registrationStatus: "missing_adapter"`로 노출해 adapter 확장 잔여가 상태 API에서 숨지 않도록 했다.
+
+* **packages/types, docs:** AI/RAG retrieval 타입 계약의 legacy/common 명칭을 명시화했다. 기존 호환 `AiRetrieval*` 계약은 `AiLegacyRetrieval*` alias로 라벨링하고, common RAG retrieval은 `CommonAiRetrieval*` alias를 타입 패키지에서 직접 제공해 web assistant 확장 시 사용할 계약을 고정했다.
+
+* **scripts, ci, docs:** AI/RAG runtime smoke report verifier가 Markdown evidence summary를 생성하도록 보강했다. 수동 runtime workflow는 검증된 JSON report와 함께 `ai-rag-runtime-smoke-${provider_mode}.md` summary artifact를 업로드하며, provider-ready 결과 기록은 이 summary를 기준으로 한다.
+
+* **scripts, ci, docs:** AI/RAG runtime smoke report verifier를 추가했다. `verify:ai-rag-runtime-report`는 smoke JSON의 schema/provider mode/source capability/retrieval audit/Ask audit/legacy-common comparison evidence를 검증하며, 수동 runtime workflow는 artifact 업로드 전에 이 검증을 통과해야 한다.
+
+* **scripts, ci, docs:** AI/RAG runtime smoke의 구조화 report 산출과 GitHub Actions artifact 업로드를 추가했다. `AI_RAG_SMOKE_REPORT_PATH`를 지정하면 provider mode, DMS fixture, retrieval summary, DB row counts, audit counts, legacy/common comparison summary를 JSON으로 남기고, 수동 workflow는 `ai-rag-runtime-smoke-${provider_mode}` artifact로 업로드한다.
+
+* **scripts, docs:** `verify:ai-rag-runtime` provider-ready mode에 legacy/common retrieval 비교를 추가했다. 같은 DMS smoke fixture에 대해 legacy `dms_document_embeddings` chunk와 common retrieval result/context가 모두 query needle을 포함해야 통과한다.
+
+* **ci, scripts, docs:** AI/RAG runtime workflow의 provider mode별 server 환경 주입을 분리했다. `.github/workflows/ai-rag-runtime.yml`은 `provider_mode=ready`에서만 Azure OpenAI secrets를 server `.env`에 쓰고, `provider_mode=unavailable`에서는 placeholder/empty provider env를 주입해 repository secrets 존재 여부와 무관하게 fallback/stale smoke를 검증한다.
+
+* **scripts, ci, docs:** AI/RAG provider-ready runtime smoke의 CI/운영 진입점을 추가했다. `verify:ai-rag-runtime:ready-precheck`, `verify:ai-rag-runtime:ready`, `verify:ai-rag-runtime:unavailable` 스크립트를 분리하고, `.github/workflows/ai-rag-runtime.yml` 수동 workflow가 Azure OpenAI secrets precheck 후 Docker server stack에서 provider-ready 또는 unavailable runtime smoke를 실행하도록 고정했다.
+
+* **scripts, codex, docs:** AI/RAG 정적 guard를 Codex preflight/push-guard에 연결했다. AI/RAG 관련 서버/DB/type/script/docs 경로가 바뀌면 `pnpm run verify:ai-rag-platform`이 자동 실행되며, provider-ready live smoke는 실제 Azure embedding 환경이 필요한 별도 runtime gate로 유지한다.
+
+* **scripts, docs:** `verify:ai-rag-runtime` ready mode에 Azure OpenAI 환경 사전 점검을 추가했다. live ready smoke는 기본적으로 endpoint, embedding deployment, credential 입력이 없거나 placeholder이면 서버 호출 전에 실패하며, dry-run은 provider env readiness와 누락 항목을 출력한다.
+
+* **scripts, docs:** `verify:ai-rag-runtime`의 provider-ready 검증 범위를 보강했다. embedding/context assertion 이후에도 retrieval log header/item audit와 DMS Ask run/run-source audit를 계속 확인해 provider-ready smoke가 vector 생성만으로 통과하지 않도록 했다.
+
+* **scripts, docs:** 강화된 retrieval log item audit 기준을 적용한 상태로 `verify:ai-rag-runtime` provider-unavailable smoke를 로컬 Docker Postgres에서 재통과시켰다. 실행 fixture는 `verify-ai-rag/runtime-smoke-2026-07-02T04-05-56-006Z.md`이며, DMS 저장, common AI job, retrieval query, DMS Ask audit path, DB row 검증을 통과했다.
+
+* **server, scripts, docs:** AI/RAG runtime smoke 기반을 추가했다. DMS `DmsAiIndexAdapter`의 `semantic`/`vector`/`ragContext` capability는 embedding provider readiness를 따르며, `verify:ai-rag-runtime`은 DMS smoke 문서 저장, common AI source/job/retrieval, DMS Ask audit, `common.cm_ai_*` DB row를 provider unavailable/ready mode로 검증한다.
+
+* **server, database, scripts, docs:** AI/RAG provider-unavailable runtime smoke를 Docker Postgres에서 통과시켰다. placeholder embedding deployment 환경에서 DMS 저장 지점이 common object/chunk/state stale projection, retrieval log, DMS Ask conversation/run audit를 남기는 것을 확인했고, runtime smoke는 반복 실행 시 DMS collaboration isolation을 피하도록 고유 fixture path를 사용한다.
 
 * **server, scripts, docs:** 공용 AI model gateway를 추가해 DMS Ask의 chat generation/stream 실행 경계를 `CommonAiIndexModule`로 이동했다. Gateway는 Azure chat provider readiness와 deployment/model metadata를 제공하며, DMS Ask run audit는 provider/model/deployment 값을 gateway status 기준으로 기록한다.
 
@@ -27,6 +235,22 @@
 * **web-shell, web-dms, scripts, docs:** `contentPage.render`를 branded `SsooMdiContentPageElement` 반환 계약으로 강화했다. 직접 recipe는 `createSsooContentPageTemplateElement()`, 승인된 domain adapter는 `SSOO_CONTENT_PAGE_ADAPTER_NAMES`의 `adapterName`과 `createSsooContentPageAdapterElement()`를 사용하며, DMS 문서/설정/AI page는 `DMS PageTemplate` adapter boundary를 통과한다.
 
 ### Bug Fixes
+
+* **server, PMS, docs:** 공용 `serializeBigInt()`가 Prisma `Decimal` 값을 일반 객체로 재귀 분해해 `{s,e,d}` 내부 표현을 API에 노출하던 문제를 수정했다. Decimal은 숫자로, BigInt 식별자는 문자열로 직렬화하는 회귀 테스트를 추가해 PMS 일일 공수 생성/조회 응답 계약을 복구했다.
+
+* **server, AI/RAG, docs:** `/ai-index/status`가 DB에 남은 과거 `cm_ai_source_m` 행을 현재 adapter 등록 증거로 오인하던 문제를 수정했다. 상태 API는 이제 live `AiIndexRegistryService`에 실제 등록된 source만 `registered`로 반환하고, adapter가 없는 Admin은 stale source metadata가 있어도 `missing_adapter`로 유지한다.
+
+* **database, docker, docs:** legacy AI/RAG local volume에서 `DB_INIT_PRISMA_PUSH_MODE=auto`가 `prisma db push`를 건너뛰어도 CRM seed 전에 계약 원장, 견적 workflow, 견적 공급자 protected baseline migration을 적용하도록 `db-init`을 보강했다. 이 보강은 CRM 원장 재현성 수정이며, PMS는 계속 실행 프로젝트와 읽기용 계약/인계 스냅샷만 소비한다.
+
+* **types, server:** CRM opportunity version list response/summary 타입을 CRM 타입 공개 진입점에서 재수출해 Docker의 서버 클린 빌드에서 opportunity version API 타입 import가 실패하지 않도록 보정했다.
+
+* **database, docker, docs:** legacy AI/RAG local volume에서 `DB_INIT_PRISMA_PUSH_MODE=auto`가 `prisma db push`를 건너뛰는 경우에도 CRM opportunity seed 전에 CRM ledger protected baseline migration을 적용하도록 `db-init`을 보강했다. 이로써 기존 volume에 `crm.crm_opportunity_m`이 없을 때 `52_crm_opportunities.sql`에서 compose 기동이 중단되는 문제를 막는다.
+
+* **database, docker, scripts, docs:** `db-init`에 `DB_INIT_PRISMA_PUSH_MODE=auto|force|skip`를 추가했다. 기본 auto mode는 compat SQL 적용 후 pre-roadmap `common.cm_ai_*` legacy column/table을 감지하면 destructive column drop 후보를 피하기 위해 `prisma db push`를 건너뛰고 seed/trigger apply를 계속한다. `--accept-data-loss`는 사용하지 않는다.
+
+* **server, scripts, docs:** Azure embedding provider readiness가 `<embedding-deployment>` 같은 placeholder 값을 실제 deployment로 오판하지 않도록 보정했다. placeholder 값은 `placeholder_embedding_deployment` unavailable 상태로 남고, DMS vector/RAG capability와 runtime smoke 기대값도 provider unavailable/fallback 기준을 따른다.
+
+* **database, docker, docs:** 기존 로컬 DB volume에 pre-roadmap `common.cm_ai_*` WIP row가 남아 있을 때 runtime schema가 맞지 않던 문제를 보정했다. `packages/database/prisma/compat/20260623_ai_rag_legacy_backfill.sql`은 legacy AI/RAG WIP table을 삭제하지 않고 canonical runtime column/table/default/index를 추가하며, history trigger 재적용과 함께 DMS common projection smoke를 통과한다. `prisma db push --accept-data-loss`는 사용하지 않는다.
 
 * **web-auth, web-shell, scripts, docs:** 공용 사용자 프로필 surface가 `neutral` page tone으로 렌더링되어 다른 표준 content page와 배경 톤이 어긋나던 문제를 수정했다. `SsooContentPageTemplate`에 `profile` semantic tone을 추가하고, `@ssoo/web-auth` user-surface content-page helper가 프로필은 `profile`, 계정 설정은 `settings` tone으로 중앙 선택하도록 고정했으며, `verify:ssoo-frame`/`verify:auth-commonization`이 profile tone의 `neutral` 회귀를 차단한다.
 

@@ -6,6 +6,7 @@ import { TokenPayload } from '../interfaces/auth.interface.js';
 import { UserService } from '../../user/user.service.js';
 import { AccessFoundationService } from '../../access/access-foundation.service.js';
 import { DatabaseService } from '../../../../database/database.service.js';
+import { getRequiredJwtSecret } from '../jwt-config.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -20,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET', { infer: true }),
+      secretOrKey: getRequiredJwtSecret(configService, 'JWT_SECRET'),
     });
   }
 

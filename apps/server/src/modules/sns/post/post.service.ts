@@ -1,17 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@ssoo/database';
+import type { AiIndexJobType, AiIndexJsonObject } from '@ssoo/types/common';
 import { DatabaseService } from '../../../database/database.service.js';
 import type { CreatePostDto, UpdatePostDto, FindPostsDto } from './dto/post.dto.js';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import { AccessService } from '../access/access.service.js';
+import { AiIndexingService } from '../../common/ai-index/ai-indexing.service.js';
 import { CommonNotificationService } from '../../common/notification/notification.service.js';
+
+interface PostAiIndexQueueResult {
+  status: 'queued' | 'failed';
+  errorMessage?: string;
+}
 
 @Injectable()
 export class PostService {
+  private readonly logger = new Logger(PostService.name);
+
   constructor(
     private readonly db: DatabaseService,
     private readonly accessService: AccessService,
     private readonly notificationService: CommonNotificationService,
+    private readonly aiIndexingService: AiIndexingService,
   ) {}
 
   async findAll(params: FindPostsDto, user: TokenPayload) {
@@ -117,6 +127,7 @@ export class PostService {
     });
     if (result) {
       this.publishFeedChanged(authorUserId, result.id, result.authorUserId);
+      await this.queuePostAiIndexJob(result.id, 'upsert', 'post_created', authorUserId);
     }
     return result;
   }
@@ -176,7 +187,9 @@ export class PostService {
       });
     });
     if (result) {
-      this.publishFeedChanged(BigInt(user.userId), result.id, result.authorUserId);
+      const actorUserId = BigInt(user.userId);
+      this.publishFeedChanged(actorUserId, result.id, result.authorUserId);
+      await this.queuePostAiIndexJob(result.id, 'upsert', 'post_updated', actorUserId);
     }
     return result;
   }
@@ -197,7 +210,9 @@ export class PostService {
       where: { id },
       data: { isActive: false },
     });
-    this.publishFeedChanged(BigInt(user.userId), id, existing.authorUserId);
+    const actorUserId = BigInt(user.userId);
+    this.publishFeedChanged(actorUserId, id, existing.authorUserId);
+    await this.queuePostAiIndexJob(id, 'delete', 'post_deleted', actorUserId);
     return deletedPost;
   }
 
@@ -207,5 +222,55 @@ export class PostService {
       userId: authorUserId.toString(),
       postId: postId.toString(),
     });
+  }
+
+  private async queuePostAiIndexJob(
+    postId: bigint,
+    jobType: AiIndexJobType,
+    reasonCode: string,
+    actorUserId: bigint,
+  ): Promise<PostAiIndexQueueResult> {
+    try {
+      const payload = {
+        source: 'sns.post',
+        reasonCode,
+        actorUserId: actorUserId.toString(),
+      } satisfies AiIndexJsonObject;
+
+      await this.aiIndexingService.queueJob({
+        sourceApp: 'sns',
+        entityType: 'post',
+        entityId: postId.toString(),
+        jobType,
+        priority: this.resolvePostAiIndexJobPriority(jobType),
+        payload,
+      });
+      return { status: 'queued' };
+    } catch (error) {
+      const errorMessage = this.getAiIndexErrorMessage(error);
+      this.logger.warn(
+        `SNS post AI index job queue failed (${postId.toString()}, ${reasonCode}): ${errorMessage}`,
+      );
+      return {
+        status: 'failed',
+        errorMessage,
+      };
+    }
+  }
+
+  private resolvePostAiIndexJobPriority(jobType: AiIndexJobType): number {
+    if (jobType === 'delete') {
+      return 10;
+    }
+
+    if (jobType === 'backfill') {
+      return 30;
+    }
+
+    return 20;
+  }
+
+  private getAiIndexErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
   }
 }

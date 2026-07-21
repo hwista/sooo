@@ -212,7 +212,7 @@ export function AttachmentsSection({
     <ActivityListSection
       icon={templateMode ? <FileText className="mr-1.5 h-4 w-4 shrink-0" /> : <Paperclip className="mr-1.5 h-4 w-4 shrink-0" />}
       title={templateMode ? '참조' : '파일'}
-      badge={!locked && attachments.length > 0 ? <span className="mr-1 text-caption text-gray-400">({attachments.length})</span> : undefined}
+      badge={!locked && attachments.length > 0 ? <span className="mr-1 text-caption text-muted-foreground">({attachments.length})</span> : undefined}
       items={locked ? [] : items}
       legacyVisuals
       variant="compact"

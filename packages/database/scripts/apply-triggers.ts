@@ -57,8 +57,10 @@ async function main() {
     '18_pr_project_transition_d_h_trigger.sql',
     '19_pr_project_member_r_h_trigger.sql',
     '20_pr_task_h_trigger.sql',
+    '78_pr_task_effort_log_h_trigger.sql',
     '21_pr_milestone_h_trigger.sql',
     '22_pr_issue_h_trigger.sql',
+    '77_pr_legacy_issue_archive_h_trigger.sql',
     '23_cm_user_auth_h_trigger.sql',
     '24_cm_user_session_h_trigger.sql',
     '25_cm_user_invitation_h_trigger.sql',
@@ -97,6 +99,17 @@ async function main() {
          '63_cm_ai_source_h_trigger.sql',
          '64_cm_ai_object_h_trigger.sql',
          '65_cm_ai_index_state_h_trigger.sql',
+         '66_crm_opportunity_h_trigger.sql',
+         '67_crm_opportunity_line_h_trigger.sql',
+         '75_crm_customer_h_trigger.sql',
+         '76_crm_customer_activity_h_trigger.sql',
+         '73_crm_quote_seller_profile_h_trigger.sql',
+         '74_crm_business_plan_h_trigger.sql',
+         '68_pr_site_h_trigger.sql',
+         '69_pr_system_catalog_h_trigger.sql',
+         '70_pr_system_instance_h_trigger.sql',
+         '71_pr_integration_h_trigger.sql',
+         '72_pr_master_import_profile_h_trigger.sql',
          // SNS
         '50_sns_board_h_trigger.sql',
      '51_sns_post_h_trigger.sql',
@@ -107,12 +120,14 @@ async function main() {
 
   let successCount = 0;
   let failCount = 0;
+  const expectedTriggerNames = new Set<string>();
 
   for (const file of triggerFiles) {
     const filePath = path.join(triggersDir, file);
     
     if (!fs.existsSync(filePath)) {
       console.log(`⚠️  File not found: ${file}`);
+      failCount++;
       continue;
     }
 
@@ -120,6 +135,9 @@ async function main() {
     
     try {
       const sql = fs.readFileSync(filePath, 'utf-8');
+      for (const match of sql.matchAll(/\bCREATE\s+TRIGGER\s+(?:"([^"]+)"|([A-Za-z_][A-Za-z0-9_$]*))/gi)) {
+        expectedTriggerNames.add(match[1] ?? match[2]);
+      }
       await client.query(sql);
       console.log(`✅ ${file} - OK`);
       successCount++;
@@ -135,9 +153,10 @@ async function main() {
   console.log('Verifying installed triggers...');
   console.log('========================================\n');
 
-  // 설치된 트리거 확인
+  // 애플리케이션 스키마의 non-internal 트리거 전체 확인
   const result = await client.query(`
-    SELECT 
+    SELECT
+      n.nspname AS schema_name,
       tgname AS trigger_name,
       c.relname AS table_name,
       CASE tgenabled 
@@ -147,20 +166,45 @@ async function main() {
       END AS status
     FROM pg_trigger t
     JOIN pg_class c ON t.tgrelid = c.oid
-    WHERE tgname LIKE 'trg_%_h'
-    ORDER BY c.relname
+    JOIN pg_namespace n ON c.relnamespace = n.oid
+    WHERE NOT t.tgisinternal
+      AND n.nspname IN ('common', 'pms', 'dms', 'crm', 'sns')
+    ORDER BY n.nspname, c.relname, tgname
   `);
+
+  const installedTriggerNames = new Set<string>(result.rows.map((trigger) => trigger.trigger_name));
+  const missingTriggerNames = [...expectedTriggerNames].filter((name) => !installedTriggerNames.has(name));
+  const disabledExpectedTriggerNames = result.rows
+    .filter(
+      (trigger) => expectedTriggerNames.has(trigger.trigger_name) && trigger.status !== 'ENABLED',
+    )
+    .map((trigger) => trigger.trigger_name);
 
   console.log('Installed Triggers:');
   console.log('-------------------');
   for (const t of result.rows) {
-    console.log(`${t.status === 'ENABLED' ? '✅' : '⚠️'} ${t.trigger_name} on ${t.table_name} [${t.status}]`);
+    console.log(
+      `${t.status === 'ENABLED' ? '✅' : '⚠️'} ${t.schema_name}.${t.trigger_name} ` +
+        `on ${t.table_name} [${t.status}]`,
+    );
   }
 
-  console.log(`\nTotal: ${result.rows.length} triggers installed`);
-  console.log(`Success: ${successCount}, Failed: ${failCount}`);
+  console.log(`\nSource contract: ${expectedTriggerNames.size} triggers`);
+  console.log(`Database total: ${result.rows.length} application triggers`);
+  console.log(`Files applied: ${successCount}, Failed: ${failCount}`);
+
+  if (missingTriggerNames.length > 0) {
+    console.error(`Missing source-contract triggers: ${missingTriggerNames.join(', ')}`);
+  }
+  if (disabledExpectedTriggerNames.length > 0) {
+    console.error(`Disabled source-contract triggers: ${disabledExpectedTriggerNames.join(', ')}`);
+  }
 
   await client.end();
+
+  if (failCount > 0 || missingTriggerNames.length > 0 || disabledExpectedTriggerNames.length > 0) {
+    throw new Error('History trigger installation contract failed');
+  }
 }
 
 main()

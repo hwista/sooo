@@ -74,7 +74,7 @@ export function Content({
   return (
     <div
       className={cn(
-        'flex-1 min-h-0 bg-white border border-gray-200 rounded-lg overflow-hidden',
+        'min-h-0 flex-1 overflow-hidden rounded-lg border border-ssoo-content-border bg-card',
         layoutStyles[layout],
         className
       )}
@@ -85,8 +85,8 @@ export function Content({
           style={getChildStyle(index)}
           className={cn(
             'min-h-0', // flex에서 스크롤 가능하게
-            layout === 'vertical' && index > 0 && 'border-t border-gray-200',
-            layout === 'horizontal' && index > 0 && 'border-l border-gray-200'
+            layout === 'vertical' && index > 0 && 'border-t border-ssoo-content-border',
+            layout === 'horizontal' && index > 0 && 'border-l border-ssoo-content-border'
           )}
         >
           {child}

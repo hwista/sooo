@@ -43,6 +43,8 @@ export const createProjectSchema = z.object({
   statusCode: projectStatusCodeSchema.optional().default('request'),
   stageCode: projectStageCodeSchema.optional().default('waiting'),
   customerId: optionalId.describe('고객사'),
+  plantId: optionalId.describe('플랜트/사이트'),
+  systemInstanceId: optionalId.describe('시스템 인스턴스'),
   description: optionalStringMax(2000).describe('설명'),
 });
 
@@ -51,8 +53,8 @@ export const updateProjectSchema = createProjectSchema.partial().extend({
   doneResultCode: projectDoneResultCodeSchema.optional(),
 });
 
-/** 고객요청 등록 스키마 (프로젝트의 특수 케이스) */
-export const createCustomerRequestSchema = z.object({
+/** 프로젝트 요청 등록 스키마 */
+export const createProjectRequestSchema = z.object({
   // 기본 정보
   projectName: requiredStringMax(200).describe('요청 제목'),
   description: optionalStringMax(2000).describe('요청 내용'),
@@ -82,7 +84,7 @@ export const createCustomerRequestSchema = z.object({
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
-export type CreateCustomerRequestInput = z.infer<typeof createCustomerRequestSchema>;
+export type CreateProjectRequestInput = z.infer<typeof createProjectRequestSchema>;
 
 // ========================================
 // 단계별 상세 스키마

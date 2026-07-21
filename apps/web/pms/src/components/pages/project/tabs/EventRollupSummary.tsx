@@ -11,9 +11,11 @@ const PROJECT_STATUS_LABELS: Record<string, string> = {
 
 const DELIVERABLE_STATUS_LABELS: Record<string, string> = {
   not_submitted: '미제출',
+  before_submit: '미제출',
   submitted: '제출',
   confirmed: '확정',
   approved: '승인',
+  final: '최종',
   rejected: '반려',
   not_required: '면제',
 };
@@ -49,14 +51,14 @@ export function EventRollupSummary({
 
   return (
     <div className={className}>
-      <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-1.5 text-caption-xs text-muted-foreground">
         <span
           className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${
             !hasLinkedOutputs
-              ? 'bg-slate-100 text-slate-600'
+              ? 'bg-muted text-muted-foreground'
               : rollup.readiness.isReady
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'bg-amber-50 text-amber-700'
+                ? 'bg-ssoo-success-bg text-ssoo-success'
+                : 'bg-ssoo-warning-bg text-ssoo-warning'
           }`}
         >
           {!hasLinkedOutputs
@@ -68,7 +70,7 @@ export function EventRollupSummary({
         {rollup.statusCodes.map((statusCode) => (
           <span
             key={statusCode}
-            className="inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 font-medium text-violet-700"
+            className="inline-flex items-center rounded-full bg-ssoo-accent-bg px-2 py-0.5 font-medium text-ssoo-accent"
           >
             {getProjectStatusLabel(statusCode)}
           </span>
@@ -86,7 +88,7 @@ export function EventRollupSummary({
         )}
       </div>
       {showByStatus && deliverableStatuses.length > 0 && (
-        <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-muted-foreground">
+        <div className="mt-1 flex flex-wrap gap-1 text-caption-xs text-muted-foreground">
           {deliverableStatuses.map(([statusCode, count]) => (
             <span
               key={statusCode}

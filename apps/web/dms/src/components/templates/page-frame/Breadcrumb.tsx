@@ -99,7 +99,7 @@ export function Breadcrumb({
       onRootClick={isPathNavigationEnabled ? () => onPathClick?.('') : undefined}
       onItemClick={isPathNavigationEnabled ? (item) => onPathClick?.(item.path ?? '') : undefined}
       rootIconSlot={<RootIcon className="h-3.5 w-3.5" />}
-      separatorSlot={<ChevronRight className="mx-1 h-3.5 w-3.5 shrink-0 text-gray-400" />}
+      separatorSlot={<ChevronRight className="mx-1 h-3.5 w-3.5 shrink-0 ssoo-text-primary-60" />}
       isEditing={isEditing}
       ariaLabel="파일 경로"
       className={className}

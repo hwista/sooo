@@ -4,9 +4,11 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import bcrypt from 'bcryptjs';
 import { DatabaseService } from '../../../database/database.service.js';
+import { AccessFoundationService } from '../access/access-foundation.service.js';
 import { UserService } from '../user/user.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { type AuthUserRecord, type AuthTokens, type TokenPayload } from './interfaces/auth.interface.js';
+import { getRequiredJwtExpiry, getRequiredJwtSecret } from './jwt-config.js';
 
 interface AuthSessionContext {
   issuedApp?: string;
@@ -20,7 +22,23 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly accessFoundationService: AccessFoundationService,
   ) {}
+
+  private normalizePrincipalIds(values: unknown): string[] | undefined {
+    if (!Array.isArray(values)) {
+      return undefined;
+    }
+
+    const normalized = Array.from(new Set(
+      values
+        .filter((value): value is string => typeof value === 'string')
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ));
+
+    return normalized.length > 0 ? normalized : undefined;
+  }
 
   private getRefreshTokenExpiryDate(): Date {
     return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -38,7 +56,7 @@ export class AuthService {
   private verifyRefreshToken(refreshToken: string): TokenPayload {
     try {
       return this.jwtService.verify<TokenPayload>(refreshToken, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET', { infer: true }),
+        secret: getRequiredJwtSecret(this.configService, 'JWT_REFRESH_SECRET'),
       });
     } catch {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
@@ -275,15 +293,15 @@ export class AuthService {
       this.jwtService.signAsync(
         { ...payload, type: 'access' },
         {
-          secret: this.configService.get<string>('JWT_SECRET', { infer: true }),
-          expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRES_IN', { infer: true }),
+          secret: getRequiredJwtSecret(this.configService, 'JWT_SECRET'),
+          expiresIn: getRequiredJwtExpiry(this.configService, 'JWT_ACCESS_EXPIRES_IN'),
         },
       ),
       this.jwtService.signAsync(
         { ...payload, type: 'refresh' },
         {
-          secret: this.configService.get<string>('JWT_REFRESH_SECRET', { infer: true }),
-          expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', { infer: true }),
+          secret: getRequiredJwtSecret(this.configService, 'JWT_REFRESH_SECRET'),
+          expiresIn: getRequiredJwtExpiry(this.configService, 'JWT_REFRESH_EXPIRES_IN'),
         },
       ),
     ]);
@@ -296,7 +314,42 @@ export class AuthService {
    */
   async validateToken(token: string): Promise<TokenPayload | null> {
     try {
-      return this.jwtService.verify<TokenPayload>(token);
+      const payload = this.jwtService.verify<TokenPayload>(token, {
+        secret: getRequiredJwtSecret(this.configService, 'JWT_SECRET'),
+      });
+      if (payload.type !== 'access' || !payload.sessionId) {
+        return null;
+      }
+
+      const userId = BigInt(payload.userId);
+      const [user, session, organizationIds] = await Promise.all([
+        this.userService.findAuthUserById(userId),
+        this.db.client.userSession.findUnique({ where: { sessionId: payload.sessionId } }),
+        this.accessFoundationService.getUserOrganizationIds(userId),
+      ]);
+
+      if (
+        !user
+        || !user.isActive
+        || user.accountStatusCode !== 'active'
+        || !session
+        || session.userId !== userId
+        || session.revokedAt
+        || session.expiresAt < new Date()
+      ) {
+        return null;
+      }
+
+      return {
+        userId: userId.toString(),
+        loginId: user.loginId,
+        userName: user.userName,
+        organizationIds: organizationIds.map((organizationId) => organizationId.toString()),
+        teamIds: this.normalizePrincipalIds(payload.teamIds),
+        groupIds: this.normalizePrincipalIds(payload.groupIds),
+        sessionId: payload.sessionId,
+        type: 'access',
+      };
     } catch {
       return null;
     }

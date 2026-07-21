@@ -10,9 +10,10 @@ import { ProjectRelationController } from './project-relation.controller.js';
 import { ProjectRelationService } from './project-relation.service.js';
 import { DatabaseModule } from '../../../database/database.module.js';
 import { AccessFoundationModule } from '../../common/access/access-foundation.module.js';
+import { CommonAiIndexModule } from '../../common/ai-index/ai-index.module.js';
 
 @Module({
-  imports: [DatabaseModule, AccessFoundationModule],
+  imports: [DatabaseModule, AccessFoundationModule, CommonAiIndexModule],
   controllers: [ProjectController, ProjectOrgController, ProjectRelationController],
   providers: [
     ProjectService,

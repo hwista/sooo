@@ -54,6 +54,12 @@ export { SsooWorkbenchShell } from './workbench-shell';
 export type { SsooWorkbenchShellProps } from './workbench-shell';
 
 export {
+  SsooMobileSidebarOverlay,
+  useSsooMobileViewport,
+} from './mobile-shell';
+export type { SsooMobileSidebarOverlayProps } from './mobile-shell';
+
+export {
   SSOO_GLOBAL_SEARCH_APP_PATH,
   SSOO_GLOBAL_SEARCH_PLACEHOLDER,
   SsooGlobalSearchPage,
@@ -177,6 +183,7 @@ export {
 } from './header';
 export type {
   SsooAppHeaderActionDescriptor,
+  SsooAppHeaderLeadingActionDescriptor,
   SsooAppHeaderNotificationDescriptor,
   SsooAppHeaderProps,
   SsooAppHeaderUserMenuContext,
@@ -305,7 +312,6 @@ export {
   SsooSettingsMainPanel,
   SsooSettingsPendingSummary,
   SsooSettingsSurface,
-  SsooSettingsViewModeTabs,
 } from './settings-surface';
 export type {
   SsooSettingsBannerProps,
@@ -313,8 +319,6 @@ export type {
   SsooSettingsMainPanelProps,
   SsooSettingsPendingSummaryProps,
   SsooSettingsSurfaceProps,
-  SsooSettingsViewModeOption,
-  SsooSettingsViewModeTabsProps,
 } from './settings-surface';
 export { createSsooSettingsSidebarSections } from './settings-sidebar';
 export type {
@@ -369,11 +373,46 @@ export type {
   SsooContentPageTone,
 } from './content-page-template';
 
+export {
+  SSOO_WORKSPACE_PAGE_CONTENT_WIDTH_PX,
+  SsooWorkspacePage,
+} from './workspace-page';
+export type {
+  SsooWorkspaceContentWidth,
+  SsooWorkspacePageDataAttributes,
+  SsooWorkspacePageProps,
+} from './workspace-page';
+
 export { SsooPageIndexRail } from './page-index-rail';
 export type {
   SsooPageIndexRailItem,
   SsooPageIndexRailProps,
 } from './page-index-rail';
+export {
+  SsooDataGrid,
+  SsooDataGridPagination,
+  SsooDataGridSecondPanel,
+  SsooDataGridSecondToggleButton,
+  SsooDataWorkspaceContent,
+  SsooDataWorkspaceFilterBar,
+  SsooDataWorkspacePage,
+  SsooDataWorkspaceToolbar,
+} from './data-workspace-page';
+export type {
+  SsooDataGridColumnDef,
+  SsooDataGridPagination as SsooDataGridPaginationConfig,
+  SsooDataGridPaginationProps,
+  SsooDataGridProps,
+  SsooDataGridSecondPanel as SsooDataGridSecondPanelConfig,
+  SsooDataGridTable,
+  SsooDataWorkspaceAction,
+  SsooDataWorkspaceContentProps,
+  SsooDataWorkspaceFilterField,
+  SsooDataWorkspaceFilterOption,
+  SsooDataWorkspaceFilterValues,
+  SsooDataWorkspacePageProps,
+  SsooDataWorkspaceToolbarProps,
+} from './data-workspace-page';
 
 export { SsooSectionedShell } from './sectioned-shell';
 export type {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMenuStore, useSidebarStore, useTabStore } from '@/stores';
+import { useLayoutStore, useMenuStore, useSidebarStore, useTabStore } from '@/stores';
 import { useOpenTabWithConfirm } from '@/hooks';
 import { MenuItem } from '@/types';
 import { ChevronRight, Folder, FolderOpen, FileText, Shield } from 'lucide-react';
@@ -16,6 +16,7 @@ export function AdminMenu() {
   const { adminMenus } = useMenuStore();
   const { expandedMenuIds, toggleMenuExpand } = useSidebarStore();
   const { tabs, activeTabId } = useTabStore();
+  const closeMobileMenu = useLayoutStore((state) => state.closeMobileMenu);
   const openTabWithConfirm = useOpenTabWithConfirm();
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
@@ -26,13 +27,16 @@ export function AdminMenu() {
     }
 
     if (item.menuPath) {
-      await openTabWithConfirm({
+      const tabId = await openTabWithConfirm({
         menuCode: item.menuCode,
         menuId: item.menuId,
         title: item.menuName,
         icon: item.icon,
         path: item.menuPath,
       });
+      if (tabId) {
+        closeMobileMenu();
+      }
     }
   };
 

@@ -19,7 +19,7 @@ applyTo: "apps/web/dms/**"
 
 DMS는 이제 모노레포 워크스페이스에 포함되지만, 파일/Git/스토리지 런타임과 `src/app/api/* -> server/*` 구조는 여전히 독립 배포 가능성을 고려해 유지합니다.
 
-Docker/compose도 DMS 런타임 계약의 일부입니다. DMS 포트, runtime path, 설정 노출 문구, server proxy/env 계약을 바꾸면 `apps/web/dms/Dockerfile`, 루트 `compose.yaml`, 루트 `.env.example`, Docker/E2E 스크립트, `docs/dms/guides/deployment.md` 를 같은 변경 범위에서 확인하고 같이 갱신합니다.
+Docker/compose도 DMS 런타임 계약의 일부입니다. DMS 포트, runtime path, 설정 노출 문구, server proxy/env 계약을 바꾸면 `apps/web/dms/Dockerfile`, 루트 `compose.yaml`과 환경별 overlay(`compose.local.yaml`, `compose.production.yaml`), 루트 env example, Docker/E2E 스크립트, `docs/dms/guides/deployment.md`를 같은 변경 범위에서 확인하고 같이 갱신합니다.
 
 ## 양방향 배포 표준
 
@@ -95,7 +95,7 @@ hooks → lib/api → stores
 | 문서 유형 | 정본 위치 | 역할 |
 |----------|----------|------|
 | **DMS 레포독스** | `docs/dms/` | DMS 정본 |
-| **DMS runtime content paths** | `dm_config_m` 테이블 (DB), `compose.yaml`, `DMS_*` env | markdown working tree, template root, ingest queue, binary storage |
+| **DMS runtime content paths** | `dm_config_m` 테이블 (DB), `compose.yaml` + 환경별 overlay, `DMS_*` env | markdown working tree, template root, ingest queue, binary storage |
 | **깃헙독스 규칙** | `.github/instructions/dms.instructions.md` | 개발 규칙 (이 파일) |
 
 ### 참조 규칙
@@ -110,7 +110,7 @@ hooks → lib/api → stores
 
 - DMS 작업 시 → `docs/dms/` 참조
 - 디자인 시스템 세부 값 → `docs/dms/explanation/design/design-system.md`
-- 문서 데이터 경로 확인 시 → `dm_config_m` 테이블 (DB), `compose.yaml`, `DMS_*` runtime binding 참조
+- 문서 데이터 경로 확인 시 → `dm_config_m` 테이블 (DB), `compose.yaml` + 실행 환경 overlay, `DMS_*` runtime binding 참조
 
 ---
 
@@ -197,6 +197,13 @@ const useTabStore = create<TabStoreState & TabStoreActions>()(
   )
 );
 ```
+
+## 문서 목록 hydrate 계약
+
+- 로그인 후 파일 트리 preload 는 auth/access hydrate 이후 `canReadDocuments === true` 일 때만 수행합니다.
+- 문서 0건은 오류가 아니며 신규 사용자/권한 내 문서 없음은 empty state 로 종료합니다.
+- API/control-plane sync 실패는 error state 로 표시하되, 사용자가 `refreshFileTree({ forceSync: true })` 를 다시 실행할 수 있는 visible retry 동선을 유지합니다.
+- 정상 로그인 사용자를 문서 목록 전용 full-page blocking recovery 화면에 가두지 않습니다.
 
 ---
 

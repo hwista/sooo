@@ -33,32 +33,32 @@ const STATUS_META: Record<DmsDocumentAccessRequestStatus, {
   pending: {
     label: '요청 대기',
     icon: Clock,
-    className: 'border-yellow-200 bg-yellow-50 text-yellow-700',
+    className: 'border-ssoo-warning-border bg-ssoo-warning-bg text-ssoo-warning',
   },
   approved: {
     label: '승인',
     icon: CheckCircle2,
-    className: 'border-green-200 bg-green-50 text-green-700',
+    className: 'border-ssoo-success-border bg-ssoo-success-bg text-ssoo-success',
   },
   rejected: {
     label: '거부',
     icon: XCircle,
-    className: 'border-rose-200 bg-rose-50 text-rose-700',
+    className: 'border-ssoo-danger-border bg-ssoo-danger-bg text-ssoo-danger',
   },
   expired: {
     label: '만료',
     icon: Hourglass,
-    className: 'border-zinc-200 bg-zinc-50 text-zinc-600',
+    className: 'border-border bg-muted text-muted-foreground',
   },
   cancelled: {
     label: '취소',
     icon: Ban,
-    className: 'border-orange-200 bg-orange-50 text-orange-700',
+    className: 'border-ssoo-warning-border bg-ssoo-warning-bg text-ssoo-warning',
   },
   revoked: {
     label: '회수',
     icon: Ban,
-    className: 'border-orange-200 bg-orange-50 text-orange-700',
+    className: 'border-ssoo-warning-border bg-ssoo-warning-bg text-ssoo-warning',
   },
 };
 
@@ -95,18 +95,18 @@ function RequestRow({ request, onOpenDocument }: {
           </span>
           <StatusBadge status={request.status} />
         </div>
-        <div className="text-caption text-gray-500 mt-0.5 truncate">{request.path}</div>
+        <div className="text-caption text-muted-foreground mt-0.5 truncate">{request.path}</div>
         {request.requestMessage ? (
-          <div className="text-caption text-gray-700 mt-1 line-clamp-2">
+          <div className="text-caption text-muted-foreground mt-1 line-clamp-2">
             메시지: {request.requestMessage}
           </div>
         ) : null}
         {request.responseMessage ? (
-          <div className="text-caption text-gray-700 mt-1 line-clamp-2">
+          <div className="text-caption text-muted-foreground mt-1 line-clamp-2">
             응답: {request.responseMessage}
           </div>
         ) : null}
-        <div className="text-caption text-gray-400 mt-1">
+        <div className="text-caption text-muted-foreground mt-1">
           요청 {formatDateTime(request.requestedAt)}
           {request.respondedAt ? ` · 응답 ${formatDateTime(request.respondedAt)}` : ''}
         </div>
@@ -155,14 +155,14 @@ export function MyRequestsPage() {
   const requests = query.data ?? [];
 
   return (
-    <main className="h-full overflow-auto bg-white">
+    <main className="h-full overflow-auto bg-card">
       <div className="mx-auto max-w-3xl px-4 py-6">
         <header className="mb-4">
           <div className="flex items-center gap-2 text-title-card text-ssoo-primary">
             <FileQuestion className="h-5 w-5" />
             내 요청
           </div>
-          <p className="text-body-sm text-gray-500 mt-1">
+          <p className="text-body-sm text-muted-foreground mt-1">
             내가 보낸 문서 권한 요청 내역.
           </p>
         </header>
@@ -180,11 +180,11 @@ export function MyRequestsPage() {
                 onClick={() => setFilter(item.value)}
                 className={cn(
                   'gap-1 px-2 text-caption',
-                  !isActive && 'bg-white',
+                  !isActive && 'bg-card',
                 )}
               >
                 {item.label}
-                <span className={cn('text-caption', isActive ? 'text-white/80' : 'text-gray-500')}>
+                <span className={cn('text-caption', isActive ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                   {count}
                 </span>
               </Button>
@@ -192,9 +192,9 @@ export function MyRequestsPage() {
           })}
         </div>
 
-        <div className="rounded border border-ssoo-content-border bg-white">
+        <div className="rounded border border-ssoo-content-border bg-card">
           {requests.length === 0 ? (
-            <div className="px-4 py-12 text-center text-body-sm text-gray-500">
+            <div className="px-4 py-12 text-center text-body-sm text-muted-foreground">
               {filter === 'all'
                 ? '보낸 요청이 없습니다. 검색 결과에서 권한이 부족한 문서의 "권한 요청" 버튼을 눌러 보내세요.'
                 : `${STATUS_FILTERS.find((f) => f.value === filter)?.label} 상태의 요청이 없습니다.`}

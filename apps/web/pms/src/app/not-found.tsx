@@ -25,7 +25,7 @@ export default function NotFound() {
     <LoadingState
       message="페이지를 찾을 수 없습니다. 메인 페이지로 이동 중..."
       fullHeight
-      className="min-h-screen bg-gray-50"
+      className="min-h-screen bg-ssoo-background"
     />
   );
 }

@@ -1,3 +1,4 @@
+import type { CrmContractPmsHandoffPreview } from '../crm/contract';
 import type { ProjectMemberAccessLevel } from './member';
 
 /**
@@ -68,6 +69,26 @@ export interface Project {
   projectName: string;
   memo?: string | null;
   customerId?: string | null;
+  customerCode?: string | null;
+  customerName?: string | null;
+  customerOrganizationId?: string | null;
+  customerOrganizationCode?: string | null;
+  customerOrganizationName?: string | null;
+  customerOrganizationType?: string | null;
+  customerOrganizationScope?: string | null;
+  plantId?: string | null;
+  plantSiteCode?: string | null;
+  plantSiteName?: string | null;
+  plantSiteTypeCode?: string | null;
+  plantSiteRegionCode?: string | null;
+  plantSiteOperationOwnerName?: string | null;
+  systemInstanceId?: string | null;
+  systemInstanceCode?: string | null;
+  systemInstanceName?: string | null;
+  systemInstanceEnvironmentCode?: string | null;
+  systemInstanceOperationOwnerTypeCode?: string | null;
+  systemInstanceOperationOwnerName?: string | null;
+  systemInstanceLifecycleStatusCode?: string | null;
   ownerOrganizationId?: string | null;
   statusCode: ProjectStatusCode;
   stageCode: ProjectStageCode;
@@ -86,6 +107,8 @@ export interface CreateProjectDto {
   projectName: string;
   description?: string;
   customerId?: string;
+  plantId?: string;
+  systemInstanceId?: string;
   ownerOrganizationId?: string;
   statusCode?: ProjectStatusCode;
   stageCode?: ProjectStageCode;
@@ -99,11 +122,40 @@ export interface UpdateProjectDto {
   projectName?: string;
   description?: string;
   customerId?: string | null;
+  plantId?: string | null;
+  systemInstanceId?: string | null;
   statusCode?: ProjectStatusCode;
   stageCode?: ProjectStageCode;
   doneResultCode?: DoneResultCode;
   ownerOrganizationId?: string | null;
   ownerId?: string;
+}
+
+export interface ProjectAiIndexBackfillRequest {
+  projectIds?: string[];
+  limit?: number;
+  includeInactive?: boolean;
+  reasonCode?: string;
+}
+
+export interface ProjectAiIndexBackfillItem {
+  projectId: string;
+  status: 'queued' | 'failed';
+  errorMessage?: string;
+}
+
+export interface ProjectAiIndexBackfillResponse {
+  sourceApp: 'pms';
+  entityType: 'project';
+  jobType: 'backfill';
+  requestedCount: number;
+  selectedCount: number;
+  queuedCount: number;
+  failedCount: number;
+  limit: number;
+  includeInactive: boolean;
+  reasonCode: string;
+  items: ProjectAiIndexBackfillItem[];
 }
 
 // ─── 단계별 상세 ───
@@ -241,6 +293,7 @@ export interface ProjectContract {
   deliveryMethodCode?: string | null;
   isPrimary: boolean;
   memo?: string | null;
+  payments?: ContractPayment[];
 }
 
 export interface CreateProjectContractDto {
@@ -324,6 +377,23 @@ export interface UpdateContractPaymentDto {
   memo?: string | null;
 }
 
+export interface ApplyCrmContractHandoffSnapshotDto {
+  preview: CrmContractPmsHandoffPreview;
+  memo?: string;
+}
+
+export interface ApplyCrmContractHandoffSnapshotResult {
+  sourceApp: 'crm';
+  projectId: string;
+  crmContractId: string;
+  crmContractCode: string;
+  appliedAt: string;
+  handoff: ProjectHandoff;
+  contract: ProjectContract;
+  payments: ContractPayment[];
+  boundaryNotice: string;
+}
+
 export type ProjectOrgRoleCode = 'owner' | 'customer' | 'supplier' | 'partner';
 
 export interface ProjectOrg {
@@ -344,6 +414,23 @@ export interface ProjectOrg {
     levelType?: string | null;
     isActive: boolean;
   } | null;
+}
+
+export interface ProjectOrgLookup {
+  organizationId: string;
+  organizationCode: string;
+  organizationName: string;
+  organizationType: string;
+  organizationClass: string;
+  organizationScope: string;
+  levelType?: string | null;
+  isActive: boolean;
+}
+
+export interface FindProjectOrgLookupDto {
+  search?: string;
+  scope?: 'internal' | 'external';
+  limit?: number;
 }
 
 export interface CreateProjectOrgDto {
@@ -489,6 +576,69 @@ export interface TransitionResult {
   advancedToNextStatus: boolean;
   previousLifecycle: ProjectLifecycle;
   currentLifecycle: ProjectLifecycle;
+}
+
+export interface ProjectDashboardCostSummary {
+  source: 'crm_contract_snapshot';
+  currencyCode: string;
+  contractCount: number;
+  paymentCount: number;
+  contractTotalAmount: string;
+  scheduledPaymentAmount: string;
+  paidPaymentAmount: string;
+  boundaryNote: string;
+}
+
+export interface ProjectDashboardScheduleSummary {
+  taskTotal: number;
+  taskCompleted: number;
+  taskDelayed: number;
+  milestoneTotal: number;
+  milestoneAchieved: number;
+  milestoneDelayed: number;
+  nextMilestoneName: string | null;
+  nextMilestoneDueAt: string | null;
+}
+
+export interface ProjectDashboardPerformanceSummary {
+  objectiveTotal: number;
+  objectiveCompleted: number;
+  averageTaskProgress: number;
+  estimatedHours: number;
+  actualHours: number;
+  deliverableTotal: number;
+  deliverableCompleted: number;
+  closeConditionTotal: number;
+  closeConditionChecked: number;
+  completionRate: number;
+}
+
+export interface ProjectDashboardControlSummary {
+  openIssueCount: number;
+  blockingIssueCount: number;
+  openRiskCount: number;
+  highRiskCount: number;
+  openChangeRequestCount: number;
+  openRequirementCount: number;
+  openLaunchFeedbackCount: number;
+  reviewEventCount: number;
+  reportEventCount: number;
+}
+
+export interface ProjectDashboardReadinessSummary {
+  canCompleteCurrentStage: boolean;
+  blockerCount: number;
+  nextActionLabel: string;
+}
+
+export interface ProjectDashboardSummary {
+  projectId: string;
+  generatedAt: string;
+  cost: ProjectDashboardCostSummary;
+  schedule: ProjectDashboardScheduleSummary;
+  performance: ProjectDashboardPerformanceSummary;
+  controls: ProjectDashboardControlSummary;
+  readiness: ProjectDashboardReadinessSummary;
 }
 
 export interface PmsProjectAccessFeatures {

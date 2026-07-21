@@ -126,11 +126,46 @@ ON CONFLICT (menu_code) DO UPDATE SET
   is_active = true,
   updated_at = CURRENT_TIMESTAMP;
 
+-- 관리자 기준정보: 런칭 피드백용 PMS 실행 자산 마스터 조회 entry
+INSERT INTO pms.cm_menu_m (menu_code, menu_name, menu_name_en, menu_type, menu_path, icon, sort_order, menu_level, is_visible, is_admin_menu, description, updated_at)
+VALUES ('admin.master', '기준정보', 'Master Data', 'menu', '/admin/master', 'Database', 10, 1, true, true, 'PMS 실행 자산 기준정보 조회', CURRENT_TIMESTAMP)
+ON CONFLICT (menu_code) DO UPDATE SET
+  menu_name = EXCLUDED.menu_name,
+  menu_name_en = EXCLUDED.menu_name_en,
+  menu_type = EXCLUDED.menu_type,
+  menu_path = EXCLUDED.menu_path,
+  icon = EXCLUDED.icon,
+  sort_order = EXCLUDED.sort_order,
+  menu_level = EXCLUDED.menu_level,
+  is_visible = EXCLUDED.is_visible,
+  is_admin_menu = EXCLUDED.is_admin_menu,
+  description = EXCLUDED.description,
+  is_active = true,
+  updated_at = CURRENT_TIMESTAMP;
+
+-- 관리자 템플릿: 산출물/종료조건 그룹 템플릿 운영 entry
+INSERT INTO pms.cm_menu_m (menu_code, menu_name, menu_name_en, menu_type, menu_path, icon, sort_order, menu_level, is_visible, is_admin_menu, description, updated_at)
+VALUES ('admin.templates', '템플릿 관리', 'Template Management', 'menu', '/admin/templates', 'LayoutTemplate', 11, 1, true, true, 'PMS 산출물·종료조건 템플릿 승인, 버전, 복구 운영', CURRENT_TIMESTAMP)
+ON CONFLICT (menu_code) DO UPDATE SET
+  menu_name = EXCLUDED.menu_name,
+  menu_name_en = EXCLUDED.menu_name_en,
+  menu_type = EXCLUDED.menu_type,
+  menu_path = EXCLUDED.menu_path,
+  icon = EXCLUDED.icon,
+  sort_order = EXCLUDED.sort_order,
+  menu_level = EXCLUDED.menu_level,
+  is_visible = EXCLUDED.is_visible,
+  is_admin_menu = EXCLUDED.is_admin_menu,
+  description = EXCLUDED.description,
+  is_active = true,
+  updated_at = CURRENT_TIMESTAMP;
+
 -- ============================================
 -- legacy/status/admin 메뉴 비활성화
 -- ============================================
 -- 상태 기반 요청/제안/수행/전환 메뉴는 업무 queue IA 로 대체한다.
--- 시스템 관리자 메뉴는 우측 프로필 > 설정 shell 로 이동할 예정이므로 PMS 좌측 메뉴에서 제외한다.
+-- 시스템 관리자 메뉴는 우측 프로필 > 설정 shell 로 이동 예정이다.
+-- 단, admin.master 는 PMS 실행 자산 기준정보 런칭 피드백 entry 로 유지한다.
 UPDATE pms.cm_menu_m
 SET is_active = false,
     is_visible = false,

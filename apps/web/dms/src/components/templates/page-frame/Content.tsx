@@ -71,7 +71,7 @@ export function Content({
     <div
       className={cn(
         'relative flex flex-1 overflow-hidden',
-        'bg-white border border-gray-200 rounded-lg',
+        'rounded-lg border border-ssoo-content-border bg-card',
         className
       )}
     >
@@ -95,7 +95,7 @@ export function Content({
               'absolute top-1/2 -translate-y-1/2 z-10',
               'flex items-center justify-center',
               'w-5 h-12 rounded-l-md',
-              'bg-gray-100 hover:bg-gray-200 border border-r-0 border-gray-200',
+              'ssoo-settings-subtle-surface ssoo-hover-bg-content-border-50 border border-r-0 border-ssoo-content-border',
               'transition-all duration-300 ease-in-out',
               isOpen
                 ? 'right-[calc(var(--panel-width))]'
@@ -105,16 +105,16 @@ export function Content({
             aria-label={isOpen ? '패널 접기' : '패널 펼치기'}
           >
             {isOpen ? (
-              <ChevronRight className="h-4 w-4 text-gray-500" />
+              <ChevronRight className="h-4 w-4 ssoo-text-primary-70" />
             ) : (
-              <ChevronLeft className="h-4 w-4 text-gray-500" />
+              <ChevronLeft className="h-4 w-4 ssoo-text-primary-70" />
             )}
           </Button>
 
           {/* 보조 패널 */}
           <div
             className={cn(
-              'border-l border-gray-200 overflow-auto',
+              'overflow-auto border-l border-ssoo-content-border',
               'transition-all duration-300 ease-in-out',
               isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
             )}

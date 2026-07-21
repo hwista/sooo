@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type {
+  ApplyCrmContractHandoffSnapshotDto,
   CreateContractPaymentDto,
   CreateProjectContractDto,
   CreateProjectHandoffDto,
@@ -15,6 +16,13 @@ type TxClient = Omit<
   ExtendedPrismaClient,
   '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
 >;
+
+type CrmContractHandoffPreview = ApplyCrmContractHandoffSnapshotDto['preview'];
+type CrmContractHandoffBillingLine = CrmContractHandoffPreview['billingPlan'][number];
+
+const CRM_HANDOFF_SNAPSHOT_ACTIVITY = 'crm-handoff-snapshot';
+const CRM_HANDOFF_SNAPSHOT_BOUNDARY_NOTICE =
+  'CRM 계약 원장은 CRM이 소유하고 PMS는 확인된 계약 인계 스냅샷만 프로젝트 실행 참고값으로 저장합니다.';
 
 @Injectable()
 export class ProjectHandoffContractService {
@@ -159,6 +167,144 @@ export class ProjectHandoffContractService {
 
       await this.syncExecutionDetailFromPrimaryContract(tx, projectId);
       return created;
+    });
+  }
+
+  async applyCrmContractHandoffSnapshot(
+    projectId: bigint,
+    dto: ApplyCrmContractHandoffSnapshotDto,
+    actorUserId: bigint,
+  ) {
+    const project = await this.requireProject(projectId);
+    const preview = this.assertReadyCrmContractHandoffPreview(dto.preview);
+    const now = new Date();
+    const contractStartDate = this.toRequiredDate(preview.contractStartDate, 'contractStartDate');
+    const contractEndDate = this.toRequiredDate(preview.contractEndDate, 'contractEndDate');
+    const contractAmount = this.toAmountBigInt(preview.financials.revenueTotal, 'financials.revenueTotal');
+
+    return this.db.client.$transaction(async (tx) => {
+      const existingContract = await tx.projectContract.findFirst({
+        where: {
+          projectId,
+          contractCode: preview.contractCode,
+          isActive: true,
+        },
+      });
+
+      await tx.projectContract.updateMany({
+        where: {
+          projectId,
+          isPrimary: true,
+          ...(existingContract ? { contractId: { not: existingContract.contractId } } : {}),
+        },
+        data: {
+          isPrimary: false,
+          updatedBy: actorUserId,
+          lastSource: 'crm',
+          lastActivity: CRM_HANDOFF_SNAPSHOT_ACTIVITY,
+        },
+      });
+
+      const contractData = {
+        contractCode: preview.contractCode,
+        title: preview.contractName,
+        contractTypeCode: 'new',
+        totalAmount: contractAmount,
+        currencyCode: 'KRW',
+        contractStatusCode: 'signed',
+        contractDate: contractStartDate,
+        startDate: contractStartDate,
+        endDate: contractEndDate,
+        billingTypeCode: 'crm-billing-plan',
+        deliveryMethodCode: preview.region,
+        isPrimary: true,
+        memo: this.createCrmContractSnapshotMemo(preview, dto.memo),
+        updatedBy: actorUserId,
+        lastSource: 'crm',
+        lastActivity: CRM_HANDOFF_SNAPSHOT_ACTIVITY,
+      };
+
+      const contract = existingContract
+        ? await tx.projectContract.update({
+          where: { contractId: existingContract.contractId },
+          data: contractData,
+        })
+        : await tx.projectContract.create({
+          data: {
+            projectId,
+            ...contractData,
+            createdBy: actorUserId,
+          },
+        });
+
+      await tx.contractPayment.updateMany({
+        where: { contractId: contract.contractId, isActive: true },
+        data: {
+          isActive: false,
+          updatedBy: actorUserId,
+          lastSource: 'crm',
+          lastActivity: `${CRM_HANDOFF_SNAPSHOT_ACTIVITY}-replace`,
+        },
+      });
+
+      const payments = [];
+      for (const [index, line] of preview.billingPlan.entries()) {
+        payments.push(
+          await tx.contractPayment.create({
+            data: {
+              contractId: contract.contractId,
+              paymentTypeCode: this.resolveCrmBillingPaymentType(index, preview.billingPlan.length),
+              amount: this.toAmountBigInt(line.revenueAmount, `billingPlan.${index}.revenueAmount`),
+              triggerEvent: `${preview.contractCode} ${line.billingYm} CRM 청구계획`,
+              paymentStatusCode: 'scheduled',
+              dueDate: this.toBillingDueDate(line),
+              requestedByUserId: actorUserId,
+              sortOrder: index + 1,
+              memo: `CRM 외부원가 ${line.externalCostAmount.toLocaleString('ko-KR')}원 · ${preview.boundaryNotice}`,
+              createdBy: actorUserId,
+              updatedBy: actorUserId,
+              lastSource: 'crm',
+              lastActivity: CRM_HANDOFF_SNAPSHOT_ACTIVITY,
+            },
+          }),
+        );
+      }
+
+      const handoff = await tx.projectHandoff.create({
+        data: {
+          projectId,
+          fromPhaseCode: 'contract',
+          toPhaseCode: 'execution',
+          handoffTypeCode: 'phase_transition',
+          fromUserId: project.currentOwnerUserId,
+          requestedByUserId: actorUserId,
+          handoffStatusCode: 'accepted',
+          conditionNote: this.createCrmHandoffConditionNote(preview),
+          memo: dto.memo?.trim() || `CRM 계약 ${preview.contractCode} 인계 스냅샷을 PMS 프로젝트에 반영했습니다.`,
+          requestedAt: now,
+          respondedAt: now,
+          respondedByUserId: actorUserId,
+          createdBy: actorUserId,
+          updatedBy: actorUserId,
+          lastSource: 'crm',
+          lastActivity: CRM_HANDOFF_SNAPSHOT_ACTIVITY,
+        },
+      });
+
+      await this.syncProjectHandoffSummary(tx, projectId, handoff);
+      await this.syncExecutionDetailFromPrimaryContract(tx, projectId);
+
+      return {
+        sourceApp: 'crm' as const,
+        projectId,
+        crmContractId: preview.contractId,
+        crmContractCode: preview.contractCode,
+        appliedAt: now,
+        handoff,
+        contract,
+        payments,
+        boundaryNotice: CRM_HANDOFF_SNAPSHOT_BOUNDARY_NOTICE,
+      };
     });
   }
 
@@ -449,6 +595,126 @@ export class ProjectHandoffContractService {
         deliveryMethodCode: primaryContract?.deliveryMethodCode ?? null,
       },
     });
+  }
+
+  private assertReadyCrmContractHandoffPreview(
+    preview: CrmContractHandoffPreview | undefined,
+  ): CrmContractHandoffPreview {
+    if (!preview) {
+      throw new BadRequestException('CRM 계약 인계 스냅샷이 필요합니다.');
+    }
+
+    const billingRevenueTotal = preview.billingPlan.reduce(
+      (sum, line) => sum + line.revenueAmount,
+      0,
+    );
+    const billingExternalCostTotal = preview.billingPlan.reduce(
+      (sum, line) => sum + line.externalCostAmount,
+      0,
+    );
+    const blockedReasons = [
+      ...(!preview.contractId?.trim() ? ['CRM 계약 ID가 필요합니다.'] : []),
+      ...(!preview.contractCode?.trim() ? ['CRM 계약번호가 필요합니다.'] : []),
+      ...(!preview.contractName?.trim() ? ['CRM 계약명이 필요합니다.'] : []),
+      ...(!preview.confirmed ? ['확정된 CRM 계약만 PMS 인계 스냅샷으로 반영할 수 있습니다.'] : []),
+      ...(preview.readiness !== 'ready' ? ['CRM PMS 인계 preview가 ready 상태여야 합니다.'] : []),
+      ...(!preview.wbsCode?.trim() ? ['PMS 실행 기준 WBS 코드가 필요합니다.'] : []),
+      ...(preview.billingPlan.length === 0 ? ['CRM 청구계획이 필요합니다.'] : []),
+      ...(billingRevenueTotal !== preview.financials.billingRevenueTotal
+        ? ['청구계획 매출 합계와 preview 매출 합계가 일치해야 합니다.']
+        : []),
+      ...(billingExternalCostTotal !== preview.financials.billingExternalCostTotal
+        ? ['청구계획 외부원가 합계와 preview 외부원가 합계가 일치해야 합니다.']
+        : []),
+      ...(preview.financials.billingRevenueTotal !== preview.financials.revenueTotal
+        ? ['CRM 청구계획 매출 합계가 계약 매출과 일치해야 합니다.']
+        : []),
+      ...(preview.financials.billingExternalCostTotal !== preview.financials.externalCostTotal
+        ? ['CRM 청구계획 외부원가 합계가 계약 외부원가와 일치해야 합니다.']
+        : []),
+      ...preview.blockedReasons,
+    ];
+
+    if (blockedReasons.length > 0) {
+      throw new BadRequestException(`CRM 계약 인계 스냅샷을 반영할 수 없습니다: ${blockedReasons.join(' ')}`);
+    }
+
+    return preview;
+  }
+
+  private createCrmContractSnapshotMemo(
+    preview: CrmContractHandoffPreview,
+    memo?: string,
+  ): string {
+    return [
+      `CRM 계약 ${preview.contractCode}(${preview.contractId}) 인계 스냅샷`,
+      preview.sourceOpportunityCode ? `원천 영업기회 ${preview.sourceOpportunityCode}` : undefined,
+      preview.wbsCode ? `WBS ${preview.wbsCode}` : undefined,
+      memo?.trim() || undefined,
+      CRM_HANDOFF_SNAPSHOT_BOUNDARY_NOTICE,
+    ].filter((line): line is string => Boolean(line)).join('\n');
+  }
+
+  private createCrmHandoffConditionNote(preview: CrmContractHandoffPreview): string {
+    return [
+      `CRM 계약번호: ${preview.contractCode}`,
+      `계약명: ${preview.contractName}`,
+      `고객사: ${preview.customerName}`,
+      `WBS: ${preview.wbsCode}`,
+      `청구계획: ${preview.financials.billingPlanCount}건`,
+      CRM_HANDOFF_SNAPSHOT_BOUNDARY_NOTICE,
+    ].join('\n');
+  }
+
+  private resolveCrmBillingPaymentType(
+    index: number,
+    totalCount: number,
+  ): 'advance' | 'interim' | 'final' | 'other' {
+    if (totalCount <= 1) {
+      return 'final';
+    }
+
+    if (index === 0) {
+      return 'advance';
+    }
+
+    if (index === totalCount - 1) {
+      return 'final';
+    }
+
+    return 'interim';
+  }
+
+  private toRequiredDate(value: string, fieldName: string): Date {
+    const date = this.toOptionalDate(value);
+    if (!date) {
+      throw new BadRequestException(`${fieldName} 날짜가 필요합니다.`);
+    }
+
+    return date;
+  }
+
+  private toBillingDueDate(line: CrmContractHandoffBillingLine): Date {
+    const match = /^(\d{4})[/-](\d{2})$/.exec(line.billingYm.trim());
+    if (!match) {
+      throw new BadRequestException(`청구월 형식이 올바르지 않습니다: ${line.billingYm}`);
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+      throw new BadRequestException(`청구월 형식이 올바르지 않습니다: ${line.billingYm}`);
+    }
+
+    return new Date(Date.UTC(year, month, 0));
+  }
+
+  private toAmountBigInt(value: number, fieldName: string): bigint {
+    if (!Number.isFinite(value) || value < 0) {
+      throw new BadRequestException(`${fieldName} 금액이 올바르지 않습니다.`);
+    }
+
+    return BigInt(Math.round(value));
   }
 
   private async resolveDefaultOrganizationId(

@@ -32,7 +32,9 @@ import type {
   CreateMenuAdminRequest,
   UpdateMenuAdminRequest,
 } from '@/lib/api/endpoints/menusAdmin';
+import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
+import { useConfirmStore } from '@/stores/confirm.store';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
 
 type FormMode = 'create' | 'edit';
@@ -68,9 +70,9 @@ const INITIAL_FORM: MenuFormData = {
 };
 
 const MENU_TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  group: { label: '그룹', color: 'bg-purple-100 text-purple-800' },
-  menu: { label: '메뉴', color: 'bg-blue-100 text-blue-800' },
-  action: { label: '액션', color: 'bg-amber-100 text-amber-800' },
+  group: { label: '그룹', color: 'bg-ssoo-accent-bg text-ssoo-accent' },
+  menu: { label: '메뉴', color: 'bg-ssoo-info-bg text-ssoo-info' },
+  action: { label: '액션', color: 'bg-ssoo-warning-bg text-ssoo-warning' },
 };
 
 const EMPTY_MENUS: MenuAdminItem[] = [];
@@ -122,6 +124,7 @@ function getVisibleRows(
 }
 
 export function MenuManagementPage() {
+  const { confirm } = useConfirmStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>('create');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -188,11 +191,20 @@ export function MenuManagementPage() {
   }, []);
 
   const handleDeactivate = useCallback(
-    (item: MenuAdminItem) => {
-      if (!confirm(`"${item.menuName}" 메뉴를 비활성화하시겠습니까?\n하위 메뉴도 함께 비활성화됩니다.`)) return;
-      deactivateMutation.mutate(item.id);
+    async (item: MenuAdminItem) => {
+      const confirmed = await confirm({
+        title: '메뉴를 비활성화할까요?',
+        description: `${item.menuName} 메뉴와 하위 메뉴를 함께 비활성화합니다.`,
+        confirmText: '비활성화',
+      });
+      if (!confirmed) return;
+      deactivateMutation.mutate(item.id, {
+        onError: (error) => toast.error('메뉴를 비활성화하지 못했습니다.', {
+          description: getErrorMessage(error),
+        }),
+      });
     },
-    [deactivateMutation],
+    [confirm, deactivateMutation],
   );
 
   const handleSubmit = useCallback(() => {
@@ -254,7 +266,7 @@ export function MenuManagementPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
         <div className="flex items-center gap-2">
           <Menu className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-lg font-semibold">메뉴 관리</h1>
@@ -277,7 +289,7 @@ export function MenuManagementPage() {
         ) : (
           <Table className="w-full text-sm">
             <TableHeader>
-              <TableRow className="border-b bg-gray-50 sticky top-0 z-10">
+              <TableRow className="border-b bg-muted sticky top-0 z-10">
                 <TableHead className="text-left px-4 py-2.5 font-medium text-muted-foreground min-w-[240px]">메뉴명</TableHead>
                 <TableHead className="text-left px-4 py-2.5 font-medium text-muted-foreground">메뉴코드</TableHead>
                 <TableHead className="text-left px-4 py-2.5 font-medium text-muted-foreground">경로</TableHead>
@@ -295,17 +307,17 @@ export function MenuManagementPage() {
                 const indent = (item.menuLevel - 1) * 20;
                 const typeInfo = MENU_TYPE_LABELS[item.menuType] ?? {
                   label: item.menuType,
-                  color: 'bg-gray-100 text-gray-600',
+                  color: 'bg-muted text-muted-foreground',
                 };
 
                 return (
-                  <TableRow key={item.id} className="border-b hover:bg-gray-50 transition-colors">
+                  <TableRow key={item.id} className="border-b hover:bg-muted transition-colors">
                     <TableCell className="px-4 py-2.5">
                       <div className="flex items-center" style={{ paddingLeft: indent }}>
                         {hasChildren ? (
                           <Button variant="plain" size="plain"
                             onClick={() => toggleCollapse(item.id)}
-                            className="mr-1 p-0.5 rounded hover:bg-gray-200 transition-colors"
+                            className="mr-1 p-0.5 rounded hover:bg-muted transition-colors"
                           >
                             {isCollapsed ? (
                               <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
@@ -330,7 +342,7 @@ export function MenuManagementPage() {
                     </TableCell>
                     <TableCell className="px-4 py-2.5 text-center">
                       {item.isAdminMenu ? (
-                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">관리자</span>
+                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-ssoo-danger-bg text-ssoo-danger">관리자</span>
                       ) : (
                         <span className="text-muted-foreground text-xs">-</span>
                       )}
@@ -339,7 +351,7 @@ export function MenuManagementPage() {
                       <span
                         className={cn(
                           'px-2 py-0.5 rounded text-xs font-medium',
-                          item.isVisible ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500',
+                          item.isVisible ? 'bg-ssoo-success-bg text-ssoo-success' : 'bg-muted text-muted-foreground',
                         )}
                       >
                         {item.isVisible ? '표시' : '숨김'}
@@ -351,7 +363,7 @@ export function MenuManagementPage() {
                         <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(item)}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeactivate(item)}>
+                        <Button variant="ghost" size="sm" onClick={() => void handleDeactivate(item)}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </div>
@@ -533,4 +545,11 @@ export function MenuManagementPage() {
       </Dialog>
     </div>
   );
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return '요청 처리 중 오류가 발생했습니다.';
 }

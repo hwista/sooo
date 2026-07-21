@@ -43,7 +43,7 @@ export function FeedIdentityRail() {
         <CardContent className="space-y-4 px-4 pb-4 pt-0">
           <Avatar className="-mt-8 h-16 w-16 border-4 border-background shadow-sm">
             <AvatarImage src={user?.avatarUrl || authUser?.avatarUrl || undefined} />
-            <AvatarFallback className="bg-ssoo-primary text-white">{initials}</AvatarFallback>
+            <AvatarFallback className="bg-ssoo-primary text-primary-foreground">{initials}</AvatarFallback>
           </Avatar>
 
           {isLoading ? (

@@ -77,3 +77,9 @@ export interface AiRetrievalResponse {
   retrievalLogId?: string;
   blockedSources?: CommonSearchBlockedSourceSummary;
 }
+
+export type CommonAiRetrievalCitation = AiRetrievalCitation;
+export type CommonAiRetrievalContextItem = AiRetrievalContextItem;
+export type CommonAiRetrievalRequest = AiRetrievalRequest;
+export type CommonAiRetrievalResponse = AiRetrievalResponse;
+export type CommonAiRetrievalResultItem = AiRetrievalResultItem;

@@ -1,6 +1,7 @@
 ﻿import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, NotFoundException } from "@nestjs/common";
-import { ApiBearerAuth, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { CurrentUser } from '../../common/auth/decorators/current-user.decorator.js';
+import { Roles } from '../../common/auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import { ProjectService } from './project.service.js';
@@ -14,6 +15,7 @@ import { serializeBigInt } from '../../../common/utils/bigint.util.js';
 import type {
   CreateProjectDto,
   UpdateProjectDto,
+  ProjectAiIndexBackfillRequest,
   PaginationParams,
   UpsertRequestDetailDto,
   UpsertProposalDetailDto,
@@ -25,9 +27,17 @@ import type {
   CreateProjectContractDto,
   UpdateProjectContractDto,
   CreateContractPaymentDto,
-  UpdateContractPaymentDto } from "@ssoo/types";
+  UpdateContractPaymentDto,
+  ApplyCrmContractHandoffSnapshotDto } from "@ssoo/types";
 import { ProjectDto, ProjectListDto } from './dto/project.dto.js';
 import { ApiError } from '../../../common/swagger/api-response.dto.js';
+
+type FindProjectListQuery = PaginationParams & {
+  statusCode?: string;
+  stageCode?: string;
+  customerId?: string;
+  search?: string;
+};
 
 @ApiTags("projects")
 @ApiBearerAuth()
@@ -47,7 +57,7 @@ export class ProjectController {
   @ApiForbiddenResponse({ type: ApiError })
   @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
   async findAll(
-    @Query() params: PaginationParams & { statusCode?: string },
+    @Query() params: FindProjectListQuery,
     @CurrentUser() currentUser: TokenPayload,
   ) {
     const pageValue = Number(params.page);
@@ -55,11 +65,34 @@ export class ProjectController {
     const page = Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
     const limit = Number.isFinite(limitValue) && limitValue > 0 ? limitValue : 10;
     const { data, total } = await this.projectService.findAll(
-      { page, limit, statusCode: params.statusCode },
+      {
+        page,
+        limit,
+        statusCode: params.statusCode,
+        stageCode: params.stageCode,
+        customerId: params.customerId,
+        search: params.search,
+      },
       currentUser,
     );
     const serialized = data.map((project) => serializeBigInt(attachProjectLifecycle(project)));
     return paginated(serialized as Record<string, unknown>[], page, limit, total);
+  }
+
+  @Post("ai-index/backfill")
+  @Roles('admin')
+  @ApiOperation({ summary: "PMS 프로젝트 AI 인덱스 backfill job 등록" })
+  @ApiBody({ description: "PMS project AI index backfill request" })
+  @ApiOkResponse({ description: "PMS project AI index backfill queue summary" })
+  @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
+  async queueAiIndexBackfill(
+    @Body() body: ProjectAiIndexBackfillRequest | undefined,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    const result = await this.projectService.queueAiIndexBackfill(body ?? {}, currentUser);
+    return success(result);
   }
 
   @Get(":id/access")
@@ -76,6 +109,19 @@ export class ProjectController {
   ) {
     const access = await this.projectAccessService.getProjectAccess(BigInt(id), currentUser);
     return success(access);
+  }
+
+  @Get(":id/dashboard/summary")
+  @RequireProjectFeature('canViewProject', { projectIdParam: 'id' })
+  @ApiOperation({ summary: "프로젝트 통제 대시보드 요약" })
+  @ApiOkResponse({ description: "프로젝트 비용/일정/성과/통제 요약" })
+  @ApiNotFoundResponse({ type: ApiError })
+  @ApiUnauthorizedResponse({ type: ApiError })
+  @ApiForbiddenResponse({ type: ApiError })
+  @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
+  async getDashboardSummary(@Param("id") id: string) {
+    const summary = await this.projectService.getDashboardSummary(BigInt(id));
+    return success(summary);
   }
 
   @Get(":id")
@@ -271,6 +317,24 @@ export class ProjectController {
   async createContract(@Param("id") id: string, @Body() dto: CreateProjectContractDto) {
     const contract = await this.projectHandoffContractService.createContract(BigInt(id), dto);
     return success(serializeBigInt(contract));
+  }
+
+  @Post(":id/contracts/crm-handoff-snapshot")
+  @RequireProjectFeature('canEditProject', { projectIdParam: 'id' })
+  @ApiOperation({ summary: "CRM 계약 인계 스냅샷을 PMS 프로젝트 계약/핸드오프로 반영" })
+  @ApiBody({ description: "CRM PMS 인계 preview 스냅샷" })
+  @ApiOkResponse({ description: "PMS에 반영된 CRM 계약 인계 스냅샷" })
+  async applyCrmContractHandoffSnapshot(
+    @Param("id") id: string,
+    @Body() dto: ApplyCrmContractHandoffSnapshotDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    const result = await this.projectHandoffContractService.applyCrmContractHandoffSnapshot(
+      BigInt(id),
+      dto,
+      BigInt(currentUser.userId),
+    );
+    return success(serializeBigInt(result));
   }
 
   @Put(":id/contracts/:contractId")

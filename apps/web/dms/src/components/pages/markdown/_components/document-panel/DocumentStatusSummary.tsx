@@ -42,11 +42,11 @@ interface DocumentStatusSummaryProps {
 }
 
 const toneClassNames: Record<StatusTone, string> = {
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  info: 'border-sky-200 bg-sky-50 text-sky-700',
-  warning: 'border-amber-200 bg-amber-50 text-amber-700',
-  danger: 'border-red-200 bg-red-50 text-red-700',
-  muted: 'border-ssoo-content-border bg-white text-ssoo-primary/55',
+  success: 'border-ssoo-success-border bg-ssoo-success-bg text-ssoo-success',
+  info: 'border-ssoo-info-border bg-ssoo-info-bg text-ssoo-info',
+  warning: 'border-ssoo-warning-border bg-ssoo-warning-bg text-ssoo-warning',
+  danger: 'border-ssoo-danger-border bg-ssoo-danger-bg text-ssoo-danger',
+  muted: 'border-ssoo-content-border bg-card text-ssoo-primary/55',
 };
 
 const blockedActionLabels: Record<DocumentPathIsolationStateClient['blockedActions'][number], string> = {
@@ -266,7 +266,7 @@ function StatusIcon({
     <Button variant="plain" size="plain"
       type="button"
       className={cn(
-        'inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors hover:bg-white',
+        'inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors hover:bg-card',
         toneClassNames[meta.tone]
       )}
       aria-label={meta.label}
@@ -293,7 +293,7 @@ function ActionIconButton({
       type="button"
       variant="outline"
       size="icon"
-      className="h-7 w-7 border-ssoo-content-border bg-white text-ssoo-primary/70 hover:bg-ssoo-sitemap-bg"
+      className="h-7 w-7 border-ssoo-content-border bg-card text-ssoo-primary/70 hover:bg-ssoo-sitemap-bg"
       aria-label={label}
       title={detail}
       onClick={onClick}

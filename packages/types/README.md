@@ -80,20 +80,17 @@ interface CreateUserDto { ... }
 interface UpdateUserDto { ... }
 ```
 
-### customer.ts — 고객
+### customer.ts — 고객사 읽기 조회
 
 ```typescript
 interface Customer {
   id: string;
-  name: string;
-  description?: string;
+  customerCode: string;
+  customerName: string;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
-
-interface CreateCustomerDto { ... }
-interface UpdateCustomerDto { ... }
 ```
 
 ### project.ts — 프로젝트

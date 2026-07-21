@@ -3,16 +3,18 @@
 ## 구현 상태
 
 - 상태: ✅ 기본 구현 완료 (히스토리 미구현)
-- 최종 검증일: 2026-02-02
+- 최종 검증일: 2026-07-06
 - 현재 기준:
   - `ProjectService.create` 기준 기본 필드 생성됨
+  - 고객사는 PMS 고객사 원장 입력이 아니라 읽기용 고객 조회 선택값으로 전달됨
+  - Plant/Site, System Instance 선택값은 프로젝트 생성 시 정합성 검증 대상임
   - 히스토리(`pr_project_h`) 및 상태 상세(`pr_project_status_m`) 테이블 생성 로직은 미구현
 
 ---
 
 ## 1) 목적
 
-영업/AM이 신규 기회를 시스템에 등록하여 SSOT에 "일을 모으는" 시작점 생성
+CRM 인계 또는 내부 접수된 실행 후보를 PMS 요청 프로젝트로 등록하여 "일을 모으는" 시작점 생성
 
 ## 2) Actor
 
@@ -26,12 +28,11 @@
 |------|------|------|------|
 | `projectName` | string | ✅ | 프로젝트명 |
 | `description` | string | ❌ | 설명 (memo 컬럼에 저장) |
-| `customerId` | string | ❌ | 고객사 ID |
+| `customerId` | string | ❌ | 읽기용 고객 조회에서 선택한 고객사 참조값 |
+| `plantId` | string | ❌ | 선택 고객사에 연결된 Plant/Site 참조값 |
+| `systemInstanceId` | string | ❌ | 선택 고객사/사이트에 연결된 System Instance 참조값 |
 | `statusCode` | string | ❌ | 상태 코드 (기본: `request`) |
 | `stageCode` | string | ❌ | 단계 코드 (기본: `waiting`) |
-| `ownerId` | string | ❌ | 담당자 ID |
-
-> **Note**: `plant_id`, `system_instance_id`는 현재 미구현
 
 ## 4) 상태 변경
 
@@ -66,8 +67,9 @@ Authorization: Bearer {accessToken}
 Body: {
   "projectName": "신규 프로젝트",
   "description": "프로젝트 설명",
-  "customerId": "1",
-  "ownerId": "1"
+  "customerId": "1001",
+  "plantId": "2001",
+  "systemInstanceId": "3001"
 }
 Response: {
   "success": true,
@@ -98,5 +100,5 @@ Response: {
 
 | Date | Change |
 |------|--------|
+| 2026-07-06 | 고객사 입력을 읽기용 고객 조회 선택값으로 설명하고 Plant/Site, System Instance 선택 검증 기준을 현행화했다. |
 | 2026-02-09 | Add changelog section. |
-

@@ -21,7 +21,7 @@ export interface SsooSectionedShellProps {
 const ROOT_CLASS = 'min-h-0';
 const DEFAULT_BORDER_COLOR = 'border-ssoo-content-border';
 const SLOT_TOOLBAR_BASE = 'relative z-10 flex shrink-0 items-center overflow-visible min-h-[52px] border-b';
-const SLOT_BODY_BASE = 'min-h-0 flex-1 flex flex-col overflow-hidden border-x bg-white';
+const SLOT_BODY_BASE = 'min-h-0 flex-1 flex flex-col overflow-hidden border-x bg-card';
 const SLOT_FOOTER_BASE = 'shrink-0 border-t border-x border-b rounded-b-lg';
 const BODY_SLOT_CONTENT_CLASS = 'h-full min-h-0 overflow-hidden';
 
@@ -38,13 +38,13 @@ const SHELL_VARIANT_PRESETS: Record<
   editor_with_footer: {
     toolbarToneClass: 'ssoo-sectioned-shell-toolbar-tone',
     toolbarPaddingClass: 'px-4 py-2',
-    footerClass: 'bg-white p-3',
+    footerClass: 'bg-card p-3',
   },
   viewer_with_toolbar: {
     toolbarToneClass: 'ssoo-sectioned-shell-toolbar-tone',
     toolbarPaddingClass: 'px-4 py-2',
   },
-  chat_with_footer: { footerClass: 'bg-white p-3' },
+  chat_with_footer: { footerClass: 'bg-card p-3' },
   search_with_toolbar: {
     toolbarToneClass: 'ssoo-sectioned-shell-toolbar-tone',
     toolbarPaddingClass: 'px-4 py-2',

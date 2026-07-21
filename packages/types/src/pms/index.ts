@@ -11,6 +11,9 @@ export type {
   Project,
   CreateProjectDto,
   UpdateProjectDto,
+  ProjectAiIndexBackfillRequest,
+  ProjectAiIndexBackfillItem,
+  ProjectAiIndexBackfillResponse,
   ProjectRequestDetail,
   ProjectProposalDetail,
   ProjectExecutionDetail,
@@ -30,8 +33,12 @@ export type {
   ContractPayment,
   CreateContractPaymentDto,
   UpdateContractPaymentDto,
+  ApplyCrmContractHandoffSnapshotDto,
+  ApplyCrmContractHandoffSnapshotResult,
   ProjectOrgRoleCode,
   ProjectOrg,
+  ProjectOrgLookup,
+  FindProjectOrgLookupDto,
   CreateProjectOrgDto,
   UpdateProjectOrgDto,
   ProjectRelationTypeCode,
@@ -45,6 +52,12 @@ export type {
   UpsertTransitionDetailDto,
   AdvanceStageDto,
   TransitionResult,
+  ProjectDashboardCostSummary,
+  ProjectDashboardScheduleSummary,
+  ProjectDashboardPerformanceSummary,
+  ProjectDashboardControlSummary,
+  ProjectDashboardReadinessSummary,
+  ProjectDashboardSummary,
   PmsProjectAccessFeatures,
   PmsProjectAccessRoles,
   PmsProjectAccessSnapshot,
@@ -54,6 +67,8 @@ export type {
 export type {
   ProjectMember,
   ProjectMemberAccessLevel,
+  ProjectMemberUserLookup,
+  FindProjectMemberUserLookupDto,
   CreateProjectMemberDto,
   UpdateProjectMemberDto,
 } from './member';
@@ -77,6 +92,14 @@ export type {
   Task,
   CreateTaskDto,
   UpdateTaskDto,
+  TaskEffortLog,
+  TaskEffortLogTask,
+  TaskEffortLogUser,
+  CreateTaskEffortLogDto,
+  UpdateTaskEffortLogDto,
+  TaskAiIndexBackfillRequest,
+  TaskAiIndexBackfillItem,
+  TaskAiIndexBackfillResponse,
 } from './task';
 
 // Milestone
@@ -89,7 +112,11 @@ export type {
 // Issue
 export type {
   Issue,
-  CreateIssueDto,
+  LegacyIssueCleanupStatusCount,
+  LegacyIssueCleanupTypeCount,
+  LegacyIssueCleanupSummary,
+  LegacyIssueCleanupArchiveResult,
+  LegacyIssueCleanupCanonicalizeResult,
   UpdateIssueDto,
 } from './issue';
 
@@ -124,9 +151,43 @@ export type {
 // Customer
 export type {
   Customer,
-  CreateCustomerDto,
-  UpdateCustomerDto,
 } from './customer';
+
+// Master
+export type {
+  CreatePlantSiteDto,
+  CreateSystemCatalogDto,
+  CreateSystemInstanceDto,
+  CreateSystemIntegrationDto,
+  ImportPlantSiteDto,
+  ImportSystemCatalogDto,
+  ImportSystemInstanceDto,
+  ImportSystemIntegrationDto,
+  CreatePmsMasterImportProfileDto,
+  RestorePmsMasterImportProfileDto,
+  PmsMasterImportProfile,
+  PmsMasterImportProfileEntityType,
+  PmsMasterImportProfileHistory,
+  PmsMasterImportProfileHistoryEventType,
+  PmsMasterImportEntityType,
+  PmsMasterImportMode,
+  PmsMasterImportOptions,
+  PmsMasterImportRequest,
+  PmsMasterImportResponse,
+  PmsMasterImportRowResult,
+  PmsMasterImportRowStatus,
+  PmsMasterImportSummary,
+  PmsMasterSummary,
+  PlantSite,
+  SystemCatalog,
+  SystemInstance,
+  SystemIntegration,
+  UpdatePmsMasterImportProfileDto,
+  UpdatePlantSiteDto,
+  UpdateSystemCatalogDto,
+  UpdateSystemInstanceDto,
+  UpdateSystemIntegrationDto,
+} from './master';
 
 // Home
 export type {
@@ -143,6 +204,9 @@ export type {
   PmsHomeFlowItem,
   PmsHomeRecentChange,
   PmsHomeAccessProject,
+  PmsHomeRiskReportSummary,
+  PmsHomePortfolioDashboardProject,
+  PmsHomePortfolioDashboard,
   PmsHomeSummary,
 } from './home';
 

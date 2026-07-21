@@ -1,6 +1,6 @@
 # 가이드 문서 (Guides)
 
-> 최종 업데이트: 2026-02-10
+> 최종 업데이트: 2026-07-08
 
 개발 가이드 및 사용법 문서 모음입니다.
 
@@ -14,6 +14,12 @@
 |------|------|
 | **[api-guide.md](../../common/guides/api-guide.md)** | REST API 사용 가이드 (인증, 응답 형식, 에러 코드) |
 | **[bigint-guide.md](../../common/guides/bigint-guide.md)** | BigInt 처리 가이드 (직렬화, DTO 변환) |
+
+### PMS API
+
+| 문서 | 설명 |
+|------|------|
+| **[api-error-codes.md](api-error-codes.md)** | PMS API 오류 응답 상세 코드와 런칭 운영 기준 |
 
 ### 데이터베이스 (공용)
 

@@ -37,7 +37,7 @@ function WandButton({ loading, onClick, label }: { loading: boolean; onClick: ()
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="rounded p-1 text-ssoo-primary/50 transition-all hover:bg-black/5 hover:text-ssoo-primary disabled:opacity-40"
+      className="rounded p-1 text-ssoo-primary/50 transition-all hover:bg-foreground/5 hover:text-ssoo-primary disabled:opacity-40"
       aria-label={label}
       title={label}
     >
@@ -103,7 +103,7 @@ export function DocumentInfoSection({
   if (!metadata) return null;
 
   const editButton = editable ? (
-    <Button variant="plain" size="plain" onClick={onOpenSaveLocation} className="text-gray-400 hover:text-ssoo-primary">
+    <Button variant="plain" size="plain" onClick={onOpenSaveLocation} className="text-muted-foreground hover:text-ssoo-primary">
       <Pencil className="h-3 w-3" />
     </Button>
   ) : null;
@@ -126,35 +126,35 @@ export function DocumentInfoSection({
   const pathLabel = templateMode ? '템플릿 경로' : '문서 경로';
 
   const titleErrorValue = (
-    <span className="flex items-center gap-1 text-red-600/80">
+    <span className="flex items-center gap-1 text-ssoo-danger/80">
       <span>{titleLabel} 추천 오류</span>
       {editButton}
     </span>
   );
 
   const pathErrorValue = (
-    <span className="flex items-center gap-1 text-red-600/80">
+    <span className="flex items-center gap-1 text-ssoo-danger/80">
       <span>{pathLabel} 추천 오류</span>
       {editButton}
     </span>
   );
 
   const pathValidationValue = (
-    <span className="flex items-center gap-1 text-amber-700/90">
+    <span className="flex items-center gap-1 text-ssoo-warning/90">
       <span>{pathValidationMessage}</span>
       {editButton}
     </span>
   );
 
   const titleLoadingValue = (
-    <span className="flex items-center gap-1 text-gray-500">
+    <span className="flex items-center gap-1 text-muted-foreground">
       <span>{titleLabel} 추천 중...</span>
       {editButton}
     </span>
   );
 
   const pathLoadingValue = (
-    <span className="flex items-center gap-1 text-gray-500">
+    <span className="flex items-center gap-1 text-muted-foreground">
       <span>{pathLabel} 추천 중...</span>
       {editButton}
     </span>
@@ -249,7 +249,7 @@ export function DocumentInfoSection({
         </div>
       )}
       {!pendingSuggestedPath && pendingPathValidationMessage && !showPathLoading && (
-        <div className="mt-2 rounded border border-amber-300/60 bg-amber-50/70 px-2.5 py-2 text-caption text-amber-700/90">
+        <div className="mt-2 rounded border border-ssoo-warning-border/60 bg-ssoo-warning-bg px-2.5 py-2 text-caption text-ssoo-warning/90">
           {pendingPathValidationMessage}
         </div>
       )}

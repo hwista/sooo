@@ -1,6 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { DatabaseService } from '../../../database/database.service.js';
-import type { CreateProjectMemberDto, UpdateProjectMemberDto } from '@ssoo/types';
+import type {
+  CreateProjectMemberDto,
+  FindProjectMemberUserLookupDto,
+  ProjectMemberUserLookup,
+  UpdateProjectMemberDto,
+} from '@ssoo/types';
 
 const USER_SELECT = {
   id: true,
@@ -22,6 +27,81 @@ export class MemberService {
         user: { select: USER_SELECT },
       },
       orderBy: [{ isPhaseOwner: 'desc' }, { roleCode: 'asc' }, { sortOrder: 'asc' }],
+    });
+  }
+
+  async findUserLookup(params: FindProjectMemberUserLookupDto = {}): Promise<ProjectMemberUserLookup[]> {
+    const search = params.search?.trim();
+    const limit = this.normalizeLookupLimit(params.limit);
+
+    const users = await this.db.client.user.findMany({
+      where: {
+        isActive: true,
+        ...(search
+          ? {
+              OR: [
+                { userName: { contains: search, mode: 'insensitive' } },
+                { displayName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { authAccount: { is: { loginId: { contains: search, mode: 'insensitive' } } } },
+              ],
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        userName: true,
+        displayName: true,
+        email: true,
+        departmentCode: true,
+        positionCode: true,
+        authAccount: {
+          select: {
+            loginId: true,
+          },
+        },
+        organizationRelations: {
+          where: {
+            isActive: true,
+            organization: {
+              isActive: true,
+              orgClass: 'permanent',
+            },
+          },
+          select: {
+            isPrimary: true,
+            organization: {
+              select: {
+                orgId: true,
+                orgCode: true,
+                orgName: true,
+                scope: true,
+              },
+            },
+          },
+          orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+          take: 1,
+        },
+      },
+      orderBy: [{ userName: 'asc' }, { id: 'asc' }],
+      take: limit,
+    });
+
+    return users.map((user) => {
+      const primaryOrganization = user.organizationRelations[0]?.organization;
+      return {
+        userId: user.id.toString(),
+        userName: user.userName,
+        displayName: user.displayName,
+        loginId: user.authAccount?.loginId ?? null,
+        email: user.email,
+        departmentCode: user.departmentCode,
+        positionCode: user.positionCode,
+        primaryOrganizationId: primaryOrganization?.orgId.toString() ?? null,
+        primaryOrganizationCode: primaryOrganization?.orgCode ?? null,
+        primaryOrganizationName: primaryOrganization?.orgName ?? null,
+        primaryOrganizationScope: primaryOrganization?.scope ?? null,
+      };
     });
   }
 
@@ -123,6 +203,15 @@ export class MemberService {
     } catch {
       throw new BadRequestException('프로젝트 참여 조직 ID 형식이 올바르지 않습니다.');
     }
+  }
+
+  private normalizeLookupLimit(limit?: number): number {
+    const numericLimit = Number(limit);
+    if (!Number.isFinite(numericLimit) || numericLimit <= 0) {
+      return 20;
+    }
+
+    return Math.min(Math.trunc(numericLimit), 50);
   }
 
   private async resolveOrganizationId(userId: bigint, organizationId?: string | null): Promise<bigint | null> {

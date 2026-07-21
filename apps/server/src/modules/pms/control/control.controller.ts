@@ -226,9 +226,23 @@ export class ControlController {
   @Post('events')
   @RequireProjectFeature('canManageIssues')
   @ApiOperation({ summary: '프로젝트 이벤트 생성' })
-  async createEvent(@Param('projectId') projectId: string, @Body() dto: CreateProjectEventDto) {
+  async createEvent(
+    @Param('projectId') projectId: string,
+    @Body() dto: CreateProjectEventDto,
+  ) {
     const result = await this.controlService.createEvent(BigInt(projectId), dto);
     return success(serializeBigInt(result));
+  }
+
+  @Post('events/pmr-prr-rollover')
+  @RequireProjectFeature('canManageIssues')
+  @ApiOperation({ summary: 'PMR/PRR 만기 예약 승인 요청 자동 전환 실행' })
+  async runPmrPrrWorkflowRollover(@Param('projectId') projectId: string) {
+    const result = await this.controlService.runDuePmrPrrWorkflowRollover({
+      projectId: BigInt(projectId),
+      trigger: 'project-api',
+    });
+    return success(result);
   }
 
   @Put('events/:eventId')
@@ -238,8 +252,14 @@ export class ControlController {
     @Param('projectId') projectId: string,
     @Param('eventId') eventId: string,
     @Body() dto: UpdateProjectEventDto,
+    @CurrentUser() currentUser: TokenPayload,
   ) {
-    const result = await this.controlService.updateEvent(BigInt(projectId), BigInt(eventId), dto);
+    const result = await this.controlService.updateEvent(
+      BigInt(projectId),
+      BigInt(eventId),
+      dto,
+      BigInt(currentUser.userId),
+    );
     return success(serializeBigInt(result));
   }
 

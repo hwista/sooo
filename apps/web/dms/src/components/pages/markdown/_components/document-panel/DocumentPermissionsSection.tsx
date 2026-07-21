@@ -52,8 +52,8 @@ function PermissionCapabilityChip({ type }: { type: 'read' | 'write' }) {
     <span
       className={
         isWrite
-          ? 'inline-flex h-6 items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-2 text-[11px] font-medium leading-none text-emerald-700'
-          : 'inline-flex h-6 items-center gap-1 rounded border border-ssoo-content-border bg-white px-2 text-[11px] font-medium leading-none text-ssoo-primary/80'
+          ? 'inline-flex h-6 items-center gap-1 rounded border border-ssoo-success-border bg-ssoo-success-bg px-2 text-caption-2xs font-medium leading-none text-ssoo-success'
+          : 'inline-flex h-6 items-center gap-1 rounded border border-ssoo-content-border bg-card px-2 text-caption-2xs font-medium leading-none text-ssoo-primary/80'
       }
     >
       <Icon className="h-3 w-3" aria-hidden="true" />
@@ -411,13 +411,13 @@ export function DocumentPermissionsSection({
   const sectionBadge = activeGrantCount > 0 || pendingRequestCount > 0 ? (
     <span className="flex shrink-0 items-center gap-1">
       {activeGrantCount > 0 ? (
-        <span className="mr-1 text-caption text-gray-400">
+        <span className="mr-1 text-caption text-muted-foreground">
           ({activeGrantCount})
         </span>
       ) : null}
       {pendingRequestCount > 0 ? (
         <span
-          className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ls-red px-1 text-[10px] font-semibold leading-none text-white"
+          className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ls-red px-1 text-caption-xs font-semibold leading-none text-primary-foreground"
           title={`처리 대기 권한 요청 ${pendingRequestCount}건`}
         >
           {pendingRequestCount > 99 ? '99+' : pendingRequestCount}
@@ -573,7 +573,7 @@ export function DocumentPermissionsSection({
 
         {hasError ? (
           <p
-            className="flex items-center gap-1 text-caption text-amber-700"
+            className="flex items-center gap-1 text-caption text-ssoo-warning"
             title={
               managedDocumentsQuery.error?.message
               || inboxQuery.error?.message

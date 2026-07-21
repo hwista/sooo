@@ -101,7 +101,7 @@ export function SaveLocationDialog({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder={isTemplate ? '템플릿 제목을 입력하세요' : '문서 제목을 입력하세요'}
-          className="w-full rounded-md border border-ssoo-content-border bg-white px-3 py-2 text-body-sm text-ssoo-primary placeholder:text-ssoo-primary/45 focus:outline-none focus:ring-1 focus:ring-ssoo-primary"
+          className="w-full rounded-md border border-ssoo-content-border bg-card px-3 py-2 text-body-sm text-ssoo-primary placeholder:text-ssoo-primary/45 focus:outline-none focus:ring-1 focus:ring-ssoo-primary"
           autoFocus
         />
       </div>

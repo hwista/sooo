@@ -1,6 +1,7 @@
 import type { JsonFieldDescriptor } from './types';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@ssoo/web-ui';
+import { cn } from '@/lib/utils';
 
 export function JsonFieldRow({
   item,
@@ -10,6 +11,7 @@ export function JsonFieldRow({
   errorMessage,
   onChange,
   readOnly = false,
+  showDescription = false,
 }: {
   item: JsonFieldDescriptor;
   id?: string;
@@ -18,31 +20,37 @@ export function JsonFieldRow({
   errorMessage?: string;
   onChange?: (key: string, value: unknown) => void;
   readOnly?: boolean;
+  showDescription?: boolean;
 }) {
   const isModified = value !== originalValue;
   const strVal = String(value ?? '');
   const boolVal = Boolean(value);
 
   return (
-    <article id={id} className="scroll-mt-4 rounded-lg border border-ssoo-content-border bg-white px-4 py-3">
-      <div className="flex items-start gap-3">
-        <span
-          className={[
-            'mt-1 block h-2.5 w-2.5 rounded-full shrink-0',
-            isModified ? 'bg-ssoo-primary' : 'bg-ssoo-content-border',
-          ].join(' ')}
-          aria-hidden
-        />
+    <article id={id} className="scroll-mt-4 px-3 py-2.5">
+      <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,360px)] md:items-center">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <span
+            className={cn(
+              'mt-1.5 block h-2 w-2 shrink-0 rounded-full',
+              isModified ? 'bg-ssoo-primary' : 'bg-ssoo-content-border'
+            )}
+            aria-hidden
+          />
 
-        <div className="min-w-0 flex-1">
-          <label htmlFor={`json-field-${item.key}`} className="text-label-strong text-ssoo-primary">
-            {item.label}
-          </label>
-          <p className="mt-0.5 text-caption text-ssoo-primary/70">{item.description}</p>
-          <p className="mt-1 text-caption text-ssoo-primary/60">{item.helpKey}</p>
+          <div className="min-w-0 flex-1">
+            <label htmlFor={`json-field-${item.key}`} className="text-label-strong text-ssoo-primary">
+              {item.label}
+            </label>
+            {showDescription ? (
+              <p className="mt-0.5 text-caption text-ssoo-primary/60">{item.description}</p>
+            ) : null}
+          </div>
+        </div>
 
+        <div className="min-w-0">
           {item.type === 'checkbox' ? (
-            <label className="mt-3 flex cursor-pointer items-center gap-2 text-body-sm text-ssoo-primary/80">
+            <label className="flex h-control-h w-full cursor-pointer items-center gap-2 rounded-md border border-ssoo-content-border bg-card px-3 text-body-sm text-ssoo-primary/80">
               <Input
                 id={`json-field-${item.key}`}
                 type="checkbox"
@@ -51,7 +59,7 @@ export function JsonFieldRow({
                 disabled={readOnly}
                 className="h-4 w-4 rounded border-ssoo-content-border accent-ssoo-primary"
               />
-              <span>{boolVal ? '활성화됨' : '비활성화됨'}</span>
+              <span>{boolVal ? '활성화' : '비활성화'}</span>
             </label>
           ) : item.type === 'select' ? (
             <NativeSelect
@@ -59,12 +67,11 @@ export function JsonFieldRow({
               value={strVal}
               onChange={(event) => onChange?.(item.key, event.target.value)}
               disabled={readOnly}
-              className={[
-                'mt-3 flex h-control-h w-full max-w-2xl rounded-md border bg-white px-3 text-body-sm text-ssoo-primary',
-                'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ssoo-primary',
-                'disabled:cursor-not-allowed disabled:bg-ssoo-content-bg/40 disabled:text-ssoo-primary/60',
-                errorMessage ? 'border-destructive' : 'border-ssoo-content-border',
-              ].join(' ')}
+              className={cn(
+                'border-ssoo-content-border bg-card text-ssoo-primary focus-visible:ring-ssoo-primary',
+                'disabled:bg-ssoo-content-bg/40 disabled:text-ssoo-primary/60',
+                errorMessage && 'border-destructive'
+              )}
             >
               {(item.options ?? []).map((option) => (
                 <option key={option.value} value={option.value}>
@@ -80,12 +87,11 @@ export function JsonFieldRow({
               onChange={(event) => onChange?.(item.key, event.target.value)}
               placeholder={item.placeholder}
               disabled={readOnly}
-              className={[
-                'mt-3 max-w-2xl border bg-white text-ssoo-primary',
-                'placeholder:text-ssoo-primary/40 focus-visible:ring-ssoo-primary',
-                'disabled:cursor-not-allowed disabled:bg-ssoo-content-bg/40 disabled:text-ssoo-primary/60',
-                errorMessage ? 'border-destructive' : 'border-ssoo-content-border',
-              ].join(' ')}
+              className={cn(
+                'border-ssoo-content-border bg-card text-ssoo-primary placeholder:text-ssoo-primary/40 focus-visible:ring-ssoo-primary',
+                'disabled:bg-ssoo-content-bg/40 disabled:text-ssoo-primary/60',
+                errorMessage && 'border-destructive'
+              )}
             />
           )}
 

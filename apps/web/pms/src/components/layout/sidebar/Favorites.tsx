@@ -1,7 +1,7 @@
 'use client';
 
 import type { MouseEvent } from 'react';
-import { useMenuStore } from '@/stores';
+import { useLayoutStore, useMenuStore } from '@/stores';
 import { useOpenTabWithConfirm } from '@/hooks';
 import { Star, X } from 'lucide-react';
 import { getIconComponent } from '@/lib/utils/icons';
@@ -18,6 +18,7 @@ import {
  */
 export function Favorites() {
   const { favorites, removeFavorite } = useMenuStore();
+  const closeMobileMenu = useLayoutStore((state) => state.closeMobileMenu);
   const openTabWithConfirm = useOpenTabWithConfirm();
 
   if (favorites.length === 0) {
@@ -29,13 +30,16 @@ export function Favorites() {
   }
 
   const handleClick = async (favorite: typeof favorites[0]) => {
-    await openTabWithConfirm({
+    const tabId = await openTabWithConfirm({
       menuCode: favorite.menuCode,
       menuId: favorite.menuId,
       title: favorite.menuName,
       icon: favorite.icon,
       path: favorite.menuPath,
     });
+    if (tabId) {
+      closeMobileMenu();
+    }
     // URL 변경 없음
   };
 

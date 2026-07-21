@@ -66,7 +66,7 @@ export function ComposeBox() {
         <div className="flex gap-3">
           <Avatar className="h-10 w-10 shrink-0">
             <AvatarImage src={user?.avatarUrl || undefined} />
-            <AvatarFallback className="bg-ssoo-primary text-white text-sm">{initials}</AvatarFallback>
+            <AvatarFallback className="bg-ssoo-primary text-primary-foreground text-sm">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
             {isExpanded ? (
