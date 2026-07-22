@@ -120,6 +120,7 @@ modules/
 - 루트 `packageManager`의 pnpm 11.13.1과 Node.js 22.13+ 기준을 유지한다. Docker base/runner도 Node.js 22 LTS를 사용한다.
 - `pnpm-workspace.yaml`은 24시간 release-age strict gate와 package/version 단위 `allowBuilds`를 사용한다. 리뷰되지 않은 dependency install script를 일괄 허용하지 않는다.
 - 공개 전 `pnpm security:audit`로 production high/critical 0을 확인하며, registry 연결 실패는 통과로 간주하지 않는다.
+- Next.js의 optional image runtime이 요구하는 `sharp`는 취약한 `<0.35.0` 요청을 검증된 `0.35.3`으로 override한다. 변경 시 5개 웹 production build와 Linux native image 변환 smoke를 함께 통과시킨다.
 - 서버 spreadsheet extraction은 SheetJS 공식 CDN tarball을 사용하고, 브라우저 앱에는 실제 사용하지 않는 `xlsx` 의존성을 선언하지 않는다.
 
 ## 경로 → Instruction 매핑
@@ -153,6 +154,7 @@ modules/
 
 | 날짜 | 변경 내용 |
 |------|-----------|
+| 2026-07-22 | Next.js optional image runtime의 취약한 sharp <0.35.0을 0.35.3으로 override하고 웹 production build/Linux native image smoke를 검증 기준으로 추가 |
 | 2026-07-16 | Node.js 22.13+/NestJS 11/pnpm 11.13.1 기준, release-age strict gate, install-script allowlist, production dependency audit와 SheetJS 공식 배포 경로를 공급망 표준으로 추가 |
 | 2026-07-08 | SSOO 커스텀 typography token과 color token이 같이 보존되도록 `@ssoo/web-ui` class merge 정본을 고정하고, DMS 문서 page action 리듬(36px/12px/13px medium)을 공용 Button role size 기준선으로 추가 |
 | 2026-07-08 | `verify:ui-style-boundary` 범위를 app globals, 모든 웹 앱 최종 페이지 내부와 주요 App Router page/error surface까지 확장하고 raw `white`/`black` visual token도 차단 |

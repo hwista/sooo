@@ -17,6 +17,7 @@
     "security:audit": "pnpm run security:audit:observed",
     "security:audit:raw": "pnpm audit --prod --audit-level high",
     "security:audit:observed": "bash scripts/run-observed-command.sh --command 'pnpm run security:audit:raw' --verification-command-label 'pnpm run security:audit:raw'",
+    "security:sharp-runtime": "node scripts/verify-sharp-runtime.mjs",
     "test:e2e:dms": "playwright test --config automation/playwright.config.ts",
     "playwright:install": "playwright install chromium",
     "db:up": "docker compose up -d postgres",

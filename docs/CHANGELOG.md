@@ -18,6 +18,7 @@
 
 ### Features
 
+* **security, dependencies, web:** Next.js가 optional image runtime으로 요청하는 취약한 `sharp <0.35.0`을 `0.35.3`으로 override하고, 더 이상 필요한 install hook이 없는 구버전 `allowBuilds` 예외를 제거했다. Production audit, Admin/CRM/PMS/DMS/SNS build와 Linux native image 변환 smoke를 공개 전 검증 기준으로 고정했다.
 * **security, dependencies, server, web, dms, ci:** `adm-zip`을 0.6.0으로 올려 production audit high 취약점을 제거하고 서버 lint의 암묵적 `--fix`를 읽기 전용 검사와 명시적 `lint:fix`로 분리했다. Admin/CRM/PMS/DMS/SNS는 기존 Next 규칙을 보존한 ESLint 9 flat config와 `eslint src`로 전환해 deprecated `next lint`를 제거했고, `pnpm security:audit`와 전체 workspace lint를 다시 통과시켰다.
 * **database, docker, ci:** Prisma 6 launch migration config와 재현 가능한 `0_launch_baseline`, Prisma가 표현하지 못하는 JSON·PMS 값 범위 CHECK/부분 고유 인덱스/CRM 계약 히스토리 트리거 migration, 일회용 DB parity verifier, zero-drift 확인 전에는 기존 DB baseline resolve를 거부하는 보호 스크립트를 추가했다. raw SQL seed와 Prisma가 같은 감사 컬럼 계약을 쓰도록 109개 `updatedAt` 필드에 DB `now()` 기본값을 정렬했으며, verifier는 빈 DB deploy/status, master seed 35개, source 78개 + migration-managed 1개 trigger, schema parity를 확인한다. `db-init`은 fresh/launch-managed DB에서 migrate deploy를 사용하고 기존 pre-baseline volume만 보호된 legacy compat 경로를 유지한다.
 

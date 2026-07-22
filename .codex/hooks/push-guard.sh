@@ -63,6 +63,7 @@ NEED_WEB_SNS=0
 NEED_AI_RAG=0
 NEED_PRODUCTION_COMPOSE=0
 NEED_DATABASE_CONTRACT=0
+NEED_SUPPLY_CHAIN_RUNTIME=0
 
 # Shared/core changes that can affect all targets.
 if changed_matches '^package.json$|^pnpm-lock.yaml$|^pnpm-workspace.yaml$|^turbo.json$|^tsconfig\.base\.json$'; then
@@ -108,6 +109,10 @@ fi
 
 if changed_matches '^packages/database/(package\.json|scripts/|prisma/launch-migrations/|prisma/triggers/)|^scripts/db-init-entrypoint\.sh$|^compose(\.local|\.production)?\.yaml$|^package\.json$|^\.github/workflows/pr-validation\.yml$'; then
   NEED_DATABASE_CONTRACT=1
+fi
+
+if changed_matches '^pnpm-lock\.yaml$|^pnpm-workspace\.yaml$|^package\.json$|^apps/web/(admin|crm|pms|dms|sns)/package\.json$|^scripts/verify-sharp-runtime\.mjs$'; then
+  NEED_SUPPLY_CHAIN_RUNTIME=1
 fi
 
 # PMS and its shared dependencies.
@@ -169,6 +174,11 @@ fi
 if [ "$NEED_DATABASE_CONTRACT" -eq 1 ]; then
   echo "[push-guard] running: pnpm run db:contract:test"
   pnpm run db:contract:test
+fi
+
+if [ "$NEED_SUPPLY_CHAIN_RUNTIME" -eq 1 ]; then
+  echo "[push-guard] running: pnpm run security:sharp-runtime"
+  pnpm run security:sharp-runtime
 fi
 
 if [ "$NEED_WEB_ADMIN" -eq 1 ]; then

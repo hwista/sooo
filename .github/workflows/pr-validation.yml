@@ -56,6 +56,9 @@ jobs:
       - name: Production Dependency Audit
         run: pnpm security:audit
 
+      - name: Verify Sharp Native Runtime
+        run: pnpm security:sharp-runtime
+
       - name: Codex Sync Verify
         run: pnpm run codex:verify-sync
 
