@@ -254,8 +254,8 @@ export { PrismaClient } from '@prisma/client';
 ## 주요 명령어
 
 ```bash
-# 스키마 적용 (개발 중 임시 동기화)
-pnpm --filter @ssoo/database db:push
+# 폐기 가능한 로컬 DB 스키마 실험
+pnpm --filter @ssoo/database db:push:unsafe-local
 
 # 새 DB/launch-managed DB 마이그레이션 적용·상태 확인
 pnpm --filter @ssoo/database db:migrate:deploy
@@ -266,6 +266,12 @@ pnpm --filter @ssoo/database db:migrate -- --name <migration_name>
 
 # 빈 일회용 DB에서 launch baseline 재현성 검증
 pnpm --filter @ssoo/database db:baseline:verify
+
+# 실제 DB의 release-ready launch 계약 검증
+pnpm --filter @ssoo/database db:runtime:verify
+
+# DB 계약 단위 테스트
+pnpm --filter @ssoo/database db:contract:test
 
 # Prisma Client 재생성
 pnpm --filter @ssoo/database db:generate
@@ -290,6 +296,9 @@ pnpm --filter @ssoo/database docs:db
 - `prisma/migrations/`의 기존 SQL은 pre-baseline volume 호환과 protected patch 검증을 위해 보존합니다.
 - 기존 DB baseline resolve는 자동화하지 않습니다. 백업 후 schema drift가 0인 경우에만 `DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline`을 명시합니다.
 - 신규 launch migration 변경은 `pnpm db:baseline:verify`로 빈 DB deploy/status, master seed, schema parity, database-native 계약, source/migration-managed trigger 설치를 검증합니다.
+- 운영 `db-init`은 `DB_INIT_BASELINE_MODE=strict`를 사용해 application table은 있지만 launch migration 이력이 없는 DB를 쓰기 전에 거부합니다.
+- `db:runtime:verify -- --phase=schema`는 seed/trigger 쓰기 전에 launch migration 이름/완료 상태/checksum, native constraint/index, pending migration, Prisma schema drift 0을 확인합니다. 기본 full phase는 source 및 migration-managed trigger까지 확인합니다.
+- 기존 `db:push` alias는 pre-baseline 호환을 위해 유지합니다. 신규 스키마 실험은 폐기 가능한 로컬 DB에서만 `db:push:unsafe-local`을 명시하고 launch migration으로 승격합니다. 두 명령 모두 local/compose host와 dev/test/local/scratch/tmp/candidate DB 이름만 허용하며 production 또는 strict baseline mode는 거부합니다.
 
 ---
 

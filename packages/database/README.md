@@ -211,8 +211,8 @@ async findAll() {
 # Prisma 클라이언트 생성
 pnpm db:generate
 
-# DB 스키마 적용 (개발용 - 마이그레이션 없이)
-pnpm db:push
+# 폐기 가능한 로컬 DB 스키마 실험 (마이그레이션 없이)
+pnpm db:push:unsafe-local
 
 # 새 DB/launch-managed DB 마이그레이션 적용 및 상태 확인
 pnpm db:migrate:deploy
@@ -223,6 +223,15 @@ pnpm db:migrate -- --name <migration_name>
 
 # 빈 일회용 DB에서 launch baseline/schema/35 seed/native constraint/79 trigger 재현성 검증
 pnpm db:baseline:verify
+
+# 실제 DB의 migration checksum/native contract/pending/drift 사전 검증
+pnpm db:runtime:verify -- --phase=schema
+
+# trigger까지 포함한 실제 DB 전체 계약 검증
+pnpm db:runtime:verify
+
+# DB launch 계약 단위 테스트
+pnpm db:contract:test
 
 # Prisma Studio (DB GUI)
 pnpm db:studio
@@ -237,7 +246,7 @@ pnpm build
 $env:NODE_EXTRA_CA_CERTS='C:\secure\company-root-ca.pem'
 pnpm config set cafile 'C:\secure\company-root-ca.pem'
 node ./node_modules/prisma/build/index.js generate
-node ./node_modules/prisma/build/index.js db push
+pnpm db:push:unsafe-local
 ```
 
 TLS 인증서 검증 비활성화는 사용하지 않습니다. 사내 프록시 CA가 없으면 보안팀에 승인된 PEM 배포를 요청합니다.
@@ -336,11 +345,11 @@ psql -U appuser -d appdb -f prisma/triggers/apply_all_triggers.sql
 1. `prisma/schema.prisma` 수정
 2. `@@schema("common")` 또는 `@@schema("pms")` 지시어 확인
 3. Prisma 클라이언트 재생성: `pnpm db:generate`
-4. 개발 중 임시 동기화는 `pnpm db:push`, 새 DB/launch-managed DB 배포는 `pnpm db:migrate:deploy`
+4. 폐기 가능한 로컬 DB의 임시 실험은 `pnpm db:push:unsafe-local`, 새 DB/launch-managed DB 배포는 `pnpm db:migrate:deploy`
 5. 필요시 트리거/시드 파일에 스키마 prefix 반영
 6. 필요시 `@ssoo/types`에 해당 타입 추가
 
-운영 이력 정본은 `prisma.launch.config.ts`가 가리키는 `prisma/launch-migrations/`입니다. 기존 `prisma/migrations/` SQL은 pre-baseline volume 호환용으로 보존합니다. 기존 DB를 baseline 처리할 때는 백업 후 schema drift가 0인 경우에만 `DATABASE_URL=... DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline pnpm db:baseline:resolve`를 실행합니다.
+운영 이력 정본은 `prisma.launch.config.ts`가 가리키는 `prisma/launch-migrations/`입니다. 기존 `prisma/migrations/` SQL은 pre-baseline volume 호환용으로 보존합니다. 기존 `db:push` 명령은 호환 alias로 유지하지만 신규 작업에는 사용하지 않습니다. 두 db push 명령은 local/compose host의 dev/test/local/scratch/tmp/candidate DB만 허용하고 production/strict mode는 거부합니다. 기존 DB를 baseline 처리할 때는 백업 후 schema drift가 0인 경우에만 `DATABASE_URL=... DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline pnpm db:baseline:resolve`를 실행합니다. 운영 시작 전에는 `pnpm db:runtime:verify`가 통과해야 합니다.
 
 ---
 
@@ -348,6 +357,7 @@ psql -U appuser -d appdb -f prisma/triggers/apply_all_triggers.sql
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-22 | 운영 strict baseline mode, 실제 DB release-ready verifier, DB 계약 테스트, local-only db push 경계 추가 |
 | 2026-07-20 | launch migration 정본, 일회용 baseline verifier, zero-drift baseline resolve 절차 추가 |
 | 2026-04-21 | `dm_document_comment_m` 및 대응 history table/trigger를 추가해 DMS `comments/discussion` metadata 의 canonical relation 분리를 시작 |
 | 2026-04-09 | `cm_permission_m`, `cm_role_m`, `cm_role_permission_r`, `cm_org_permission_r`, `cm_user_permission_exception_r` 및 대응 history table/trigger, permission foundation seed를 추가 |

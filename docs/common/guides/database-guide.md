@@ -33,8 +33,10 @@ SSOO 데이터베이스 구조 및 사용 가이드입니다.
 - 새 DB와 `_prisma_migrations`에 launch baseline 기록이 있는 DB의 정식 경로는 `packages/database/prisma.launch.config.ts`와 `packages/database/prisma/launch-migrations/`입니다.
 - `pnpm db:migrate:deploy`는 pending launch migration을 적용하고 `pnpm db:migrate:status`는 적용 상태를 확인합니다.
 - `pnpm db:baseline:verify`는 일회용 DB를 만들고 launch migration 전체를 적용한 뒤 master seed 35개, database-native CHECK/부분 인덱스/CRM 계약 trigger, source trigger 78개, Prisma schema parity를 검증하고 DB를 제거합니다.
+- `pnpm db:runtime:verify -- --phase=schema`는 seed/trigger 쓰기 전에 실제 대상 DB의 launch migration/native/schema 계약을 읽기 전용으로 확인합니다. 기본 `pnpm db:runtime:verify`는 설치된 전체 79개 trigger까지 확인합니다.
 - 기존 pre-baseline DB는 자동으로 baseline 처리하지 않습니다. 백업 후 schema drift가 0임을 확인한 경우에만 `DATABASE_URL=... DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline pnpm db:baseline:resolve`를 실행합니다. drift가 있으면 명령은 쓰기 전에 실패합니다.
 - `packages/database/prisma/migrations/`의 기존 SQL은 pre-baseline volume 호환과 protected patch 검증을 위해 보존합니다. 신규 배포 이력의 정본은 `prisma/launch-migrations/`입니다.
+- 운영 compose는 `DB_INIT_BASELINE_MODE=strict`를 고정해 application table은 있지만 launch 이력이 없는 DB를 seed/trigger 적용 전에 거부합니다. 로컬 기본 `compat` 경로는 기존 volume의 비파괴 복구 동선을 보존하지만 release-ready 증거로 사용하지 않습니다.
 
 ---
 
@@ -122,13 +124,14 @@ GRANT ALL ON SCHEMA dms TO appuser;
 ALTER DATABASE appdb SET search_path TO common, pms, dms, public;
 ```
 
-### Step 3: Prisma로 테이블 생성
+### Step 3: Launch migration으로 테이블 생성
 
 ```powershell
 cd packages/database
 $env:NODE_EXTRA_CA_CERTS='C:\secure\company-root-ca.pem'
 pnpm config set cafile 'C:\secure\company-root-ca.pem'
-node ./node_modules/prisma/build/index.js db push
+pnpm db:migrate:deploy
+pnpm db:migrate:status
 ```
 
 ### Step 4: 히스토리 트리거 설치
@@ -172,9 +175,14 @@ pnpm db:baseline:verify
 # Client 생성
 pnpm db:generate
 
-# 개발 중 스키마 실험용 동기화(배포 이력 대체 금지)
-pnpm db:push
+# 폐기 가능한 로컬 DB에서만 사용하는 스키마 실험(배포 이력 대체 금지)
+pnpm db:push:unsafe-local
+
+# 실제 대상 DB의 release-ready 계약 확인
+pnpm db:runtime:verify
 ```
+
+`db:push`와 `db:push:unsafe-local`은 기존 로컬 개발 동작을 유지하되 localhost/compose host와 dev/test/local/scratch/tmp/candidate 이름의 DB만 허용합니다. `NODE_ENV=production` 또는 `DB_INIT_BASELINE_MODE=strict`, 원격 호스트, 운영 DB 이름에서는 URL/credential을 출력하지 않고 실패합니다.
 
 ---
 
@@ -246,6 +254,7 @@ Seed 파일 위치: `packages/database/prisma/seeds/`
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-22 | 운영 strict baseline mode와 실제 DB release-ready 검증 명령, local-only db push 경계 추가 |
 | 2026-01-25 | ERD 링크 추가, 테이블 상세 문서 삭제 (ERD로 대체) |
 | 2026-01-24 | Multi-Schema 분리 완료 (common/pms) |
 | 2026-01-21 | 즐겨찾기 soft delete 적용 |

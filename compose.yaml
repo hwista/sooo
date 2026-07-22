@@ -29,6 +29,7 @@ services:
     container_name: ssoo-db-init
     environment:
       DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://ssoo:ssoo_dev_pw@postgres:5432/ssoo_dev?schema=public}
+      DB_INIT_BASELINE_MODE: ${DB_INIT_BASELINE_MODE:-compat}
     depends_on:
       postgres:
         condition: service_healthy

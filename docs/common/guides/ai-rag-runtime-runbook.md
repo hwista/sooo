@@ -24,17 +24,24 @@
 - application table이 없는 새 DB 또는 `_prisma_migrations`에 `0_launch_baseline` 기록이 있는 DB는 `pnpm db:migrate:deploy`를 실행한다. 실패/미완료 기록도 legacy 경로로 우회하지 않고 Prisma가 명시적으로 보고하게 한다.
 - application table은 있지만 launch baseline이 없는 기존 volume만 아래 `DB_INIT_PRISMA_PUSH_MODE` 호환 경로를 사용한다.
 - 새 DB의 재현성은 `pnpm db:baseline:verify`로 일회용 DB에서 검증한다.
+- launch-managed DB는 seed/trigger 쓰기 전에 `pnpm db:runtime:verify -- --phase=schema`를 실행하고, trigger 적용 후 기본 full phase를 다시 실행해 migration checksum, native contract, 전체 trigger, pending migration, schema drift 0을 읽기 전용으로 검증한다.
+
+| Baseline mode | Behavior | Use case |
+| --- | --- | --- |
+| `compat` | 기본 로컬 동작. pre-baseline DB에 기존 비파괴 호환 경로를 제공하지만 release-ready 증거로 인정하지 않는다. | 기존 로컬 Docker volume |
+| `strict` | pre-baseline DB를 어떤 patch/seed보다 먼저 거부한다. | `compose.production.yaml`, 운영/릴리스 |
 
 | Mode | Behavior | Use case |
 | --- | --- | --- |
 | `auto` | 기본값. compat SQL을 먼저 적용한 뒤 pre-roadmap `common.cm_ai_*` legacy 컬럼이 감지되면 destructive column drop을 피하기 위해 `prisma db push`를 건너뛴다. | 기존 로컬 Docker volume, 개발자 DB |
-| `force` | legacy AI/RAG 컬럼이 있어도 `prisma db push`를 실행한다. `--accept-data-loss`는 붙이지 않는다. | 백업/검토 후 Prisma reconciliation 실패 여부를 직접 확인할 때 |
-| `skip` | `prisma db push`를 무조건 건너뛰고 seed/trigger만 적용한다. | 이미 schema가 별도 절차로 적용된 운영자 관리 DB |
+| `force` | legacy AI/RAG 컬럼이 있어도 guarded `prisma db push`를 실행한다. `--accept-data-loss`는 붙이지 않는다. | 폐기 가능한 로컬 DB를 백업/검토한 뒤 Prisma reconciliation 실패 여부를 직접 확인할 때 |
+| `skip` | `prisma db push`를 무조건 건너뛰고 seed/trigger만 적용한다. | schema가 별도 절차로 적용된 pre-baseline 로컬 복구 DB |
 
 기준:
 
 - `prisma db push --accept-data-loss`는 이 workstream의 DB init 경로에서 사용하지 않는다.
 - `prisma db push`는 pre-baseline 호환 경로에만 남기며 새 DB와 launch-managed DB의 배포 이력을 대체하지 않는다.
+- 호환 경로의 `db push`도 local/compose host와 폐기 가능한 개발 DB 이름에서만 실행되고 production/strict mode에서는 거부된다.
 - legacy AI/RAG 컬럼은 삭제하지 않고 `packages/database/prisma/compat/20260623_ai_rag_legacy_backfill.sql`로 canonical runtime column/table/default/index를 추가한다.
 - `db-init`은 seed 전에 non-destructive protected baseline migration을 적용한다. 2026-07-03 기준 포함 대상은 CRM opportunity ledger migration이며, `auto` 모드에서 `prisma db push`를 건너뛰어도 CRM seed가 요구하는 원장 테이블을 먼저 만든다.
 - `auto` 모드가 `db push`를 건너뛰더라도 seed와 trigger apply는 계속 실행한다.
@@ -107,7 +114,7 @@ docker exec ssoo-postgres psql -U ssoo -d ssoo_dev -v ON_ERROR_STOP=1 \
   -f /tmp/ssoo-triggers/apply_all_triggers.sql
 ```
 
-Compose `db-init` 경로에서는 launch baseline이 없는 기존 volume에 한해 같은 판단을 `DB_INIT_PRISMA_PUSH_MODE=auto`가 수행한다. 새 DB와 launch-managed DB는 `pnpm db:migrate:deploy` 후 seed/trigger를 적용한다. 기존 pre-baseline DB를 launch history로 전환하려면 백업과 검토 후 schema drift 0 상태에서만 `DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline`을 명시한 `pnpm db:baseline:resolve`를 사용한다.
+Compose `db-init` 경로에서는 `DB_INIT_BASELINE_MODE=compat`인 launch baseline 없는 기존 volume에 한해 같은 판단을 `DB_INIT_PRISMA_PUSH_MODE=auto`가 수행한다. 운영 overlay는 `DB_INIT_BASELINE_MODE=strict`를 고정한다. 새 DB와 launch-managed DB는 `pnpm db:migrate:deploy` 후 seed/trigger와 `pnpm db:runtime:verify`를 적용한다. 기존 pre-baseline DB를 launch history로 전환하려면 백업과 검토 후 schema drift 0 상태에서만 `DB_BASELINE_RESOLVE_CONFIRM=0_launch_baseline`을 명시한 `pnpm db:baseline:resolve`를 사용한다.
 
 ## Provider-Ready Smoke
 

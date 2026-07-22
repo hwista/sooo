@@ -98,6 +98,9 @@ jobs:
       - name: Build Database Package
         run: pnpm --filter @ssoo/database build
 
+      - name: Test Database Launch Contract
+        run: pnpm db:contract:test
+
       - name: Build Types Package
         run: pnpm --filter @ssoo/types build
 
@@ -180,6 +183,7 @@ jobs:
           pnpm db:migrate:status
           bash .codex/scripts/db-seed.sh
           pnpm --filter @ssoo/database exec ts-node --project tsconfig.json scripts/apply-triggers.ts
+          pnpm db:runtime:verify
 
           docker compose -f compose.yaml -f compose.local.yaml up -d --build server
 

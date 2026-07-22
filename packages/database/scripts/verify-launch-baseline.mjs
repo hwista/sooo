@@ -123,6 +123,11 @@ try {
 
   await runPrisma(['migrate', 'deploy', '--config', 'prisma.launch.config.ts']);
   await runPrisma(['migrate', 'status', '--config', 'prisma.launch.config.ts']);
+  const schemaContract = await runCommand(process.execPath, [
+    'scripts/verify-runtime-database.mjs',
+    '--phase=schema',
+  ]);
+  process.stdout.write(schemaContract.stdout);
 
   const target = new Client({ connectionString: targetUrl.toString() });
   await target.connect();
@@ -217,23 +222,13 @@ try {
     .join(' | ');
   console.log(`[db-baseline] trigger contract passed: ${triggerSummary}`);
 
-  const diff = await runPrisma(
-    [
-      'migrate',
-      'diff',
-      '--from-url',
-      targetUrl.toString(),
-      '--to-schema-datamodel',
-      'prisma/schema.prisma',
-      '--exit-code',
-    ],
-    { acceptedExitCodes: [0, 2] },
-  );
-  if (diff.code === 2) {
-    throw new Error('Launch migration history does not reproduce prisma/schema.prisma without drift.');
-  }
+  const runtimeContract = await runCommand(process.execPath, [
+    'scripts/verify-runtime-database.mjs',
+    '--phase=full',
+  ]);
+  process.stdout.write(runtimeContract.stdout);
 
-  console.log('[db-baseline] launch migration deploy/status/schema parity passed');
+  console.log('[db-baseline] launch migration deploy/status/runtime contract passed');
 } finally {
   if (adminConnected) {
     if (databaseCreated) {

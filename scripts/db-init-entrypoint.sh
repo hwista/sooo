@@ -11,6 +11,7 @@ DB_URL="${DATABASE_URL:?DATABASE_URL is required}"
 # psql은 Prisma 전용 ?schema= 파라미터를 인식하지 못하므로 제거
 PSQL_URL="${DB_URL%%\?*}"
 PRISMA_PUSH_MODE="${DB_INIT_PRISMA_PUSH_MODE:-auto}"
+BASELINE_MODE="${DB_INIT_BASELINE_MODE:-compat}"
 SEED_DIR="/workspace/packages/database/prisma/seeds"
 TRIGGER_DIR="/workspace/packages/database/prisma/triggers"
 COMPAT_DIR="/workspace/packages/database/prisma/compat"
@@ -49,6 +50,14 @@ case "$PRISMA_PUSH_MODE" in
   auto|force|skip) ;;
   *)
     echo "[db-init] ✗ invalid DB_INIT_PRISMA_PUSH_MODE=$PRISMA_PUSH_MODE (expected auto, force, or skip)" >&2
+    exit 1
+    ;;
+esac
+
+case "$BASELINE_MODE" in
+  compat|strict) ;;
+  *)
+    echo "[db-init] ✗ invalid DB_INIT_BASELINE_MODE=$BASELINE_MODE (expected compat or strict)" >&2
     exit 1
     ;;
 esac
@@ -111,11 +120,21 @@ pnpm --filter @ssoo/database db:generate
 
 existing_application_tables="$(application_table_count)"
 launch_baseline_records="$(launch_baseline_record_count)"
+launch_managed_database=false
 
 if [ "${existing_application_tables:-0}" = "0" ] || [ "${launch_baseline_records:-0}" != "0" ]; then
+  launch_managed_database=true
   echo "[db-init] ▶ applying managed launch migration history"
   DATABASE_URL="$DB_URL" pnpm --filter @ssoo/database db:migrate:deploy
+  echo "[db-init] ▶ verifying launch migration and schema contract before seed/trigger writes"
+  DATABASE_URL="$DB_URL" pnpm --filter @ssoo/database db:runtime:verify -- --phase=schema
 else
+  if [ "$BASELINE_MODE" = "strict" ]; then
+    echo "[db-init] ✗ existing pre-baseline database rejected by DB_INIT_BASELINE_MODE=strict" >&2
+    echo "[db-init]   Restore or migrate into a clean launch-managed database; automatic baseline adoption is forbidden." >&2
+    exit 1
+  fi
+
   echo "[db-init] ▶ existing pre-baseline database detected; applying non-destructive compatibility path"
 
   if [ -d "$COMPAT_DIR" ]; then
@@ -163,5 +182,12 @@ echo "[db-init] ▶ applying seeds"
 
 echo "[db-init] ▶ applying triggers"
 (cd "$TRIGGER_DIR" && psql "$PSQL_URL" -v ON_ERROR_STOP=1 -f "apply_all_triggers.sql")
+
+if [ "$launch_managed_database" = true ]; then
+  echo "[db-init] ▶ verifying release-ready runtime database contract"
+  DATABASE_URL="$DB_URL" pnpm --filter @ssoo/database db:runtime:verify
+else
+  echo "[db-init] ⚠ compatibility database initialized without release-ready launch baseline evidence"
+fi
 
 echo "[db-init] ✅ complete"

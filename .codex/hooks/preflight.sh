@@ -76,6 +76,7 @@ NEED_DOCS=0
 NEED_PATTERNS=0
 NEED_AI_RAG=0
 NEED_PRODUCTION_COMPOSE=0
+NEED_DATABASE_CONTRACT=0
 PATTERN_FILES=()
 
 if changed_matches '\.md$|^docs/|^\.github/'; then
@@ -92,6 +93,10 @@ fi
 
 if changed_matches '^compose(\.local|\.production)?\.yaml$|^\.env\.production\.example$|^scripts/verify-production-compose-env\.mjs$|^apps/web/(admin|crm|pms|dms|sns)/Dockerfile$|^package\.json$'; then
   NEED_PRODUCTION_COMPOSE=1
+fi
+
+if changed_matches '^packages/database/(package\.json|scripts/|prisma/launch-migrations/|prisma/triggers/)|^scripts/db-init-entrypoint\.sh$|^compose(\.local|\.production)?\.yaml$|^package\.json$|^\.github/workflows/pr-validation\.yml$'; then
+  NEED_DATABASE_CONTRACT=1
 fi
 
 if [ "$NEED_PATTERNS" -eq 1 ]; then
@@ -136,6 +141,11 @@ fi
 if [ "$NEED_PRODUCTION_COMPOSE" -eq 1 ]; then
   echo "[preflight] running: pnpm run docker:production:verify-env:self-test"
   pnpm run docker:production:verify-env:self-test
+fi
+
+if [ "$NEED_DATABASE_CONTRACT" -eq 1 ]; then
+  echo "[preflight] running: pnpm run db:contract:test"
+  pnpm run db:contract:test
 fi
 
 echo "[preflight] completed."

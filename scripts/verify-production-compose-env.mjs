@@ -731,6 +731,7 @@ function verifyRepositoryContract() {
     'env_file: !reset []',
     '127.0.0.1:4000:4000',
     'AUTH_SESSION_COOKIE_SECURE=true',
+    'DB_INIT_BASELINE_MODE: strict',
     'DMS_MARKDOWN_HOST_PATH:?Set absolute DMS_MARKDOWN_HOST_PATH',
   ]) {
     assertIncludes(productionCompose, marker, `production compose contract must include ${marker}`);

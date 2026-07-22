@@ -11,6 +11,7 @@ services:
   db-init:
     environment:
       DATABASE_URL: ${DOCKER_DATABASE_URL:?Set DOCKER_DATABASE_URL in .env.production}
+      DB_INIT_BASELINE_MODE: strict
 
   server:
     env_file: !reset []

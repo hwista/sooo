@@ -75,9 +75,10 @@ SSOO(삼삼오오)는 SI/SM 조직의 **Opportunity -> Project -> System** 흐�
 | Web Shell 패키지 빌드 | `pnpm --filter @ssoo/web-shell build` | |
 | Web UI 패키지 빌드 | `pnpm --filter @ssoo/web-ui build` | |
 | DB 시작 | `pnpm db:up` | Docker Compose postgres |
-| 개발 DB 스키마 동기화 | `pnpm db:push` | 임시 개발용 Prisma `db push`; 배포 이력 대체 금지 |
+| 폐기 가능한 로컬 DB 스키마 실험 | `pnpm db:push:unsafe-local` | 기존 `db:push`는 호환 alias; 배포 이력 대체 금지 |
 | Launch migration 적용/상태 | `pnpm db:migrate:deploy` / `pnpm db:migrate:status` | 새 DB와 launch-managed DB |
 | Launch baseline 검증 | `pnpm db:baseline:verify` | 일회용 DB deploy/status/schema parity |
+| 실제 DB launch 계약 검증 | `pnpm db:runtime:verify` | migration checksum/native contract/trigger/pending/drift fail-closed |
 | DB 시드 | `pnpm db:seed` | `.codex/scripts/db-seed.sh` |
 | DB 트리거 설치 | `pnpm db:triggers` | 히스토리 트리거 적용 |
 | Production 의존성 감사 | `pnpm security:audit` | 관측형 wrapper, high/critical 발견 또는 registry 미검증 시 실패 |
