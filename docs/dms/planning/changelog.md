@@ -16,7 +16,7 @@
 ### CI Docker 저장공간 고갈 사전 복구
 
 - image build가 containerd `no space left on device`로 중단되는 runner 누적 결함을 막기 위해 verify/build 직전에 unused BuildKit cache와 dangling image만 정리하고 Docker root 여유 공간을 fail-closed로 검사합니다. 1차 cache 보존 정리 후에도 임계값보다 부족하면 unused BuildKit cache를 전량 정리하고 재측정합니다.
-- 실행 중 container, commit-tagged image, volume은 정리 대상에서 제외합니다. 실패한 build가 남긴 application `latest` 중 운영 container image와 다른 tag만 제거해 다음 build의 초기 공간을 복구합니다. Compose 병렬도 1에서도 BuildKit이 여러 image target을 동시에 처리해 pipeline #157이 다시 ENOSPC로 실패했고, pipeline #158에서는 단일 `server` build도 `db-init`을 함께 예약하는 것이 확인됐습니다. Compose가 계산한 Bake 정의에서 각 target만 Buildx로 직접 선택해 큰 image부터 7개를 완전히 순차 빌드하고, target 사이마다 unused BuildKit cache 전량 정리와 3 GiB 용량 검사를 반복합니다.
+- 실행 중 container, commit-tagged image, volume은 정리 대상에서 제외합니다. 실패한 build가 남긴 application `latest` 중 운영 container image와 다른 tag만 verify/build 양쪽에서 제거해 다음 파이프라인의 초기 공간을 복구합니다. pipeline #159에서 verify보다 뒤에 있는 build 단계에만 이 정리를 두면 초기 8 GiB gate가 먼저 실패하는 조건 누락을 확인해 함께 수정했습니다. Compose 병렬도 1에서도 BuildKit이 여러 image target을 동시에 처리해 pipeline #157이 다시 ENOSPC로 실패했고, pipeline #158에서는 단일 `server` build도 `db-init`을 함께 예약하는 것이 확인됐습니다. Compose가 계산한 Bake 정의에서 각 target만 Buildx로 직접 선택해 큰 image부터 7개를 완전히 순차 빌드하고, target 사이마다 unused BuildKit cache 전량 정리와 3 GiB 용량 검사를 반복합니다.
 - deterministic pipeline contract에 cache/image prune 실행, 충분한 용량에서만 7개 서비스가 고정 순서로 빌드되는 계약, 중간 서비스 실패 시 즉시 중단, 부족한 용량에서 zero-build 차단을 추가했습니다.
 
 ## 2026-07-14

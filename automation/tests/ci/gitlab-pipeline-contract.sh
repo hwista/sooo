@@ -65,6 +65,7 @@ assert_contains "$job_runner" 'Docker capacity pressure detected; pruning all un
 assert_contains "$job_runner" 'insufficient Docker filesystem capacity after safe cache cleanup'
 assert_contains "$job_runner" 'build_services=(server db-init pms dms sns admin crm)'
 assert_contains "$job_runner" 'prune_unreferenced_app_latest'
+assert_contains "$job_runner" 'if [[ "$job" == "verify" || "$job" == "build" ]]; then'
 assert_contains "$job_runner" 'docker compose -p "$COMPOSE_PROJECT_NAME" build --print > "$bake_definition"'
 assert_contains "$job_runner" 'docker buildx bake --file "$bake_definition" --load "$service"'
 assert_contains "$job_runner" 'prepare_build_capacity "build-$service" "$build_target_min_free_kb" full'

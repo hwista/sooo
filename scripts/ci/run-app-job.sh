@@ -126,10 +126,8 @@ if ! flock -w "$lock_timeout" 9; then
 fi
 
 echo "[ci-job] acquired lock job=$job"
-if [[ "$job" == "build" ]]; then
-  prune_unreferenced_app_latest
-fi
 if [[ "$job" == "verify" || "$job" == "build" ]]; then
+  prune_unreferenced_app_latest
   prepare_build_capacity "$job"
 fi
 bash "$CI_PROJECT_DIR/scripts/ci/prepare-app-source.sh"
