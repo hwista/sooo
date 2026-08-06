@@ -1,9 +1,17 @@
 # DMS 변경 이력
 
-> 최종 업데이트: 2026-07-14
+> 최종 업데이트: 2026-08-06
 > 참고: 이 문서는 historical entry 를 보존하므로, 과거 항목에는 sidecar-era terminology 가 남아 있을 수 있습니다.
 
 ---
+
+## 2026-08-06
+
+### 운영 문서 저장소 bind-mount 소유권 호환
+
+- 운영 컨테이너와 bind-mounted 문서 저장소의 소유자가 다를 때 Git이 `dubious ownership`으로 저장소 명령을 차단해 전체 사용자의 문서 목록 API가 500으로 실패하던 경로를 수정했습니다.
+- DMS가 해석한 정확한 문서 root만 각 Git 명령의 command-local `safe.directory`로 허용하고, container global config와 wildcard 신뢰 설정은 사용하지 않습니다.
+- Git의 different-owner 테스트 모드에서 기존 client 실패와 새 scoped client 성공을 함께 검증하는 서버 회귀 테스트를 추가했습니다.
 
 ## 2026-07-14
 
