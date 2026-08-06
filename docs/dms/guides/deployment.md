@@ -229,7 +229,7 @@ server:
 - shell runner의 persistent checkout은 각 job 시작 시 remote ref를 fetch한 뒤 exact `CI_COMMIT_SHA`로 reset하며, HEAD 불일치나 non-ignored 잔여 파일이 있으면 build/deploy 전에 실패합니다. 운영자가 checkout 옆에 보존하는 `.env.*`/`compose.yaml.bak*` 백업은 Git과 Docker build context에서 제외되며, 이 명시 패턴 밖의 임의 파일은 허용하지 않습니다.
 - `verify`는 shell runner host의 전역 Node/pnpm에 의존하지 않습니다. exact commit source, `pnpm install --frozen-lockfile` 의존성, generated Prisma client를 담은 `node:20`/`pnpm@10.28.0` CI image에서 GitLab pipeline contract, Codex preflight, root lint, server test를 실제로 실행하고 Git metadata만 read-only mount합니다.
 - build image는 `app-<service>:<CI_COMMIT_SHA>` 태그로 보존합니다. 수동 deploy는 선택한 pipeline SHA의 image를 `latest`로 복원한 뒤 기존 Compose stack을 `--no-build`로 올립니다.
-- deploy 직전에는 먼저 7개 commit image와 모든 기존 container의 rollback source를 전수 분류합니다. 실행 container의 image object가 남아 있으면 그 exact ID를 backup tag로 보존하고, container는 있지만 image object가 사라졌으면 `docker commit`으로 일시 정지된 application-container snapshot을 만들어 inspect 가능한 rollback image로 검증합니다. 첫 배포처럼 기존 container가 없을 때만 현재 `latest`를 fallback으로 보존합니다. 이 snapshot은 application image 복구용이며 PostgreSQL이나 bind-mounted DMS 문서/첨부 데이터의 백업을 대신하지 않습니다.
+- deploy 직전에는 먼저 7개 commit image와 모든 기존 container의 rollback source를 전수 분류합니다. 실행 container의 image object가 남아 있으면 그 exact ID를 backup tag로 보존하고, container는 있지만 image object가 사라졌으면 먼저 `docker commit` application-container snapshot을 시도합니다. Docker content store 손상으로 commit도 실패하면 실행 container의 merged filesystem을 `docker export`하고 기존 CMD/ENTRYPOINT/WORKDIR/USER/ENV/EXPOSE/STOPSIGNAL을 `docker import --change`로 재적용한 평탄화 image를 만든 뒤 핵심 실행 metadata와 image ID를 검증합니다. 첫 배포처럼 기존 container가 없을 때만 현재 `latest`를 fallback으로 보존합니다. snapshot/export image는 application image 복구용이며 PostgreSQL, volume, bind-mounted DMS 문서/첨부 데이터의 백업을 대신하지 않습니다.
 - 모든 서비스 backup이 성공한 뒤에만 completed manifest와 last-backup marker를 기록합니다. 일부 tag만 만들어진 실패 시도는 유효한 rollback set으로 취급하지 않으며, commit image나 rollback source가 하나라도 준비되지 않으면 image 선택과 Compose 변경 전에 실패합니다.
 - build/deploy trace에는 commit image ID와 배포된 `ssoo-<service>` container image ID가 남고, 하나라도 다르면 deploy job이 실패합니다.
 - 기본 60초 후 PostgreSQL과 전체 web/server container가 모두 `healthy`가 아니면 deploy job이 실패합니다. commit image 선택 이후 Compose recreation, health, image parity 중 하나라도 실패하면 completed manifest의 backup image를 `latest`로 복원하고 이전 application image set을 같은 Compose topology에서 `--no-build`로 다시 올린 뒤 rollback health와 container/backup-image parity를 검증합니다. Compose topology 또는 DB migration을 바꾸는 배포는 이 image rollback만으로 안전하다고 간주하지 않으며 별도 migration/config rollback 계획이 필요합니다.
@@ -279,7 +279,7 @@ docker compose up -d --build
 
 | 날짜 | 변경 내용 |
 |------|----------|
-| 2026-08-06 | missing running-image를 application-container snapshot으로 보존하는 rollback preflight/completed manifest, post-mutation automatic rollback, manual+non-optional deploy 상태 계약을 추가 |
+| 2026-08-06 | missing running-image를 application-container snapshot으로 보존하고 content-store 손상 시 metadata-preserving filesystem export/import로 재구성하는 rollback preflight/completed manifest, post-mutation automatic rollback, manual+non-optional deploy 상태 계약을 추가 |
 | 2026-07-15 | 현재 GitLab 버전과 호환되는 host `flock`, exact `CI_COMMIT_SHA` source alignment, 실제 자동 verify, commit-tagged image와 deployed container ID parity 계약을 추가 |
 | 2026-06-19 | local compose 에서 `apps/web/dms/.env.local` 의 DMS/Azure 값을 `web-dms`와 `server`가 함께 읽도록 정리해 로컬 요약 경로가 UI 설정과 어긋나지 않게 수정 |
 | 2026-06-19 | `compose.yaml` 의 Compose project name 을 `ssoo` 로 고정하고, Docker Desktop 에 남아 있는 이전 project 충돌을 위한 1회 정리 절차를 추가 |

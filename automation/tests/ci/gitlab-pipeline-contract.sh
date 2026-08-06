@@ -69,6 +69,8 @@ assert_contains "$job_runner" 'docker compose -p "$COMPOSE_PROJECT_NAME" up -d -
 assert_contains "$job_runner" 'deployment failed but automatic rollback succeeded'
 assert_contains "$job_runner" 'manual recovery required'
 assert_contains "$image_provenance" 'docker commit "$container" "$backup_image"'
+assert_contains "$image_provenance" 'docker export "$container" | docker import'
+assert_contains "$image_provenance" 'container commit unavailable; trying filesystem export'
 assert_contains "$image_provenance" 'backup complete tag=$backup_tag manifest=$manifest'
 assert_contains "$gitignore" '.env.*'
 assert_contains "$gitignore" 'compose.yaml.bak*'
@@ -166,10 +168,35 @@ set_value() {
   mv "$next" "$state"
 }
 
+print_fake_config() {
+  if [[ -n "${FAKE_DOCKER_CONFIG_MISMATCH_IMAGE:-}" && "$*" == *"image inspect $FAKE_DOCKER_CONFIG_MISMATCH_IMAGE "* && "$*" == *'{{json .Config.Cmd}}'* ]]; then
+    printf '["node","wrong.js"]\n'
+    return 0
+  fi
+
+  case "$*" in
+    *'{{json .Config.Cmd}}'*) printf '["node","server.js"]\n' ;;
+    *'{{json .Config.Entrypoint}}'*) printf 'null\n' ;;
+    *'{{json .Config.WorkingDir}}'*) printf '"/app/apps/web/crm"\n' ;;
+    *'{{.Config.WorkingDir}}'*) printf '/app/apps/web/crm\n' ;;
+    *'{{json .Config.User}}'*) printf '"nextjs"\n' ;;
+    *'{{.Config.User}}'*) printf 'nextjs\n' ;;
+    *'{{range .Config.Env}}'*) printf 'NODE_ENV=production\nPORT=3004\n' ;;
+    *'{{json .Config.Env}}'*) printf '["NODE_ENV=production","PORT=3004"]\n' ;;
+    *'{{range $port, $_ := .Config.ExposedPorts}}'*) printf '3004/tcp\n' ;;
+    *'{{json .Config.ExposedPorts}}'*) printf '{"3004/tcp":{}}\n' ;;
+    *'{{json .Config.StopSignal}}'*) printf '""\n' ;;
+    *'{{.Config.StopSignal}}'*) printf '\n' ;;
+    *) return 1 ;;
+  esac
+}
+
 case "${1:-}" in
   image)
     [[ "${2:-}" == "inspect" ]] || exit 2
-    resolve_image "$3"
+    if ! print_fake_config "$@"; then
+      resolve_image "$3"
+    fi
     ;;
   tag)
     source_id="$(resolve_image "$2")"
@@ -187,12 +214,35 @@ case "${1:-}" in
     set_value "$target" "$snapshot_id"
     printf '%s\n' "$snapshot_id"
     ;;
+  export)
+    container="$2"
+    if [[ "${FAKE_DOCKER_FAIL_EXPORT_CONTAINER:-}" == "$container" ]]; then
+      exit 1
+    fi
+    lookup_key "container:$container" >/dev/null
+    printf 'fake filesystem for %s\n' "$container"
+    ;;
+  import)
+    target="${@: -1}"
+    if [[ "${FAKE_DOCKER_FAIL_IMPORT_IMAGE:-}" == "$target" ]]; then
+      exit 1
+    fi
+    while IFS= read -r _; do :; done
+    service="${target#app-}"
+    service="${service%%:*}"
+    snapshot_id="sha256:$service-export"
+    set_value "image:$snapshot_id" "$snapshot_id"
+    set_value "$target" "$snapshot_id"
+    printf '%s\n' "$snapshot_id"
+    ;;
   inspect)
     container="$2"
     if [[ "$*" == *"State.Health.Status"* ]]; then
       lookup_key "health:$container"
-    else
+    elif ! print_fake_config "$@"; then
       lookup_key "container:$container"
+    else
+      :
     fi
     ;;
   compose)
@@ -310,10 +360,30 @@ PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sh
 reset_fake_state
 set_state container:ssoo-crm sha256:crm-missing
 remove_state image:sha256:crm-missing
+export_manifest="$test_root/export.manifest"
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" FAKE_DOCKER_FAIL_COMMIT_CONTAINER=ssoo-crm \
+  CI_COMMIT_SHA="$second_sha" bash "$image_provenance" backup-running ci-backup-export "$export_manifest" >/dev/null
+assert_contains "$export_manifest" 'crm|app-crm:ci-backup-export|sha256:crm-export|export|sha256:crm-missing'
+
+reset_fake_state
+set_state container:ssoo-crm sha256:crm-missing
+remove_state image:sha256:crm-missing
+mismatched_manifest="$test_root/mismatched.manifest"
+if PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" FAKE_DOCKER_FAIL_COMMIT_CONTAINER=ssoo-crm \
+  FAKE_DOCKER_CONFIG_MISMATCH_IMAGE=app-crm:ci-backup-mismatched \
+  CI_COMMIT_SHA="$second_sha" bash "$image_provenance" backup-running ci-backup-mismatched "$mismatched_manifest" >/dev/null 2>&1; then
+  fail "backup accepted a filesystem snapshot with mismatched runtime metadata"
+fi
+[[ ! -e "$mismatched_manifest" ]] || fail "mismatched filesystem snapshot published a completed manifest"
+
+reset_fake_state
+set_state container:ssoo-crm sha256:crm-missing
+remove_state image:sha256:crm-missing
 failed_manifest="$test_root/failed.manifest"
 if PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" FAKE_DOCKER_FAIL_COMMIT_CONTAINER=ssoo-crm \
+  FAKE_DOCKER_FAIL_EXPORT_CONTAINER=ssoo-crm \
   CI_COMMIT_SHA="$second_sha" bash "$image_provenance" backup-running ci-backup-failed "$failed_manifest" >/dev/null 2>&1; then
-  fail "backup accepted a missing running image when snapshot creation failed"
+  fail "backup accepted a missing running image when commit and filesystem snapshots failed"
 fi
 [[ ! -e "$failed_manifest" ]] || fail "failed backup published a completed manifest"
 
@@ -344,7 +414,7 @@ reset_fake_state
 set_state container:ssoo-crm sha256:crm-missing
 remove_state image:sha256:crm-missing
 CI_JOB_ID_OVERRIDE=900
-if run_deploy_contract backup-failed env FAKE_DOCKER_FAIL_COMMIT_CONTAINER=ssoo-crm; then
+if run_deploy_contract backup-failed env FAKE_DOCKER_FAIL_COMMIT_CONTAINER=ssoo-crm FAKE_DOCKER_FAIL_EXPORT_CONTAINER=ssoo-crm; then
   fail "deploy job accepted a failed rollback backup"
 fi
 assert_contains "$fake_state" 'compose:up-count|0'

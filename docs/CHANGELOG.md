@@ -28,7 +28,7 @@
 
 ### Bug Fixes
 
-* **ci, scripts, docs:** 수동 deploy가 실행 container의 image object 누락으로 backup 도중 중단되고도 pipeline이 green으로 남던 문제를 보완했다. 전체 commit/rollback source preflight 후에만 completed backup manifest를 기록하고, 누락 image는 application-container snapshot으로 보존하며, Compose 변경 이후 실패는 이전 image set 자동 복원과 health/image parity까지 검증한다. `deploy_dev`는 manual 상태를 유지하되 non-optional로 전환해 배포 전에는 blocked, 성공 시 success, 실패 시 failed로 표시한다.
+* **ci, scripts, docs:** 수동 deploy가 실행 container의 image object 누락으로 backup 도중 중단되고도 pipeline이 green으로 남던 문제를 보완했다. 전체 commit/rollback source preflight 후에만 completed backup manifest를 기록하고, 누락 image는 application-container snapshot으로 보존한다. Docker content store 손상으로 `docker commit`도 실패하면 실행 filesystem을 export하고 기존 실행 metadata를 재적용한 평탄화 image로 fallback한다. Compose 변경 이후 실패는 이전 image set 자동 복원과 health/image parity까지 검증하며, `deploy_dev`는 manual 상태를 유지하되 non-optional로 전환해 배포 전에는 blocked, 성공 시 success, 실패 시 failed로 표시한다.
 
 * **ci, docker, scripts:** clean verify image에서 Prisma client가 생성되지 않아 server test가 초기화 전에 실패하던 문제를 수정했다. lockfile install 직후 `@ssoo/database db:generate`를 실행해 host의 기존 generated client에 의존하지 않도록 했다.
 
