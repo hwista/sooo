@@ -73,6 +73,22 @@ prepare_build_capacity() {
     return 1
   fi
 
+  if (( available_kb < build_min_free_kb )); then
+    echo "[ci-job] Docker capacity pressure detected; pruning all unused BuildKit cache available_kb=$available_kb required_kb=$build_min_free_kb"
+    docker builder prune --all --force
+    docker image prune --force
+
+    capacity_probe="$docker_root"
+    if ! available_kb="$(df -Pk "$capacity_probe" 2>/dev/null | awk 'NR == 2 { print $4 }')"; then
+      capacity_probe="$(dirname "$docker_root")"
+      available_kb="$(df -Pk "$capacity_probe" | awk 'NR == 2 { print $4 }')"
+    fi
+    if [[ ! "$available_kb" =~ ^[0-9]+$ ]]; then
+      echo "[ci-job] unable to determine Docker filesystem capacity after pressure cleanup root=$docker_root probe=$capacity_probe" >&2
+      return 1
+    fi
+  fi
+
   docker system df || true
   echo "[ci-job] Docker capacity ready context=$context root=$docker_root probe=$capacity_probe available_kb=$available_kb min_free_kb=$build_min_free_kb"
   if (( available_kb < build_min_free_kb )); then

@@ -61,6 +61,7 @@ assert_contains "$job_runner" 'pnpm lint'
 assert_contains "$job_runner" 'pnpm test:server'
 assert_contains "$job_runner" 'docker builder prune --all --force --keep-storage "$build_cache_keep_storage"'
 assert_contains "$job_runner" 'docker image prune --force'
+assert_contains "$job_runner" 'Docker capacity pressure detected; pruning all unused BuildKit cache'
 assert_contains "$job_runner" 'insufficient Docker filesystem capacity after safe cache cleanup'
 assert_contains "$job_runner" 'docker compose --parallel "$build_parallel_limit" -p "$COMPOSE_PROJECT_NAME" build'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh tag-build'
@@ -388,9 +389,10 @@ reset_fake_state
 if run_build_contract capacity-blocked 999999999999; then
   fail "build job accepted insufficient Docker filesystem capacity"
 fi
-assert_contains "$fake_state" 'builder:prune-count|1'
-assert_contains "$fake_state" 'image:prune-count|1'
+assert_contains "$fake_state" 'builder:prune-count|2'
+assert_contains "$fake_state" 'image:prune-count|2'
 assert_contains "$fake_state" 'compose:build-count|0'
+assert_contains "$test_root/capacity-blocked.log" 'Docker capacity pressure detected; pruning all unused BuildKit cache'
 assert_contains "$test_root/capacity-blocked.log" 'insufficient Docker filesystem capacity after safe cache cleanup'
 
 reset_fake_state
