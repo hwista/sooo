@@ -13,6 +13,12 @@
 - DMS가 해석한 정확한 문서 root만 각 Git 명령의 command-local `safe.directory`로 허용하고, container global config와 wildcard 신뢰 설정은 사용하지 않습니다.
 - Git의 different-owner 테스트 모드에서 기존 client 실패와 새 scoped client 성공을 함께 검증하는 서버 회귀 테스트를 추가했습니다.
 
+### CI Docker 저장공간 고갈 사전 복구
+
+- image build가 containerd `no space left on device`로 중단되는 runner 누적 결함을 막기 위해 verify/build 직전에 unused BuildKit cache와 dangling image만 정리하고 Docker root 여유 공간을 fail-closed로 검사합니다.
+- 실행 중 container, tagged image, volume은 정리 대상에서 제외하며, 전체 Compose build 병렬도를 기본 1로 제한해 여러 서비스 dependency layer가 동시에 생성되는 peak disk 사용량을 낮췄습니다.
+- deterministic pipeline contract에 cache/image prune 실행, 충분한 용량에서만 build 진입, 부족한 용량에서 zero-build 차단을 추가했습니다.
+
 ## 2026-07-14
 
 ### DMS 신규 계정 빈 문서 트리 bootstrap 정상화

@@ -11,6 +11,9 @@ deploy_health_wait="${CI_DEPLOY_HEALTH_WAIT_SECONDS:-60}"
 backup_manifest_dir="${CI_BACKUP_MANIFEST_DIR:-/tmp}"
 last_backup_tag_file="${CI_LAST_BACKUP_TAG_FILE:-/tmp/ssoo-ci-last-backup-tag}"
 last_backup_manifest_file="${CI_LAST_BACKUP_MANIFEST_FILE:-/tmp/ssoo-ci-last-backup-manifest}"
+build_cache_keep_storage="${CI_BUILD_CACHE_KEEP_STORAGE:-8GB}"
+build_min_free_kb="${CI_BUILD_MIN_FREE_KB:-8388608}"
+build_parallel_limit="${CI_BUILD_PARALLEL_LIMIT:-1}"
 
 if [[ ! "$deploy_health_wait" =~ ^[0-9]+$ ]]; then
   echo "[ci-job] CI_DEPLOY_HEALTH_WAIT_SECONDS must be a non-negative integer" >&2
@@ -18,6 +21,18 @@ if [[ ! "$deploy_health_wait" =~ ^[0-9]+$ ]]; then
 fi
 if [[ ! -d "$backup_manifest_dir" ]]; then
   echo "[ci-job] backup manifest directory is missing: $backup_manifest_dir" >&2
+  exit 1
+fi
+if [[ ! "$build_cache_keep_storage" =~ ^[0-9]+([KMGT]B)?$ ]]; then
+  echo "[ci-job] CI_BUILD_CACHE_KEEP_STORAGE must be a Docker storage size such as 8GB" >&2
+  exit 1
+fi
+if [[ ! "$build_min_free_kb" =~ ^[0-9]+$ ]]; then
+  echo "[ci-job] CI_BUILD_MIN_FREE_KB must be a non-negative integer" >&2
+  exit 1
+fi
+if [[ ! "$build_parallel_limit" =~ ^[1-9][0-9]*$ ]]; then
+  echo "[ci-job] CI_BUILD_PARALLEL_LIMIT must be a positive integer" >&2
   exit 1
 fi
 
@@ -34,6 +49,38 @@ if ! command -v flock >/dev/null 2>&1; then
   exit 1
 fi
 
+prepare_build_capacity() {
+  local context="$1"
+  local docker_root capacity_probe available_kb
+
+  echo "[ci-job] Docker capacity preflight context=$context cache_keep=$build_cache_keep_storage min_free_kb=$build_min_free_kb"
+  docker system df || true
+  docker builder prune --all --force --keep-storage "$build_cache_keep_storage"
+  docker image prune --force
+
+  docker_root="$(docker info --format '{{.DockerRootDir}}')"
+  if [[ -z "$docker_root" ]]; then
+    echo "[ci-job] Docker root directory is unavailable" >&2
+    return 1
+  fi
+  capacity_probe="$docker_root"
+  if ! available_kb="$(df -Pk "$capacity_probe" 2>/dev/null | awk 'NR == 2 { print $4 }')"; then
+    capacity_probe="$(dirname "$docker_root")"
+    available_kb="$(df -Pk "$capacity_probe" | awk 'NR == 2 { print $4 }')"
+  fi
+  if [[ ! "$available_kb" =~ ^[0-9]+$ ]]; then
+    echo "[ci-job] unable to determine Docker filesystem capacity root=$docker_root probe=$capacity_probe" >&2
+    return 1
+  fi
+
+  docker system df || true
+  echo "[ci-job] Docker capacity ready context=$context root=$docker_root probe=$capacity_probe available_kb=$available_kb min_free_kb=$build_min_free_kb"
+  if (( available_kb < build_min_free_kb )); then
+    echo "[ci-job] insufficient Docker filesystem capacity after safe cache cleanup: available_kb=$available_kb required_kb=$build_min_free_kb" >&2
+    return 1
+  fi
+}
+
 exec 9>"$lock_file"
 echo "[ci-job] waiting for lock job=$job file=$lock_file timeout=${lock_timeout}s"
 if ! flock -w "$lock_timeout" 9; then
@@ -42,6 +89,9 @@ if ! flock -w "$lock_timeout" 9; then
 fi
 
 echo "[ci-job] acquired lock job=$job"
+if [[ "$job" == "verify" || "$job" == "build" ]]; then
+  prepare_build_capacity "$job"
+fi
 bash "$CI_PROJECT_DIR/scripts/ci/prepare-app-source.sh"
 cd "$APP_DIR"
 
@@ -119,8 +169,8 @@ case "$job" in
     bash scripts/ci/ai-review.sh
     ;;
   build)
-    echo "전체 이미지 빌드 시작 (BuildKit, 순차)"
-    docker compose -p "$COMPOSE_PROJECT_NAME" build
+    echo "전체 이미지 빌드 시작 (BuildKit, parallel_limit=$build_parallel_limit)"
+    docker compose --parallel "$build_parallel_limit" -p "$COMPOSE_PROJECT_NAME" build
     bash scripts/ci/image-provenance.sh tag-build
     echo "빌드 완료"
     ;;

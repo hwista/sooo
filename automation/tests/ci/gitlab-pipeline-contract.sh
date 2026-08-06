@@ -59,6 +59,10 @@ assert_contains "$job_runner" 'pnpm run verify:gitlab-pipeline'
 assert_contains "$job_runner" 'pnpm run codex:preflight'
 assert_contains "$job_runner" 'pnpm lint'
 assert_contains "$job_runner" 'pnpm test:server'
+assert_contains "$job_runner" 'docker builder prune --all --force --keep-storage "$build_cache_keep_storage"'
+assert_contains "$job_runner" 'docker image prune --force'
+assert_contains "$job_runner" 'insufficient Docker filesystem capacity after safe cache cleanup'
+assert_contains "$job_runner" 'docker compose --parallel "$build_parallel_limit" -p "$COMPOSE_PROJECT_NAME" build'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh tag-build'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh backup-running "$backup_tag" "$backup_manifest"'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh prepare-deploy'
@@ -192,11 +196,33 @@ print_fake_config() {
 }
 
 case "${1:-}" in
+  builder)
+    [[ "${2:-}" == "prune" ]] || exit 2
+    prune_count="$(lookup_key builder:prune-count 2>/dev/null || printf '0\n')"
+    set_value builder:prune-count "$((prune_count + 1))"
+    ;;
   image)
-    [[ "${2:-}" == "inspect" ]] || exit 2
-    if ! print_fake_config "$@"; then
-      resolve_image "$3"
-    fi
+    case "${2:-}" in
+      inspect)
+        if ! print_fake_config "$@"; then
+          resolve_image "$3"
+        fi
+        ;;
+      prune)
+        prune_count="$(lookup_key image:prune-count 2>/dev/null || printf '0\n')"
+        set_value image:prune-count "$((prune_count + 1))"
+        ;;
+      rm)
+        exit 0
+        ;;
+      *) exit 2 ;;
+    esac
+    ;;
+  info)
+    printf '%s\n' "${FAKE_DOCKER_ROOT:?}"
+    ;;
+  system)
+    [[ "${2:-}" == "df" ]] || exit 2
     ;;
   tag)
     source_id="$(resolve_image "$2")"
@@ -249,7 +275,7 @@ case "${1:-}" in
     operation=""
     for argument in "$@"; do
       case "$argument" in
-        up|ps) operation="$argument" ;;
+        build|up|ps) operation="$argument" ;;
       esac
     done
     case "$operation" in
@@ -273,6 +299,10 @@ case "${1:-}" in
         if [[ "${FAKE_DOCKER_FAIL_FIRST_DEPLOY_HEALTH:-}" == "1" && "$up_count" == "1" ]]; then
           set_value health:ssoo-dms unhealthy
         fi
+        ;;
+      build)
+        build_count="$(lookup_key compose:build-count 2>/dev/null || printf '0\n')"
+        set_value compose:build-count "$((build_count + 1))"
         ;;
       *)
         exit 2
@@ -305,6 +335,9 @@ reset_fake_state() {
     printf 'health:ssoo-%s|healthy\n' "$service" >> "$fake_state"
   done
   printf 'compose:up-count|0\n' >> "$fake_state"
+  printf 'compose:build-count|0\n' >> "$fake_state"
+  printf 'builder:prune-count|0\n' >> "$fake_state"
+  printf 'image:prune-count|0\n' >> "$fake_state"
 }
 
 set_state() {
@@ -322,6 +355,43 @@ remove_state() {
   awk -F '|' -v key="$key" '$1 != key' "$fake_state" > "$next"
   mv "$next" "$fake_state"
 }
+
+run_build_contract() {
+  local scenario="$1"
+  local minimum_free_kb="$2"
+  local output="$test_root/$scenario.log"
+
+  CI_PROJECT_DIR="$repo_root" \
+    APP_DIR="$app" \
+    CI_COMMIT_REF_NAME=development \
+    CI_COMMIT_SHA="$second_sha" \
+    CI_COMMIT_SHORT_SHA="${second_sha:0:8}" \
+    CI_APP_LOCK_FILE="$test_root/$scenario.lock" \
+    CI_BACKUP_MANIFEST_DIR="$test_root" \
+    CI_BUILD_CACHE_KEEP_STORAGE=1GB \
+    CI_BUILD_MIN_FREE_KB="$minimum_free_kb" \
+    CI_BUILD_PARALLEL_LIMIT=1 \
+    COMPOSE_PROJECT_NAME=app \
+    PATH="$fake_bin:$PATH" \
+    FAKE_DOCKER_STATE="$fake_state" \
+    FAKE_DOCKER_ROOT="$test_root" \
+    bash "$job_runner" build >"$output" 2>&1
+}
+
+reset_fake_state
+run_build_contract capacity-ready 0
+assert_contains "$fake_state" 'builder:prune-count|1'
+assert_contains "$fake_state" 'image:prune-count|1'
+assert_contains "$fake_state" 'compose:build-count|1'
+
+reset_fake_state
+if run_build_contract capacity-blocked 999999999999; then
+  fail "build job accepted insufficient Docker filesystem capacity"
+fi
+assert_contains "$fake_state" 'builder:prune-count|1'
+assert_contains "$fake_state" 'image:prune-count|1'
+assert_contains "$fake_state" 'compose:build-count|0'
+assert_contains "$test_root/capacity-blocked.log" 'insufficient Docker filesystem capacity after safe cache cleanup'
 
 reset_fake_state
 PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
