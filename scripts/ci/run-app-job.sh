@@ -13,7 +13,8 @@ last_backup_tag_file="${CI_LAST_BACKUP_TAG_FILE:-/tmp/ssoo-ci-last-backup-tag}"
 last_backup_manifest_file="${CI_LAST_BACKUP_MANIFEST_FILE:-/tmp/ssoo-ci-last-backup-manifest}"
 build_cache_keep_storage="${CI_BUILD_CACHE_KEEP_STORAGE:-8GB}"
 build_min_free_kb="${CI_BUILD_MIN_FREE_KB:-8388608}"
-build_services=(server pms dms sns admin crm db-init)
+build_target_min_free_kb="${CI_BUILD_TARGET_MIN_FREE_KB:-3145728}"
+build_services=(server db-init pms dms sns admin crm)
 
 if [[ ! "$deploy_health_wait" =~ ^[0-9]+$ ]]; then
   echo "[ci-job] CI_DEPLOY_HEALTH_WAIT_SECONDS must be a non-negative integer" >&2
@@ -31,6 +32,10 @@ if [[ ! "$build_min_free_kb" =~ ^[0-9]+$ ]]; then
   echo "[ci-job] CI_BUILD_MIN_FREE_KB must be a non-negative integer" >&2
   exit 1
 fi
+if [[ ! "$build_target_min_free_kb" =~ ^[0-9]+$ ]]; then
+  echo "[ci-job] CI_BUILD_TARGET_MIN_FREE_KB must be a non-negative integer" >&2
+  exit 1
+fi
 case "$job" in
   verify|ai-review|build|deploy) ;;
   *)
@@ -44,13 +49,34 @@ if ! command -v flock >/dev/null 2>&1; then
   exit 1
 fi
 
+prune_unreferenced_app_latest() {
+  local service image_tag latest_id container_id
+
+  for service in "${build_services[@]}"; do
+    image_tag="app-$service:latest"
+    latest_id="$(docker image inspect "$image_tag" --format '{{.Id}}' 2>/dev/null || true)"
+    container_id="$(docker inspect "ssoo-$service" --format '{{.Image}}' 2>/dev/null || true)"
+    if [[ -z "$latest_id" || -z "$container_id" || "$latest_id" == "$container_id" ]]; then
+      continue
+    fi
+    echo "[ci-job] removing undeployed latest tag service=$service image=$image_tag id=$latest_id running_id=$container_id"
+    docker image rm "$image_tag"
+  done
+}
+
 prepare_build_capacity() {
   local context="$1"
+  local required_kb="${2:-$build_min_free_kb}"
+  local cleanup_mode="${3:-adaptive}"
   local docker_root capacity_probe available_kb
 
-  echo "[ci-job] Docker capacity preflight context=$context cache_keep=$build_cache_keep_storage min_free_kb=$build_min_free_kb"
+  echo "[ci-job] Docker capacity preflight context=$context mode=$cleanup_mode cache_keep=$build_cache_keep_storage min_free_kb=$required_kb"
   docker system df || true
-  docker builder prune --all --force --keep-storage "$build_cache_keep_storage"
+  if [[ "$cleanup_mode" == "full" ]]; then
+    docker builder prune --all --force
+  else
+    docker builder prune --all --force --keep-storage "$build_cache_keep_storage"
+  fi
   docker image prune --force
 
   docker_root="$(docker info --format '{{.DockerRootDir}}')"
@@ -68,8 +94,8 @@ prepare_build_capacity() {
     return 1
   fi
 
-  if (( available_kb < build_min_free_kb )); then
-    echo "[ci-job] Docker capacity pressure detected; pruning all unused BuildKit cache available_kb=$available_kb required_kb=$build_min_free_kb"
+  if [[ "$cleanup_mode" != "full" ]] && (( available_kb < required_kb )); then
+    echo "[ci-job] Docker capacity pressure detected; pruning all unused BuildKit cache available_kb=$available_kb required_kb=$required_kb"
     docker builder prune --all --force
     docker image prune --force
 
@@ -85,9 +111,9 @@ prepare_build_capacity() {
   fi
 
   docker system df || true
-  echo "[ci-job] Docker capacity ready context=$context root=$docker_root probe=$capacity_probe available_kb=$available_kb min_free_kb=$build_min_free_kb"
-  if (( available_kb < build_min_free_kb )); then
-    echo "[ci-job] insufficient Docker filesystem capacity after safe cache cleanup: available_kb=$available_kb required_kb=$build_min_free_kb" >&2
+  echo "[ci-job] Docker capacity ready context=$context root=$docker_root probe=$capacity_probe available_kb=$available_kb min_free_kb=$required_kb"
+  if (( available_kb < required_kb )); then
+    echo "[ci-job] insufficient Docker filesystem capacity after safe cache cleanup: available_kb=$available_kb required_kb=$required_kb" >&2
     return 1
   fi
 }
@@ -100,6 +126,9 @@ if ! flock -w "$lock_timeout" 9; then
 fi
 
 echo "[ci-job] acquired lock job=$job"
+if [[ "$job" == "build" ]]; then
+  prune_unreferenced_app_latest
+fi
 if [[ "$job" == "verify" || "$job" == "build" ]]; then
   prepare_build_capacity "$job"
 fi
@@ -180,13 +209,19 @@ case "$job" in
     bash scripts/ci/ai-review.sh
     ;;
   build)
+    bake_definition="$(mktemp "${TMPDIR:-/tmp}/ssoo-compose-bake.XXXXXX.json")"
+    cleanup_bake_definition() {
+      rm -f "$bake_definition"
+    }
+    trap cleanup_bake_definition EXIT
+    docker compose -p "$COMPOSE_PROJECT_NAME" build --print > "$bake_definition"
     echo "전체 이미지 완전 순차 빌드 시작 (BuildKit, services=${build_services[*]})"
     for service in "${build_services[@]}"; do
       if [[ "$service" != "${build_services[0]}" ]]; then
-        prepare_build_capacity "build-$service"
+        prepare_build_capacity "build-$service" "$build_target_min_free_kb" full
       fi
       echo "[ci-job] building service=$service"
-      docker compose -p "$COMPOSE_PROJECT_NAME" build "$service"
+      docker buildx bake --file "$bake_definition" --load "$service"
       echo "[ci-job] built service=$service"
     done
     bash scripts/ci/image-provenance.sh tag-build
