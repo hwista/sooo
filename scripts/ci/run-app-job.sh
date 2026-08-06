@@ -13,7 +13,7 @@ last_backup_tag_file="${CI_LAST_BACKUP_TAG_FILE:-/tmp/ssoo-ci-last-backup-tag}"
 last_backup_manifest_file="${CI_LAST_BACKUP_MANIFEST_FILE:-/tmp/ssoo-ci-last-backup-manifest}"
 build_cache_keep_storage="${CI_BUILD_CACHE_KEEP_STORAGE:-8GB}"
 build_min_free_kb="${CI_BUILD_MIN_FREE_KB:-8388608}"
-build_parallel_limit="${CI_BUILD_PARALLEL_LIMIT:-1}"
+build_services=(server pms dms sns admin crm db-init)
 
 if [[ ! "$deploy_health_wait" =~ ^[0-9]+$ ]]; then
   echo "[ci-job] CI_DEPLOY_HEALTH_WAIT_SECONDS must be a non-negative integer" >&2
@@ -31,11 +31,6 @@ if [[ ! "$build_min_free_kb" =~ ^[0-9]+$ ]]; then
   echo "[ci-job] CI_BUILD_MIN_FREE_KB must be a non-negative integer" >&2
   exit 1
 fi
-if [[ ! "$build_parallel_limit" =~ ^[1-9][0-9]*$ ]]; then
-  echo "[ci-job] CI_BUILD_PARALLEL_LIMIT must be a positive integer" >&2
-  exit 1
-fi
-
 case "$job" in
   verify|ai-review|build|deploy) ;;
   *)
@@ -185,8 +180,15 @@ case "$job" in
     bash scripts/ci/ai-review.sh
     ;;
   build)
-    echo "전체 이미지 빌드 시작 (BuildKit, parallel_limit=$build_parallel_limit)"
-    docker compose --parallel "$build_parallel_limit" -p "$COMPOSE_PROJECT_NAME" build
+    echo "전체 이미지 완전 순차 빌드 시작 (BuildKit, services=${build_services[*]})"
+    for service in "${build_services[@]}"; do
+      if [[ "$service" != "${build_services[0]}" ]]; then
+        prepare_build_capacity "build-$service"
+      fi
+      echo "[ci-job] building service=$service"
+      docker compose -p "$COMPOSE_PROJECT_NAME" build "$service"
+      echo "[ci-job] built service=$service"
+    done
     bash scripts/ci/image-provenance.sh tag-build
     echo "빌드 완료"
     ;;

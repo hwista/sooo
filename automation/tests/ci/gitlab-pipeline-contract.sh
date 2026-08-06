@@ -63,7 +63,9 @@ assert_contains "$job_runner" 'docker builder prune --all --force --keep-storage
 assert_contains "$job_runner" 'docker image prune --force'
 assert_contains "$job_runner" 'Docker capacity pressure detected; pruning all unused BuildKit cache'
 assert_contains "$job_runner" 'insufficient Docker filesystem capacity after safe cache cleanup'
-assert_contains "$job_runner" 'docker compose --parallel "$build_parallel_limit" -p "$COMPOSE_PROJECT_NAME" build'
+assert_contains "$job_runner" 'build_services=(server pms dms sns admin crm db-init)'
+assert_contains "$job_runner" 'docker compose -p "$COMPOSE_PROJECT_NAME" build "$service"'
+assert_contains "$job_runner" 'prepare_build_capacity "build-$service"'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh tag-build'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh backup-running "$backup_tag" "$backup_manifest"'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh prepare-deploy'
@@ -304,6 +306,17 @@ case "${1:-}" in
       build)
         build_count="$(lookup_key compose:build-count 2>/dev/null || printf '0\n')"
         set_value compose:build-count "$((build_count + 1))"
+        service="${@: -1}"
+        build_sequence="$(lookup_key compose:build-sequence 2>/dev/null || true)"
+        if [[ -n "$build_sequence" ]]; then
+          build_sequence="$build_sequence,$service"
+        else
+          build_sequence="$service"
+        fi
+        set_value compose:build-sequence "$build_sequence"
+        if [[ "${FAKE_DOCKER_FAIL_BUILD_SERVICE:-}" == "$service" ]]; then
+          exit 1
+        fi
         ;;
       *)
         exit 2
@@ -371,7 +384,6 @@ run_build_contract() {
     CI_BACKUP_MANIFEST_DIR="$test_root" \
     CI_BUILD_CACHE_KEEP_STORAGE=1GB \
     CI_BUILD_MIN_FREE_KB="$minimum_free_kb" \
-    CI_BUILD_PARALLEL_LIMIT=1 \
     COMPOSE_PROJECT_NAME=app \
     PATH="$fake_bin:$PATH" \
     FAKE_DOCKER_STATE="$fake_state" \
@@ -381,9 +393,17 @@ run_build_contract() {
 
 reset_fake_state
 run_build_contract capacity-ready 0
-assert_contains "$fake_state" 'builder:prune-count|1'
-assert_contains "$fake_state" 'image:prune-count|1'
-assert_contains "$fake_state" 'compose:build-count|1'
+assert_contains "$fake_state" 'builder:prune-count|7'
+assert_contains "$fake_state" 'image:prune-count|7'
+assert_contains "$fake_state" 'compose:build-count|7'
+assert_contains "$fake_state" 'compose:build-sequence|server,pms,dms,sns,admin,crm,db-init'
+
+reset_fake_state
+if FAKE_DOCKER_FAIL_BUILD_SERVICE=dms run_build_contract serial-build-failed 0; then
+  fail "build job continued after a serial service build failed"
+fi
+assert_contains "$fake_state" 'compose:build-count|3'
+assert_contains "$fake_state" 'compose:build-sequence|server,pms,dms'
 
 reset_fake_state
 if run_build_contract capacity-blocked 999999999999; then

@@ -16,8 +16,8 @@
 ### CI Docker 저장공간 고갈 사전 복구
 
 - image build가 containerd `no space left on device`로 중단되는 runner 누적 결함을 막기 위해 verify/build 직전에 unused BuildKit cache와 dangling image만 정리하고 Docker root 여유 공간을 fail-closed로 검사합니다. 1차 cache 보존 정리 후에도 임계값보다 부족하면 unused BuildKit cache를 전량 정리하고 재측정합니다.
-- 실행 중 container, tagged image, volume은 정리 대상에서 제외하며, 전체 Compose build 병렬도를 기본 1로 제한해 여러 서비스 dependency layer가 동시에 생성되는 peak disk 사용량을 낮췄습니다.
-- deterministic pipeline contract에 cache/image prune 실행, 충분한 용량에서만 build 진입, 부족한 용량에서 zero-build 차단을 추가했습니다.
+- 실행 중 container, tagged image, volume은 정리 대상에서 제외합니다. Compose 병렬도 1에서도 BuildKit이 여러 image target을 동시에 처리해 pipeline #157이 다시 ENOSPC로 실패한 사실을 반영해, 7개 서비스를 각각 별도 Compose 명령으로 완전히 순차 빌드하고 서비스 사이마다 용량 복구/검사를 반복합니다.
+- deterministic pipeline contract에 cache/image prune 실행, 충분한 용량에서만 7개 서비스가 고정 순서로 빌드되는 계약, 중간 서비스 실패 시 즉시 중단, 부족한 용량에서 zero-build 차단을 추가했습니다.
 
 ## 2026-07-14
 

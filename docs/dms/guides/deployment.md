@@ -233,7 +233,7 @@ server:
 - 모든 서비스 backup이 성공한 뒤에만 completed manifest와 last-backup marker를 기록합니다. 일부 tag만 만들어진 실패 시도는 유효한 rollback set으로 취급하지 않으며, commit image나 rollback source가 하나라도 준비되지 않으면 image 선택과 Compose 변경 전에 실패합니다.
 - build/deploy trace에는 commit image ID와 배포된 `ssoo-<service>` container image ID가 남고, 하나라도 다르면 deploy job이 실패합니다.
 - 기본 60초 후 PostgreSQL과 전체 web/server container가 모두 `healthy`가 아니면 deploy job이 실패합니다. commit image 선택 이후 Compose recreation, health, image parity 중 하나라도 실패하면 completed manifest의 backup image를 `latest`로 복원하고 이전 application image set을 같은 Compose topology에서 `--no-build`로 다시 올린 뒤 rollback health와 container/backup-image parity를 검증합니다. Compose topology 또는 DB migration을 바꾸는 배포는 이 image rollback만으로 안전하다고 간주하지 않으며 별도 migration/config rollback 계획이 필요합니다.
-- verify/build 직전에는 실행 중 container, tagged image, volume을 삭제하지 않고 unused BuildKit cache와 dangling image만 정리합니다. 먼저 지정된 cache 보존량을 유지하며 정리하고, Docker root의 여유 공간이 기본 8 GiB 미만이면 unused BuildKit cache를 전량 정리한 뒤 재측정합니다. 그래도 부족하면 실제 build 전에 실패합니다. Compose image build는 기본 parallel limit 1로 실행해 동시 dependency layer의 peak disk 사용량을 제한합니다. 임계값과 1차 cache 보존량은 각각 `CI_BUILD_MIN_FREE_KB`, `CI_BUILD_CACHE_KEEP_STORAGE`, 병렬도는 `CI_BUILD_PARALLEL_LIMIT`로 조정할 수 있습니다.
+- verify/build 직전에는 실행 중 container, tagged image, volume을 삭제하지 않고 unused BuildKit cache와 dangling image만 정리합니다. 먼저 지정된 cache 보존량을 유지하며 정리하고, Docker root의 여유 공간이 기본 8 GiB 미만이면 unused BuildKit cache를 전량 정리한 뒤 재측정합니다. 그래도 부족하면 실제 build 전에 실패합니다. Compose의 다중 타깃 build는 병렬도 1에서도 BuildKit 내부 타깃을 동시에 처리할 수 있으므로 사용하지 않습니다. `server`, `pms`, `dms`, `sns`, `admin`, `crm`, `db-init`을 각각 별도 Compose 명령으로 완전히 순차 빌드하고 다음 서비스 전마다 같은 용량 검사를 반복합니다. 임계값과 1차 cache 보존량은 각각 `CI_BUILD_MIN_FREE_KB`, `CI_BUILD_CACHE_KEEP_STORAGE`로 조정할 수 있습니다.
 - 자동 rollback이 성공해도 원래 deploy job은 failed로 유지해 배포 실패 사실을 보존합니다. rollback도 실패하면 trace에 manifest 경로와 manual recovery 필요 상태를 남기고 failed로 종료하며, 운영자가 확인하기 전 추가 배포를 실행하지 않습니다.
 - persistent worktree와 shared Docker tag를 사용하는 job은 shell runner host의 `/tmp/ssoo-app-runtime.lock` `flock`으로 직렬화됩니다. 더 최신 pipeline이 `latest`를 갱신한 뒤 과거 pipeline의 manual deploy를 실행해도 선택한 commit tag가 배포 기준입니다.
 
@@ -280,7 +280,7 @@ docker compose up -d --build
 
 | 날짜 | 변경 내용 |
 |------|----------|
-| 2026-08-06 | verify/build 전 unused build cache·dangling image 정리, 8 GiB free-space gate, Compose build parallel limit 1을 추가해 runner ENOSPC를 사전 복구/차단 |
+| 2026-08-06 | verify/build 전 unused build cache·dangling image 정리와 8 GiB free-space gate를 추가하고, 7개 image를 서비스별 별도 Compose 명령으로 완전 순차 빌드하며 서비스 사이에도 용량을 재검사해 runner ENOSPC를 사전 복구/차단 |
 | 2026-08-06 | missing running-image를 application-container snapshot으로 보존하고 content-store 손상 시 metadata-preserving filesystem export/import로 재구성하는 rollback preflight/completed manifest, post-mutation automatic rollback, manual+non-optional deploy 상태 계약을 추가 |
 | 2026-07-15 | 현재 GitLab 버전과 호환되는 host `flock`, exact `CI_COMMIT_SHA` source alignment, 실제 자동 verify, commit-tagged image와 deployed container ID parity 계약을 추가 |
 | 2026-06-19 | local compose 에서 `apps/web/dms/.env.local` 의 DMS/Azure 값을 `web-dms`와 `server`가 함께 읽도록 정리해 로컬 요약 경로가 UI 설정과 어긋나지 않게 수정 |
