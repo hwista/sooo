@@ -7,6 +7,19 @@ APP_DIR="${APP_DIR:?APP_DIR is required}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-app}"
 lock_file="${CI_APP_LOCK_FILE:-/tmp/ssoo-app-runtime.lock}"
 lock_timeout="${CI_APP_LOCK_TIMEOUT_SECONDS:-7200}"
+deploy_health_wait="${CI_DEPLOY_HEALTH_WAIT_SECONDS:-60}"
+backup_manifest_dir="${CI_BACKUP_MANIFEST_DIR:-/tmp}"
+last_backup_tag_file="${CI_LAST_BACKUP_TAG_FILE:-/tmp/ssoo-ci-last-backup-tag}"
+last_backup_manifest_file="${CI_LAST_BACKUP_MANIFEST_FILE:-/tmp/ssoo-ci-last-backup-manifest}"
+
+if [[ ! "$deploy_health_wait" =~ ^[0-9]+$ ]]; then
+  echo "[ci-job] CI_DEPLOY_HEALTH_WAIT_SECONDS must be a non-negative integer" >&2
+  exit 1
+fi
+if [[ ! -d "$backup_manifest_dir" ]]; then
+  echo "[ci-job] backup manifest directory is missing: $backup_manifest_dir" >&2
+  exit 1
+fi
 
 case "$job" in
   verify|ai-review|build|deploy) ;;
@@ -31,6 +44,50 @@ fi
 echo "[ci-job] acquired lock job=$job"
 bash "$CI_PROJECT_DIR/scripts/ci/prepare-app-source.sh"
 cd "$APP_DIR"
+
+check_stack_health() {
+  local context="$1"
+  local health_failed=0
+  local service status
+
+  echo "[ci-job] waiting ${deploy_health_wait}s before $context health check"
+  if [[ "$deploy_health_wait" -gt 0 ]]; then
+    sleep "$deploy_health_wait"
+  fi
+  docker compose -p "$COMPOSE_PROJECT_NAME" ps || return $?
+  for service in postgres server pms dms sns admin crm; do
+    status="$(docker inspect "ssoo-$service" --format '{{.State.Health.Status}}' 2>/dev/null || echo "na")"
+    echo "[ci-job] health context=$context container=ssoo-$service status=$status"
+    if [[ "$status" != "healthy" ]]; then
+      health_failed=1
+    fi
+  done
+
+  if [[ "$health_failed" != "0" ]]; then
+    echo "[ci-job] $context health check failed" >&2
+    return 1
+  fi
+}
+
+deploy_selected_images() {
+  local backup_manifest="$1"
+
+  bash scripts/ci/image-provenance.sh prepare-deploy || return $?
+  docker compose -p "$COMPOSE_PROJECT_NAME" up -d --no-build || return $?
+  check_stack_health deployment || return $?
+  bash scripts/ci/image-provenance.sh verify-deploy || return $?
+  echo "[ci-job] deployment verification passed manifest=$backup_manifest"
+}
+
+restore_previous_images() {
+  local backup_manifest="$1"
+
+  bash scripts/ci/image-provenance.sh restore-backup "$backup_manifest" || return $?
+  docker compose -p "$COMPOSE_PROJECT_NAME" up -d --no-build || return $?
+  check_stack_health rollback || return $?
+  bash scripts/ci/image-provenance.sh verify-backup "$backup_manifest" || return $?
+  echo "[ci-job] rollback verification passed manifest=$backup_manifest"
+}
 
 case "$job" in
   verify)
@@ -69,25 +126,30 @@ case "$job" in
     ;;
   deploy)
     echo "development 배포 시작"
-    backup_tag="ci-backup-$(date +%Y%m%d_%H%M%S)"
+    backup_tag="ci-backup-$(date +%Y%m%d_%H%M%S)-${CI_JOB_ID:-$$}"
+    backup_manifest="$backup_manifest_dir/ssoo-${backup_tag}.manifest"
     echo "백업 태그 $backup_tag"
-    bash scripts/ci/image-provenance.sh backup-running "$backup_tag"
-    echo "$backup_tag" > /tmp/ssoo-ci-last-backup-tag
-    bash scripts/ci/image-provenance.sh prepare-deploy
-    docker compose -p "$COMPOSE_PROJECT_NAME" up -d --no-build
-    echo "60초 대기 후 health check"
-    sleep 60
-    docker compose -p "$COMPOSE_PROJECT_NAME" ps
-    health_failed=0
-    for service in postgres server pms dms sns admin crm; do
-      status="$(docker inspect "ssoo-$service" --format '{{.State.Health.Status}}' 2>/dev/null || echo "na")"
-      echo "ssoo-$service $status"
-      if [[ "$status" != "healthy" ]]; then
-        health_failed=1
+    bash scripts/ci/image-provenance.sh backup-running "$backup_tag" "$backup_manifest"
+    echo "$backup_tag" > "$last_backup_tag_file"
+    echo "$backup_manifest" > "$last_backup_manifest_file"
+
+    set +e
+    deploy_selected_images "$backup_manifest"
+    deploy_status=$?
+    set -e
+    if [[ "$deploy_status" != "0" ]]; then
+      echo "[ci-job] deployment failed status=$deploy_status; starting automatic rollback" >&2
+      set +e
+      restore_previous_images "$backup_manifest"
+      rollback_status=$?
+      set -e
+      if [[ "$rollback_status" == "0" ]]; then
+        echo "[ci-job] deployment failed but automatic rollback succeeded" >&2
+      else
+        echo "[ci-job] deployment and automatic rollback failed rollback_status=$rollback_status; manual recovery required manifest=$backup_manifest" >&2
       fi
-    done
-    [[ "$health_failed" == "0" ]] || { echo "[ci-job] deployment health check failed" >&2; exit 1; }
-    bash scripts/ci/image-provenance.sh verify-deploy
+      exit 1
+    fi
     echo "배포 완료"
     ;;
 esac

@@ -55,6 +55,7 @@ deploy_dev:
   tags:
     - ssoo
   when: manual
+  allow_failure: false
   environment:
     name: development
     url: http://10.125.12.170:3001

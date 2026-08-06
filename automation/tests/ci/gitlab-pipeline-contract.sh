@@ -46,6 +46,7 @@ assert_contains "$pipeline" 'bash "$CI_PROJECT_DIR/scripts/ci/run-app-job.sh" ai
 assert_contains "$pipeline" 'bash "$CI_PROJECT_DIR/scripts/ci/run-app-job.sh" build'
 assert_contains "$pipeline" 'bash "$CI_PROJECT_DIR/scripts/ci/run-app-job.sh" deploy'
 assert_contains "$pipeline" 'when: manual'
+assert_contains "$pipeline" 'allow_failure: false'
 
 if grep -Fq 'resource_group:' "$pipeline"; then
   fail "pipeline uses resource_group, which is unsupported by the current GitLab version"
@@ -59,11 +60,16 @@ assert_contains "$job_runner" 'pnpm run codex:preflight'
 assert_contains "$job_runner" 'pnpm lint'
 assert_contains "$job_runner" 'pnpm test:server'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh tag-build'
-assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh backup-running "$backup_tag"'
+assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh backup-running "$backup_tag" "$backup_manifest"'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh prepare-deploy'
+assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh restore-backup "$backup_manifest"'
 assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh verify-deploy'
+assert_contains "$job_runner" 'bash scripts/ci/image-provenance.sh verify-backup "$backup_manifest"'
 assert_contains "$job_runner" 'docker compose -p "$COMPOSE_PROJECT_NAME" up -d --no-build'
-assert_contains "$job_runner" '[[ "$health_failed" == "0" ]]'
+assert_contains "$job_runner" 'deployment failed but automatic rollback succeeded'
+assert_contains "$job_runner" 'manual recovery required'
+assert_contains "$image_provenance" 'docker commit "$container" "$backup_image"'
+assert_contains "$image_provenance" 'backup complete tag=$backup_tag manifest=$manifest'
 assert_contains "$gitignore" '.env.*'
 assert_contains "$gitignore" 'compose.yaml.bak*'
 assert_contains "$dockerignore" '.env.*'
@@ -85,13 +91,15 @@ remote="$test_root/remote.git"
 seed="$test_root/seed"
 app="$test_root/app"
 
-git init --bare "$remote" >/dev/null
+git init --bare --initial-branch=development "$remote" >/dev/null
 git init -b development "$seed" >/dev/null
 git -C "$seed" config user.name "CI Contract Test"
 git -C "$seed" config user.email "ci-contract@example.invalid"
 cp "$gitignore" "$seed/.gitignore"
+mkdir -p "$seed/scripts/ci"
+cp "$image_provenance" "$seed/scripts/ci/image-provenance.sh"
 printf 'first\n' > "$seed/version.txt"
-git -C "$seed" add .gitignore version.txt
+git -C "$seed" add .gitignore scripts/ci/image-provenance.sh version.txt
 git -C "$seed" commit -m "first" >/dev/null
 git -C "$seed" remote add origin "$remote"
 git -C "$seed" push -u origin development >/dev/null
@@ -137,12 +145,16 @@ set -euo pipefail
 
 state="${FAKE_DOCKER_STATE:?}"
 
-lookup() {
-  if [[ "$1" == sha256:* ]]; then
-    printf '%s\n' "$1"
-    return
-  fi
+lookup_key() {
   awk -F '|' -v key="$1" '$1 == key { value = $2 } END { if (value == "") exit 1; print value }' "$state"
+}
+
+resolve_image() {
+  if [[ "$1" == sha256:* ]]; then
+    lookup_key "image:$1"
+  else
+    lookup_key "$1"
+  fi
 }
 
 set_value() {
@@ -157,14 +169,65 @@ set_value() {
 case "${1:-}" in
   image)
     [[ "${2:-}" == "inspect" ]] || exit 2
-    lookup "$3"
+    resolve_image "$3"
     ;;
   tag)
-    source_id="$(lookup "$2")"
+    source_id="$(resolve_image "$2")"
     set_value "$3" "$source_id"
     ;;
+  commit)
+    container="$2"
+    target="$3"
+    if [[ "${FAKE_DOCKER_FAIL_COMMIT_CONTAINER:-}" == "$container" ]]; then
+      exit 1
+    fi
+    lookup_key "container:$container" >/dev/null
+    snapshot_id="sha256:${container#ssoo-}-snapshot"
+    set_value "image:$snapshot_id" "$snapshot_id"
+    set_value "$target" "$snapshot_id"
+    printf '%s\n' "$snapshot_id"
+    ;;
   inspect)
-    lookup "container:$2"
+    container="$2"
+    if [[ "$*" == *"State.Health.Status"* ]]; then
+      lookup_key "health:$container"
+    else
+      lookup_key "container:$container"
+    fi
+    ;;
+  compose)
+    operation=""
+    for argument in "$@"; do
+      case "$argument" in
+        up|ps) operation="$argument" ;;
+      esac
+    done
+    case "$operation" in
+      ps)
+        exit 0
+        ;;
+      up)
+        up_count="$(lookup_key compose:up-count 2>/dev/null || printf '0\n')"
+        up_count=$((up_count + 1))
+        set_value compose:up-count "$up_count"
+        if [[ "${FAKE_DOCKER_FAIL_COMPOSE_UP_NUMBER:-}" == "$up_count" ]]; then
+          exit 1
+        fi
+        for service in server pms dms sns admin crm db-init; do
+          latest_id="$(resolve_image "app-$service:latest")"
+          set_value "container:ssoo-$service" "$latest_id"
+        done
+        for service in postgres server pms dms sns admin crm; do
+          set_value "health:ssoo-$service" healthy
+        done
+        if [[ "${FAKE_DOCKER_FAIL_FIRST_DEPLOY_HEALTH:-}" == "1" && "$up_count" == "1" ]]; then
+          set_value health:ssoo-dms unhealthy
+        fi
+        ;;
+      *)
+        exit 2
+        ;;
+    esac
     ;;
   *)
     exit 2
@@ -174,24 +237,25 @@ FAKE_DOCKER
 chmod +x "$fake_bin/docker"
 
 services=(server pms dms sns admin crm db-init)
-for service in "${services[@]}"; do
-  printf 'app-%s:latest|sha256:%s-built\n' "$service" "$service" >> "$fake_state"
-  printf 'container:ssoo-%s|sha256:%s-running\n' "$service" "$service" >> "$fake_state"
-done
+health_services=(postgres server pms dms sns admin crm)
 
-PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
-  bash "$image_provenance" tag-build >/dev/null
-
-for service in "${services[@]}"; do
-  assert_contains "$fake_state" "app-$service:$second_sha|sha256:$service-built"
-done
-
-PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
-  bash "$image_provenance" backup-running ci-backup-test >/dev/null
-
-for service in "${services[@]}"; do
-  assert_contains "$fake_state" "app-$service:ci-backup-test|sha256:$service-running"
-done
+reset_fake_state() {
+  : > "$fake_state"
+  local service built_id running_id
+  for service in "${services[@]}"; do
+    built_id="sha256:$service-built"
+    running_id="sha256:$service-running"
+    printf 'image:%s|%s\n' "$built_id" "$built_id" >> "$fake_state"
+    printf 'image:%s|%s\n' "$running_id" "$running_id" >> "$fake_state"
+    printf 'app-%s:latest|%s\n' "$service" "$built_id" >> "$fake_state"
+    printf 'app-%s:%s|%s\n' "$service" "$second_sha" "$built_id" >> "$fake_state"
+    printf 'container:ssoo-%s|%s\n' "$service" "$running_id" >> "$fake_state"
+  done
+  for service in "${health_services[@]}"; do
+    printf 'health:ssoo-%s|healthy\n' "$service" >> "$fake_state"
+  done
+  printf 'compose:up-count|0\n' >> "$fake_state"
+}
 
 set_state() {
   local key="$1"
@@ -202,25 +266,119 @@ set_state() {
   mv "$next" "$fake_state"
 }
 
+remove_state() {
+  local key="$1"
+  local next="${fake_state}.next"
+  awk -F '|' -v key="$key" '$1 != key' "$fake_state" > "$next"
+  mv "$next" "$fake_state"
+}
+
+reset_fake_state
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
+  bash "$image_provenance" tag-build >/dev/null
+
 for service in "${services[@]}"; do
-  set_state "app-$service:latest" "sha256:$service-newer"
+  assert_contains "$fake_state" "app-$service:$second_sha|sha256:$service-built"
 done
+
+set_state container:ssoo-crm sha256:crm-missing
+remove_state image:sha256:crm-missing
+snapshot_manifest="$test_root/snapshot.manifest"
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
+  bash "$image_provenance" backup-running ci-backup-snapshot "$snapshot_manifest" >/dev/null
+assert_contains "$snapshot_manifest" 'crm|app-crm:ci-backup-snapshot|sha256:crm-snapshot|snapshot|sha256:crm-missing'
+
+tampered_manifest="$test_root/tampered.manifest"
+sed 's#app-crm:ci-backup-snapshot#app-server:ci-backup-snapshot#' "$snapshot_manifest" > "$tampered_manifest"
+if PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
+  bash "$image_provenance" restore-backup "$tampered_manifest" >/dev/null 2>&1; then
+  fail "restore accepted a backup image assigned to the wrong service"
+fi
 
 PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
   bash "$image_provenance" prepare-deploy >/dev/null
-
-for service in "${services[@]}"; do
-  assert_contains "$fake_state" "app-$service:latest|sha256:$service-built"
-  set_state "container:ssoo-$service" "sha256:$service-built"
-done
-
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" docker compose -p app up -d --no-build
 PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
   bash "$image_provenance" verify-deploy >/dev/null
 
-set_state "container:ssoo-dms" "sha256:wrong-image"
-if PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
-  bash "$image_provenance" verify-deploy >/dev/null 2>&1; then
-  fail "image provenance accepted a mismatched deployed container"
-fi
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
+  bash "$image_provenance" restore-backup "$snapshot_manifest" >/dev/null
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" docker compose -p app up -d --no-build
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
+  bash "$image_provenance" verify-backup "$snapshot_manifest" >/dev/null
 
-echo "[gitlab-pipeline-test] exact source and image provenance contracts passed"
+reset_fake_state
+set_state container:ssoo-crm sha256:crm-missing
+remove_state image:sha256:crm-missing
+failed_manifest="$test_root/failed.manifest"
+if PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" FAKE_DOCKER_FAIL_COMMIT_CONTAINER=ssoo-crm \
+  CI_COMMIT_SHA="$second_sha" bash "$image_provenance" backup-running ci-backup-failed "$failed_manifest" >/dev/null 2>&1; then
+  fail "backup accepted a missing running image when snapshot creation failed"
+fi
+[[ ! -e "$failed_manifest" ]] || fail "failed backup published a completed manifest"
+
+run_deploy_contract() {
+  local scenario="$1"
+  local output="$test_root/$scenario.log"
+  shift
+
+  CI_PROJECT_DIR="$repo_root" \
+    APP_DIR="$app" \
+    CI_COMMIT_REF_NAME=development \
+    CI_COMMIT_SHA="$second_sha" \
+    CI_COMMIT_SHORT_SHA="${second_sha:0:8}" \
+    CI_JOB_ID="${CI_JOB_ID_OVERRIDE:?}" \
+    CI_APP_LOCK_FILE="$test_root/$scenario.lock" \
+    CI_DEPLOY_HEALTH_WAIT_SECONDS=0 \
+    CI_BACKUP_MANIFEST_DIR="$test_root" \
+    CI_LAST_BACKUP_TAG_FILE="$test_root/$scenario.last-tag" \
+    CI_LAST_BACKUP_MANIFEST_FILE="$test_root/$scenario.last-manifest" \
+    COMPOSE_PROJECT_NAME=app \
+    PATH="$fake_bin:$PATH" \
+    FAKE_DOCKER_STATE="$fake_state" \
+    "$@" \
+    bash "$job_runner" deploy >"$output" 2>&1
+}
+
+reset_fake_state
+set_state container:ssoo-crm sha256:crm-missing
+remove_state image:sha256:crm-missing
+CI_JOB_ID_OVERRIDE=900
+if run_deploy_contract backup-failed env FAKE_DOCKER_FAIL_COMMIT_CONTAINER=ssoo-crm; then
+  fail "deploy job accepted a failed rollback backup"
+fi
+assert_contains "$fake_state" 'compose:up-count|0'
+
+reset_fake_state
+set_state container:ssoo-crm sha256:crm-missing
+remove_state image:sha256:crm-missing
+CI_JOB_ID_OVERRIDE=901
+if run_deploy_contract rollback-success env FAKE_DOCKER_FAIL_FIRST_DEPLOY_HEALTH=1; then
+  fail "deploy contract accepted an unhealthy deployment after rollback"
+fi
+assert_contains "$test_root/rollback-success.log" 'deployment failed but automatic rollback succeeded'
+rollback_manifest="$(<"$test_root/rollback-success.last-manifest")"
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
+  bash "$image_provenance" verify-backup "$rollback_manifest" >/dev/null
+assert_contains "$fake_state" 'compose:up-count|2'
+
+reset_fake_state
+set_state container:ssoo-crm sha256:crm-missing
+remove_state image:sha256:crm-missing
+CI_JOB_ID_OVERRIDE=902
+run_deploy_contract deploy-success env
+assert_contains "$test_root/deploy-success.log" '배포 완료'
+PATH="$fake_bin:$PATH" FAKE_DOCKER_STATE="$fake_state" CI_COMMIT_SHA="$second_sha" \
+  bash "$image_provenance" verify-deploy >/dev/null
+assert_contains "$fake_state" 'compose:up-count|1'
+
+reset_fake_state
+set_state container:ssoo-crm sha256:crm-missing
+remove_state image:sha256:crm-missing
+CI_JOB_ID_OVERRIDE=903
+if run_deploy_contract rollback-failed env FAKE_DOCKER_FAIL_FIRST_DEPLOY_HEALTH=1 FAKE_DOCKER_FAIL_COMPOSE_UP_NUMBER=2; then
+  fail "deploy contract accepted a failed rollback"
+fi
+assert_contains "$test_root/rollback-failed.log" 'manual recovery required'
+
+echo "[gitlab-pipeline-test] exact source, backup recovery, deploy, and rollback contracts passed"

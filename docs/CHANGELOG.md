@@ -28,6 +28,8 @@
 
 ### Bug Fixes
 
+* **ci, scripts, docs:** 수동 deploy가 실행 container의 image object 누락으로 backup 도중 중단되고도 pipeline이 green으로 남던 문제를 보완했다. 전체 commit/rollback source preflight 후에만 completed backup manifest를 기록하고, 누락 image는 application-container snapshot으로 보존하며, Compose 변경 이후 실패는 이전 image set 자동 복원과 health/image parity까지 검증한다. `deploy_dev`는 manual 상태를 유지하되 non-optional로 전환해 배포 전에는 blocked, 성공 시 success, 실패 시 failed로 표시한다.
+
 * **ci, docker, scripts:** clean verify image에서 Prisma client가 생성되지 않아 server test가 초기화 전에 실패하던 문제를 수정했다. lockfile install 직후 `@ssoo/database db:generate`를 실행해 host의 기존 generated client에 의존하지 않도록 했다.
 
 * **ci, docker, scripts, docs:** GitLab shell runner host에 `pnpm`이 없어 실제 verify가 시작되지 못하던 문제를 수정했다. verify는 exact commit source와 lockfile 의존성을 담은 고정 `node:20`/`pnpm@10.28.0` 이미지에서 contract/preflight/lint/server test를 실행하고, Git metadata만 read-only mount해 host 전역 패키지 설치에 의존하지 않는다.
