@@ -22,8 +22,17 @@ CHANGED="$(
   } | sort -u
 )"
 
+echo "[dms-guard] validating DMS runtime profile contract"
+pnpm run verify:dms-runtime-profile-contract
+
+if changed_matches '^apps/web/(admin|dms)/|^automation/(playwright\.config\.ts|scripts/playwright/start-dms-e2e-stack\.sh|tests/e2e/)|^scripts/(dms-go-live-contract|run-dms-go-live-gate|verify-dms-launch-contract|verify-prisma-deepmerge-security)\.mjs$|^docs/dms/|^pnpm-(lock|workspace)\.yaml$|^package\.json$'; then
+  echo "[dms-guard] validating launch evidence contract"
+  pnpm run verify:dms-launch-contract
+  pnpm run verify:dms-launch-types
+fi
+
 if ! changed_matches '^apps/web/dms/'; then
-  echo "[dms-guard] no DMS changes detected. skip."
+  echo "[dms-guard] no DMS app changes detected. launch contract check complete."
   exit 0
 fi
 

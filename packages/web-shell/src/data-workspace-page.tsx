@@ -61,6 +61,7 @@ import {
   SsooWorkspacePage,
   type SsooWorkspaceContentWidth,
 } from './workspace-page';
+import { SsooSearchInput } from './search-input';
 
 const ALL_FILTER_VALUE = '__all__';
 const DEFAULT_PAGE_SIZE = 10;
@@ -81,14 +82,33 @@ export interface SsooDataWorkspaceFilterOption {
   value: string;
 }
 
-export interface SsooDataWorkspaceFilterField {
+interface SsooDataWorkspaceFilterFieldBase {
   key: string;
-  type: 'text' | 'select' | 'date' | 'dateRange';
   label?: string;
   placeholder?: string;
-  options?: SsooDataWorkspaceFilterOption[];
   width?: string;
 }
+
+export interface SsooDataWorkspaceTextFilterField extends SsooDataWorkspaceFilterFieldBase {
+  type: 'text';
+  id: string;
+  name: string;
+  ariaLabel: string;
+}
+
+export interface SsooDataWorkspaceSelectFilterField extends SsooDataWorkspaceFilterFieldBase {
+  type: 'select';
+  options?: SsooDataWorkspaceFilterOption[];
+}
+
+export interface SsooDataWorkspaceDateFilterField extends SsooDataWorkspaceFilterFieldBase {
+  type: 'date' | 'dateRange';
+}
+
+export type SsooDataWorkspaceFilterField =
+  | SsooDataWorkspaceTextFilterField
+  | SsooDataWorkspaceSelectFilterField
+  | SsooDataWorkspaceDateFilterField;
 
 export type SsooDataWorkspaceFilterValues = Record<string, string>;
 
@@ -468,6 +488,25 @@ export function SsooDataWorkspaceFilterBar({
           );
         }
 
+        if (field.type === 'text') {
+          return (
+            <div key={field.key} className="min-w-0" style={{ width }}>
+              {field.label ? <label className="mb-1 block text-caption ssoo-text-primary-70" htmlFor={field.id}>{field.label}</label> : null}
+              <SsooSearchInput
+                id={field.id}
+                name={field.name}
+                ariaLabel={field.ariaLabel}
+                intent="data-filter"
+                value={value}
+                placeholder={field.placeholder}
+                onChange={(event) => onChange(field.key, event.target.value)}
+                onKeyDown={handleKeyDown}
+                className="h-control-h"
+              />
+            </div>
+          );
+        }
+
         if (field.type === 'dateRange') {
           const startValue = values[`${field.key}_start`] ?? '';
           const endValue = values[`${field.key}_end`] ?? '';
@@ -495,11 +534,10 @@ export function SsooDataWorkspaceFilterBar({
           <div key={field.key} className="min-w-0" style={{ width }}>
             {field.label ? <label className="mb-1 block text-caption ssoo-text-primary-70">{field.label}</label> : null}
             <Input
-              type={field.type === 'date' ? 'date' : 'text'}
+              type="date"
               value={value}
               placeholder={field.placeholder}
               onChange={(event) => onChange(field.key, event.target.value)}
-              onKeyDown={field.type === 'text' ? handleKeyDown : undefined}
               className="h-control-h"
             />
           </div>
@@ -785,13 +823,18 @@ function SsooDataGridToolbar<TData>({
   enableColumnVisibility,
 }: SsooDataGridToolbarProps<TData>) {
   const searchableColumn = searchField ? table.getColumn(searchField) : undefined;
+  const searchFieldIdentifier = searchField?.replace(/[^a-zA-Z0-9_-]/g, '-') ?? 'column';
 
   return (
     <div className="mb-3 flex shrink-0 items-center gap-2">
       {enableSearch && searchableColumn ? (
         <div className="relative max-w-sm flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ssoo-text-primary-50" />
-          <Input
+          <SsooSearchInput
+            id={`ssoo-data-grid-${searchFieldIdentifier}-filter`}
+            name={`ssoo-data-grid-${searchFieldIdentifier}-query`}
+            ariaLabel={searchPlaceholder ?? `${searchField} 검색`}
+            intent="data-filter"
             value={(searchableColumn.getFilterValue() as string | undefined) ?? ''}
             onChange={(event) => searchableColumn.setFilterValue(event.target.value)}
             placeholder={searchPlaceholder}

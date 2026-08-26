@@ -34,7 +34,8 @@ pnpm db:setup
 - PMS: `http://localhost:3002`
 - DMS: `http://localhost:3003`
 - SNS: `http://localhost:3004`
-- Server health: `http://localhost:4000/api/health`
+- Server liveness: `http://localhost:4000/api/health`
+- Server DB+DMS readiness: `http://localhost:4000/api/health/readiness`
 
 직접 DMS 개발 서버가 필요하면 대안으로 `pnpm dev:web-dms`를 사용할 수 있습니다.
 
@@ -110,13 +111,15 @@ DMS_DATABASE_URL=
 
 - `docs/dms/planning/storage-and-second-brain-architecture.md`
 
-### Direct-run local-test profile (document repo isolation)
+### Docker / direct-run local-test profile (자동 회귀 격리)
 
-로컬에서 DMS Git/save/publish 테스트를 할 때는 `LSWIKI/.runtime/documents` 를 markdown working tree로 쓰지 않습니다. 대신 문서 Git working tree만 repo 밖으로 분리하고, ingest/storage는 기존 `.runtime` 경로를 유지합니다.
+Playwright/Ralph, 실패주입, mutation 회귀를 수행할 때는 일반 dev working tree를 사용하지 않습니다. Docker local-test는 DB·문서·ingest·storage를 함께 격리하고, direct-run local-test도 문서 Git working tree를 repo 밖으로 분리합니다. 이 프로필은 자동검증 전용이며 기존 문서를 확인하는 사용자 인수 테스트나 로컬 Docker 인계에는 사용하지 않습니다.
 
 - supported direct-run entrypoint: `pnpm run dms:local-test:start`
 - tracked launcher: `.codex/scripts/dms-local-test-start.sh`
 - untracked local override: `.env.local-test`
+- supported Docker entrypoint: `pnpm run docker:local-test:up`
+- tracked Docker overlay: `compose.local-test.yaml` (remote-empty + PostgreSQL/문서 runtime 전용 named volume)
 - local markdown repo example: `~/dev/LSWIKI_DOC_LOCAL`
 - local templates also live under `DMS_MARKDOWN_ROOT/_templates`
 
@@ -140,9 +143,11 @@ DMS_GIT_BOOTSTRAP_BRANCH=master
 - 테스트 문서와 템플릿은 로컬에서 생성합니다.
 - 운영 문서/운영 템플릿이 꼭 필요할 때만 명시 승인 후 예외 반입합니다.
 
+Docker local-test는 `.env.local-test`를 사용하지 않습니다. `compose.local.yaml + compose.local-test.yaml`이 `DMS_INSTANCE_ENV=local-test`, `DMS_GIT_BOOTSTRAP_REMOTE_URL=`, `ssoo_local_test` DB와 PostgreSQL/문서 runtime named volume을 강제하므로 root `.env`의 역할 값이나 dev DB 문서 상태에 영향을 받지 않습니다.
+
 ### Ordinary local-dev profile (development document repo)
 
-일반 로컬 실행(`pnpm dev:server`, `pnpm dev`, local compose)은 운영 문서 repo가 아니라 개발 문서 repo를 사용해야 합니다.
+일반 로컬 실행(`pnpm dev:server`, `pnpm dev`, local compose)은 운영 문서 repo가 아니라 개발 문서 repo를 사용해야 합니다. 프로덕션 빌드된 로컬 Docker로 사용자가 실제 배포 후보와 기존 데이터를 확인하는 인수 테스트도 이 `dev` 프로필이 정본입니다.
 
 ```bash
 DMS_INSTANCE_ENV=dev
@@ -150,9 +155,13 @@ DMS_GIT_DEV_REMOTE_URL=git@10.125.31.72:LSITC_WEB/LSWIKI_DOC_DEV.git
 DMS_GIT_BOOTSTRAP_BRANCH=master
 ```
 
-- ordinary local run 기본값은 `DMS_INSTANCE_ENV=dev` 입니다.
+- ordinary direct-run 기본값은 `.env`의 `DMS_INSTANCE_ENV=dev`이고, local Compose는 `compose.local.yaml`이 역할을 literal `dev`로 강제합니다.
 - 배포 서버/운영 compose는 `.env.production`에 `DMS_INSTANCE_ENV=prod`를 명시하고 `compose.production.yaml` gate를 통과해야 합니다.
 - `DMS_GIT_BOOTSTRAP_REMOTE_URL` 은 local-dev 기본 스위치가 아니라 cleanup/override 용으로만 사용합니다.
+- local-test 검증 후에는 `pnpm docker:up`으로 dev 스택을 복구하고 `docker exec ssoo-server printenv DMS_INSTANCE_ENV`가 `dev`, `/api/health/readiness`가 `200`, 기존 dev 파일 트리가 노출되는지 확인한 뒤 사용자에게 인계합니다.
+- 기존 working tree가 prod 또는 다른 remote를 가리키면 origin을 제자리에서 변경하지 않습니다. 기존 tree를 보존하고 dev 저장소를 별도 경로에 clone한 뒤 `DMS_MARKDOWN_HOST_PATH`로 선택합니다.
+- HTTPS dev remote를 Docker server에서 사용할 때는 `pnpm run dms:git-http-auth:prepare`로 mode `0600` credential secret을 준비하고, `.env`에는 `DMS_GIT_HTTP_AUTH_SCOPE`와 `DMS_GIT_HTTP_CREDENTIALS_FILE`만 기록합니다. credential을 remote URL이나 Compose env에 직접 넣지 않습니다.
+- dev에서 사용하지 않는 NAS provider는 비활성화합니다. 활성 provider는 실제 mount가 없으면 readiness가 의도적으로 실패하므로 NAS를 켜기 전에 host/NAS mount를 먼저 준비합니다.
 
 ---
 

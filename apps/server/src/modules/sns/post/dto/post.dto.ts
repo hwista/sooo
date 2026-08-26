@@ -156,8 +156,3 @@ export class PostDto {
   @ApiProperty({ description: '수정일시' })
   updatedAt!: string;
 }
-
-export class PostListDto {
-  data!: PostDto[];
-  meta!: { page: number; limit: number; total: number };
-}

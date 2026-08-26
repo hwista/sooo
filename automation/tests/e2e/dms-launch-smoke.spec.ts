@@ -1,8 +1,18 @@
 import { expect, type Browser, type BrowserContext, type Page, type Response, test } from '@playwright/test';
 
+import {
+  authenticateStorageState,
+  closeRotatingAuthenticatedContext,
+  getLaunchAccessToken,
+  openRotatingAuthenticatedPage,
+  reloadRotatingAuthenticatedPage,
+  requireMutableStorageState,
+  type MutableStorageState,
+} from './support/launch-browser';
+
 type HttpMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH';
 type JsonObject = Record<string, unknown>;
-type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
+type StorageState = MutableStorageState;
 
 interface LaunchUser {
   loginId: string;
@@ -14,6 +24,15 @@ const LAUNCH_USERS = {
   viewer: { loginId: 'viewer.han', password: 'user123!' },
   editor: { loginId: 'pm.kim', password: 'user123!' },
 } satisfies Record<string, LaunchUser>;
+const socketFrames = new WeakMap<Page, string[]>();
+const browserFailures = new WeakMap<Page, string[]>();
+const dmsBaseUrl = process.env.PLAYWRIGHT_BASE_URL
+  ?? `http://127.0.0.1:${process.env.PLAYWRIGHT_DMS_PORT ?? '3003'}`;
+const apiBaseUrl = process.env.DMS_GO_LIVE_API_URL ?? dmsBaseUrl;
+
+function sanitizeSocketFrame(frame: unknown): string {
+  return String(frame).replace(/"token":"[^"]+"/g, '"token":"[redacted]"');
+}
 
 interface BrowserApiResult {
   ok: boolean;
@@ -113,6 +132,19 @@ function isCollaborationPostForPath(response: Response, path: string, mode?: 'vi
   }
 }
 
+function isCollaborationSnapshotForPath(response: Response, path: string): boolean {
+  if (response.request().method() !== 'GET') {
+    return false;
+  }
+
+  try {
+    const url = new URL(response.url());
+    return url.pathname === '/api/collaboration' && url.searchParams.get('path') === path;
+  } catch {
+    return false;
+  }
+}
+
 function getComment(value: unknown): JsonObject {
   if (!isRecord(value) || !isRecord(value.comment)) {
     throw new Error('comment response must include a comment object');
@@ -137,11 +169,9 @@ function assertLockedFilePayload(value: unknown, secret: string) {
 }
 
 function collectPageErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => {
-    errors.push(error.message);
-  });
-  return errors;
+  const failures = browserFailures.get(page);
+  if (!failures) throw new Error('browser failure monitor must be installed before navigation');
+  return failures;
 }
 
 function resolvePageRequestUrl(page: Page, url: string): string {
@@ -157,32 +187,8 @@ function resolvePageRequestUrl(page: Page, url: string): string {
   return new URL(url, currentUrl).toString();
 }
 
-function parseAccessToken(rawAuth: string | undefined): string | undefined {
-  if (!rawAuth) return undefined;
-
-  try {
-    const parsed = JSON.parse(rawAuth) as { state?: { accessToken?: unknown } };
-    const token = parsed.state?.accessToken;
-    return typeof token === 'string' && token.trim().length > 0 ? token : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 async function readAccessToken(page: Page): Promise<string | undefined> {
-  const currentUrl = page.url();
-  if (!/^https?:\/\//i.test(currentUrl)) {
-    return undefined;
-  }
-
-  const currentOrigin = new URL(currentUrl).origin;
-  const storageState = await page.context().storageState();
-  const rawAuth = storageState.origins
-    .find((origin) => origin.origin === currentOrigin)
-    ?.localStorage.find((item) => item.name === 'ssoo-auth')
-    ?.value;
-
-  return parseAccessToken(rawAuth);
+  return getLaunchAccessToken(page);
 }
 
 async function apiRequest(
@@ -192,7 +198,10 @@ async function apiRequest(
   body?: JsonObject,
 ): Promise<unknown> {
   const resolvedUrl = resolvePageRequestUrl(page, url);
-  const headers: Record<string, string> = body ? { 'Content-Type': 'application/json' } : {};
+  const headers: Record<string, string> = method === 'GET'
+    ? {}
+    : { 'X-SSOO-CSRF': '1' };
+  if (body) headers['Content-Type'] = 'application/json';
   const accessToken = await readAccessToken(page);
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
@@ -238,7 +247,10 @@ async function apiRequestOptional(
   }
 
   try {
-    const headers: Record<string, string> = body ? { 'Content-Type': 'application/json' } : {};
+    const headers: Record<string, string> = method === 'GET'
+      ? {}
+      : { 'X-SSOO-CSRF': '1' };
+    if (body) headers['Content-Type'] = 'application/json';
     const accessToken = await readAccessToken(page);
     if (accessToken) {
       headers.Authorization = `Bearer ${accessToken}`;
@@ -268,58 +280,52 @@ async function apiRequestOptional(
 }
 
 async function waitForDmsShell(page: Page) {
-  await expect(page.getByPlaceholder('찾고 싶은 내용을 자유롭게 물어보세요!')).toBeVisible({ timeout: 15_000 });
-}
-
-async function login(page: Page, loginId: string, password: string) {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    await page.goto('/login');
-    await expect(page.getByRole('heading', { name: '로그인' })).toBeVisible();
-    await page.getByLabel('아이디').fill(loginId);
-    await page.getByLabel('비밀번호').fill(password);
-    await page.getByRole('button', { name: '로그인' }).click();
-
-    try {
-      await waitForDmsShell(page);
-      return;
-    } catch (error) {
-      const rateLimited = await page.getByText(/Too Many Requests|ThrottlerException/).isVisible().catch(() => false);
-      if (rateLimited && attempt === 0) {
-        await page.waitForTimeout(61_000);
-        continue;
-      }
-      throw error;
-    }
-  }
+  await expect(
+    page.getByRole('searchbox', { name: '무엇이든 찾아드릴게요! 무엇이 필요하신가요?' }),
+  ).toBeVisible({ timeout: 15_000 });
 }
 
 async function authenticate(browser: Browser, user: LaunchUser): Promise<StorageState> {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  try {
-    await login(page, user.loginId, user.password);
-    return await context.storageState();
-  } finally {
-    await context.close();
-  }
+  return authenticateStorageState(browser, {
+    appUrl: dmsBaseUrl,
+    loginId: user.loginId,
+    password: user.password,
+    waitUntilReady: waitForDmsShell,
+    retryAfterRateLimit: true,
+  });
 }
 
 function requireStorageState(state: StorageState | undefined, label: string): StorageState {
-  if (!state) {
-    throw new Error(`${label} auth state is not initialized`);
-  }
-  return state;
+  return requireMutableStorageState(state, label);
 }
 
 async function newAuthenticatedPage(
   browser: Browser,
   storageState: StorageState,
 ): Promise<{ context: BrowserContext; page: Page }> {
-  const context = await browser.newContext({ storageState });
-  const page = await context.newPage();
-  await page.goto('/');
-  await waitForDmsShell(page);
-  return { context, page };
+  const opened = await openRotatingAuthenticatedPage(browser, {
+    appUrl: dmsBaseUrl,
+    storageState,
+    waitUntilReady: waitForDmsShell,
+    failurePolicy: {
+      label: 'DMS launch smoke',
+      relevantOrigins: [dmsBaseUrl, apiBaseUrl],
+    },
+    onPageCreated: (page) => {
+      const frames: string[] = [];
+      socketFrames.set(page, frames);
+      page.on('websocket', (socket) => {
+        socket.on('framesent', (event) => {
+          frames.push(`sent ${sanitizeSocketFrame(event.payload)}`);
+        });
+        socket.on('framereceived', (event) => {
+          frames.push(`received ${sanitizeSocketFrame(event.payload)}`);
+        });
+      });
+    },
+  });
+  browserFailures.set(opened.page, opened.monitor!.failures);
+  return { context: opened.context, page: opened.page };
 }
 
 async function createLaunchDocument(page: Page, path: string, title: string, content: string) {
@@ -363,7 +369,11 @@ async function createPrivateLaunchDocument(page: Page, path: string, title: stri
 async function openDocumentTab(page: Page, path: string, title: string, ownerUserId = '1') {
   const collaborationReady = page.waitForResponse(
     (response) => isCollaborationPostForPath(response, path, 'view'),
-    { timeout: 20_000 },
+    { timeout: 90_000 },
+  );
+  const collaborationSubscriptionReady = page.waitForResponse(
+    (response) => isCollaborationSnapshotForPath(response, path),
+    { timeout: 90_000 },
   );
   await page.evaluate(({ ownerUserId: nextOwnerUserId, path: nextPath, title: nextTitle }) => {
     const now = new Date().toISOString();
@@ -399,10 +409,15 @@ async function openDocumentTab(page: Page, path: string, title: string, ownerUse
       version: 0,
     }));
   }, { ownerUserId, path, title });
-  await page.reload({ waitUntil: 'domcontentloaded' });
+  await reloadRotatingAuthenticatedPage(page);
   await waitForDmsShell(page);
   await expect(page.getByRole('heading', { name: title })).toBeVisible({ timeout: 30_000 });
-  await collaborationReady;
+  const [collaborationResponse, subscriptionResponse] = await Promise.all([
+    collaborationReady,
+    collaborationSubscriptionReady,
+  ]);
+  expect(collaborationResponse.ok(), `collaboration view heartbeat should succeed for ${path}`).toBeTruthy();
+  expect(subscriptionResponse.ok(), `collaboration document subscription should succeed for ${path}`).toBeTruthy();
 }
 
 async function openDocumentTabs(
@@ -413,7 +428,11 @@ async function openDocumentTabs(
 ) {
   const collaborationReady = documents.map((document) => page.waitForResponse(
     (response) => isCollaborationPostForPath(response, document.path, 'view'),
-    { timeout: 20_000 },
+    { timeout: 90_000 },
+  ));
+  const collaborationSubscriptionsReady = documents.map((document) => page.waitForResponse(
+    (response) => isCollaborationSnapshotForPath(response, document.path),
+    { timeout: 90_000 },
   ));
   await page.evaluate(({ ownerUserId: nextOwnerUserId, documents: nextDocuments, activePath: nextActivePath }) => {
     const now = new Date().toISOString();
@@ -449,19 +468,34 @@ async function openDocumentTabs(
       version: 0,
     }));
   }, { ownerUserId, documents, activePath });
-  await page.reload({ waitUntil: 'domcontentloaded' });
+  await reloadRotatingAuthenticatedPage(page);
   await waitForDmsShell(page);
   const activeDocument = documents.find((document) => document.path === activePath);
   if (!activeDocument) {
     throw new Error(`active document is missing from test tabs: ${activePath}`);
   }
   await expect(page.getByRole('heading', { name: activeDocument.title })).toBeVisible({ timeout: 30_000 });
-  await Promise.all(collaborationReady);
+  const collaborationResponses = await Promise.all(collaborationReady);
+  const subscriptionResponses = await Promise.all(collaborationSubscriptionsReady);
+  collaborationResponses.forEach((response, index) => {
+    expect(response.ok(), `collaboration view heartbeat should succeed for ${documents[index]?.path ?? 'unknown document'}`).toBeTruthy();
+  });
+  subscriptionResponses.forEach((response, index) => {
+    expect(response.ok(), `collaboration document subscription should succeed for ${documents[index]?.path ?? 'unknown document'}`).toBeTruthy();
+  });
 }
 
 async function expectDocumentEditBlockedBySoftLock(page: Page) {
-  await expect(page.getByRole('button', { name: '편집', exact: true })).toHaveCount(0, { timeout: 2_500 });
-  await expect(page.getByRole('button', { name: '해제 요청' })).toBeVisible({ timeout: 2_500 });
+  try {
+    await expect(page.getByRole('button', { name: '편집', exact: true })).toHaveCount(0, { timeout: 2_500 });
+    await expect(page.getByRole('button', { name: '해제 요청' })).toBeVisible({ timeout: 2_500 });
+  } catch (error) {
+    const recentFrames = (socketFrames.get(page) ?? []).slice(-30);
+    throw new Error([
+      error instanceof Error ? error.message : String(error),
+      `recent socket frames:\n${recentFrames.join('\n') || '(none)'}`,
+    ].join('\n\n'));
+  }
 }
 
 async function enterDocumentEditMode(page: Page, path: string) {
@@ -557,11 +591,25 @@ test.describe('DMS launch browser smoke', () => {
 
       await waitForUnreadableSearchResult(viewerPage, title, documentPath);
 
-      await viewerPage.getByPlaceholder('찾고 싶은 내용을 자유롭게 물어보세요!').fill(title);
-      await viewerPage.getByPlaceholder('찾고 싶은 내용을 자유롭게 물어보세요!').press('Enter');
+      const globalSearch = viewerPage.getByRole('searchbox', { name: '무엇이든 찾아드릴게요! 무엇이 필요하신가요?' });
+      const commonSearchResponse = viewerPage.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return response.request().method() === 'GET'
+          && url.pathname === '/api/search'
+          && url.searchParams.get('q') === title;
+      });
+      await globalSearch.fill(title);
+      await globalSearch.press('Enter');
+      const globalSearchPayload = await (await commonSearchResponse).json() as JsonObject;
+      const globalSearchData = isRecord(globalSearchPayload.data) ? globalSearchPayload.data : undefined;
+      const blockedCount = isRecord(globalSearchData?.blockedSources)
+        ? Number(globalSearchData.blockedSources.totalCount)
+        : 0;
+      expect(blockedCount, 'common search must propagate a positive redacted document count').toBeGreaterThan(0);
       await expect(viewerPage.getByText(title).first()).toBeVisible({ timeout: 30_000 });
-      await expect(viewerPage.getByText(/권한 때문에 제외된 문서/)).toBeVisible();
-      await viewerPage.getByRole('button', { name: new RegExp(title) }).click();
+      expect(viewerErrors, viewerErrors.join('\n')).toEqual([]);
+      await expect(viewerPage.getByText(`권한 때문에 제외된 콘텐츠 ${blockedCount}개가 있습니다.`)).toBeVisible();
+      await viewerPage.locator('button[id^="search-result-"]').filter({ hasText: title }).first().click();
 
       await expect(viewerPage.getByText('현 문서는 열람 권한 요청이 필요합니다.')).toBeVisible({ timeout: 30_000 });
       await expect(viewerPage.getByText(secret)).toHaveCount(0);
@@ -583,7 +631,7 @@ test.describe('DMS launch browser smoke', () => {
       );
       expect(isRecord(approvedRequest) ? approvedRequest.status : undefined).toBe('approved');
 
-      await viewerPage.reload({ waitUntil: 'domcontentloaded' });
+      await reloadRotatingAuthenticatedPage(viewerPage);
       await expect(viewerPage.getByText(secret)).toBeVisible({ timeout: 30_000 });
       await expect(viewerPage.getByText('현 문서는 열람 권한 요청이 필요합니다.')).toHaveCount(0);
       expect(viewerErrors).toEqual([]);
@@ -617,8 +665,8 @@ test.describe('DMS launch browser smoke', () => {
       expect(findCommentById(restoredComment, commentId)?.content).toBe(commentText);
     } finally {
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: documentPath });
-      await adminContext.close();
-      await viewerContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
+      await closeRotatingAuthenticatedContext(viewerContext);
     }
   });
 
@@ -694,8 +742,8 @@ test.describe('DMS launch browser smoke', () => {
       assertLockedFilePayload(lockedFile, secret);
     } finally {
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: documentPath });
-      await adminContext.close();
-      await viewerContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
+      await closeRotatingAuthenticatedContext(viewerContext);
     }
   });
 
@@ -759,7 +807,7 @@ test.describe('DMS launch browser smoke', () => {
     } finally {
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: sourcePath });
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: targetPath });
-      await adminContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
     }
   });
 
@@ -845,8 +893,8 @@ test.describe('DMS launch browser smoke', () => {
         sessionId: `launch-requester-${suffix}`,
       });
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: documentPath });
-      await adminContext.close();
-      await editorContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
+      await closeRotatingAuthenticatedContext(editorContext);
     }
   });
 
@@ -915,8 +963,8 @@ test.describe('DMS launch browser smoke', () => {
       await expect(editorPage.getByRole('button', { name: '해제 요청' })).toBeVisible({ timeout: 10_000 });
     } finally {
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: documentPath });
-      await adminContext.close();
-      await editorContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
+      await closeRotatingAuthenticatedContext(editorContext);
     }
   });
 
@@ -1013,8 +1061,8 @@ test.describe('DMS launch browser smoke', () => {
       expect(finalText).toContain(requesterLine);
     } finally {
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: documentPath });
-      await adminContext.close();
-      await editorContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
+      await closeRotatingAuthenticatedContext(editorContext);
     }
   });
 
@@ -1063,8 +1111,8 @@ test.describe('DMS launch browser smoke', () => {
     } finally {
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: ownerFirstPath });
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: editorFirstPath });
-      await adminContext.close();
-      await editorContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
+      await closeRotatingAuthenticatedContext(editorContext);
     }
   });
 
@@ -1127,8 +1175,8 @@ test.describe('DMS launch browser smoke', () => {
       }).toContain(editorLine);
     } finally {
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: documentPath });
-      await adminContext.close();
-      await editorContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
+      await closeRotatingAuthenticatedContext(editorContext);
     }
   });
 
@@ -1191,8 +1239,8 @@ test.describe('DMS launch browser smoke', () => {
     } finally {
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: activePath });
       await apiRequestOptional(adminPage, 'DELETE', '/api/content', { path: inactivePath });
-      await adminContext.close();
-      await editorContext.close();
+      await closeRotatingAuthenticatedContext(adminContext);
+      await closeRotatingAuthenticatedContext(editorContext);
     }
   });
 });

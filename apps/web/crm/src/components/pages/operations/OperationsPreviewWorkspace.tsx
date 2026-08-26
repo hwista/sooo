@@ -1,9 +1,9 @@
 import type { CrmOperationsPreviewResponse } from '@ssoo/types/crm';
+import { OperationsPreviewWorkspaceClient } from './OperationsPreviewWorkspaceClient';
 import {
-  OperationsPreviewWorkspaceClient,
   normalizeOperationsPreviewQueryRecord,
   toRequiredOperationsPreviewQuery,
-} from './OperationsPreviewWorkspaceClient';
+} from './operationsPreviewQuery';
 import { operationsPreviewFallback } from './operationsPreviewFallback';
 
 const API_BASE_URL = process.env.CRM_SERVER_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';

@@ -27,8 +27,10 @@ export interface CreateSharedAxiosApiClientOptions {
 }
 
 function getAxiosErrorMessage(error: AxiosError, fallback: string): string {
-  const errorData = error.response?.data as { message?: string } | undefined;
-  return errorData?.message || error.message || fallback;
+  const errorData = error.response?.data as
+    | { message?: string; error?: { message?: string } }
+    | undefined;
+  return errorData?.error?.message || errorData?.message || error.message || fallback;
 }
 
 export function createSharedAxiosApiClient({

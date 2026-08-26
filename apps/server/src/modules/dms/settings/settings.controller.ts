@@ -22,14 +22,18 @@ import { CurrentUser } from '../../common/auth/decorators/current-user.decorator
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import { AccessService } from '../access/access.service.js';
 import { DmsFeatureGuard } from '../access/dms-feature.guard.js';
-import { settingsService, type DmsSettingsConfig } from './settings.service.js';
+import { UpdateDmsSettingsDto } from './dto/update-dms-settings.dto.js';
+import { SettingsService, type DmsSettingsConfig } from './settings.service.js';
 
 @ApiTags('dms')
 @ApiBearerAuth()
 @Controller('dms/settings')
 @UseGuards(DmsFeatureGuard)
 export class SettingsController {
-  constructor(private readonly accessService: AccessService) {}
+  constructor(
+    private readonly accessService: AccessService,
+    private readonly settingsService: SettingsService,
+  ) {}
 
   private async getAccess(currentUser: TokenPayload) {
     const snapshot = await this.accessService.getAccessSnapshot(currentUser);
@@ -51,7 +55,18 @@ export class SettingsController {
     const shouldIncludeRuntime = includeRuntime === '1' || includeRuntime === 'true';
     const userId = String(currentUser.userId);
     const access = await this.getAccess(currentUser);
-    return success(await settingsService.getSettings(shouldIncludeRuntime, userId, access));
+    return success(await this.settingsService.getSettings(shouldIncludeRuntime, userId, access));
+  }
+
+  @Get('readiness')
+  @ApiOperation({ summary: 'DMS 운영 readiness 조회' })
+  @ApiOkResponse({ description: 'DB/Git/control-plane/runtime path readiness 반환' })
+  async getReadiness(@CurrentUser() currentUser: TokenPayload) {
+    const access = await this.getAccess(currentUser);
+    if (!access.canManageSystem) {
+      throw new ForbiddenException('DMS 운영 readiness는 admin 계정만 조회할 수 있습니다.');
+    }
+    return success(await this.settingsService.getReadiness());
   }
 
   @Post()
@@ -62,7 +77,7 @@ export class SettingsController {
   @ApiInternalServerErrorResponse({ type: ApiError, description: '서버 오류' })
   async update(
     @CurrentUser() currentUser: TokenPayload,
-    @Body() body: Record<string, unknown>,
+    @Body() body: UpdateDmsSettingsDto,
   ) {
     const action = body.action === 'updateGitPath' ? 'updateGitPath' : 'update';
     if (action === 'updateGitPath') {
@@ -70,15 +85,12 @@ export class SettingsController {
     }
 
     const userId = String(currentUser.userId);
-    const config = body.config;
-    const partial = config && typeof config === 'object'
-      ? config as DeepPartial<DmsSettingsConfig>
-      : undefined;
+    const partial = body.config as DeepPartial<DmsSettingsConfig> | undefined;
     const access = await this.getAccess(currentUser);
     if (partial?.system && !access.canManageSystem) {
       throw new ForbiddenException('DMS 시스템 설정은 admin 계정만 변경할 수 있습니다.');
     }
-    const result = await settingsService.updateSettings(partial, userId, access);
+    const result = await this.settingsService.updateSettings(partial, userId, access);
     if (!result.success) {
       throw new BadRequestException(result.error);
     }

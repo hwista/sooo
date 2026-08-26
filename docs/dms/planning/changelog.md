@@ -1,9 +1,104 @@
 # DMS 변경 이력
 
-> 최종 업데이트: 2026-07-16
+> 최종 업데이트: 2026-08-27
 > 참고: 이 문서는 historical entry 를 보존하므로, 과거 항목에는 sidecar-era terminology 가 남아 있을 수 있습니다.
 
 ---
+
+## 2026-08-27
+
+### GitLab workspace 의도 보존 통합 계획
+
+- GitLab `development`의 DMS WS-021/022, command-local Git safe-directory, exact-SHA CI·rollback·디스크 복구 변경을 현재 SSOO 정본에 맞춰 수용하는 통합 결정을 확정했습니다.
+- 현재 Admin/CRM/PMS/DMS/SNS `3000/3001/3002/3003/3004`, Node 22.13+/pnpm 11.13.1, Docker secret/cache/runtime role, CRM strict demo 계약은 불변식으로 두고 원격의 오래된 포트·toolchain 값은 현행화합니다.
+- 정상 빈 문서 목록은 shell/sidebar empty state로, API 실패는 동일 shell의 visible retry로 처리하며 원격의 full-page blocking recovery는 도입하지 않습니다.
+- merge commit 전 정적·서버·CI·전체 build·CRM strict gate와 desktop/mobile 실제 브라우저를 통과해야 하는 [의도 보존 통합 Ralph 계획](./2026-08-27-gitlab-workspace-integration-ralph-plan.md)을 정본으로 추가했습니다.
+
+## 2026-08-20
+
+### 실제 데이터 기반 DMS 홈 워크 허브
+
+- 사용자·문서 조합별 성공 열람 이력을 `dm_user_document_activity_m/_h`와 history trigger에 저장하고, 세션·기기와 무관한 `이어서 작업` 정본으로 사용합니다.
+- 개인 설정의 `home.lastSeenAt`과 문서 콘텐츠 동기화 시각 `lastSyncedAt`으로 `마지막 방문 후 변경`을 계산하며 확인 시각은 단조 증가로 갱신합니다. 서버 재기동·파일 목록 reconcile이 generic `updatedAt`을 갱신해도 최근 변경으로 오인하지 않습니다.
+- 홈 집계 API는 최근 문서·변경·승인/복구 처리함·관리자 readiness/publish/ingest 예외를 section별 `ready|empty|degraded`로 격리합니다. 일반 사용자는 운영 probe 자체를 실행하지 않습니다.
+- 새 문서·통합 검색·현재 기기 책갈피 진입점을 보존하고, 기존 공용 버튼의 `whitespace-nowrap` 영향이 카드 설명을 붙이던 문제를 카드별 column/normal wrapping으로 제거했습니다.
+- 홈 처리함은 control-plane 동기화를 유발하지 않는 read-only snapshot 조회를 사용하고, 동일 제목 문서는 실제 경로를 별도 줄로 표시해 구분합니다.
+- dev Docker에서 관리자·일반 사용자·390px 모바일·부분 장애 복구를 실제 Firefox로 검증하고, `codex:preflight`, `codex:verify-sync`, `codex:dms-guard`, docs/DB/server 계약을 모두 통과했습니다.
+- 설계·테스트·Ralph 수용 기준은 [홈 워크 허브 Ralph 계획](./2026-08-20-home-work-hub-ralph-plan.md)에 기록합니다.
+
+## 2026-08-19
+
+### DMS 런타임 프로필 500 재발 경로 제거
+
+- 공통 Compose가 운영 역할을 기본값으로 선택하던 경로를 제거하고 dev/local-test/prod overlay만 역할을 소유하도록 fail-closed했습니다. Docker local-test는 remote-empty와 PostgreSQL·문서 runtime 전용 named volume으로 상태 쌍을 격리했습니다.
+- Git 초기화 결과 실패·예외와 최초 document control-plane 동기화 실패를 startup-fatal로 바꿔, 내부 초기화가 깨진 서버가 healthy로 보인 뒤 파일 목록에서 HTTP 500을 내는 경로를 차단했습니다.
+- `/api/health/readiness`를 DB+DMS aggregate readiness로 승격하고 Compose healthcheck도 이 endpoint를 사용하도록 변경했습니다.
+- 프로필 오염 네 경로를 의도적으로 주입해 모두 거부하는 정적 self-test와 startup/readiness 단위 회귀를 추가했습니다.
+- 분석·수용 기준과 Ralph 증거는 [런타임 프로필 zero-recurrence Ralph 계획](./2026-08-19-runtime-profile-zero-recurrence-ralph-plan.md)에 기록합니다.
+
+### 로컬 Docker 사용자 인수 테스트 인계 기준 확정
+
+- `local-test`를 Playwright/Ralph·실패주입·mutation 회귀 전용으로 한정하고, 기존 dev DB·문서로 실제 배포 후보를 확인하는 사용자 인수 테스트와 로컬 Docker 인계는 `dev` 프로필로 고정했습니다.
+- local-test 검증 뒤 `pnpm docker:up`으로 dev를 복구하고 active profile, aggregate readiness, 기존 dev 파일 트리를 확인한 뒤 인계하도록 규칙과 가이드를 동기화했습니다.
+- 역할과 다른 remote를 가진 기존 working tree의 origin을 제자리에서 변경하지 않고, 기존 tree를 보존한 채 역할별 별도 working tree를 `DMS_MARKDOWN_HOST_PATH`로 선택하도록 안전 절차를 명문화했습니다.
+- HTTPS dev remote의 무인 parity/publish를 URL credential 대신 mode `0600` Docker secret과 origin-scoped Git credential helper로 연결했습니다.
+- dev DB에서 실제 mount 없이 활성화돼 readiness를 막던 NAS provider를 비활성화해 local provider 기준으로 복구하고, 활성 provider는 실제 mount가 있을 때만 켜도록 문서화했습니다.
+- Docker Desktop WSL integration 소켓 누락과 stale Docker data VHD 연결을 구분하고, `ubuntu.sock`/`WSL_E_USER_VHD_ALREADY_ATTACHED` 조건부 복구 절차를 배포 가이드에 추가했습니다.
+
+## 2026-08-14
+
+### Admin·DMS 운영 완결성 Ralph 보강
+
+- Admin `/ai-operations` 직접 진입을 복구하고 사용자·조직·공통코드·사업연도·역할·인증·AI 운영 7개 route를 실제 브라우저 회귀로 고정했습니다.
+- password-reset outbox에 SMTP worker, startup stale-claim 복구, 주기/수동 실행, 실패 상태·재시도, masked recipient readiness를 구현하고 Admin `/auth`에서 운영하도록 연결했습니다. production env/Compose는 SMTP 설정 누락과 비활성 worker를 fail-closed로 거부합니다.
+- DMS 개인 `Storage` 설정을 추가하고 attachment/reference/image 업로드가 개인 선호를 실제 provider로 소비하며, 첨부별 Local/NAS override가 우선하도록 연결했습니다. 업로드 실패는 문서 저장에서 숨기지 않습니다.
+- `/settings/{surface}/{sectionId}` 전체를 인증된 reload/bookmark 진입점으로 승격해 기존 SettingsPage와 system/personal 권한 계약을 그대로 재사용합니다. 설정 route에서 불필요한 file-tree 준비를 생략하고 page lifecycle 취소를 운영 오류로 오기록하지 않도록 했습니다.
+- 격리 PostgreSQL+pgvector, Git/runtime path, Local/NAS, SMTP, Server, DMS, Admin에서 계정·세션·조직·권한·감사·메일·설정 영속성·NAS/Local upload routing을 mutation/원복하는 Playwright spec을 추가했습니다.
+- 최종 `verify:dms-go-live`를 release artifact, production infrastructure, recovery, isolated operational mutation, deployed browser의 5개 fail-closed track으로 확장했습니다.
+
+---
+
+## 2026-08-13
+
+### 프로덕션 Go-live 네 트랙 자동화
+
+- production env verifier에 분리된 backup root, 고유 archive name, retention, explicit AI disposition과 40자 release SHA 검증을 추가했습니다.
+- server/DMS/Admin image에 같은 release SHA를 bake하고 API health와 Next 보안 헤더에서 이를 확인할 수 있게 했습니다.
+- 공개 endpoint verifier가 TLS 1.2+, 인증서 유효기간, HSTS/보안 헤더/secure cookie, API·DMS readiness 9개와 세 artifact SHA 일치를 검증하도록 고정했습니다.
+- PostgreSQL custom dump와 Markdown Git/ingest/storage root를 mode `0600` archive로 만들고 격리 복원 후 canonical DB contract를 실행하는 backup/restore verifier와 production operations Compose service를 추가했습니다.
+- 실제 PostgreSQL 16 복구 드릴에서 launch migration 7개, application trigger 81개, schema drift 0을 확인했으며 드릴이 발견한 CRM launch migration/trigger 정합성도 보정했습니다.
+- dirty workspace publish를 차단하고 local HEAD, GitHub `main`, GitLab `development`, last-published SHA 완전 일치를 요구하는 release-state verifier를 추가했습니다.
+- DMS readiness/ingest와 Admin AI disposition을 실제 browser에서 검사하고 console warning/error, page error, HTTP 5xx를 모두 실패 처리하는 Ralph spec을 추가했습니다.
+- 위 네 트랙을 `verify:dms-go-live`로 통합하고 AI/RAG는 `exempted_external_provider`로만 명시적 예외 처리해 다른 실패를 가리지 못하도록 했습니다.
+
+### Go/No-Go 문서 정본
+
+- [프로덕션 Go-live Ralph 계획](./2026-08-13-production-go-live-ralph-plan.md)에 운영값 동결, 실행 순서, 네 트랙 pass/fail, 브라우저·복구 증거, rollback 기준을 고정했습니다.
+- 외부 secret·승인된 공개 HTTPS endpoint·동일 SHA 이미지가 없는 현재 상태는 실제 production `GO`가 아니라 “외부 입력 주입 즉시 최종 gate 실행 가능”으로 구분합니다.
+
+## 2026-08-12
+
+### 런칭 운영·설정·제어 기반 하드닝
+
+- 시스템/개인 DMS 설정 갱신은 DB persistence가 초기화된 뒤 read/write가 실패하면 메모리 last-known-good 값을 유지하고 요청을 실패시키도록 변경했습니다. 깊은 partial DTO validation으로 unknown key와 숫자 범위를 거부합니다.
+- Markdown root가 비어 있거나 활성 DB 문서의 대량 누락을 유발하는 suspicious binding이면 control-plane mutation 전에 중단하고, 다시 발견된 inactive 문서는 중복 생성하지 않고 reactivation합니다.
+- `/api/health` liveness와 `/api/health/readiness` DB readiness를 분리하고, DMS settings readiness에 DB/settings persistence/Git parity/control-plane/path R/W 상태를 집계했습니다.
+- DMS ingest queue를 atomic write와 corrupt-file fail-closed 계약으로 바꾸고 처리 동시성, 중단 작업 실패 복구 표시, confirm/retry/cancel, terminal history retention cleanup, metrics, 운영 UI를 추가했습니다.
+- ingest 게시 완료 상태는 Markdown 저장만으로 확정하지 않고 Git commit, 현재 branch publish, 대상 경로 remote parity, control-plane 동기화가 모두 성공한 뒤 기록합니다. 결과에는 `docPath`, `commitHash`, `publishedBranch`를 보존하며 중간 실패는 재시도 가능한 `failed` 상태로 남깁니다. commit 이후 publish가 실패한 재시도는 경로의 기존 commit을 재사용합니다.
+- Git 전체 변경 폐기는 Git 관리 대상 Markdown 경로로만 제한해 같은 document root에 있는 DOCX/PDF 등 binary runtime 자산을 보존합니다.
+- Admin에 계정·세션 상태/강제 로그아웃/잠금 해제/비밀번호 재설정 요청, 실제 organization hierarchy CRUD와 안전한 비활성화, role permission grant 편집, 감사 이벤트, AI provider/source/queue/scheduler 운영 화면을 추가했습니다.
+- 마지막 활성 admin, organization cycle/active relation, admin `system.override`, ingest corruption/concurrency/commit·publish·parity failure/retry/cleanup, binary-safe Git discard를 자동 회귀 테스트로 고정했습니다.
+- 격리 PostgreSQL/Git/runtime path와 실제 Firefox 세션에서 설정 저장·재조회, 9개 readiness probe, ingest 정상 게시·Git 장애 후 재시도·취소, 계정 상태·세션 회수·조직 hierarchy·role grant·감사 이벤트·AI 운영 상태를 확인했습니다. Admin과 DMS의 최종 핵심 경로는 브라우저 console error/warning 0건으로 재검증했습니다.
+
+## 2026-07-22
+
+### SharePoint 저장소 지원 폐기
+
+- DMS 목적과 운영 모델에 맞지 않는 SharePoint 연동을 폐기하고 provider 계약을 Local/NAS로 축소했습니다.
+- 기본 저장소를 Local로 고정하고 NAS는 실제 mount/gateway 구성 전까지 비활성으로 두며, 서버 시작 시 선택된 기본 root의 생성·읽기·쓰기 가능 여부를 fail-closed로 검증합니다.
+- system config의 SharePoint storage/M365 metadata와 개인 SharePoint 선호값을 제거·정규화하는 launch migration을 추가했습니다.
+- 설정 UI, runtime path snapshot, Compose/env, 타입, CRM CI 참조 검증, API/접근 검증에서 SharePoint 지원 표면을 제거하고 폐기 provider 요청은 `400`으로 고정했습니다.
+- 접근 검증 자산은 문서 삭제 API를 오용하지 않고 응답으로 받은 Local 상대 경로를 containment 검증한 뒤 정확한 파일만 삭제하도록 보강했습니다.
 
 ## 2026-07-16
 

@@ -26,7 +26,10 @@ import {
   parseGitPathList,
   pathsOverlap,
 } from './git-paths.util.js';
-import { filterStageableGitManagedFiles } from './git-stage.util.js';
+import {
+  filterDiscardableGitManagedPaths,
+  filterStageableGitManagedFiles,
+} from './git-stage.util.js';
 import { buildParityStatus } from './git-sync.util.js';
 import {
   getRepositoryBindingStatus,
@@ -684,6 +687,29 @@ class GitService {
 
       await this.git.raw(['add', '-A', '--', ...stageableFiles]);
 
+      const stagedPaths = parseGitPathList(await this.git.raw([
+        'diff',
+        '--cached',
+        '--name-only',
+        '--',
+        ...stageableFiles,
+      ]));
+      if (stagedPaths.length === 0) {
+        const existingHash = (await this.git.raw([
+          'log',
+          '-1',
+          '--format=%H',
+          '--',
+          ...stageableFiles,
+        ])).trim();
+        if (!existingHash) {
+          return { success: false, error: 'nothing to commit' };
+        }
+
+        logger.info('Git 파일은 이미 커밋됨', { hash: existingHash, files: stageableFiles });
+        return { success: true, data: { hash: existingHash } };
+      }
+
       const commitMessage = buildCommitMessage(message, footerLines);
       const authorArgs = buildCommitAuthorArgs(author);
       const result = authorArgs
@@ -739,11 +765,39 @@ class GitService {
     if (!this.initialized) return { success: false, error: 'Git not initialized' };
 
     try {
-      await this.git.checkout(['--', '.']);
-      await this.git.clean('f', ['-d']);
+      const status = await this.git.status();
+      const managedPaths = filterDiscardableGitManagedPaths([
+        ...status.created,
+        ...status.modified,
+        ...status.deleted,
+        ...status.not_added,
+        ...status.renamed.flatMap((entry) => [entry.from, entry.to]),
+      ]);
+      if (managedPaths.length === 0) {
+        return { success: true, data: { message: 'No markdown changes to discard' } };
+      }
 
-      logger.info('Git 전체 변경 취소');
-      return { success: true, data: { message: 'All changes discarded' } };
+      const headTrackedPaths = parseGitPathList(await this.git.raw([
+        'ls-tree',
+        '-r',
+        '--name-only',
+        'HEAD',
+        '--',
+        ...managedPaths,
+      ]));
+      await this.git.raw(['reset', 'HEAD', '--', ...managedPaths]);
+      if (headTrackedPaths.length > 0) {
+        await this.git.checkout(['--', ...headTrackedPaths]);
+      }
+      const untrackedMarkdownPaths = managedPaths.filter((filePath) => (
+        !headTrackedPaths.includes(filePath) && fs.existsSync(path.join(this.docDir, filePath))
+      ));
+      if (untrackedMarkdownPaths.length > 0) {
+        await this.git.raw(['clean', '-f', '--', ...untrackedMarkdownPaths]);
+      }
+
+      logger.info('Git Markdown 변경 전체 취소', { files: managedPaths });
+      return { success: true, data: { message: 'All markdown changes discarded' } };
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Git 전체 변경 취소 실패', error);

@@ -1,0 +1,35 @@
+{
+  "title": "대시보드",
+  "sections": [
+    "계약서 생성",
+    "영업기회 선택"
+  ],
+  "fields": [
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": "DOCX 템플릿CRM 영업기회 계약서 원천 호환 템플릿",
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "DMS 템플릿 관리",
+    "샘플 DOCX",
+    "22개 변수 초안 저장",
+    "DOCX 생성 및 다운로드"
+  ],
+  "labels": [
+    "DOCX 템플릿CRM 영업기회 계약서 원천 호환 템플릿"
+  ]
+}

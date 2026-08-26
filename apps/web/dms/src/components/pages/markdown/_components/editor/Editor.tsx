@@ -241,12 +241,16 @@ export const Editor = React.forwardRef<EditorRef, EditorProps>(function Editor({
         method: 'POST',
         body: formData,
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null) as Record<string, unknown> | null;
 
-      if (res.ok && data.path) {
-        result = result.replaceAll(blobUrl, data.path);
+      if (!res.ok || !data || typeof data.path !== 'string') {
+        const message = typeof data?.error === 'string'
+          ? data.error
+          : `${file.name} 이미지 업로드에 실패했습니다.`;
+        throw new Error(message);
       }
-      // 업로드 성공이든 실패든 pending에서 제거
+
+      result = result.replaceAll(blobUrl, data.path);
       pending.delete(blobUrl);
       URL.revokeObjectURL(blobUrl);
     }

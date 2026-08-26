@@ -1,0 +1,74 @@
+{
+  "contract": "BT-26",
+  "phase": "post-destroy-verification",
+  "status": "PASS_CLEANED",
+  "completedAt": "2026-08-21T07:34:30.263Z",
+  "credentialsStored": false,
+  "preDestroyEvidence": {
+    "path": "docs/crm/evidence/launch-operations/bt-26-pre-destroy.json",
+    "sha256": "4af561eeb475ec8c297beffb7771c4a15775815cd0c5785583d5ddbcff47dfa5",
+    "containedDatabaseRows": {
+      "common.cm_user_session_m": 163,
+      "common.cm_user_session_h": 2529,
+      "common.cm_user_password_reset_challenge_m": 0,
+      "common.cm_user_password_reset_challenge_h": 0,
+      "common.cm_auth_email_outbox_m": 0,
+      "common.cm_auth_email_outbox_h": 0,
+      "common.cm_ai_index_job_m": 27,
+      "crm.crm_config_h": 0,
+      "crm.crm_operation_attempt_m": 12,
+      "crm.crm_operation_attempt_h": 31,
+      "crm.crm_quote_dms_handoff_m": 0,
+      "crm.crm_opportunity_contract_dms_handoff_m": 13,
+      "crm.crm_contract_dms_handoff_m": 0,
+      "crm.crm_quote_seller_profile_h": 28
+    },
+    "containedRuntimeRoots": [
+      {
+        "root": "/tmp/ssoo-crm-ralph-20260818-s5",
+        "exists": true,
+        "files": 51,
+        "bytes": 112982,
+        "digest": "816bfa4dcf6913f279f58b9ad10117878f9cbb79ece344b52e61199439f4fa55"
+      }
+    ]
+  },
+  "residue": {
+    "databaseName": "ssoo_crm_ralph_20260819_s8",
+    "databaseExists": false,
+    "databaseRows": 0,
+    "runtimeRoots": [
+      {
+        "root": "/tmp/ssoo-crm-ralph-20260818-s5",
+        "exists": false,
+        "files": 0,
+        "bytes": 0,
+        "digest": null
+      }
+    ],
+    "runtimeFiles": 0,
+    "temporaryPorts": [
+      {
+        "port": 4105,
+        "open": false
+      },
+      {
+        "port": 3105,
+        "open": false
+      },
+      {
+        "port": 3100,
+        "open": false
+      },
+      {
+        "port": 3110,
+        "open": false
+      },
+      {
+        "port": 3113,
+        "open": false
+      }
+    ],
+    "openTemporaryPorts": 0
+  }
+}

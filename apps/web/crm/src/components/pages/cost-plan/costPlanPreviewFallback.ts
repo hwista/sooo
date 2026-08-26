@@ -57,4 +57,30 @@ export const costPlanPreviewFallback: CrmCostPlanPreviewResponse = {
     externalCostGapAmount: 0,
   })),
   rows: [],
+  internalCostSourceGrid: {
+    targetYear: currentYear,
+    items: [
+      ['labor', '인건비'],
+      ['other', '기타'],
+      ['dept_adj', '사업부간조정'],
+      ['svc', '매출원가용역'],
+      ['dept_common', '사업부공통'],
+    ].map(([itemCode, itemName]) => ({
+      itemCode: itemCode as 'labor' | 'other' | 'dept_adj' | 'svc' | 'dept_common',
+      itemName,
+      monthlyPlanAmounts: Array.from({ length: 12 }, () => 0),
+      monthlyActualAmounts: Array.from({ length: 12 }, () => 0),
+      planAmountTotal: 0,
+      actualAmountTotal: 0,
+      differenceAmountTotal: 0,
+    })),
+    boundaryNotice: '원본 호환 내부원가는 연도별 인건비·기타·사업부간조정·매출원가용역·사업부공통의 계획/실적 12개월 값을 저장하며, 차이는 원본과 동일하게 계획-실적으로 계산합니다.',
+  },
+  amsSourceWorkspace: {
+    targetYear: currentYear,
+    eligibleWbs: [],
+    vendors: [],
+    externalCostRows: [],
+    boundaryNotice: '원본 호환 AMS는 사업년도별 공급업체 마스터, 확정된 AMS 계약의 복수 WBS 매핑, 업체×WBS별 연간 계획/실적을 관리하며 차이는 실적-계획으로 계산합니다.',
+  },
 };

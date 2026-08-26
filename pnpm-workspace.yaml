@@ -13,6 +13,7 @@ nodeVersion: 22.13.0
 engineStrict: true
 
 overrides:
+  'deepmerge-ts@<8.0.0': 8.0.0
   '@babel/core@<=7.29.0': '>=7.29.1 <8'
   '@xmldom/xmldom@<0.8.13': 0.8.13
   'brace-expansion@<1.1.13': 1.1.13
@@ -22,7 +23,7 @@ overrides:
   'effect@<3.20.0': 3.20.0
   'flatted@<3.4.2': 3.4.2
   'form-data@>=4.0.0 <4.0.6': 4.0.6
-  'js-yaml@>=4.0.0 <=4.1.1': '>=4.2.0 <5'
+  'js-yaml@>=4.0.0 <4.3.1': 4.3.1
   'lodash@<=4.17.23': 4.18.1
   'lodash-es@<=4.17.23': 4.18.1
   'minimatch@<3.1.4': 3.1.4
@@ -31,10 +32,12 @@ overrides:
   'path-to-regexp@<0.1.13': 0.1.13
   'picomatch@<2.3.2': 2.3.2
   'picomatch@>=4.0.0 <4.0.4': 4.0.4
-  'postcss@<8.5.10': '>=8.5.10 <9'
+  'postcss@<8.5.18': 8.5.26
   'qs@>=6.11.1 <6.15.2': 6.15.2
   'sharp@<0.35.0': 0.35.3
-  'socket.io-parser@>=4.0.0 <4.2.6': 4.2.6
+  'socket.io-parser@>=4.0.0 <4.2.7': 4.2.7
+  'nanoid@<3.3.17': 3.3.17
+  'nanoid@>=4.0.0 <5.1.16': 5.1.16
   'uuid@<11.1.1': 11.1.1
   'ws@>=8.0.0 <8.21.0': 8.21.0
   'yaml@>=1.0.0 <1.10.3': 1.10.3

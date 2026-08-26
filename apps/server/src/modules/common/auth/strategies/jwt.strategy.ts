@@ -6,7 +6,7 @@ import { TokenPayload } from '../interfaces/auth.interface.js';
 import { UserService } from '../../user/user.service.js';
 import { AccessFoundationService } from '../../access/access-foundation.service.js';
 import { DatabaseService } from '../../../../database/database.service.js';
-import { getRequiredJwtSecret } from '../jwt-config.js';
+import { getRequiredJwtSecret, getSessionIdleTimeoutMs, isSessionIdle } from '../jwt-config.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -67,9 +67,32 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('만료된 세션입니다. 다시 로그인하세요.');
     }
 
-    if (session.expiresAt < new Date()) {
+    const now = new Date();
+    if (session.expiresAt < now) {
       this.logger.warn(`Session expired: ${payload.sessionId}`);
       throw new UnauthorizedException('만료된 세션입니다. 다시 로그인하세요.');
+    }
+
+    if (isSessionIdle(this.configService, session.lastSeenAt, session.createdAt, now)) {
+      await this.db.client.userSession.updateMany({
+        where: { sessionId: session.sessionId, revokedAt: null },
+        data: {
+          revokedAt: now,
+          revokeReason: 'idle-timeout',
+          lastActivity: 'auth.session.idle-timeout',
+        },
+      });
+      this.logger.warn(`Session idle timeout: ${payload.sessionId}`);
+      throw new UnauthorizedException('30분 동안 활동이 없어 세션이 만료되었습니다. 다시 로그인하세요.');
+    }
+
+    const touchIntervalMs = Math.min(60_000, Math.floor(getSessionIdleTimeoutMs(this.configService) / 4));
+    const lastSeenAt = session.lastSeenAt ?? session.createdAt;
+    if (now.getTime() - lastSeenAt.getTime() >= touchIntervalMs) {
+      await this.db.client.userSession.update({
+        where: { sessionId: session.sessionId },
+        data: { lastSeenAt: now, lastActivity: 'auth.session.activity' },
+      });
     }
   }
 

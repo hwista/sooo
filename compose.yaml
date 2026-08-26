@@ -42,6 +42,8 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
+      args:
+        SSOO_RELEASE_SHA: ${SSOO_RELEASE_SHA:-local-development}
       secrets:
         - source: ssoo_tls_ca
           target: ssoo_tls_ca
@@ -86,17 +88,19 @@ services:
       AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET:-}
       AZURE_USE_MANAGED_IDENTITY: ${AZURE_USE_MANAGED_IDENTITY:-false}
       AZURE_MANAGED_IDENTITY_CLIENT_ID: ${AZURE_MANAGED_IDENTITY_CLIENT_ID:-}
-      DMS_INSTANCE_ENV: ${DMS_INSTANCE_ENV:-prod}
+      # Fail closed: an environment overlay must own the DMS runtime role.
+      DMS_INSTANCE_ENV: ""
       DMS_MARKDOWN_ROOT: ${DMS_MARKDOWN_ROOT:-/var/lib/ssoo/documents}
       DMS_INGEST_QUEUE_PATH: ${DMS_INGEST_QUEUE_PATH:-/var/lib/ssoo/document-ingest}
       DMS_STORAGE_LOCAL_BASE_PATH: ${DMS_STORAGE_LOCAL_BASE_PATH:-/var/lib/ssoo/document-storage/local}
-      DMS_STORAGE_SHAREPOINT_BASE_PATH: ${DMS_STORAGE_SHAREPOINT_BASE_PATH:-/sites/documents/shared-documents}
       DMS_STORAGE_NAS_BASE_PATH: ${DMS_STORAGE_NAS_BASE_PATH:-/mnt/nas/documents}
       DMS_GIT_PROD_REMOTE_URL: ${DMS_GIT_PROD_REMOTE_URL:-http://10.125.31.72:8010/LSITC_WEB/LSWIKI_DOC.git}
       DMS_GIT_DEV_REMOTE_URL: ${DMS_GIT_DEV_REMOTE_URL:-git@10.125.31.72:LSITC_WEB/LSWIKI_DOC_DEV.git}
-      DMS_GIT_BOOTSTRAP_REMOTE_URL: ${DMS_GIT_BOOTSTRAP_REMOTE_URL:-}
+      # Fail closed: only an environment overlay may opt into a cleanup bootstrap remote.
+      DMS_GIT_BOOTSTRAP_REMOTE_URL: ""
       DMS_GIT_BOOTSTRAP_BRANCH: ${DMS_GIT_BOOTSTRAP_BRANCH:-master}
       DMS_GIT_PUBLISH_IGNORED_PATH_PREFIXES: ${DMS_GIT_PUBLISH_IGNORED_PATH_PREFIXES:-launch-smoke/,codex-lock-ui/,codex-lock-probe/,verify-access/}
+      DMS_GIT_HTTP_AUTH_SCOPE: ${DMS_GIT_HTTP_AUTH_SCOPE:-}
     volumes:
       - ${DMS_MARKDOWN_HOST_PATH:-./.runtime/documents}:${DMS_MARKDOWN_ROOT:-/var/lib/ssoo/documents}
       - ${DMS_INGEST_HOST_PATH:-./.runtime/document-ingest}:${DMS_INGEST_QUEUE_PATH:-/var/lib/ssoo/document-ingest}
@@ -104,6 +108,8 @@ services:
     secrets:
       - source: ssoo_tls_ca
         target: ssoo_tls_ca
+      - source: dms_git_http_credentials
+        target: dms_git_http_credentials
     depends_on:
       db-init:
         condition: service_completed_successfully
@@ -113,7 +119,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:4000/api/health').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:4000/api/health/readiness').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -215,6 +221,7 @@ services:
         - source: ssoo_tls_ca
           target: ssoo_tls_ca
       args:
+        SSOO_RELEASE_SHA: ${SSOO_RELEASE_SHA:-local-development}
         NEXT_PUBLIC_API_URL: ${DMS_NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
         NEXT_PUBLIC_WS_URL: ${DMS_NEXT_PUBLIC_WS_URL:-}
         NEXT_PUBLIC_ADMIN_APP_URL: ${NEXT_PUBLIC_ADMIN_APP_URL:-http://localhost:3000}
@@ -265,6 +272,7 @@ services:
         - source: ssoo_tls_ca
           target: ssoo_tls_ca
       args:
+        SSOO_RELEASE_SHA: ${SSOO_RELEASE_SHA:-local-development}
         NEXT_PUBLIC_API_URL: ${ADMIN_NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
         ADMIN_SERVER_API_URL: ${ADMIN_SERVER_API_URL:-http://server:4000/api}
         NEXT_PUBLIC_ADMIN_APP_URL: ${NEXT_PUBLIC_ADMIN_APP_URL:-http://localhost:3000}
@@ -352,3 +360,5 @@ volumes:
 secrets:
   ssoo_tls_ca:
     file: ${SSOO_TLS_CA_CERT_FILE:-/dev/null}
+  dms_git_http_credentials:
+    file: ${DMS_GIT_HTTP_CREDENTIALS_FILE:-/dev/null}

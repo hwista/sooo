@@ -9,7 +9,10 @@ export const ADMIN_ROOT_ENTRY_PATHS = [
   '/auth',
   '/users',
   '/organizations',
+  '/codes',
+  '/business-years',
   '/roles',
+  '/ai-operations',
 ] as const;
 
 export const ADMIN_ALLOWED_PATH_PREFIXES = [

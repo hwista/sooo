@@ -1,0 +1,296 @@
+{
+  "title": "계약 조회",
+  "sections": [
+    "계약 조회",
+    "계약기간",
+    "매출액 *",
+    "원가",
+    "청구계획 (매출액·외부원가 합계가 계약금액과 일치해야 저장됩니다)"
+  ],
+  "fields": [
+    {
+      "id": "ct-customer",
+      "name": null,
+      "type": "text",
+      "label": "고객명 *",
+      "placeholder": "고객사명 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-client-contact",
+      "name": null,
+      "type": "text",
+      "label": "고객사 담당자",
+      "placeholder": "고객사 담당자명 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-name",
+      "name": null,
+      "type": "text",
+      "label": "계약명 *",
+      "placeholder": "계약명 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-status",
+      "name": null,
+      "type": "select",
+      "label": "상태",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "ct-payment",
+      "name": null,
+      "type": "select",
+      "label": "수금조건",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "ct-wbs",
+      "name": null,
+      "type": "text",
+      "label": "WBS 코드",
+      "placeholder": "WBS 코드 입력 (선택)",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-biz-type",
+      "name": null,
+      "type": "select",
+      "label": "사업구분 *",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "ct-group-type",
+      "name": null,
+      "type": "select",
+      "label": "계열구분",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "ct-domestic",
+      "name": null,
+      "type": "select",
+      "label": "국내/해외",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "ct-start",
+      "name": null,
+      "type": "date",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-end",
+      "name": null,
+      "type": "date",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-prod-price-ct-rp1",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-prod-margin-ct-rp1",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "checkbox",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "매출단가",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-dc-type",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "ct-dc-value",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "YYYY/MM",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "YYYY/MM",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "← 계약현황으로 돌아가기",
+    "도움창",
+    "상품매출 1 · 9,000만",
+    "용역매출 1 · 7,200만",
+    "행 추가",
+    "상품원가 1 · 6,750만",
+    "내부용역원가 1 · 4,680만",
+    "외부용역원가 0",
+    "자동스플릿",
+    "취소",
+    "✕ 확정취소"
+  ],
+  "labels": [
+    "고객명 *",
+    "고객사 담당자",
+    "계약명 *",
+    "영업담당자 *",
+    "상태",
+    "수금조건",
+    "WBS 코드",
+    "사업구분 *",
+    "계열구분",
+    "국내/해외",
+    "계약기간",
+    "매출액 *",
+    "원가",
+    "청구계획 (매출액·외부원가 합계가 계약금액과 일치해야 저장됩니다)"
+  ]
+}

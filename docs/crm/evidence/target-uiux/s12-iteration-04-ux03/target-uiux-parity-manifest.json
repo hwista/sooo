@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-audit",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T04:07:05.737Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-audit",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-03"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-03",
+      "sourcePage": "form",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=form",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=form&selected=crm-opp-001",
+      "capturedAt": "2026-08-20T04:07:05.712Z",
+      "audit": {
+        "normalStateId": "edit-seeded",
+        "sourceScreenshot": "ux-03-form.png",
+        "targetDesktopScreenshot": "ux-03-form--audit-desktop.png",
+        "targetMobileScreenshot": "ux-03-form--audit-mobile.png",
+        "differenceScreenshot": "ux-03-form--audit-difference.png",
+        "targetDomManifest": "ux-03-form--audit.dom.json",
+        "missingStateIds": [
+          "new-empty",
+          "required-validation",
+          "confirmed-locked",
+          "confirm-revoke-delete"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "영업기회 조회 확정됨"
+          ],
+          "missingFields": [
+            "—",
+            "dc-type"
+          ],
+          "missingColumns": [],
+          "missingActions": [
+            "✕",
+            "상품매출 1 · 9,000만",
+            "용역매출 1 · 7,200만",
+            "행 추가",
+            "상품원가 1 · 6,750만",
+            "내부용역원가 1 · 4,680만",
+            "외부용역원가 0"
+          ],
+          "missingLabels": [
+            "예상계약기간",
+            "예상매출액 *",
+            "예상원가"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "16bc04d73299497205e0c4886dbd74fdd4f7c6792edc9a7379c8e4db3b43eec6",
+          "targetDesktop": "b53e7641bd593ff14f8d8cdc0afe4c043c4ddf4442b625fb8dd7e7889e72d1e6",
+          "targetMobile": "a4aa745f707fcf0821f1e6ab14ae42a0c3c40d8745cce14530c54feed4c318d7",
+          "difference": "aa204aeaecb9cfe302f0ac9175b16711e61e2ec5fbfe9a094068a67b1b33a8d4",
+          "targetDom": "a392972e9e484cbd5352644a2dc3cfe55055395ed36d868baca06e38aa5f8e2b"
+        }
+      }
+    }
+  ]
+}

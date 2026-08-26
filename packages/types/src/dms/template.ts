@@ -35,6 +35,16 @@ export interface TemplateReviewConfirmation {
   source?: TemplateReviewSource;
 }
 
+export interface TemplateDocxBinary {
+  fileName: string;
+  sourcePath: string;
+  size: number;
+  checksum: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  origin: 'generated' | 'uploaded';
+}
+
 export interface ScrapeEntry {
   templateId: string;
   scope: 'system' | 'personal';
@@ -70,4 +80,5 @@ export interface TemplateItem {
   referenceDocuments?: TemplateReferenceDoc[];
   generation?: TemplateGeneration;
   reviewConfirmation?: TemplateReviewConfirmation;
+  docxTemplate?: TemplateDocxBinary;
 }

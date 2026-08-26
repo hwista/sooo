@@ -1,0 +1,36 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: ssoo_local_test
+    volumes: !override
+      - dms-local-test-postgres:/var/lib/postgresql/data
+
+  db-init:
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ssoo}:${POSTGRES_PASSWORD:-ssoo_dev_pw}@postgres:5432/ssoo_local_test?schema=public
+
+  server:
+    environment:
+      # Browser/E2E runs are always isolated and never attach to a shared remote.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ssoo}:${POSTGRES_PASSWORD:-ssoo_dev_pw}@postgres:5432/ssoo_local_test?schema=public
+      DMS_INSTANCE_ENV: "local-test"
+      DMS_GIT_BOOTSTRAP_REMOTE_URL: ""
+    volumes: !override
+      - dms-local-test-documents:/var/lib/ssoo/documents
+      - dms-local-test-ingest:/var/lib/ssoo/document-ingest
+      - dms-local-test-storage:/var/lib/ssoo/document-storage/local
+
+  dms:
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ssoo}:${POSTGRES_PASSWORD:-ssoo_dev_pw}@postgres:5432/ssoo_local_test?schema=public
+      DMS_DATABASE_URL: postgresql://${POSTGRES_USER:-ssoo}:${POSTGRES_PASSWORD:-ssoo_dev_pw}@postgres:5432/ssoo_local_test?schema=public
+
+volumes:
+  dms-local-test-postgres:
+    name: ssoo-dms-local-test-postgres
+  dms-local-test-documents:
+    name: ssoo-dms-local-test-documents
+  dms-local-test-ingest:
+    name: ssoo-dms-local-test-ingest
+  dms-local-test-storage:
+    name: ssoo-dms-local-test-storage

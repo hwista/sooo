@@ -1,0 +1,114 @@
+{
+  "states": [
+    {
+      "name": "seeded-list",
+      "captured": true,
+      "screenshot": "ux-02-list.png",
+      "screenshotSha256": "dcf9996346430206e1cec713d5bd4d916b55b8ac06b485e6e54c5c9514ccc53f",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.list.js"
+    },
+    {
+      "name": "filtered-empty",
+      "captured": true,
+      "screenshot": "ux-02-list--filtered-empty.png",
+      "screenshotSha256": "575db78b886e9c11a1e860edfee564e1d6a91d12d84c496da2f4b1645c7d6d3e",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.list.js"
+    },
+    {
+      "name": "previous-version-expanded",
+      "captured": true,
+      "screenshot": "ux-02-list--previous-version-expanded.png",
+      "screenshotSha256": "58be52b2f4078be00fc59b71dc521ab1303943d253d87fd49080881003de83b1",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.list.js"
+    },
+    {
+      "name": "row-drilldown",
+      "captured": true,
+      "screenshot": "ux-02-list--row-drilldown.png",
+      "screenshotSha256": "fdb0fb180c4342ab00aeaad30f8eda317413248b633fdb2f37726bdfa0d8f2a2",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.list.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-list",
+      "behavior": "seeded list",
+      "sourceAnchors": [
+        "index.html",
+        "app.list.js"
+      ]
+    },
+    {
+      "id": "filtered-empty",
+      "behavior": "filtered empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.list.js"
+      ]
+    },
+    {
+      "id": "previous-version-expanded",
+      "behavior": "previous version expanded",
+      "sourceAnchors": [
+        "index.html",
+        "app.list.js"
+      ]
+    },
+    {
+      "id": "row-drilldown",
+      "behavior": "row drilldown",
+      "sourceAnchors": [
+        "index.html",
+        "app.list.js"
+      ]
+    }
+  ]
+}

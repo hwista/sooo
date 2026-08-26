@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import fs from 'fs';
+import path from 'path';
 import { BadRequestException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import type {
   CrmBillingSplitPreviewLine,
@@ -42,6 +43,7 @@ import type {
   CrmContractSummary,
   CrmContractUpsertLine,
   CrmContractUpsertRequest,
+  CrmDmsDocumentTemplateOption,
   CrmOpportunityDiscountType,
   CrmOpportunityServiceType,
   CrmQuotePreviewSellerInfoStatus,
@@ -56,6 +58,7 @@ import { storageAdapterService } from '../../dms/storage/storage-adapter.service
 import { TemplateService } from '../../dms/templates/template.service.js';
 import { DatabaseService } from '../../../database/database.service.js';
 import { QuoteSettingsService } from '../quote-settings/quote-settings.service.js';
+import { CrmOperationAttemptService, type CrmOperationRunContext } from '../operations/operation-attempt.service.js';
 
 const DEFAULT_SORT: CrmContractSort = 'updated-desc';
 const CONTRACT_STATUSES: CrmContractStatus[] = ['review', 'active', 'completed', 'terminated'];
@@ -66,8 +69,11 @@ const DISCOUNT_TYPES: CrmOpportunityDiscountType[] = ['amount', 'rate'];
 const CRM_CONTRACT_BOUNDARY_NOTICE = 'CRM은 계약/청구 원장과 계약 금액 기준값을 소유하고 PMS는 수행 스냅샷만 소비합니다.';
 const CRM_CONTRACT_DMS_BOUNDARY_NOTICE = 'CRM은 계약 원장 기반 문서 입력 패킷과 DMS markdown 초안 요청만 제공하고 DMS는 템플릿, 버전, 검토, 첨부를 소유합니다.';
 const CONTRACT_UNIMPLEMENTED_INTEGRATIONS = ['DMS 계약서 검토 확정', 'PMS 프로젝트 생성'];
-const CONTRACT_DMS_UNAVAILABLE_ACTIONS = ['Word 파일 생성', 'PDF 저장', 'DMS 템플릿 검토 확정'];
+// These actions are fulfilled by the connected DMS lifecycle and surfaced in
+// its execution artifacts, so they are no longer unavailable actions.
+const CONTRACT_DMS_UNAVAILABLE_ACTIONS: string[] = [];
 const CRM_CONTRACT_DMS_TEMPLATE_KEY = 'crm-contract-v1';
+const CRM_CONTRACT_DMS_TEMPLATE_TASK_KEY = 'crm-contract-document';
 const CRM_CONTRACT_DMS_EXECUTION_STEP_KEYS = new Set<CrmContractDmsDocumentExecutionStepKey>([
   'template-review',
   'attachment-confirmation',
@@ -93,6 +99,8 @@ interface CrmContractLedgerRow {
   customerName: string;
   contractName: string;
   ownerName: string;
+  clientContactName: string | null;
+  ownerUserId: bigint | null;
   businessType: string;
   industryLine: string;
   regionCode: string;
@@ -212,9 +220,29 @@ interface CrmContractInsertedRow {
   code: string;
 }
 
+interface CrmConvertedContractRevocationRequest {
+  opportunityId: bigint;
+  opportunityCode: string;
+  contractCode: string;
+  reopenOpportunity: boolean;
+  currentUserId?: bigint;
+}
+
+interface CrmConvertedContractRevocationResult {
+  contractCode: string;
+  opportunityCode: string;
+  opportunityConfirmed: boolean;
+}
+
 interface CrmSourceOpportunityRow {
   id: bigint;
   code: string;
+}
+
+interface CrmContractOwnerUserRow {
+  id: bigint;
+  userName: string;
+  displayName: string | null;
 }
 
 interface NormalizedContractLine {
@@ -253,6 +281,8 @@ interface NormalizedContractPayload {
   customerName: string;
   contractName: string;
   ownerName: string;
+  clientContactName: string | null;
+  ownerUserId: bigint | null;
   businessType: string;
   industryLine: string;
   regionCode: CrmContract['region'];
@@ -289,6 +319,7 @@ export class ContractService {
     @Optional() private readonly fileCrudService?: FileCrudService,
     @Optional() private readonly templateService?: TemplateService,
     @Optional() private readonly dmsCrmContractLifecycleService?: DmsCrmContractLifecycleService,
+    @Optional() private readonly operationAttemptService?: CrmOperationAttemptService,
   ) {}
 
   async listContracts(query: CrmContractListQuery = {}): Promise<CrmContract[]> {
@@ -347,8 +378,12 @@ export class ContractService {
     const contract = await this.getContract(id);
     const sellerProfile = await this.quoteSettingsService?.getSellerProfile();
     const latestHandoff = await this.loadLatestDmsDocumentHandoff(contract.code);
-    const templateEvidence = await this.loadDmsTemplateEvidence(CRM_CONTRACT_DMS_TEMPLATE_KEY);
-    return this.toDmsDocumentPreview(contract, sellerProfile, latestHandoff, templateEvidence);
+    const templateKey = latestHandoff?.templateKey ?? CRM_CONTRACT_DMS_TEMPLATE_KEY;
+    const [templateEvidence, templateOptions] = await Promise.all([
+      this.loadDmsTemplateEvidence(templateKey),
+      this.loadDmsTemplateOptions(),
+    ]);
+    return this.toDmsDocumentPreview(contract, sellerProfile, latestHandoff, templateEvidence, templateOptions);
   }
 
   async createDmsDocumentDraft(
@@ -362,8 +397,13 @@ export class ContractService {
     const contract = await this.getContract(id);
     const sellerProfile = await this.quoteSettingsService?.getSellerProfile();
     const existingHandoff = await this.loadLatestDmsDocumentHandoff(contract.code);
-    const templateEvidence = await this.loadDmsTemplateEvidence(CRM_CONTRACT_DMS_TEMPLATE_KEY);
-    const preview = this.toDmsDocumentPreview(contract, sellerProfile, existingHandoff, templateEvidence);
+    const templateKey = dto.templateKey?.trim() || CRM_CONTRACT_DMS_TEMPLATE_KEY;
+    const [templateEvidence, templateOptions] = await Promise.all([
+      this.loadDmsTemplateEvidence(templateKey),
+      this.loadDmsTemplateOptions(),
+    ]);
+    this.assertDmsTemplateSelectable(templateKey, templateOptions);
+    const preview = this.toDmsDocumentPreview(contract, sellerProfile, existingHandoff, templateEvidence, templateOptions);
     if (preview.readiness !== 'ready') {
       throw new BadRequestException(`DMS 문서 초안을 저장할 수 없습니다: ${preview.blockedReasons.join(', ')}`);
     }
@@ -395,6 +435,40 @@ export class ContractService {
     };
   }
 
+  async readDmsDocumentArtifact(
+    id: string,
+    kind: string,
+  ): Promise<{ buffer: Buffer; fileName: string; contentType: string }> {
+    if (kind !== 'word-export' && kind !== 'pdf-export') {
+      throw new BadRequestException('다운로드 가능한 계약 산출물은 word-export 또는 pdf-export입니다.');
+    }
+    const contract = await this.getContract(id);
+    const handoff = await this.loadLatestDmsDocumentHandoff(contract.code);
+    const step = handoff?.lifecycleSnapshot.find((candidate) => candidate.key === kind);
+    const storageUri = step?.status === 'completed' ? step.evidencePath?.trim() : '';
+    if (!storageUri || !/^(local|nas):\/\//.test(storageUri)) {
+      throw new NotFoundException('완료된 DMS 계약 산출물 evidence를 찾을 수 없습니다.');
+    }
+
+    try {
+      const opened = storageAdapterService.open({ storageUri });
+      const resolved = storageAdapterService.resolveContainedPath(opened.provider, opened.path);
+      const expectedExtension = kind === 'word-export' ? '.docx' : '.pdf';
+      if (path.extname(resolved.fullPath).toLowerCase() !== expectedExtension || !fs.existsSync(resolved.fullPath)) {
+        throw new Error('산출물 파일 형식 또는 경로가 lifecycle evidence와 일치하지 않습니다.');
+      }
+      return {
+        buffer: fs.readFileSync(resolved.fullPath),
+        fileName: path.basename(resolved.fullPath),
+        contentType: kind === 'word-export'
+          ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          : 'application/pdf',
+      };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'DMS 계약 산출물을 열 수 없습니다.');
+    }
+  }
+
   async recordDmsDocumentExecutionEvidence(
     id: string,
     dto: CrmContractDmsDocumentExecutionEvidenceRequest,
@@ -423,8 +497,11 @@ export class ContractService {
       currentUser,
     );
     const sellerProfile = await this.quoteSettingsService?.getSellerProfile();
-    const templateEvidence = await this.loadDmsTemplateEvidence(CRM_CONTRACT_DMS_TEMPLATE_KEY);
-    const preview = this.toDmsDocumentPreview(contract, sellerProfile, handoff, templateEvidence);
+    const [templateEvidence, templateOptions] = await Promise.all([
+      this.loadDmsTemplateEvidence(handoff.templateKey),
+      this.loadDmsTemplateOptions(),
+    ]);
+    const preview = this.toDmsDocumentPreview(contract, sellerProfile, handoff, templateEvidence, templateOptions);
 
     return {
       contractId: contract.id,
@@ -442,6 +519,34 @@ export class ContractService {
   async executeDmsDocumentLifecycle(
     id: string,
     dto: CrmContractDmsDocumentLifecycleExecutionRequest = {},
+    currentUser: TokenPayload,
+    operationContext?: CrmOperationRunContext,
+  ): Promise<CrmContractDmsDocumentLifecycleExecutionResult> {
+    if (this.operationAttemptService) {
+      return this.operationAttemptService.run({
+        target: 'dms',
+        action: 'contract-dms-lifecycle',
+        sourceEntityType: 'crm.contract',
+        sourceEntityId: id,
+        requestedBy: BigInt(currentUser.userId),
+        fingerprintInput: { contractId: id, memo: dto.memo ?? null },
+        context: operationContext,
+        execute: () => this.performDmsDocumentLifecycle(id, dto, currentUser),
+        evidence: (result) => ({
+          contractId: result.contractId,
+          contractCode: result.contractCode,
+          templateKey: result.templateKey,
+          appliedStepKeys: result.appliedStepKeys,
+          recordedAt: result.recordedAt,
+        }),
+      });
+    }
+    return this.performDmsDocumentLifecycle(id, dto, currentUser);
+  }
+
+  private async performDmsDocumentLifecycle(
+    id: string,
+    dto: CrmContractDmsDocumentLifecycleExecutionRequest,
     currentUser: TokenPayload,
   ): Promise<CrmContractDmsDocumentLifecycleExecutionResult> {
     if (!this.dmsCrmContractLifecycleService) {
@@ -580,10 +685,13 @@ export class ContractService {
     const createdCode = await this.db.client.$transaction(async (tx) => {
       const writer = tx as unknown as RawContractWriter;
       const sourceOpportunity = await this.resolveSourceOpportunity(writer, payload);
+      const ownerUser = await this.resolveContractOwnerUser(writer, payload.ownerUserId);
+      const ownerName = this.resolveContractOwnerName(payload.ownerName, ownerUser);
       const insertedRows = await writer.$queryRaw<CrmContractInsertedRow[]>`
         insert into crm.crm_contract_m (
           contract_code, source_opportunity_id, source_opportunity_code,
-          customer_name, contract_name, owner_name, business_type, industry_line,
+          customer_name, contract_name, owner_name, client_contact, owner_user_id,
+          business_type, industry_line,
           region_code, status_code, confirmed, contract_start_date, contract_end_date,
           wbs_code, payment_term_code, revenue_subtotal, special_discount_type_code,
           special_discount_value, special_discount_amount, revenue_total, cost_total,
@@ -592,7 +700,8 @@ export class ContractService {
         )
         values (
           ${contractCode}, ${sourceOpportunity?.id ?? null}, ${sourceOpportunity?.code ?? payload.sourceOpportunityCodeText},
-          ${payload.customerName}, ${payload.contractName}, ${payload.ownerName}, ${payload.businessType}, ${payload.industryLine},
+          ${payload.customerName}, ${payload.contractName}, ${ownerName}, ${payload.clientContactName}, ${ownerUser?.id ?? null},
+          ${payload.businessType}, ${payload.industryLine},
           ${payload.regionCode}, ${payload.statusCode}, false, ${payload.contractStartDate}, ${payload.contractEndDate},
           ${payload.wbsCode}, ${payload.paymentTermCode}, ${payload.revenueSubtotal}, ${payload.specialDiscountTypeCode},
           ${payload.specialDiscountValue}, ${payload.specialDiscountAmount}, ${payload.revenueTotal}, ${payload.costTotal},
@@ -627,13 +736,17 @@ export class ContractService {
     await this.db.client.$transaction(async (tx) => {
       const writer = tx as unknown as RawContractWriter;
       const sourceOpportunity = await this.resolveSourceOpportunity(writer, payload);
+      const ownerUser = await this.resolveContractOwnerUser(writer, payload.ownerUserId);
+      const ownerName = this.resolveContractOwnerName(payload.ownerName, ownerUser);
       await writer.$executeRaw`
         update crm.crm_contract_m
            set source_opportunity_id = ${sourceOpportunity?.id ?? null},
                source_opportunity_code = ${sourceOpportunity?.code ?? payload.sourceOpportunityCodeText},
                customer_name = ${payload.customerName},
                contract_name = ${payload.contractName},
-               owner_name = ${payload.ownerName},
+               owner_name = ${ownerName},
+               client_contact = ${payload.clientContactName},
+               owner_user_id = ${ownerUser?.id ?? null},
                business_type = ${payload.businessType},
                industry_line = ${payload.industryLine},
                region_code = ${payload.regionCode},
@@ -741,6 +854,69 @@ export class ContractService {
     return { id: existing.code, deleted: true };
   }
 
+  async revokeConvertedContract(
+    request: CrmConvertedContractRevocationRequest,
+  ): Promise<CrmConvertedContractRevocationResult> {
+    const existing = await this.findContractWriteRow(request.contractCode);
+    if (!existing) {
+      throw new NotFoundException('연결 계약을 찾을 수 없습니다.');
+    }
+
+    const sourceIdMismatch = existing.sourceOpportunityId !== null
+      && existing.sourceOpportunityId !== request.opportunityId;
+    const sourceCodeMismatch = existing.sourceOpportunityCode !== null
+      && existing.sourceOpportunityCode !== request.opportunityCode;
+    const hasSourceIdentity = existing.sourceOpportunityId !== null || existing.sourceOpportunityCode !== null;
+    if (!hasSourceIdentity || sourceIdMismatch || sourceCodeMismatch) {
+      throw new BadRequestException('연결 계약과 영업기회가 일치하지 않습니다.');
+    }
+
+    await this.db.client.$transaction(async (tx) => {
+      const writer = tx as unknown as RawContractWriter;
+      const deletedCount = await writer.$executeRaw`
+        update crm.crm_contract_m
+           set is_active = false,
+               updated_by = ${request.currentUserId ?? null},
+               updated_at = now(),
+               last_source = 'crm.opportunity',
+               last_activity = ${request.reopenOpportunity ? 'reopen-with-contract-revocation' : 'revoke-contract'}
+         where contract_id = ${existing.id}
+           and contract_code = ${existing.code}
+           and is_active = true
+      `;
+      if (deletedCount !== 1) {
+        throw new BadRequestException('연결 계약 회수 상태가 변경되어 다시 확인해야 합니다.');
+      }
+
+      const opportunityUpdatedCount = await writer.$executeRaw`
+        update crm.crm_opportunity_m
+           set confirmed = ${!request.reopenOpportunity},
+               status_code = ${request.reopenOpportunity ? 'proposal' : 'won'},
+               contract_created = false,
+               contract_created_at = null,
+               contract_code = null,
+               updated_by = ${request.currentUserId ?? null},
+               updated_at = now(),
+               last_source = 'crm.opportunity',
+               last_activity = ${request.reopenOpportunity ? 'reopen-with-contract-revocation' : 'revoke-contract'}
+         where opportunity_id = ${request.opportunityId}
+           and opportunity_code = ${request.opportunityCode}
+           and contract_created = true
+           and contract_code = ${existing.code}
+           and is_active = true
+      `;
+      if (opportunityUpdatedCount !== 1) {
+        throw new BadRequestException('영업기회 계약 연결 상태가 변경되어 다시 확인해야 합니다.');
+      }
+    });
+
+    return {
+      contractCode: existing.code,
+      opportunityCode: request.opportunityCode,
+      opportunityConfirmed: !request.reopenOpportunity,
+    };
+  }
+
   previewBillingSplit(request: CrmBillingSplitPreviewRequest): CrmBillingSplitPreviewResponse {
     const startDate = this.parseDate(request.startDate, '계약 시작일');
     const endDate = this.parseDate(request.endDate, '계약 종료일');
@@ -803,6 +979,8 @@ export class ContractService {
       customerName: contract.customerName,
       contractName: contract.contractName,
       ownerName: contract.ownerName,
+      clientContactName: contract.clientContactName,
+      ownerUserId: contract.ownerUserId,
       businessType: contract.businessType,
       industryLine: contract.industryLine,
       region: contract.region,
@@ -887,6 +1065,60 @@ export class ContractService {
       status: template.status,
       updatedAt: template.updatedAt,
     };
+  }
+
+  private async loadDmsTemplateOptions(): Promise<CrmDmsDocumentTemplateOption[]> {
+    if (!this.templateService || typeof this.templateService.list !== 'function') {
+      return [];
+    }
+
+    const templates = await this.templateService.list('system');
+    return templates.global
+      .filter((template) => template.kind === 'document')
+      .filter((template) => template.id === CRM_CONTRACT_DMS_TEMPLATE_KEY
+        || template.generation?.taskKey === CRM_CONTRACT_DMS_TEMPLATE_TASK_KEY)
+      .map((template) => {
+        const status = template.status ?? 'active';
+        const selectable = status === 'active' && Boolean(template.docxTemplate);
+        return {
+          templateKey: template.id,
+          templateName: template.name,
+          taskKey: CRM_CONTRACT_DMS_TEMPLATE_TASK_KEY,
+          sourcePath: template.sourcePath,
+          status,
+          docxFileName: template.docxTemplate?.fileName,
+          docxOrigin: template.docxTemplate?.origin,
+          reviewStatus: template.reviewConfirmation?.status ?? 'pending',
+          selectable,
+          ...(!selectable
+            ? { unavailableReason: status !== 'active' ? '보관된 템플릿입니다.' : '실제 DOCX binary가 연결되지 않았습니다.' }
+            : {}),
+        } satisfies CrmDmsDocumentTemplateOption;
+      })
+      .sort((left, right) => {
+        if (left.templateKey === CRM_CONTRACT_DMS_TEMPLATE_KEY) return -1;
+        if (right.templateKey === CRM_CONTRACT_DMS_TEMPLATE_KEY) return 1;
+        return left.templateName.localeCompare(right.templateName, 'ko');
+      });
+  }
+
+  private assertDmsTemplateSelectable(
+    templateKey: string,
+    templateOptions: CrmDmsDocumentTemplateOption[],
+  ): void {
+    if (!this.templateService || typeof this.templateService.list !== 'function') {
+      if (templateKey !== CRM_CONTRACT_DMS_TEMPLATE_KEY) {
+        throw new BadRequestException(`DMS 계약 템플릿 ${templateKey}을 검증할 수 없습니다.`);
+      }
+      return;
+    }
+    const selected = templateOptions.find((option) => option.templateKey === templateKey);
+    if (!selected) {
+      throw new BadRequestException(`DMS 계약 템플릿 ${templateKey}은 계약 문서 용도로 등록되지 않았습니다.`);
+    }
+    if (!selected.selectable) {
+      throw new BadRequestException(selected.unavailableReason ?? `DMS 계약 템플릿 ${templateKey}을 사용할 수 없습니다.`);
+    }
   }
 
   private async persistDmsDocumentHandoff(
@@ -1098,6 +1330,7 @@ export class ContractService {
       templateKey: CRM_CONTRACT_DMS_TEMPLATE_KEY,
       reason: '현재 런타임에서 DMS TemplateService가 연결되지 않았습니다.',
     },
+    templateOptions: CrmDmsDocumentTemplateOption[] = [],
   ): CrmContractDmsDocumentPreview {
     const sellerName = sellerProfile?.companyName?.trim() || '공급자 회사 정보 미설정';
     const sellerInfoStatus: CrmQuotePreviewSellerInfoStatus = this.quoteSettingsService
@@ -1173,6 +1406,8 @@ export class ContractService {
       customerName: contract.customerName,
       contractName: contract.contractName,
       ownerName: contract.ownerName,
+      clientContactName: contract.clientContactName,
+      ownerUserId: contract.ownerUserId,
       contractStartDate: contract.contractStartDate,
       contractEndDate: contract.contractEndDate,
       wbsCode: contract.wbsCode,
@@ -1182,7 +1417,8 @@ export class ContractService {
       marginTotal: contract.marginTotal,
       documentType: 'contract',
       documentTitle: `${contract.customerName} ${contract.contractName} 계약서`,
-      templateKey: CRM_CONTRACT_DMS_TEMPLATE_KEY,
+      templateKey: templateEvidence.templateKey,
+      templateOptions,
       folderHint: `/CRM/${this.toFileHintPart(contract.customerName)}/${contract.code}`,
       fileNameHint: `${contract.code}_${this.toFileHintPart(contract.customerName)}_${this.toFileHintPart(contract.contractName)}.docx`,
       draftPathHint,
@@ -1613,6 +1849,8 @@ export class ContractService {
       this.toDmsVariable('customerName', '고객사', contract.customerName, true, 'contract'),
       this.toDmsVariable('contractName', '계약명', contract.contractName, true, 'contract'),
       this.toDmsVariable('ownerName', '영업 담당자', contract.ownerName, true, 'contract'),
+      this.toDmsVariable('clientContactName', '고객사 계약 담당자', contract.clientContactName, false, 'contract'),
+      this.toDmsVariable('ownerUserId', '영업 담당자 사용자 ID', contract.ownerUserId, false, 'contract'),
       this.toDmsVariable('contractPeriod', '계약기간', `${contract.contractStartDate} - ${contract.contractEndDate}`, true, 'contract'),
       this.toDmsVariable('wbsCode', 'WBS', contract.wbsCode, true, 'contract'),
       this.toDmsVariable('paymentTermCode', '수금조건', contract.paymentTermCode, false, 'contract'),
@@ -1664,6 +1902,8 @@ export class ContractService {
       `| 고객사 | ${this.escapeMarkdownTableCell(preview.customerName)} |`,
       `| 계약명 | ${this.escapeMarkdownTableCell(preview.contractName)} |`,
       `| 담당자 | ${this.escapeMarkdownTableCell(preview.ownerName)} |`,
+      `| 담당 사용자 ID | ${this.escapeMarkdownTableCell(preview.ownerUserId ?? '-')} |`,
+      `| 고객사 계약 담당자 | ${this.escapeMarkdownTableCell(preview.clientContactName ?? '-')} |`,
       `| 계약기간 | ${this.escapeMarkdownTableCell(`${preview.contractStartDate} - ${preview.contractEndDate}`)} |`,
       `| WBS | ${this.escapeMarkdownTableCell(preview.wbsCode ?? '-')} |`,
       `| 수금조건 | ${this.escapeMarkdownTableCell(preview.paymentTermCode ?? '-')} |`,
@@ -1788,7 +2028,7 @@ export class ContractService {
       return this.resolveDmsWorkingTreeCiReference(storageRef, normalizedRef);
     }
 
-    if (/^(local|sharepoint|nas):\/\//.test(storageRef)) {
+    if (/^(local|nas):\/\//.test(storageRef)) {
       return this.resolveDmsStorageCiReference(storageRef);
     }
 
@@ -1796,7 +2036,7 @@ export class ContractService {
       return {
         status: 'invalid',
         storageRef,
-        reason: 'CI 저장소 참조는 dms://, local://, sharepoint://, nas:// 또는 DMS 상대 경로여야 합니다.',
+        reason: 'CI 저장소 참조는 dms://, local://, nas:// 또는 DMS 상대 경로여야 합니다.',
       };
     }
 
@@ -2092,6 +2332,38 @@ export class ContractService {
     return row;
   }
 
+  private async resolveContractOwnerUser(
+    writer: RawContractWriter,
+    ownerUserId: bigint | null,
+  ): Promise<CrmContractOwnerUserRow | null> {
+    if (ownerUserId === null) {
+      return null;
+    }
+
+    const rows = await writer.$queryRaw<CrmContractOwnerUserRow[]>`
+      select
+        user_id as "id",
+        user_name as "userName",
+        display_name as "displayName"
+      from common.cm_user_m
+      where user_id = ${ownerUserId}
+        and is_active = true
+      limit 1
+    `;
+    const ownerUser = rows[0];
+    if (!ownerUser) {
+      throw new BadRequestException('활성 상태인 담당 사용자를 찾을 수 없습니다.');
+    }
+    return ownerUser;
+  }
+
+  private resolveContractOwnerName(
+    ownerNameSnapshot: string,
+    ownerUser: CrmContractOwnerUserRow | null,
+  ): string {
+    return ownerUser?.displayName?.trim() || ownerUser?.userName.trim() || ownerNameSnapshot;
+  }
+
   private async replaceContractLines(
     writer: RawContractWriter,
     contractId: bigint,
@@ -2251,6 +2523,8 @@ export class ContractService {
       customerName: this.requiredText(dto.customerName, '고객사명', 200),
       contractName: this.requiredText(dto.contractName, '계약명', 300),
       ownerName: this.requiredText(dto.ownerName, '담당자명', 100),
+      clientContactName: this.optionalText(dto.clientContactName, 120),
+      ownerUserId: this.normalizeOptionalUserId(dto.ownerUserId, '담당자 사용자 ID'),
       businessType: this.requiredText(dto.businessType, '사업구분', 120),
       industryLine: this.requiredText(dto.industryLine, '계열/산업 구분', 120),
       regionCode: dto.region === 'overseas' ? 'overseas' : 'domestic',
@@ -2384,6 +2658,8 @@ export class ContractService {
         c.customer_name as "customerName",
         c.contract_name as "contractName",
         c.owner_name as "ownerName",
+        c.client_contact as "clientContactName",
+        c.owner_user_id as "ownerUserId",
         c.business_type as "businessType",
         c.industry_line as "industryLine",
         c.region_code as "regionCode",
@@ -2635,6 +2911,8 @@ export class ContractService {
       customerName: row.customerName,
       contractName: row.contractName,
       ownerName: row.ownerName,
+      clientContactName: row.clientContactName ?? undefined,
+      ownerUserId: row.ownerUserId?.toString(),
       businessType: row.businessType,
       industryLine: row.industryLine,
       region: row.regionCode === 'overseas' ? 'overseas' : 'domestic',
@@ -2780,6 +3058,8 @@ export class ContractService {
         contract.customerName,
         contract.contractName,
         contract.ownerName,
+        contract.clientContactName ?? '',
+        contract.ownerUserId ?? '',
         contract.businessType,
         contract.industryLine,
         contract.wbsCode ?? '',
@@ -3080,6 +3360,22 @@ export class ContractService {
     }
 
     return trimmed;
+  }
+
+  private normalizeOptionalUserId(value: string | undefined, label: string): bigint | null {
+    const normalized = value?.trim() ?? '';
+    if (!normalized) {
+      return null;
+    }
+    if (!/^\d+$/.test(normalized)) {
+      throw new BadRequestException(`${label}는 양의 정수 문자열이어야 합니다.`);
+    }
+
+    const userId = BigInt(normalized);
+    if (userId <= 0n) {
+      throw new BadRequestException(`${label}는 1 이상이어야 합니다.`);
+    }
+    return userId;
   }
 
   private requiredText(value: string | undefined, fieldName: string, maxLength: number): string {

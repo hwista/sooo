@@ -1,0 +1,15 @@
+export const dynamic = 'force-dynamic';
+
+import { createServerApiProxyInit, createServerApiUrl } from '@/app/api/_shared/serverApiProxy';
+
+export async function GET(request: Request) {
+  const incoming = new URL(request.url);
+  const response = await fetch(
+    createServerApiUrl(`/codes${incoming.search}`),
+    createServerApiProxyInit(request, { method: 'GET' }),
+  );
+  return new Response(await response.text(), {
+    status: response.status,
+    headers: { 'Content-Type': response.headers.get('content-type') || 'application/json' },
+  });
+}

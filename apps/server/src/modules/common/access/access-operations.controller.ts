@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -12,6 +12,9 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { AccessOperationsService } from './access-operations.service.js';
 import { InspectAccessQueryDto } from './dto/inspect-access.query.dto.js';
 import { ListPermissionExceptionsQueryDto } from './dto/list-permission-exceptions.query.dto.js';
+import { UpdateRolePermissionsDto } from './dto/update-role-permissions.dto.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { TokenPayload } from '../auth/interfaces/auth.interface.js';
 
 @ApiTags('Access Ops')
 @ApiBearerAuth()
@@ -58,5 +61,31 @@ export class AccessOperationsController {
   async listPermissionExceptions(@Query() query: ListPermissionExceptionsQueryDto) {
     const result = await this.accessOperationsService.listPermissionExceptions(query);
     return success(result, '권한 예외 목록 조회 성공');
+  }
+
+  @Get('roles')
+  @ApiOperation({ summary: '역할별 활성 permission grant 조회' })
+  async listRoles() {
+    return success(await this.accessOperationsService.listRolesWithPermissions());
+  }
+
+  @Put('roles/:roleCode/permissions')
+  @ApiOperation({ summary: '역할의 전체 permission grant 집합 갱신' })
+  async updateRolePermissions(
+    @Param('roleCode') roleCode: string,
+    @Body() dto: UpdateRolePermissionsDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    return success(await this.accessOperationsService.updateRolePermissions(
+      roleCode,
+      dto,
+      BigInt(currentUser.userId),
+    ));
+  }
+
+  @Get('audit')
+  @ApiOperation({ summary: '플랫폼 사용자/인증/세션/조직/역할권한 감사 이벤트 조회' })
+  async listAudit(@Query('limit') limit?: string) {
+    return success(await this.accessOperationsService.listAuditEvents(limit ? Number(limit) : 100));
   }
 }

@@ -1,0 +1,61 @@
+{
+  "title": "계약서 생성",
+  "sections": [
+    "계약서 생성"
+  ],
+  "fields": [
+    {
+      "id": "cg-search",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "고객사 또는 건명 검색",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": "cg-opp",
+      "type": "radio",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": null,
+      "name": "cg-opp",
+      "type": "radio",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "cg-template-select",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "columns": [
+    "고객사",
+    "건명",
+    "사업구분",
+    "매출",
+    "계약기간",
+    "담당자"
+  ],
+  "actions": [
+    "샘플 템플릿 다운로드",
+    "+ 템플릿 추가",
+    "삼성전자 ERP 시스템 구축 프로젝트 SI 162,000,000원 2026.01.01 ~ 2026.12.31",
+    "현대자동차 SCM 플랫폼 고도화 SM 95,000,000원 2026.04.01 ~ 2027.03.31",
+    "계약서 생성 (.docx)"
+  ],
+  "labels": [
+    "템플릿 선택"
+  ]
+}

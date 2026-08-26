@@ -22,6 +22,7 @@ import type {
 import { createDmsLogger } from './dms-logger.js';
 import { gitRemoteIdentitiesMatch } from './git-remote-identity.util.js';
 import type { DmsConfigDbClient } from './settings.types.js';
+import { redactUrlCredentials } from '../../../common/security/secret-redaction.js';
 const logger = createDmsLogger('DmsConfigService');
 
 // ============================================================================
@@ -55,7 +56,11 @@ export interface GitBootstrapBindingInfo {
   bootstrapBranch?: string;
 }
 
-export type StorageProvider = 'local' | 'sharepoint' | 'nas';
+export type StorageProvider = 'local' | 'nas';
+
+export function normalizeStorageProvider(value: unknown): StorageProvider | undefined {
+  return value === 'local' || value === 'nas' ? value : undefined;
+}
 
 export interface StorageProviderConfig {
   enabled: boolean;
@@ -66,7 +71,6 @@ export interface StorageProviderConfig {
 export interface StorageConfig {
   defaultProvider: StorageProvider;
   local: StorageProviderConfig;
-  sharepoint: StorageProviderConfig;
   nas: StorageProviderConfig;
 }
 
@@ -74,6 +78,7 @@ export interface IngestConfig {
   queuePath: string;
   autoPublish: boolean;
   maxConcurrentJobs: number;
+  retentionDays: number;
 }
 
 /**
@@ -123,12 +128,6 @@ export interface DocAssistConfig {
 export type M365AuthMode = 'anonymous-first' | 'organization-sso';
 export type M365IdentityMapping = 'mail' | 'userPrincipalName' | 'displayName';
 
-export interface M365SharePointConfig {
-  tenantDomain: string;
-  sitePath: string;
-  defaultLibrary: string;
-}
-
 export interface M365TeamsConfig {
   enabled: boolean;
   ingestEnabled: boolean;
@@ -145,7 +144,6 @@ export interface M365AuthConfig {
 }
 
 export interface M365Config {
-  sharepoint: M365SharePointConfig;
   teams: M365TeamsConfig;
   auth: M365AuthConfig;
 }
@@ -180,6 +178,17 @@ export interface RuntimePathBindingInfo {
   envVar?: string;
 }
 
+export interface StorageRuntimeContractInfo {
+  provider: StorageProvider;
+  resolvedPath: string;
+  source: RuntimePathSource;
+}
+
+export interface SettingsPersistenceStatus {
+  initialized: boolean;
+  ready: boolean;
+}
+
 export type DocumentRootBindingInfo = RuntimePathBindingInfo;
 
 // ============================================================================
@@ -192,7 +201,6 @@ export const DEFAULT_TEMPLATE_ROOT_PATH = '_templates';
 export const TEMPLATE_SUBDIR = '_templates';
 export const DEFAULT_INGEST_QUEUE_PATH = '../../../.runtime/document-ingest';
 export const DEFAULT_LOCAL_STORAGE_ROOT_PATH = '../../../.runtime/document-storage/local';
-export const DEFAULT_SHAREPOINT_STORAGE_BASE_PATH = '/sites/documents/shared-documents';
 export const DEFAULT_NAS_STORAGE_BASE_PATH = '/mnt/nas/documents';
 export const DEFAULT_GIT_PROD_REMOTE_URL = 'http://10.125.31.72:8010/LSITC_WEB/LSWIKI_DOC.git';
 export const DEFAULT_GIT_DEV_REMOTE_URL = 'git@10.125.31.72:LSITC_WEB/LSWIKI_DOC_DEV.git';
@@ -202,7 +210,6 @@ const RUNTIME_PATH_ENV_KEYS = {
   markdownRoot: 'DMS_MARKDOWN_ROOT',
   ingestQueuePath: 'DMS_INGEST_QUEUE_PATH',
   storageLocalBasePath: 'DMS_STORAGE_LOCAL_BASE_PATH',
-  storageSharepointBasePath: 'DMS_STORAGE_SHAREPOINT_BASE_PATH',
   storageNasBasePath: 'DMS_STORAGE_NAS_BASE_PATH',
 } as const;
 
@@ -299,7 +306,9 @@ class ConfigService {
   }
 
   private async saveConfigToDb(config: DmsConfig): Promise<void> {
-    if (!this.dbClient) return;
+    if (!this.dbClient) {
+      throw new Error('DMS system settings persistence is not initialized.');
+    }
     try {
       const existing = await this.dbClient.dmsConfig.findFirst({
         where: { scopeCode: 'system', ownerRef: '_system_' },
@@ -317,6 +326,8 @@ class ConfigService {
       }
     } catch (error) {
       logger.error('DB에 시스템 설정 저장 실패', error);
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new Error(`DMS system settings persistence failed: ${reason}`, { cause: error });
     }
   }
 
@@ -333,6 +344,13 @@ class ConfigService {
     return this.config;
   }
 
+  getPersistenceStatus(): SettingsPersistenceStatus {
+    return {
+      initialized: this.dbClient !== null,
+      ready: this.dbReady,
+    };
+  }
+
   /** 설정 업데이트 (부분 업데이트 지원) — DB 백엔드 사용 */
   async updateConfig(partial: DeepPartial<DmsConfig>): Promise<DmsConfig> {
     const current = this.getConfig();
@@ -341,10 +359,13 @@ class ConfigService {
       partial as unknown as Record<string, unknown>
     ) as unknown as DmsConfig;
     const normalized = this.normalizeConfig(merged, this.getDefaults());
-    this.config = normalized.config;
-    if (this.dbReady) {
+    if (this.dbClient && !this.dbReady) {
+      throw new Error('DMS system settings persistence is unavailable.');
+    }
+    if (this.dbClient) {
       await this.saveConfigToDb(normalized.config);
     }
+    this.config = normalized.config;
     return normalized.config;
   }
 
@@ -390,12 +411,6 @@ class ConfigService {
           configuredPath,
           DEFAULT_LOCAL_STORAGE_ROOT_PATH,
           RUNTIME_PATH_ENV_KEYS.storageLocalBasePath,
-        );
-      case 'sharepoint':
-        return this.getRuntimePathBinding(
-          configuredPath,
-          DEFAULT_SHAREPOINT_STORAGE_BASE_PATH,
-          RUNTIME_PATH_ENV_KEYS.storageSharepointBasePath,
         );
       case 'nas':
         return this.getRuntimePathBinding(
@@ -449,7 +464,7 @@ class ConfigService {
     if (instanceEnv === 'local-test') {
       if (configuredBootstrapRemote.remoteUrl) {
         throw new Error(
-          `DMS git role contract invalid: ${DMS_INSTANCE_ENV_KEY}=local-test must keep the bootstrap remote empty, but ${configuredBootstrapRemote.source} configured ${configuredBootstrapRemote.remoteUrl}.`,
+          `DMS git role contract invalid: ${DMS_INSTANCE_ENV_KEY}=local-test must keep the bootstrap remote empty, but ${configuredBootstrapRemote.source} configured ${redactUrlCredentials(configuredBootstrapRemote.remoteUrl)}.`,
         );
       }
 
@@ -471,7 +486,7 @@ class ConfigService {
       && !gitRemoteIdentitiesMatch(configuredBootstrapRemote.remoteUrl, roleBootstrapRemote)
     ) {
       throw new Error(
-        `DMS git role contract invalid: ${DMS_INSTANCE_ENV_KEY}=${instanceEnv} expects ${roleBootstrapRemote}, but ${configuredBootstrapRemote.source} configured ${configuredBootstrapRemote.remoteUrl}.`,
+        `DMS git role contract invalid: ${DMS_INSTANCE_ENV_KEY}=${instanceEnv} expects ${redactUrlCredentials(roleBootstrapRemote)}, but ${configuredBootstrapRemote.source} configured ${redactUrlCredentials(configuredBootstrapRemote.remoteUrl)}.`,
       );
     }
 
@@ -484,6 +499,31 @@ class ConfigService {
 
   assertGitBootstrapContract(): GitBootstrapBindingInfo {
     return this.getGitBootstrapBinding();
+  }
+
+  assertStorageRuntimeContract(): StorageRuntimeContractInfo {
+    const provider = this.getConfig().storage.defaultProvider;
+    const providerConfig = this.getConfig().storage[provider];
+    if (!providerConfig.enabled) {
+      throw new Error(`DMS storage contract invalid: default provider ${provider} is disabled.`);
+    }
+
+    const binding = this.getStorageRootBinding(provider);
+    try {
+      fs.mkdirSync(binding.resolvedPath, { recursive: true });
+      fs.accessSync(binding.resolvedPath, fs.constants.R_OK | fs.constants.W_OK);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `DMS storage contract invalid: default provider ${provider} root is not readable/writable (${binding.resolvedPath}): ${reason}`,
+      );
+    }
+
+    return {
+      provider,
+      resolvedPath: binding.resolvedPath,
+      source: binding.source,
+    };
   }
 
   getGitBootstrapRemoteUrl(): string | undefined {
@@ -573,18 +613,13 @@ class ConfigService {
         autoInit: true,
       },
       storage: {
-        defaultProvider: 'sharepoint',
+        defaultProvider: 'local',
         local: {
           enabled: true,
           basePath: DEFAULT_LOCAL_STORAGE_ROOT_PATH,
         },
-        sharepoint: {
-          enabled: true,
-          basePath: DEFAULT_SHAREPOINT_STORAGE_BASE_PATH,
-          webBaseUrl: 'https://sharepoint.local',
-        },
         nas: {
-          enabled: true,
+          enabled: false,
           basePath: DEFAULT_NAS_STORAGE_BASE_PATH,
           webBaseUrl: 'file:///mnt/nas/documents',
         },
@@ -593,6 +628,7 @@ class ConfigService {
         queuePath: DEFAULT_INGEST_QUEUE_PATH,
         autoPublish: false,
         maxConcurrentJobs: 2,
+        retentionDays: 30,
       },
       templates: {},
       extraction: {
@@ -628,11 +664,6 @@ class ConfigService {
         ...DEFAULT_DMS_CRM_CONTRACT_EXPORT_POLICY,
       },
       m365: {
-        sharepoint: {
-          tenantDomain: '',
-          sitePath: '/sites/documents',
-          defaultLibrary: 'shared-documents',
-        },
         teams: {
           enabled: false,
           ingestEnabled: false,
@@ -752,37 +783,52 @@ class ConfigService {
 
   private normalizeConfig(config: DmsConfig, defaults: DmsConfig): NormalizeConfigResult {
     const repositoryPath = config.git.repositoryPath?.trim() ?? '';
-    if (repositoryPath) {
-      if (repositoryPath === config.git.repositoryPath) {
-        return { config, usedDefaultRepositoryPath: false };
-      }
-
-      return {
-        config: {
-          ...config,
-          git: {
-            ...config.git,
-            repositoryPath,
-          },
-        },
-        usedDefaultRepositoryPath: false,
-      };
-    }
-
     const defaultRepositoryPath = defaults.git.repositoryPath?.trim() ?? '';
-    if (!defaultRepositoryPath) {
-      return { config, usedDefaultRepositoryPath: false };
-    }
+    const normalizedRepositoryPath = repositoryPath || defaultRepositoryPath;
+    const legacyStorage = config.storage as StorageConfig & {
+      defaultProvider?: string;
+      sharepoint?: StorageProviderConfig;
+    };
+    const legacyM365 = config.m365 as M365Config & { sharepoint?: unknown };
+    const { sharepoint: _legacyStorage, ...storageWithoutSharePoint } = legacyStorage;
+    const { sharepoint: _legacyM365, ...m365WithoutSharePoint } = legacyM365;
+    void _legacyStorage;
+    void _legacyM365;
+
+    const defaultProvider = normalizeStorageProvider(legacyStorage.defaultProvider) ?? 'local';
 
     return {
       config: {
         ...config,
         git: {
           ...config.git,
-          repositoryPath: defaultRepositoryPath,
+          repositoryPath: normalizedRepositoryPath,
+        },
+        storage: {
+          ...storageWithoutSharePoint,
+          defaultProvider,
+          local: {
+            ...defaults.storage.local,
+            ...legacyStorage.local,
+          },
+          nas: {
+            ...defaults.storage.nas,
+            ...legacyStorage.nas,
+          },
+        },
+        m365: {
+          ...m365WithoutSharePoint,
+          teams: {
+            ...defaults.m365.teams,
+            ...legacyM365.teams,
+          },
+          auth: {
+            ...defaults.m365.auth,
+            ...legacyM365.auth,
+          },
         },
       },
-      usedDefaultRepositoryPath: true,
+      usedDefaultRepositoryPath: !repositoryPath && Boolean(defaultRepositoryPath),
     };
   }
 

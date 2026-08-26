@@ -1,0 +1,141 @@
+{
+  "states": [
+    {
+      "name": "seeded-codes",
+      "captured": true,
+      "screenshot": "ux-15-codes.png",
+      "screenshotSha256": "e656d63fe3a142315a62593caaec34bc7209398cfdba1083999f81eff7ea4930",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "filtered-empty",
+      "captured": true,
+      "screenshot": "ux-15-codes--filtered-empty.png",
+      "screenshotSha256": "152005f01f0f875d9b4f96ac981e04511fdc3a5617ee37f02cb75f67d7813b39",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "create-edit-validation",
+      "captured": true,
+      "screenshot": "ux-15-codes--create-edit-validation.png",
+      "screenshotSha256": "82f16e52de508e9d4ce3e36065f0c371892980df54230c4f18305d01fc19d0ed",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "activate-deactivate",
+      "captured": true,
+      "screenshot": "ux-15-codes--activate-deactivate.png",
+      "screenshotSha256": "3561b89d8ad4624a4498edf79a7a89571b3c1af4c1b5409d238acad50bed2f8c",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "delete-confirmation",
+      "captured": true,
+      "screenshot": "ux-15-codes--delete-confirmation.png",
+      "screenshotSha256": "a3617e3b9ca0c9e567ab132d2930060ba7c70cad4201c4da42e5ef5cfbd5776a",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-codes",
+      "behavior": "seeded codes",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "filtered-empty",
+      "behavior": "filtered empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "create-edit-validation",
+      "behavior": "create edit validation",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "activate-deactivate",
+      "behavior": "activate deactivate",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "delete-confirmation",
+      "behavior": "delete confirmation",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    }
+  ]
+}

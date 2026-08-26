@@ -41,6 +41,10 @@ import { RequireDmsFeature } from '../access/require-dms-feature.decorator.js';
 import { SearchService } from '../search/search.service.js';
 import { CollaborationService } from '../collaboration/collaboration.service.js';
 import { configService, type StorageProvider } from '../runtime/dms-config.service.js';
+import {
+  personalSettingsService,
+  resolvePreferredStorageProvider,
+} from '../runtime/personal-settings.service.js';
 import { contentService } from '../runtime/content.service.js';
 import { createDmsLogger } from '../runtime/dms-logger.js';
 import { isMarkdownFile } from '../runtime/file-utils.js';
@@ -369,7 +373,7 @@ export class FileController {
       this.collaborationService.assertMutationAllowed({ action: 'upload', paths: [documentPath.trim()] });
     }
     this.assertCanUploadToDocument(currentUser, documentPath);
-    const storageProvider = this.resolveUploadProvider(provider);
+    const storageProvider = await this.resolveUploadProvider(currentUser, provider);
     const attachmentMaxSizeMb = configService.getConfig().uploads.attachmentMaxSizeMb;
     const attachmentMaxSize = attachmentMaxSizeMb * 1024 * 1024;
     const ext = path.extname(uploadedFile.originalname).toLowerCase();
@@ -424,7 +428,7 @@ export class FileController {
       this.collaborationService.assertMutationAllowed({ action: 'upload', paths: [documentPath.trim()] });
     }
     this.assertCanUploadToDocument(currentUser, documentPath);
-    const storageProvider = this.resolveUploadProvider(provider);
+    const storageProvider = await this.resolveUploadProvider(currentUser, provider);
     const imageMaxSizeMb = configService.getConfig().uploads.imageMaxSizeMb;
     const imageMaxSize = imageMaxSizeMb * 1024 * 1024;
 
@@ -476,7 +480,7 @@ export class FileController {
       this.collaborationService.assertMutationAllowed({ action: 'upload', paths: [documentPath.trim()] });
     }
     this.assertCanUploadToDocument(currentUser, documentPath);
-    const storageProvider = this.resolveUploadProvider(provider);
+    const storageProvider = await this.resolveUploadProvider(currentUser, provider);
     const attachmentMaxSizeMb = configService.getConfig().uploads.attachmentMaxSizeMb;
     const attachmentMaxSize = attachmentMaxSizeMb * 1024 * 1024;
     const ext = path.extname(uploadedFile.originalname).toLowerCase();
@@ -571,16 +575,20 @@ export class FileController {
     return file;
   }
 
-  private resolveUploadProvider(provider?: string): StorageProvider | undefined {
-    if (!provider) {
-      return undefined;
-    }
-
-    if (provider === 'local' || provider === 'sharepoint' || provider === 'nas') {
+  private async resolveUploadProvider(
+    currentUser: TokenPayload,
+    provider?: string,
+  ): Promise<StorageProvider | undefined> {
+    if (provider === 'local' || provider === 'nas') {
       return provider;
     }
 
-    throw new BadRequestException('지원하지 않는 저장소 provider 입니다.');
+    if (provider) {
+      throw new BadRequestException('지원하지 않는 저장소 provider 입니다.');
+    }
+
+    const personalSettings = await personalSettingsService.loadSettingsForUser(currentUser.userId);
+    return resolvePreferredStorageProvider(personalSettings.workspace.preferredStorageProvider);
   }
 
   private isMarkdownPath(filePath: string): boolean {
@@ -609,7 +617,7 @@ export class FileController {
   }
 
   private resolveExistingStorageAttachmentPath(filePath: string): string | null {
-    for (const provider of ['local', 'sharepoint', 'nas'] as const) {
+    for (const provider of ['local', 'nas'] as const) {
       try {
         const resolvedPath = storageAdapterService.resolveContainedPath(provider, filePath).fullPath;
         if (fs.existsSync(resolvedPath)) {

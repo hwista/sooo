@@ -119,15 +119,17 @@ export function SharedPasswordResetPage({
         ) : null}
 
         {step === 'request' ? (
-          <form className="space-y-5" onSubmit={handleRequest}>
+          <form name="ssoo-password-reset-request" autoComplete="on" className="space-y-5" onSubmit={handleRequest}>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground" htmlFor="reset-email">
                 이메일
               </label>
               <Input
                 id="reset-email"
+                name="email"
                 type="email"
                 autoComplete="email"
+                data-ssoo-input-intent="credential-recovery-email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="h-11"
@@ -146,15 +148,18 @@ export function SharedPasswordResetPage({
         ) : null}
 
         {step === 'confirm' ? (
-          <form className="space-y-5" onSubmit={handleConfirm}>
+          <form name="ssoo-password-reset-confirm" autoComplete="on" className="space-y-5" onSubmit={handleConfirm}>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground" htmlFor="reset-code">
                 재설정 코드
               </label>
               <Input
                 id="reset-code"
+                name="one-time-code"
                 type="text"
                 inputMode="numeric"
+                autoComplete="one-time-code"
+                data-ssoo-input-intent="credential-recovery-code"
                 value={code}
                 onChange={(event) => setCode(event.target.value)}
                 className="h-11"
@@ -167,8 +172,10 @@ export function SharedPasswordResetPage({
               </label>
               <Input
                 id="new-password"
+                name="new-password"
                 type="password"
                 autoComplete="new-password"
+                data-ssoo-input-intent="credential-new-password"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 className="h-11"
@@ -181,8 +188,10 @@ export function SharedPasswordResetPage({
               </label>
               <Input
                 id="confirm-password"
+                name="confirm-new-password"
                 type="password"
                 autoComplete="new-password"
+                data-ssoo-input-intent="credential-confirm-password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 className="h-11"

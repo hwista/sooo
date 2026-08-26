@@ -1,5 +1,6 @@
 import type {
   TemplateGeneration,
+  TemplateDocxBinary,
   TemplateItem,
   TemplateOriginType,
   TemplateReferenceDoc,
@@ -34,4 +35,5 @@ export interface TemplateMetadataRecord {
   referenceDocuments?: TemplateReferenceDoc[];
   generation?: TemplateGeneration;
   reviewConfirmation?: TemplateReviewConfirmation;
+  docxTemplate?: TemplateDocxBinary;
 }

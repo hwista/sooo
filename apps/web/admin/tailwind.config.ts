@@ -1,6 +1,6 @@
 import type { Config } from 'tailwindcss';
-
-const ssooTailwindPreset = require('@ssoo/web-ui/tailwind-preset');
+import ssooTailwindPreset from '@ssoo/web-ui/tailwind-preset';
+import tailwindcssAnimate from 'tailwindcss-animate';
 
 const config: Config = {
   darkMode: ['class'],
@@ -13,7 +13,7 @@ const config: Config = {
     '../../../packages/web-shell/src/**/*.{js,ts,jsx,tsx,mdx}',
     '../../../packages/web-ui/src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindcssAnimate],
 };
 
 export default config;

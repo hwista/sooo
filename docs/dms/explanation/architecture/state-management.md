@@ -1,6 +1,6 @@
 # 상태 관리 (State Management)
 
-> 최종 업데이트: 2026-07-06
+> 최종 업데이트: 2026-08-20
 
 DMS의 Zustand 기반 상태 관리 구조를 정의합니다.
 
@@ -29,6 +29,20 @@ src/stores/
 ```
 
 `ai-search.store.ts` 기반 검색 기록 persist는 DMS 로컬 AI 검색 화면 전용 잔여물이었으므로 제거했다. 현재 DMS 검색 진입점은 플랫폼 `/ssoo/search` 전역 검색 page recipe 하나만 소비하며, `/ai/search` 호환 alias를 유지하지 않는다. 기존 DMS AI 검색의 검색 기록/인기 검색어/내 자주 검색 표면은 공용 검색 page의 sidecar props로 주입한다. DMS store index는 전역 검색 기록 store를 export하지 않는다.
+
+### 홈 워크 허브 상태 경계
+
+| 상태 | 정본 | 범위 |
+|------|------|------|
+| 최근 열람 | 서버 DB `dm_user_document_activity_m` | 로그인 사용자, 세션·기기 간 공유 |
+| 홈 마지막 확인 | `dm_config_m` personal JSON의 `home.lastSeenAt` | 로그인 사용자, 단조 증가 |
+| 변경/처리/운영 예외 | `GET /api/home` TanStack Query snapshot (`lastSyncedAt` 변경 시계) | 활성 홈 탭에서 조회·재진입 시 갱신 |
+| 책갈피 | `useFileStore` localStorage | 현재 사용자·현재 기기 |
+| 열린 탭 | `useTabStore` sessionStorage | 현재 사용자·현재 브라우저 세션 |
+
+홈은 `useHomeSummary(active)`로 keep-alive 홈 탭의 활성 전환을 감지해 다시 조회합니다. 서버 snapshot을 렌더한 뒤 `generatedAt`을 확인 시각으로 비차단 기록하며, 이 저장 실패가 홈이나 문서 본문을 차단하지 않습니다. 문서 페이지는 성공한 일반 문서 로드에만 방문을 비차단 기록하고 홈 query를 무효화합니다.
+
+문서 control-plane의 generic `updatedAt`은 파일 목록 reconcile과 서버 기동 동기화에서도 바뀔 수 있으므로 홈의 변경 판단에 사용하지 않습니다. `lastSyncedAt`은 실제 콘텐츠/메타데이터 projection mutation에서만 전진하고 단순 reconcile에서는 보존합니다.
 
 ---
 

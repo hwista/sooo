@@ -3,6 +3,7 @@ export type CrmCostPlanAmsReadiness = 'ready' | 'blocked' | 'planned';
 export type CrmCostPlanAmsMappingStatus = 'mapped' | 'unmapped' | 'not-required';
 export type CrmCostPlanInternalInputMode = 'candidate' | 'manual';
 export type CrmCostPlanInternalInputStatus = 'candidate' | 'draft' | 'confirmed';
+export type CrmCostPlanInternalSourceItemCode = 'labor' | 'other' | 'dept_adj' | 'svc' | 'dept_common';
 export type CrmCostPlanAmsExternalInputStatus = 'candidate' | 'draft' | 'confirmed';
 export type CrmCostPlanAccountingPaymentReadiness = 'ready' | 'blocked';
 export type CrmCostPlanAccountingPaymentLineSource = 'internal-cost' | 'ams-external-cost';
@@ -123,6 +124,113 @@ export interface CrmCostPlanPreviewResponse {
   summary: CrmCostPlanPreviewSummary;
   months: CrmCostPlanPreviewMonth[];
   rows: CrmCostPlanPreviewRow[];
+  internalCostSourceGrid: CrmCostPlanInternalSourceGrid;
+  amsSourceWorkspace: CrmCostPlanAmsSourceWorkspace;
+}
+
+export interface CrmCostPlanInternalSourceItem {
+  id?: string;
+  itemCode: CrmCostPlanInternalSourceItemCode;
+  itemName: string;
+  monthlyPlanAmounts: number[];
+  monthlyActualAmounts: number[];
+  planAmountTotal: number;
+  actualAmountTotal: number;
+  differenceAmountTotal: number;
+  updatedAt?: string;
+}
+
+export interface CrmCostPlanInternalSourceGrid {
+  targetYear: number;
+  items: CrmCostPlanInternalSourceItem[];
+  boundaryNotice: string;
+}
+
+export interface CrmCostPlanInternalSourceItemInput {
+  itemCode: CrmCostPlanInternalSourceItemCode;
+  monthlyPlanAmounts: number[];
+  monthlyActualAmounts: number[];
+}
+
+export interface CrmCostPlanInternalSourceGridRequest {
+  targetYear: number;
+  items: CrmCostPlanInternalSourceItemInput[];
+}
+
+export interface CrmCostPlanInternalSourceGridResult {
+  grid: CrmCostPlanInternalSourceGrid;
+  boundaryNotice: string;
+}
+
+export interface CrmCostPlanAmsSourceEligibleWbs {
+  wbsCode: string;
+  contractId: string;
+  contractCode: string;
+  customerName: string;
+  contractName: string;
+  label: string;
+}
+
+export interface CrmCostPlanAmsSourceVendorWbs {
+  id: string;
+  wbsCode: string;
+  contractId?: string;
+}
+
+export interface CrmCostPlanAmsSourceVendor {
+  id: string;
+  targetYear: number;
+  vendorName: string;
+  wbs: CrmCostPlanAmsSourceVendorWbs[];
+  updatedAt: string;
+}
+
+export interface CrmCostPlanAmsSourceExternalCostRow {
+  id?: string;
+  vendorId: string;
+  vendorName: string;
+  wbsCode: string;
+  monthlyPlanAmounts: number[];
+  monthlyActualAmounts: number[];
+  planAmountTotal: number;
+  actualAmountTotal: number;
+  differenceAmountTotal: number;
+  updatedAt?: string;
+}
+
+export interface CrmCostPlanAmsSourceWorkspace {
+  targetYear: number;
+  eligibleWbs: CrmCostPlanAmsSourceEligibleWbs[];
+  vendors: CrmCostPlanAmsSourceVendor[];
+  externalCostRows: CrmCostPlanAmsSourceExternalCostRow[];
+  boundaryNotice: string;
+}
+
+export interface CrmCostPlanAmsSourceVendorCreateRequest {
+  targetYear: number;
+  vendorName: string;
+}
+
+export interface CrmCostPlanAmsSourceVendorWbsRequest {
+  targetYear: number;
+  wbsCodes: string[];
+}
+
+export interface CrmCostPlanAmsSourceExternalCostRowInput {
+  vendorId: string;
+  wbsCode: string;
+  monthlyPlanAmounts: number[];
+  monthlyActualAmounts: number[];
+}
+
+export interface CrmCostPlanAmsSourceExternalCostRequest {
+  targetYear: number;
+  rows: CrmCostPlanAmsSourceExternalCostRowInput[];
+}
+
+export interface CrmCostPlanAmsSourceWorkspaceResult {
+  workspace: CrmCostPlanAmsSourceWorkspace;
+  boundaryNotice: string;
 }
 
 export interface CrmCostPlanInternalMonthlyInput {

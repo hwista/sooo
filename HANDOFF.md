@@ -24,7 +24,6 @@ Current runtime state
   - `DMS_MARKDOWN_ROOT=/var/lib/ssoo/documents`
   - `DMS_INGEST_QUEUE_PATH=/var/lib/ssoo/document-ingest`
   - `DMS_STORAGE_LOCAL_BASE_PATH=/var/lib/ssoo/document-storage/local`
-  - `DMS_STORAGE_SHAREPOINT_BASE_PATH=/sites/documents/shared-documents`
   - `DMS_STORAGE_NAS_BASE_PATH=/mnt/nas/documents`
 - Docker bind mounts now use `.runtime/documents`, `.runtime/document-ingest`, and `.runtime/document-storage/local`.
 - Existing Docker Postgres `dms.dm_config_m` system settings were updated from legacy `.runtime/dms/*`, `/sites/dms`, `/mnt/nas/dms` values to the same document-neutral paths. Fresh deploy seed defaults were updated as well.
@@ -205,7 +204,7 @@ Next recommended actions (in priority order)
 
 **Phase C — Operational polish (P2, ~3-5 days)**
 
-4. Storage error message standardization (SharePoint / NAS — permission vs timeout vs expired) — `DMS-STO-02-A`
+4. Storage error message standardization (NAS — permission vs timeout vs expired) — `DMS-STO-02-A`
 5. Resync → Settings refresh end-to-end verification — `DMS-STO-02-B`
 
 **Phase D — Test safety net (P2, ~1 week, NOT closure-critical)**
@@ -301,7 +300,7 @@ Purpose of this snapshot
   - `pnpm run verify:access-dms:raw` — failed: `/dms/file/raw` returned 404 for a probe image path like `_assets/images/verify-*.png`.
 - Important diagnostic conclusion:
   - `upload-image` stores files through `storageAdapterService.upload(...)` under the configured storage provider/root.
-  - Current config had `storage.defaultProvider = sharepoint`; probe images were observed under the SharePoint storage root, now normalized to `/sites/documents/shared-documents` for Docker/default settings.
+  - 당시 config의 폐기된 기본 provider 때문에 probe 이미지가 잘못된 외부 root에 기록되었고, 2026-07-22 Local 기본 계약과 migration으로 해소했습니다.
   - `GET /dms/file/raw` only resolves against markdown root via `fileCrudService.resolveFilePath(...)`, so it misses storage-backed images.
   - `GET /dms/file/serve-attachment` already has a storage-backed fallback path; raw image serving needs equivalent behavior or a deliberate alternative contract.
 
@@ -331,8 +330,8 @@ Purpose of this snapshot
   - `.sidecar.json` files remain in document repos despite the current no-sidecar runtime contract. Need a deliberate cleanup/archival policy before deleting or committing them.
 - Raw binary risk:
   - `verify:access-dms:raw` is red until raw image endpoint supports storage-backed assets or the upload/materialization contract is changed.
-- Storage provider risk:
-  - DB config currently routes default uploads to `sharepoint`, represented locally by `/sites/documents/shared-documents`. Confirm whether this is intentional for local Docker verification.
+- Storage provider risk (resolved 2026-07-22):
+  - SharePoint provider를 폐기하고 DB/runtime 기본 업로드를 Local로 고정했으며 NAS는 명시적 활성화 전까지 비활성입니다.
 - Test-command risk:
   - Use the direct Jest command for `--runInBand`; `pnpm --filter server test -- --runInBand` is known to fail due to argument forwarding.
 - Documentation edit risk:

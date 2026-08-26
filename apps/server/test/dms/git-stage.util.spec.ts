@@ -1,6 +1,20 @@
-import { filterStageableGitManagedFiles } from '../../src/modules/dms/runtime/git-stage.util.js';
+import {
+  filterDiscardableGitManagedPaths,
+  filterStageableGitManagedFiles,
+} from '../../src/modules/dms/runtime/git-stage.util.js';
 
 describe('git-stage.util', () => {
+  it('TC-DMS-GIT-01 keeps runtime DOCX binaries outside discard-all scope', () => {
+    const result = filterDiscardableGitManagedPaths([
+      'ingest/launch-smoke.md',
+      '_templates/system/crm-quote-v1.docx',
+      'attachments/evidence.pdf',
+      'ingest\\launch-smoke.md',
+    ]);
+
+    expect(result).toEqual(['ingest/launch-smoke.md']);
+  });
+
   it('drops vanished untracked markdown paths before git add', () => {
     const result = filterStageableGitManagedFiles(
       ['codex-lock-ui/mpurxpyw.md'],

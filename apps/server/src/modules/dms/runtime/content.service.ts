@@ -22,7 +22,7 @@ import type {
 } from '@ssoo/types/dms';
 import { createDmsLogger } from './dms-logger.js';
 import { isMarkdownFile } from './file-utils.js';
-import { configService } from './dms-config.service.js';
+import { configService, normalizeStorageProvider } from './dms-config.service.js';
 import { normalizePath, resolveContainedPath } from './path-utils.js';
 
 const logger = createDmsLogger('DmsContentService');
@@ -201,7 +201,7 @@ function normalizeSourceFiles(value: unknown): SourceFileMeta[] {
       size: typeof entry.size === 'number' && Number.isFinite(entry.size) ? entry.size : undefined,
       url: normalizeOptionalString(entry.url),
       storageUri: normalizeOptionalString(entry.storageUri),
-      provider: normalizeOptionalString(entry.provider),
+      provider: normalizeStorageProvider(entry.provider),
       versionId: normalizeOptionalString(entry.versionId),
       etag: normalizeOptionalString(entry.etag),
       checksum: normalizeOptionalString(entry.checksum),

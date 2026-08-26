@@ -73,6 +73,9 @@ apps/web/dms ──→ packages/types, packages/web-auth, packages/web-shell, pa
 - 앱 `components/ui/*` adapter는 `@ssoo/web-ui`에서 inventory에 선언된 export만 named re-export할 수 있으며 wildcard re-export, 다른 import source, JSX markup, variant/class recipe를 둘 수 없습니다.
 - 각 웹 앱의 `components/ui/*`는 앱별 Button/Badge/Card/Input/Table/Dialog/Select 등 primitive recipe를 새로 정의하지 않습니다.
 - `apps/web`, `packages/web-shell`, `packages/web-auth`의 TSX surface는 원시 `button/input/textarea/select/table/thead/tbody/tfoot/tr/th/td`를 직접 렌더링하지 않고 `@ssoo/web-ui` primitive 또는 앱 thin adapter를 소비합니다.
+- `@ssoo/web-ui`의 `Input`은 목적 중립 원자입니다. 검색·필터·lookup 입력은 `@ssoo/web-shell`의 `SsooSearchInput`으로 `id/name/ariaLabel/intent`를 선언하고, query state·URL·API·선택 로직은 화면 소유로 유지합니다. 로그인·재설정·비밀번호 변경·관리 대상 사용자·비자격증명 secret은 각 목적에 맞는 `name/id/autocomplete`와 `data-ssoo-input-intent`를 명시합니다.
+- header/sidebar/독립 검색 페이지처럼 구조상 검색 시설인 표면만 고유 이름의 `role="search"` landmark를 사용합니다. 화면 내부 조건·lookup마다 form/landmark를 추가하거나 기존 submit/DOM 경계를 바꾸지 않습니다. 이 계약과 36개 입력 inventory는 `pnpm run verify:input-intent`가 build/preflight/push guard/PR validation에서 검사합니다.
+- 입력 의도 회귀 계약의 앱 범위는 Admin/CRM/PMS/DMS/SNS 고정 5앱이며 앱 선택·제외 분기를 두지 않습니다. 비의도 autofill 차단은 `admin` 같은 값의 내용이나 앱 이름을 판별하지 않고, 앱 소유값과의 불일치·브라우저 native autofill 상태·최근 실제 입력 의도만으로 결정합니다.
 - 정적 intrinsic 태그에 `role=button/tab/checkbox/...`, `onClick+tabIndex`, `onClick+onKeyDown`을 붙여 interactive primitive처럼 쓰는 pseudo-control은 금지합니다.
 - `@ssoo/web-ui` 원자 컴포넌트 사용처의 `className`에는 배치/간격 같은 문맥 override만 허용합니다. Button/Input/NativeSelect/SelectTrigger/Textarea/Checkbox의 색상, 높이, radius, border, typography, focus recipe를 다시 조합하면 `pnpm run verify:ui-consumption`에서 실패합니다.
 - `@ssoo/web-ui`의 `cn()`은 SSOO 커스텀 typography token과 color token을 동시에 보존하는 class merge 정본입니다. 앱/공용 패키지 로컬 utils는 이 구현을 재사용해야 하며, 단순 `twMerge(clsx(...))`로 되돌리면 `pnpm run verify:ui-style-boundary`에서 실패합니다.
@@ -80,6 +83,7 @@ apps/web/dms ──→ packages/types, packages/web-auth, packages/web-shell, pa
 - 이 전역 소비 기준은 `pnpm run verify:ui-consumption`에서 실패 처리되며, `build`, `codex:preflight`, `codex:push-guard`에 묶입니다.
 - 전역 디자인 표준은 공유 패키지의 원자 UI/페이지 템플릿/auth surface와 도메인 앱의 `components/templates`, `components/common/{page,datagrid,form}`, DMS settings surface 같은 재사용 surface뿐 아니라 `apps/web/*/src/components/pages/**` 최종 페이지 내부와 주요 App Router page/error surface까지 적용됩니다. 앱 `globals.css`, 앱 Tailwind theme recipe, 공용/도메인 재사용 surface와 최종 페이지 내부의 font/theme/raw Tailwind 색상(arbitrary/hex 및 `white`/`black` 포함) visual token 재정의는 `pnpm run verify:ui-style-boundary`에서 실패합니다.
 - `verify:ui-style-boundary`는 `build`, `codex:preflight`, `codex:push-guard`에 묶이며, 제어 가능한 third-party/editor/export renderer도 `--font-sans`/`--font-mono` 같은 플랫폼 token을 사용해야 합니다.
+- 외부 원본의 시각·인쇄 계약을 그대로 재현해야 하는 final-page 문서 renderer만 `design/source-fidelity-override:start ref=<reference-id> evidence=<test-id>`와 대응 end marker로 감싼 블록에서 원본 visual token을 유지할 수 있습니다. 이 예외는 source reference와 fresh visual evidence가 모두 있을 때만 허용되며 shell, 공용 primitive, 일반 업무 화면을 감싸면 안 됩니다. `verify:ui-style-boundary`는 경로·metadata·중첩·종료 marker를 fail closed로 검증합니다.
 - 내부 페이지 recipe는 `@ssoo/web-shell`의 `SsooRegisteredMdiContentArea`와 `defineSsooMdiPageRegistry`를 통해 `contentPage` 단일 route contract로 조립합니다.
 - 앱 TS/TSX 소스는 저수준 `SsooMdiContentArea`, `SsooMdiContentPane`, `SsooMdiTabbedContentArea`를 직접 소비하지 않습니다.
 - `legacyException`, `shellPage`, app-local page recipe clone, 저수준 MDI content primitive 우회는 `pnpm run verify:ssoo-frame`에서 실패 처리되며, `codex:preflight`, `codex:push-guard`, PR validation에 묶입니다.
@@ -203,6 +207,8 @@ modules/
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-21 | 외부 원본 문서의 exact visual/print 패리티용 `design/source-fidelity-override`를 final-page renderer와 reference/evidence marker에 한정하고 style-boundary에서 fail-closed 검증하도록 추가 |
+| 2026-08-20 | 검색·필터·lookup 입력의 공용 의미/비의도 autofill 차단 계약과 동적 filter renderer를 포함한 36개 입력 inventory, 자격증명 입력 분리, 정적·브라우저 회귀 게이트를 추가 |
 | 2026-07-22 | Next.js optional image runtime의 취약한 sharp <0.35.0을 0.35.3으로 override하고 웹 production build/Linux native image smoke를 검증 기준으로 추가 |
 | 2026-07-16 | Node.js 22.13+/NestJS 11/pnpm 11.13.1 기준, release-age strict gate, install-script allowlist, production dependency audit와 SheetJS 공식 배포 경로를 공급망 표준으로 추가 |
 | 2026-07-08 | SSOO 커스텀 typography token과 color token이 같이 보존되도록 `@ssoo/web-ui` class merge 정본을 고정하고, DMS 문서 page action 리듬(36px/12px/13px medium)을 공용 Button role size 기준선으로 추가 |

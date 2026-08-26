@@ -6,8 +6,9 @@ import { CurrentUser } from '../../common/auth/decorators/current-user.decorator
 import { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import { success, paginated, deleted } from '../../../common/index.js';
 import { ApiError } from '../../../common/swagger/api-response.dto.js';
+import { ApiOkEnvelopeResponse, ApiOkPaginatedResponse } from '../../../common/swagger/api-response.decorator.js';
 import { serializeBigInt } from '../../../common/utils/bigint.util.js';
-import { CreatePostDto, UpdatePostDto, FindPostsDto, PostDto, PostListDto } from './dto/post.dto.js';
+import { CreatePostDto, UpdatePostDto, FindPostsDto, PostDto } from './dto/post.dto.js';
 import { SnsFeatureGuard } from '../access/sns-feature.guard.js';
 import { RequireSnsFeature } from '../access/require-sns-feature.decorator.js';
 
@@ -20,7 +21,7 @@ export class PostController {
 
   @Get()
   @ApiOperation({ summary: '게시물 목록' })
-  @ApiOkResponse({ type: PostListDto })
+  @ApiOkPaginatedResponse(PostDto)
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
   @ApiInternalServerErrorResponse({ type: ApiError, description: '서버 오류' })
@@ -34,7 +35,7 @@ export class PostController {
 
   @Get(':id')
   @ApiOperation({ summary: '게시물 상세' })
-  @ApiOkResponse({ type: PostDto })
+  @ApiOkEnvelopeResponse(PostDto)
   @ApiNotFoundResponse({ type: ApiError })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiInternalServerErrorResponse({ type: ApiError, description: '서버 오류' })
@@ -47,7 +48,7 @@ export class PostController {
 
   @Post()
   @ApiOperation({ summary: '게시물 생성' })
-  @ApiOkResponse({ type: PostDto })
+  @ApiOkEnvelopeResponse(PostDto)
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
   @ApiInternalServerErrorResponse({ type: ApiError, description: '서버 오류' })
@@ -60,7 +61,7 @@ export class PostController {
 
   @Put(':id')
   @ApiOperation({ summary: '게시물 수정' })
-  @ApiOkResponse({ type: PostDto })
+  @ApiOkEnvelopeResponse(PostDto)
   @ApiNotFoundResponse({ type: ApiError })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })

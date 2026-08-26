@@ -11,7 +11,30 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HealthStatusDto"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccess"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "success",
+                        "data"
+                      ],
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ],
+                          "example": true
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/HealthStatusDto"
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -32,12 +55,2545 @@
           "health"
         ]
       }
+    },
+    "/api/health/readiness": {
+      "get": {
+        "operationId": "HealthController_checkReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccess"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "success",
+                        "data"
+                      ],
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ],
+                          "example": true
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/HealthReadinessDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "플랫폼 readiness 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "플랫폼 readiness 체크",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/access/ops/catalog": {
+      "get": {
+        "description": "permission vocabulary를 Admin/platform, DMS, PMS, CRM, SNS 등 책임 소유자별로 분류하고 각 메뉴/운영 surface를 반환합니다.",
+        "operationId": "AccessOperationsController_listPermissionCatalog",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "권한 기능 명세 조회 성공"
+          },
+          "401": {
+            "description": "인증되지 않은 요청"
+          },
+          "403": {
+            "description": "관리자만 접근 가능"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "플랫폼/앱별 권한 기능 명세 조회 (관리자)",
+        "tags": [
+          "Access Ops"
+        ]
+      }
+    },
+    "/api/access/ops/inspect": {
+      "get": {
+        "description": "특정 사용자의 foundation action policy 와 optional object policy, active permission exception을 함께 조회합니다.",
+        "operationId": "AccessOperationsController_inspectAccess",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "대상 사용자 ID(BigInt string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "loginId",
+            "required": false,
+            "in": "query",
+            "description": "대상 로그인 ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetObjectType",
+            "required": false,
+            "in": "query",
+            "description": "object axis target type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetObjectId",
+            "required": false,
+            "in": "query",
+            "description": "object axis target id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "domainPermissionCodes",
+            "required": false,
+            "in": "query",
+            "description": "object resolution 전에 더할 domain permission codes (comma-separated)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "required": false,
+            "in": "query",
+            "description": "비활성/만료 예외까지 포함할지 여부",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "권한 해석 조회 성공"
+          },
+          "401": {
+            "description": "인증되지 않은 요청"
+          },
+          "403": {
+            "description": "관리자만 접근 가능"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "권한 해석 inspect (관리자)",
+        "tags": [
+          "Access Ops"
+        ]
+      }
+    },
+    "/api/access/ops/exceptions": {
+      "get": {
+        "description": "user/loginId, axis, object target, permission code 로 필터링된 permission exception 목록을 반환합니다.",
+        "operationId": "AccessOperationsController_listPermissionExceptions",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "대상 사용자 ID(BigInt string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "loginId",
+            "required": false,
+            "in": "query",
+            "description": "대상 로그인 ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exceptionAxis",
+            "required": false,
+            "in": "query",
+            "description": "예외 축(action|object)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "action",
+                "object"
+              ]
+            }
+          },
+          {
+            "name": "targetObjectType",
+            "required": false,
+            "in": "query",
+            "description": "target object type filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetObjectId",
+            "required": false,
+            "in": "query",
+            "description": "target object id filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permissionCode",
+            "required": false,
+            "in": "query",
+            "description": "permission code filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "required": false,
+            "in": "query",
+            "description": "비활성/만료 예외까지 포함할지 여부",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "최대 반환 개수",
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "권한 예외 목록 조회 성공"
+          },
+          "401": {
+            "description": "인증되지 않은 요청"
+          },
+          "403": {
+            "description": "관리자만 접근 가능"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "permission exception 목록 조회 (관리자)",
+        "tags": [
+          "Access Ops"
+        ]
+      }
+    },
+    "/api/access/ops/roles": {
+      "get": {
+        "operationId": "AccessOperationsController_listRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "역할별 활성 permission grant 조회",
+        "tags": [
+          "Access Ops"
+        ]
+      }
+    },
+    "/api/access/ops/roles/{roleCode}/permissions": {
+      "put": {
+        "operationId": "AccessOperationsController_updateRolePermissions",
+        "parameters": [
+          {
+            "name": "roleCode",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRolePermissionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "역할의 전체 permission grant 집합 갱신",
+        "tags": [
+          "Access Ops"
+        ]
+      }
+    },
+    "/api/access/ops/audit": {
+      "get": {
+        "operationId": "AccessOperationsController_listAudit",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "플랫폼 사용자/인증/세션/조직/역할권한 감사 이벤트 조회",
+        "tags": [
+          "Access Ops"
+        ]
+      }
+    },
+    "/api/organizations": {
+      "get": {
+        "operationId": "OrganizationOperationsController_list",
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "실제 공용 조직 계층 조회",
+        "tags": [
+          "organizations"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationOperationsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 조직 생성",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
+    "/api/organizations/{id}": {
+      "put": {
+        "operationId": "OrganizationOperationsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 조직/계층 수정",
+        "tags": [
+          "organizations"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationOperationsController_deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 조직 안전 비활성화",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
+    "/api/auth/public-config": {
+      "get": {
+        "operationId": "AuthController_publicConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "summary": "공개 로그인 설정 조회",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/microsoft/start": {
+      "get": {
+        "operationId": "AuthController_microsoftStart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Microsoft 365 OAuth 시작",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/microsoft/callback": {
+      "get": {
+        "operationId": "AuthController_microsoftCallback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Microsoft 365 OAuth callback",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/password-reset/request": {
+      "post": {
+        "operationId": "AuthController_requestPasswordReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "summary": "비밀번호 재설정 코드 요청",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/password-reset/confirm": {
+      "post": {
+        "operationId": "AuthController_confirmPasswordReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "summary": "비밀번호 재설정 코드 확인 및 변경",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "현재 사용자의 비밀번호 변경",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "description": "JWT Access/Refresh 토큰 발급",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccess"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "success",
+                        "data"
+                      ],
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ],
+                          "example": true
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/AuthClientTokensDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "잘못된 자격 증명",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "로그인 레이트리밋 초과",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "로그인",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/session": {
+      "post": {
+        "description": "HttpOnly shared session cookie 로 Access Token 재발급",
+        "operationId": "AuthController_session",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "세션 없음 또는 만료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "세션 복원 레이트리밋 초과",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "summary": "공유 세션 복원",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "description": "서버에 저장된 Refresh Token 무효화",
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "로그아웃",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "post": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 정보 조회",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/admin/users/{id}/account": {
+      "get": {
+        "operationId": "AuthAdminController_getUserAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "사용자 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 인증 계정/세션 운영 상태 조회",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/users/{id}/sessions/revoke": {
+      "post": {
+        "operationId": "AuthAdminController_revokeUserSessions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "사용자 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeUserSessionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 활성 세션 전체 회수",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/users/{id}/unlock": {
+      "post": {
+        "operationId": "AuthAdminController_unlockUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "사용자 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 로그인 잠금 해제",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/users/{id}/password-reset": {
+      "post": {
+        "operationId": "AuthAdminController_requestUserPasswordReset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "사용자 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 비밀번호 재설정 메일 요청",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/settings": {
+      "get": {
+        "operationId": "AuthAdminController_getSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "인증 provider 설정 조회",
+        "tags": [
+          "auth-admin"
+        ]
+      },
+      "put": {
+        "operationId": "AuthAdminController_updateSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAuthProviderSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "인증 provider 설정 수정",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/email-delivery/status": {
+      "get": {
+        "operationId": "AuthAdminController_getEmailDeliveryStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "인증 메일 outbox worker와 SMTP 전달 상태 조회",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/email-delivery/run": {
+      "post": {
+        "operationId": "AuthAdminController_runEmailDelivery",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "대기 중인 인증 메일 즉시 전달",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/email-delivery/{messageId}/retry": {
+      "post": {
+        "operationId": "AuthAdminController_retryEmailDelivery",
+        "parameters": [
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "description": "인증 메일 outbox message ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "실패한 인증 메일 재시도",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/registration-requests": {
+      "get": {
+        "operationId": "AuthAdminController_listRegistrationRequests",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "statusCode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "expired"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "가입 신청 목록 조회",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/roles": {
+      "get": {
+        "operationId": "AuthAdminController_listAssignableRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "가입 승인에 사용할 활성 역할 목록 조회",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/registration-requests/{id}/approve": {
+      "post": {
+        "operationId": "AuthAdminController_approveRegistrationRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "가입 신청 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideRegistrationRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "가입 신청 승인",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/auth/admin/registration-requests/{id}/reject": {
+      "post": {
+        "operationId": "AuthAdminController_rejectRegistrationRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "가입 신청 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideRegistrationRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "가입 신청 반려",
+        "tags": [
+          "auth-admin"
+        ]
+      }
+    },
+    "/api/users/stats": {
+      "get": {
+        "operationId": "UserController_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "통계 조회 성공"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "관리자 대시보드 통계",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/users/profile": {
+      "get": {
+        "operationId": "UserController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccess"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "success",
+                        "data"
+                      ],
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ],
+                          "example": true
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/UserProfileDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 프로필",
+        "tags": [
+          "users"
+        ]
+      },
+      "put": {
+        "operationId": "UserController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOwnProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "프로필 수정 성공"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 계정 프로필 수정",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "operationId": "UserController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "페이지 번호",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "페이지당 항목 수",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "검색어 (이름, 로그인ID, 이메일)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "roleCode",
+            "required": false,
+            "in": "query",
+            "description": "역할 코드 필터",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "사용자 목록 조회 성공"
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 목록 (관리자)",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "UserController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "사용자 생성 성공"
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 생성 (관리자)",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "put": {
+        "operationId": "UserController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "사용자 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "사용자 수정 성공"
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 수정 (관리자)",
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "UserController_deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "사용자 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "사용자 비활성화 성공"
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 비활성화 (관리자)",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/users/{id}/reactivate": {
+      "post": {
+        "operationId": "UserController_reactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "사용자 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "사용자 재활성화 성공"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 재활성화 (관리자)",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "operationId": "CommonNotificationController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "페이지 번호",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "페이지 크기",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "unreadOnly",
+            "required": false,
+            "in": "query",
+            "description": "읽지 않은 알림만 조회",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "readOnly",
+            "required": false,
+            "in": "query",
+            "description": "읽은 알림만 조회",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sourceApp",
+            "required": false,
+            "in": "query",
+            "description": "출처 앱",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "system",
+                "dms",
+                "sns",
+                "pms",
+                "admin",
+                "crm"
+              ]
+            }
+          },
+          {
+            "name": "notificationType",
+            "required": false,
+            "in": "query",
+            "description": "알림 타입",
+            "schema": {
+              "maxLength": 80,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "내 알림 목록 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 알림 목록 조회",
+        "tags": [
+          "common-notifications"
+        ]
+      }
+    },
+    "/api/notifications/unread-count": {
+      "get": {
+        "operationId": "CommonNotificationController_getUnreadCount",
+        "parameters": [
+          {
+            "name": "sourceApp",
+            "required": false,
+            "in": "query",
+            "description": "출처 앱",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "system",
+                "dms",
+                "sns",
+                "pms",
+                "admin",
+                "crm"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "내 미읽음 알림 수 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 미읽음 알림 수 조회",
+        "tags": [
+          "common-notifications"
+        ]
+      }
+    },
+    "/api/notifications/events": {
+      "get": {
+        "operationId": "CommonNotificationController_streamEvents",
+        "parameters": [
+          {
+            "name": "sourceApp",
+            "required": false,
+            "in": "query",
+            "description": "출처 앱",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "system",
+                "dms",
+                "sns",
+                "pms",
+                "admin",
+                "crm"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 알림 이벤트 스트림 구독",
+        "tags": [
+          "common-notifications"
+        ]
+      }
+    },
+    "/api/notifications/{id}/read": {
+      "put": {
+        "operationId": "CommonNotificationController_markAsRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "읽음 처리된 알림 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "알림 읽음 처리",
+        "tags": [
+          "common-notifications"
+        ]
+      }
+    },
+    "/api/notifications/{id}/unread": {
+      "put": {
+        "operationId": "CommonNotificationController_markAsUnread",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "안읽음 처리된 알림 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "알림 안읽음 처리",
+        "tags": [
+          "common-notifications"
+        ]
+      }
+    },
+    "/api/notifications/read-all": {
+      "put": {
+        "operationId": "CommonNotificationController_markAllAsRead",
+        "parameters": [
+          {
+            "name": "sourceApp",
+            "required": false,
+            "in": "query",
+            "description": "출처 앱",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "system",
+                "dms",
+                "sns",
+                "pms",
+                "admin",
+                "crm"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "읽음 처리 건수 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 알림 전체 읽음 처리",
+        "tags": [
+          "common-notifications"
+        ]
+      }
+    },
+    "/api/notifications/read-by-reference": {
+      "put": {
+        "operationId": "CommonNotificationController_markByReferencePathAsRead",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkNotificationsByReferenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "읽음 처리 건수 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "참조 경로 기준 알림 읽음 처리",
+        "tags": [
+          "common-notifications"
+        ]
+      }
+    },
+    "/api/search": {
+      "get": {
+        "operationId": "CommonSearchController_search",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "검색어",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceApp",
+            "required": false,
+            "in": "query",
+            "description": "admin|crm|pms|dms|sns",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityTypes",
+            "required": false,
+            "in": "query",
+            "description": "comma-separated entity type filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "최대 결과 수",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "통합 검색 결과 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "SSOO 통합 검색",
+        "tags": [
+          "common-search"
+        ]
+      }
+    },
+    "/api/ai-index/status": {
+      "get": {
+        "operationId": "AiIndexController_status",
+        "parameters": [
+          {
+            "name": "sourceApp",
+            "required": false,
+            "in": "query",
+            "description": "admin|crm|pms|dms|sns",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI/RAG source별 indexing readiness 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI/RAG 인덱스 source 상태 조회",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/jobs": {
+      "post": {
+        "operationId": "AiIndexController_queueJob",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "AI index job request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "등록된 AI index job snapshot 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI/RAG 인덱스 job 등록",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/jobs/metrics": {
+      "get": {
+        "operationId": "AiIndexController_getJobMetrics",
+        "parameters": [
+          {
+            "name": "sourceApp",
+            "required": false,
+            "in": "query",
+            "description": "admin|crm|pms|dms|sns",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI index job queue 상태와 retry backlog 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI/RAG 인덱스 job queue 관측성 조회",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/jobs/scheduler": {
+      "get": {
+        "operationId": "AiIndexController_getSchedulerStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "AI index scheduler 설정과 마지막 실행 상태 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI/RAG 인덱스 scheduler 상태 조회",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/operations/readiness": {
+      "get": {
+        "operationId": "AiIndexController_getOperationsReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "비밀값을 제외한 AI provider와 worker 준비 상태 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI provider와 scheduler 운영 준비 상태 조회",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/jobs/run": {
+      "post": {
+        "operationId": "AiIndexController_runJobs",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "최대 실행 job 수",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI index job 실행 요약 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "대기 중인 공용 AI/RAG 인덱스 job 실행",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/retrieval/query": {
+      "post": {
+        "operationId": "AiIndexController_retrieve",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "AI retrieval request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "공용 AI retrieval 후보 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI/RAG retrieval query 실행",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/conversations": {
+      "get": {
+        "operationId": "AiIndexController_listConversations",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "최대 조회 수",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "active|archived|deleted",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceApp",
+            "required": false,
+            "in": "query",
+            "description": "admin|crm|pms|dms|sns",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "현재 사용자 AI conversation 목록 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI conversation 목록 조회",
+        "tags": [
+          "ai-index"
+        ]
+      },
+      "post": {
+        "operationId": "AiIndexController_createConversation",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "AI conversation create request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "생성된 AI conversation snapshot 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI conversation 생성",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/conversations/{conversationId}": {
+      "get": {
+        "operationId": "AiIndexController_getConversation",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "message/reference/run 포함 AI conversation snapshot 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI conversation 상세 조회",
+        "tags": [
+          "ai-index"
+        ]
+      },
+      "patch": {
+        "operationId": "AiIndexController_updateConversation",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "AI conversation update request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "갱신된 AI conversation snapshot 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI conversation metadata/status 갱신",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/conversations/{conversationId}/messages": {
+      "post": {
+        "operationId": "AiIndexController_appendMessage",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "AI message append request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "생성된 AI message snapshot 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI conversation message/reference 추가",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/conversations/{conversationId}/runs": {
+      "post": {
+        "operationId": "AiIndexController_startRun",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "AI run start request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "생성된 AI run snapshot 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI model run audit 시작",
+        "tags": [
+          "ai-index"
+        ]
+      }
+    },
+    "/api/ai-index/conversations/{conversationId}/runs/{runId}/complete": {
+      "post": {
+        "operationId": "AiIndexController_completeRun",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "AI run complete request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "완료된 AI run snapshot 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "공용 AI model run audit 완료",
+        "tags": [
+          "ai-index"
+        ]
+      }
     }
   },
   "info": {
     "title": "SSOO Common API",
     "description": "Common module API reference",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "contact": {}
   },
   "tags": [],
   "servers": [],
@@ -50,13 +2606,712 @@
       }
     },
     "schemas": {
+      "ApiSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
       "HealthStatusDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "service": {
+            "type": "string",
+            "example": "ssoo-server"
+          },
+          "version": {
+            "type": "string",
+            "example": "0.0.1"
+          },
+          "releaseSha": {
+            "type": "string",
+            "example": "208acbe2c93b7218f2011820391234567890abcd"
+          }
+        },
+        "required": [
+          "status",
+          "timestamp",
+          "service",
+          "version",
+          "releaseSha"
+        ]
+      },
+      "ApiErrorDetail": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "INTERNAL_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Internal server error"
+          },
+          "path": {
+            "type": "string",
+            "example": "/api/example"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
       },
       "ApiError": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "example": false
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiErrorDetail"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "success",
+          "error"
+        ]
+      },
+      "HealthReadinessDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ready"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "service": {
+            "type": "string",
+            "example": "ssoo-server"
+          },
+          "database": {
+            "type": "string",
+            "example": "ready"
+          },
+          "dms": {
+            "type": "string",
+            "example": "ready"
+          },
+          "releaseSha": {
+            "type": "string",
+            "example": "208acbe2c93b7218f2011820391234567890abcd"
+          }
+        },
+        "required": [
+          "status",
+          "timestamp",
+          "service",
+          "database",
+          "dms",
+          "releaseSha"
+        ]
+      },
+      "UpdateRolePermissionsDto": {
+        "type": "object",
+        "properties": {
+          "permissionCodes": {
+            "description": "역할에 활성화할 전체 permission code 집합",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "permissionCodes"
+        ]
+      },
+      "CreateOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "orgCode": {
+            "type": "string",
+            "example": "PLATFORM-DEV"
+          },
+          "orgName": {
+            "type": "string",
+            "example": "플랫폼개발팀"
+          },
+          "orgType": {
+            "type": "string",
+            "enum": [
+              "company",
+              "division",
+              "department",
+              "team",
+              "external"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "external"
+            ],
+            "default": "internal"
+          },
+          "levelType": {
+            "type": "string"
+          },
+          "parentOrgId": {
+            "type": "object",
+            "description": "상위 조직 ID"
+          },
+          "memo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "orgCode",
+          "orgName",
+          "orgType"
+        ]
+      },
+      "UpdateOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "orgName": {
+            "type": "string"
+          },
+          "orgType": {
+            "type": "string",
+            "enum": [
+              "company",
+              "division",
+              "department",
+              "team",
+              "external"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "external"
+            ]
+          },
+          "levelType": {
+            "type": "string"
+          },
+          "parentOrgId": {
+            "type": "object",
+            "description": "상위 조직 ID. null이면 최상위로 이동"
+          },
+          "memo": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RequestPasswordResetDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "가입된 이메일 주소",
+            "example": "user@example.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ConfirmPasswordResetDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "가입된 이메일 주소",
+            "example": "user@example.com"
+          },
+          "code": {
+            "type": "string",
+            "description": "메일로 받은 재설정 코드",
+            "example": "123456"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "새 비밀번호",
+            "example": "NewPass1!"
+          }
+        },
+        "required": [
+          "email",
+          "code",
+          "newPassword"
+        ]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "description": "현재 비밀번호"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "새 비밀번호"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "AuthClientTokensDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT access token"
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "loginId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "example": "admin"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 100,
+            "format": "password",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "loginId",
+          "password"
+        ]
+      },
+      "RevokeUserSessionsDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "운영자 세션 회수 사유"
+          }
+        }
+      },
+      "UpdateAuthProviderSettingsDto": {
+        "type": "object",
+        "properties": {
+          "passwordLoginEnabled": {
+            "type": "boolean",
+            "description": "로컬 ID/PW 로그인 허용"
+          },
+          "passwordResetEnabled": {
+            "type": "boolean",
+            "description": "이메일 코드 기반 비밀번호 찾기 허용"
+          },
+          "passwordChangeEnabled": {
+            "type": "boolean",
+            "description": "로그인 상태의 비밀번호 변경 허용"
+          },
+          "resetCodeTtlMinutes": {
+            "type": "number",
+            "description": "비밀번호 재설정 코드 TTL(분)",
+            "minimum": 5,
+            "maximum": 60
+          },
+          "resetCodeLength": {
+            "type": "number",
+            "description": "비밀번호 재설정 코드 길이",
+            "minimum": 6,
+            "maximum": 10
+          },
+          "internalSsoEnabled": {
+            "type": "boolean",
+            "description": "사내 SSO 버튼 노출 여부"
+          },
+          "internalSsoLoginUrl": {
+            "type": "object",
+            "description": "사내 SSO 시작 URL"
+          },
+          "microsoftLoginEnabled": {
+            "type": "boolean",
+            "description": "Microsoft 365 로그인 허용"
+          },
+          "microsoftSignupRequestEnabled": {
+            "type": "boolean",
+            "description": "Microsoft OAuth 기반 가입 신청 허용"
+          },
+          "microsoftTenantId": {
+            "type": "object",
+            "description": "Microsoft Entra tenant ID"
+          },
+          "microsoftClientId": {
+            "type": "object",
+            "description": "Microsoft Entra app client ID"
+          },
+          "microsoftClientSecret": {
+            "type": "object",
+            "description": "Microsoft client secret. 응답에는 노출되지 않습니다."
+          },
+          "microsoftRedirectUri": {
+            "type": "object",
+            "description": "Microsoft OAuth redirect URI"
+          },
+          "microsoftScopes": {
+            "description": "Microsoft OAuth scopes",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowedTenantIds": {
+            "description": "허용 Microsoft tenant ID 목록",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowedEmailDomains": {
+            "description": "허용 이메일 도메인 목록",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "selfSignupEnabled": {
+            "type": "boolean",
+            "description": "셀프 회원가입 허용"
+          },
+          "emailDeliveryMode": {
+            "type": "string",
+            "description": "인증 메일 전달 모드",
+            "enum": [
+              "outbox",
+              "disabled"
+            ]
+          },
+          "emailFromAddress": {
+            "type": "object",
+            "description": "인증 메일 발신 주소"
+          }
+        }
+      },
+      "DecideRegistrationRequestDto": {
+        "type": "object",
+        "properties": {
+          "roleCode": {
+            "type": "string",
+            "description": "승인 시 부여할 역할 코드",
+            "default": "user"
+          },
+          "memo": {
+            "type": "object",
+            "description": "승인/반려 메모"
+          }
+        }
+      },
+      "UserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "loginId": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "object",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "object",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "nullable": true,
+            "format": "email"
+          },
+          "phone": {
+            "type": "object",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "departmentCode": {
+            "type": "object",
+            "nullable": true
+          },
+          "positionCode": {
+            "type": "object",
+            "nullable": true
+          },
+          "roleCode": {
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "loginId",
+          "roleCode"
+        ]
+      },
+      "UpdateOwnProfileDto": {
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string",
+            "description": "이름"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "표시명"
+          },
+          "email": {
+            "type": "string",
+            "description": "이메일"
+          },
+          "phone": {
+            "type": "string",
+            "description": "전화번호"
+          },
+          "departmentCode": {
+            "type": "string",
+            "description": "부서"
+          },
+          "positionCode": {
+            "type": "string",
+            "description": "직책"
+          }
+        }
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "loginId": {
+            "type": "string",
+            "description": "로그인 ID",
+            "example": "john.doe"
+          },
+          "password": {
+            "type": "string",
+            "description": "비밀번호",
+            "example": "Password1!"
+          },
+          "userName": {
+            "type": "string",
+            "description": "사용자명",
+            "example": "홍길동"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "표시명",
+            "example": "길동"
+          },
+          "email": {
+            "type": "string",
+            "description": "이메일",
+            "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "전화번호",
+            "example": "010-1234-5678"
+          },
+          "roleCode": {
+            "type": "string",
+            "description": "역할 코드",
+            "example": "user",
+            "default": "user"
+          },
+          "departmentCode": {
+            "type": "string",
+            "description": "부서 코드",
+            "example": "DEV"
+          },
+          "positionCode": {
+            "type": "string",
+            "description": "직급 코드",
+            "example": "senior"
+          },
+          "employeeNumber": {
+            "type": "string",
+            "description": "사번",
+            "example": "E240015"
+          },
+          "companyName": {
+            "type": "string",
+            "description": "외부 소속 회사명",
+            "example": "Acme Corp"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "고객사 ID",
+            "example": "1001"
+          },
+          "primaryAffiliationType": {
+            "type": "string",
+            "description": "Primary affiliation type",
+            "enum": [
+              "internal",
+              "external"
+            ],
+            "example": "internal"
+          }
+        },
+        "required": [
+          "loginId",
+          "password",
+          "userName",
+          "email"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string",
+            "description": "사용자명",
+            "example": "홍길동"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "표시명",
+            "example": "길동"
+          },
+          "email": {
+            "type": "string",
+            "description": "이메일",
+            "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "전화번호",
+            "example": "010-1234-5678"
+          },
+          "roleCode": {
+            "type": "string",
+            "description": "역할 코드",
+            "example": "user"
+          },
+          "departmentCode": {
+            "type": "string",
+            "description": "부서 코드",
+            "example": "DEV"
+          },
+          "positionCode": {
+            "type": "string",
+            "description": "직급 코드",
+            "example": "senior"
+          },
+          "employeeNumber": {
+            "type": "string",
+            "description": "사번",
+            "example": "E240015"
+          },
+          "companyName": {
+            "type": "string",
+            "description": "외부 소속 회사명",
+            "example": "Acme Corp"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "고객사 ID",
+            "example": "1001"
+          },
+          "primaryAffiliationType": {
+            "type": "string",
+            "description": "Primary affiliation type",
+            "enum": [
+              "internal",
+              "external"
+            ],
+            "example": "internal"
+          },
+          "password": {
+            "type": "string",
+            "description": "비밀번호 (변경 시에만)",
+            "example": "NewPass1!"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "활성 상태",
+            "example": true
+          }
+        }
+      },
+      "MarkNotificationsByReferenceDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "알림 참조 경로",
+            "maxLength": 500
+          },
+          "sourceApp": {
+            "type": "string",
+            "description": "출처 앱",
+            "enum": [
+              "system",
+              "dms",
+              "sns",
+              "pms",
+              "admin",
+              "crm"
+            ]
+          }
+        },
+        "required": [
+          "path"
+        ]
       }
     }
   }

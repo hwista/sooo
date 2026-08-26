@@ -3,6 +3,10 @@ import type {
   CrmCustomerAccessFeatures,
   CrmCustomerAccessSnapshot,
   CrmCustomerGlobalAccessSnapshot,
+  CrmDomainAccessFeatures,
+  CrmDomainAccessSnapshot,
+  CrmOperationsAccessFeatures,
+  CrmOperationsAccessSnapshot,
   CrmOpportunityAccessFeatures,
   CrmOpportunityAccessSnapshot,
   CrmOpportunityGlobalAccessSnapshot,
@@ -28,6 +32,29 @@ const CRM_CUSTOMER_PERMISSION_CODES = {
   activityWrite: 'crm.customer.activity.write',
 } as const;
 
+const CRM_OPERATIONS_PERMISSION_CODES = {
+  read: 'crm.operations.read',
+  execute: 'crm.operations.execute',
+  manageSettings: 'crm.settings.manage',
+} as const;
+
+const CRM_DOMAIN_PERMISSION_CODES = {
+  contractRead: 'crm.contract.read',
+  contractWrite: 'crm.contract.write',
+  contractConfirm: 'crm.contract.confirm',
+  businessPlanRead: 'crm.business-plan.read',
+  businessPlanWrite: 'crm.business-plan.write',
+  businessPlanConfirm: 'crm.business-plan.confirm',
+  businessPlanDelete: 'crm.business-plan.delete',
+  costPlanRead: 'crm.cost-plan.read',
+  costPlanWrite: 'crm.cost-plan.write',
+  costPlanConfirm: 'crm.cost-plan.confirm',
+  reportRead: 'crm.report.read',
+  reportConfirm: 'crm.report.confirm',
+  quoteSettingsRead: 'crm.quote-settings.read',
+  quoteSettingsManage: 'crm.quote-settings.manage',
+} as const;
+
 const CAPABILITY_ERROR_MESSAGES: Record<CrmOpportunityCapabilityKey, string> = {
   canViewOpportunity: 'CRM 영업기회를 조회할 권한이 없습니다.',
   canCreateOpportunity: 'CRM 영업기회를 등록할 권한이 없습니다.',
@@ -42,6 +69,29 @@ const CUSTOMER_CAPABILITY_ERROR_MESSAGES: Record<CrmCustomerCapabilityKey, strin
   canEditCustomer: 'CRM 고객을 수정할 권한이 없습니다.',
   canViewCustomerActivity: 'CRM 고객 활동을 조회할 권한이 없습니다.',
   canCreateCustomerActivity: 'CRM 고객 활동을 등록할 권한이 없습니다.',
+};
+
+const OPERATIONS_CAPABILITY_ERROR_MESSAGES: Record<CrmOperationsCapabilityKey, string> = {
+  canReadOperations: 'CRM 운영 현황을 조회할 권한이 없습니다.',
+  canExecuteOperations: 'CRM 운영 작업을 실행하거나 재시도할 권한이 없습니다.',
+  canManageSettings: 'CRM 시스템 설정을 변경할 권한이 없습니다.',
+};
+
+const DOMAIN_CAPABILITY_ERROR_MESSAGES: Record<CrmDomainAccessCapabilityKey, string> = {
+  canReadContract: 'CRM 계약을 조회할 권한이 없습니다.',
+  canWriteContract: 'CRM 계약을 등록하거나 수정할 권한이 없습니다.',
+  canConfirmContract: 'CRM 계약을 확정하거나 확정 해제할 권한이 없습니다.',
+  canReadBusinessPlan: 'CRM 사업계획을 조회할 권한이 없습니다.',
+  canWriteBusinessPlan: 'CRM 사업계획을 등록하거나 수정할 권한이 없습니다.',
+  canConfirmBusinessPlan: 'CRM 사업계획을 확정하거나 확정 해제할 권한이 없습니다.',
+  canDeleteBusinessPlan: 'CRM 사업계획 차수를 삭제할 권한이 없습니다.',
+  canReadCostPlan: 'CRM 원가계획을 조회할 권한이 없습니다.',
+  canWriteCostPlan: 'CRM 원가계획을 등록하거나 수정할 권한이 없습니다.',
+  canConfirmCostPlan: 'CRM 원가계획을 확정하거나 확정 해제할 권한이 없습니다.',
+  canReadReport: 'CRM 보고를 조회할 권한이 없습니다.',
+  canConfirmReport: 'CRM 보고를 확정하거나 확정 해제할 권한이 없습니다.',
+  canReadQuoteSettings: 'CRM 공급자 설정을 조회할 권한이 없습니다.',
+  canManageQuoteSettings: 'CRM 공급자 설정을 변경할 권한이 없습니다.',
 };
 
 const buildOpportunityFeatures = (enabled: boolean): CrmOpportunityAccessFeatures => ({
@@ -60,8 +110,33 @@ const buildCustomerFeatures = (enabled: boolean): CrmCustomerAccessFeatures => (
   canCreateCustomerActivity: enabled,
 });
 
+const buildOperationsFeatures = (enabled: boolean): CrmOperationsAccessFeatures => ({
+  canReadOperations: enabled,
+  canExecuteOperations: enabled,
+  canManageSettings: enabled,
+});
+
+const buildDomainFeatures = (enabled: boolean): CrmDomainAccessFeatures => ({
+  canReadContract: enabled,
+  canWriteContract: enabled,
+  canConfirmContract: enabled,
+  canReadBusinessPlan: enabled,
+  canWriteBusinessPlan: enabled,
+  canConfirmBusinessPlan: enabled,
+  canDeleteBusinessPlan: enabled,
+  canReadCostPlan: enabled,
+  canWriteCostPlan: enabled,
+  canConfirmCostPlan: enabled,
+  canReadReport: enabled,
+  canConfirmReport: enabled,
+  canReadQuoteSettings: enabled,
+  canManageQuoteSettings: enabled,
+});
+
 export type CrmOpportunityCapabilityKey = keyof CrmOpportunityAccessFeatures;
 export type CrmCustomerCapabilityKey = keyof CrmCustomerAccessFeatures;
+export type CrmOperationsCapabilityKey = keyof CrmOperationsAccessFeatures;
+export type CrmDomainAccessCapabilityKey = keyof CrmDomainAccessFeatures;
 
 interface CrmOpportunityAccessRow {
   id: bigint;
@@ -267,6 +342,67 @@ export class CrmAccessService {
     return snapshot;
   }
 
+  async getOperationsAccess(user: TokenPayload): Promise<CrmOperationsAccessSnapshot> {
+    const actionContext = await this.accessFoundationService.resolveActionPermissionContext(user);
+    if (actionContext.policy.hasSystemOverride) {
+      return {
+        features: buildOperationsFeatures(true),
+        policy: actionContext.policy,
+      };
+    }
+
+    const permissions = actionContext.grantedPermissionCodes;
+    const canManageSettings = permissions.has(CRM_OPERATIONS_PERMISSION_CODES.manageSettings);
+    const canExecuteOperations = permissions.has(CRM_OPERATIONS_PERMISSION_CODES.execute) || canManageSettings;
+    const canReadOperations = permissions.has(CRM_OPERATIONS_PERMISSION_CODES.read)
+      || canExecuteOperations;
+    return {
+      features: {
+        canReadOperations,
+        canExecuteOperations,
+        canManageSettings,
+      },
+      policy: actionContext.policy,
+    };
+  }
+
+  async getDomainAccess(user: TokenPayload): Promise<CrmDomainAccessSnapshot> {
+    const actionContext = await this.accessFoundationService.resolveActionPermissionContext(user);
+    if (actionContext.policy.hasSystemOverride) {
+      return {
+        features: buildDomainFeatures(true),
+        policy: actionContext.policy,
+      };
+    }
+
+    return {
+      features: this.buildDomainFeaturesFromPermissionCodes(actionContext.grantedPermissionCodes),
+      policy: actionContext.policy,
+    };
+  }
+
+  async assertDomainCapability(
+    user: TokenPayload,
+    capability: CrmDomainAccessCapabilityKey,
+  ): Promise<CrmDomainAccessSnapshot> {
+    const snapshot = await this.getDomainAccess(user);
+    if (!snapshot.features[capability]) {
+      throw new ForbiddenException(DOMAIN_CAPABILITY_ERROR_MESSAGES[capability]);
+    }
+    return snapshot;
+  }
+
+  async assertOperationsCapability(
+    user: TokenPayload,
+    capability: CrmOperationsCapabilityKey,
+  ): Promise<CrmOperationsAccessSnapshot> {
+    const snapshot = await this.getOperationsAccess(user);
+    if (!snapshot.features[capability]) {
+      throw new ForbiddenException(OPERATIONS_CAPABILITY_ERROR_MESSAGES[capability]);
+    }
+    return snapshot;
+  }
+
   private buildFeaturesFromPermissionCodes(permissionCodes: Set<string>): CrmOpportunityAccessFeatures {
     const canWrite = permissionCodes.has(CRM_OPPORTUNITY_PERMISSION_CODES.write);
     const canConfirm = permissionCodes.has(CRM_OPPORTUNITY_PERMISSION_CODES.confirm);
@@ -303,6 +439,41 @@ export class CrmAccessService {
       canEditCustomer: canWrite,
       canViewCustomerActivity: canActivityRead || canView,
       canCreateCustomerActivity: canActivityWrite,
+    };
+  }
+
+  private buildDomainFeaturesFromPermissionCodes(permissionCodes: Set<string>): CrmDomainAccessFeatures {
+    const canWriteContract = permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.contractWrite);
+    const canConfirmContract = permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.contractConfirm);
+    const canWriteBusinessPlan = permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.businessPlanWrite);
+    const canConfirmBusinessPlan = permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.businessPlanConfirm);
+    const canWriteCostPlan = permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.costPlanWrite);
+    const canConfirmCostPlan = permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.costPlanConfirm);
+    const canConfirmReport = permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.reportConfirm);
+    const canManageQuoteSettings = permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.quoteSettingsManage);
+
+    return {
+      canReadContract: permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.contractRead)
+        || canWriteContract
+        || canConfirmContract,
+      canWriteContract,
+      canConfirmContract,
+      canReadBusinessPlan: permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.businessPlanRead)
+        || canWriteBusinessPlan
+        || canConfirmBusinessPlan,
+      canWriteBusinessPlan,
+      canConfirmBusinessPlan,
+      canDeleteBusinessPlan: permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.businessPlanDelete),
+      canReadCostPlan: permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.costPlanRead)
+        || canWriteCostPlan
+        || canConfirmCostPlan,
+      canWriteCostPlan,
+      canConfirmCostPlan,
+      canReadReport: permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.reportRead) || canConfirmReport,
+      canConfirmReport,
+      canReadQuoteSettings: permissionCodes.has(CRM_DOMAIN_PERMISSION_CODES.quoteSettingsRead)
+        || canManageQuoteSettings,
+      canManageQuoteSettings,
     };
   }
 

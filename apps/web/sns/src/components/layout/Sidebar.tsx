@@ -39,6 +39,9 @@ export function Sidebar({ isCollapsed, onToggleCollapse, toggleLabel }: SidebarP
       toggleLabel={toggleLabel}
       brandTitle={SNS_APP_IDENTITY.brandTitle}
       search={{
+        inputId: 'ssoo-sns-navigation-search-input',
+        inputName: 'ssoo-sns-navigation-search-query',
+        ariaLabel: 'SNS 메뉴 검색',
         value: searchQuery,
         onChange: setSearchQuery,
         railIcon: Search,

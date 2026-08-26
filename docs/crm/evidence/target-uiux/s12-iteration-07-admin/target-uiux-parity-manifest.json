@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-audit",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T04:59:06.365Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-audit",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-12",
+      "UX-15",
+      "UX-17"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-12",
+      "sourcePage": "biz-year",
+      "status": "partial",
+      "ownerSurface": "Admin /business-years?mode=source-compatible",
+      "targetUrl": "http://127.0.0.1:3100/business-years?mode=source-compatible",
+      "capturedAt": "2026-08-20T04:58:50.039Z",
+      "audit": {
+        "normalStateId": "seeded-years",
+        "sourceScreenshot": "ux-12-biz-year.png",
+        "targetDesktopScreenshot": "ux-12-biz-year--audit-desktop.png",
+        "targetMobileScreenshot": "ux-12-biz-year--audit-mobile.png",
+        "differenceScreenshot": "ux-12-biz-year--audit-difference.png",
+        "targetDomManifest": "ux-12-biz-year--audit.dom.json",
+        "missingStateIds": [
+          "empty-years",
+          "create-validation",
+          "activate-deactivate",
+          "delete-confirmation"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [
+            "활성화"
+          ],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "48e6203c9b8f193d41fdb5a989970ecaa5074388a35e335ae18baee6ca86a1c6",
+          "targetDesktop": "15a1d3304d2030fb0bf7fe743e8d5e011c6cc1d8305562803b7ed87d6d5fce98",
+          "targetMobile": "5b24efeb92e89b8133b952a82887c679e035193c095589628eee4ae973b657c8",
+          "difference": "ed1e57f3a2652a5d32f7a398872a3cdb1053a1eac6155bb8d6432bd583444a69",
+          "targetDom": "7791087bc8d2b62592951909cf5c8d111338811c39410acb76228b447350fa48"
+        }
+      }
+    },
+    {
+      "uxId": "UX-15",
+      "sourcePage": "codes",
+      "status": "partial",
+      "ownerSurface": "Admin /codes?mode=source-compatible",
+      "targetUrl": "http://127.0.0.1:3100/codes?mode=source-compatible",
+      "capturedAt": "2026-08-20T04:58:58.243Z",
+      "audit": {
+        "normalStateId": "seeded-codes",
+        "sourceScreenshot": "ux-15-codes.png",
+        "targetDesktopScreenshot": "ux-15-codes--audit-desktop.png",
+        "targetMobileScreenshot": "ux-15-codes--audit-mobile.png",
+        "differenceScreenshot": "ux-15-codes--audit-difference.png",
+        "targetDomManifest": "ux-15-codes--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "create-edit-validation",
+          "activate-deactivate",
+          "delete-confirmation"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [
+            "code-filter-type",
+            "code-filter-status"
+          ],
+          "missingColumns": [],
+          "missingActions": [
+            "활성화"
+          ],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "e656d63fe3a142315a62593caaec34bc7209398cfdba1083999f81eff7ea4930",
+          "targetDesktop": "8a692471aac4c2d1725c9764e06d08da20c6006de31a63af01fda053ba29f57c",
+          "targetMobile": "5a2711057bb7b5384da1a963c8664c28588b161b585cf2102d1708d10648588c",
+          "difference": "91e43a2a302eba1ffa2bc28b3410c816e380047cf424f7653f5bd5ba6f554b2a",
+          "targetDom": "5c3a938b8c472c5e1771353348821329d7836d69b512029743f80667930d4aeb"
+        }
+      }
+    },
+    {
+      "uxId": "UX-17",
+      "sourcePage": "admin",
+      "status": "partial",
+      "ownerSurface": "Admin /users?mode=source-compatible + shared profile/auth",
+      "targetUrl": "http://127.0.0.1:3100/users?mode=source-compatible",
+      "capturedAt": "2026-08-20T04:59:06.364Z",
+      "audit": {
+        "normalStateId": "seeded-admin-list",
+        "sourceScreenshot": "ux-17-admin.png",
+        "targetDesktopScreenshot": "ux-17-admin--audit-desktop.png",
+        "targetMobileScreenshot": "ux-17-admin--audit-mobile.png",
+        "differenceScreenshot": "ux-17-admin--audit-difference.png",
+        "targetDomManifest": "ux-17-admin--audit.dom.json",
+        "missingStateIds": [
+          "logged-out-login",
+          "login-validation",
+          "login-error",
+          "filtered-empty",
+          "create-edit-validation",
+          "deactivate-reset-confirmation",
+          "profile-password"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [
+            "전체 계정",
+            "활성 계정",
+            "비활성 계정",
+            "관리자 계정"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "fc574be305c7ce56417d52e2c25c0f8518069fda6f7b8bacba00b93b0cf886f4",
+          "targetDesktop": "971204ef9f118e69f3b06f3dae2701b8a0e12aebe3d38f0a6738be5a986531c4",
+          "targetMobile": "610cb63d50ff6fd52d0d9408ac8e97e0ace2ef0bc5c824e12092417fcc222b3f",
+          "difference": "af23670da756fcb37135562ef84b6fb155a26c728800b6ee92dfb0ca0b36124d",
+          "targetDom": "8f7d5abf4556009fe9202de84d7d7f9c52d0afb0554f9d5521cd7a9170ae0a12"
+        }
+      }
+    }
+  ]
+}

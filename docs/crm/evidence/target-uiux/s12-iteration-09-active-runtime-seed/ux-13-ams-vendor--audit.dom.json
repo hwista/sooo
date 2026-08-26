@@ -1,0 +1,39 @@
+{
+  "title": "공급업체 관리",
+  "sections": [
+    "공급업체 관리",
+    "공급업체 관리"
+  ],
+  "fields": [
+    {
+      "id": "av-year",
+      "name": "year",
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "공급업체명",
+      "disabled": false,
+      "readOnly": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "조회",
+    "+ 업체 추가",
+    "삭제",
+    "파트너사A WBS-2025-002 매핑",
+    "파트너사A WBS-2026-001 매핑"
+  ],
+  "labels": [
+    "사업년도 *",
+    "WBS-2025-002 (가온전선(주) · 네트워크 인프라 고도화)",
+    "WBS-2026-001 (엠트론(주) · 클라우드 인프라 운영 서비스)"
+  ]
+}

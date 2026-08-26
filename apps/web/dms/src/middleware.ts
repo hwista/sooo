@@ -3,20 +3,22 @@ import type { NextRequest } from 'next/server';
 import {
   resolveSsooRoutePolicyDecision,
 } from '@ssoo/web-shell/route-policy';
-import { APP_HOME_PATH, ROOT_ENTRY_PATHS } from '@/lib/constants/routes';
+import { ALLOWED_PATH_PREFIXES, APP_HOME_PATH, ROOT_ENTRY_PATHS } from '@/lib/constants/routes';
 
 /**
  * DMS 루트 고정 라우팅 정책
  *
  * DMS는 브라우저 주소창에 내부 화면 경로를 노출하지 않고,
- * 공개 진입점을 `/` 셸과 `/login` 으로 제한한다.
+ * 공개 진입점을 `/` 셸과 인증/검색, 인증된 settings deep link로 제한한다.
  *
- * `/doc/...`, `/ssoo/search`, `/settings` 같은 값은 실제 공개 라우트가 아니라
- * 탭 상태에서만 사용하는 내부 virtual path 이므로, 직접 접근은 모두 `/`로 복구한다.
+ * `/doc/...` 같은 값은 탭 상태에서만 사용하는 내부 virtual path 이므로 `/`로 복구한다.
+ * `/settings/{surface}/{sectionId}`는 운영자가 새로고침·북마크·Admin 연결을 사용할 수
+ * 있도록 기존 AppLayout/settings 권한 계약으로 handoff하는 공식 deep link다.
  */
 export function middleware(request: NextRequest) {
   const decision = resolveSsooRoutePolicyDecision(request.nextUrl.pathname, {
     allowedPaths: ROOT_ENTRY_PATHS,
+    allowedPrefixes: ALLOWED_PATH_PREFIXES,
     fallbackPath: APP_HOME_PATH,
     sharedUserSurfaceRewritePath: APP_HOME_PATH,
   });

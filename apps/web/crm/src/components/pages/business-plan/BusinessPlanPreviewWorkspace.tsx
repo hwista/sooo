@@ -1,9 +1,9 @@
 import type { CrmBusinessPlanPreviewResponse } from '@ssoo/types/crm';
+import { BusinessPlanPreviewWorkspaceClient } from './BusinessPlanPreviewWorkspaceClient';
 import {
-  BusinessPlanPreviewWorkspaceClient,
   normalizeBusinessPlanPreviewQueryRecord,
   toRequiredBusinessPlanPreviewQuery,
-} from './BusinessPlanPreviewWorkspaceClient';
+} from './businessPlanPreviewQuery';
 import { businessPlanPreviewFallback } from './businessPlanPreviewFallback';
 
 const API_BASE_URL = process.env.CRM_SERVER_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';

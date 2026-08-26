@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, RefreshCw, Save, ShieldCheck, X } from 'lucide-react';
+import { Check, MailCheck, RefreshCw, RotateCcw, Save, Send, ShieldCheck, X } from 'lucide-react';
 import { SsooSettingsPage, type SsooPageHeaderAction } from '@ssoo/web-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,8 +24,11 @@ import {
   useApproveRegistrationRequest,
   useAssignableRoles,
   useAuthProviderSettings,
+  useEmailDeliveryStatus,
   useRegistrationRequests,
   useRejectRegistrationRequest,
+  useRetryEmailDelivery,
+  useRunEmailDelivery,
   useUpdateAuthProviderSettings,
 } from '@/hooks/queries/useAuthAdmin';
 import type { AuthProviderSettings, UpdateAuthProviderSettingsRequest } from '@ssoo/types/common';
@@ -130,7 +133,9 @@ function toRequest(form: SettingsForm): UpdateAuthProviderSettingsRequest {
     microsoftScopes: textToList(form.microsoftScopes),
     allowedTenantIds: textToList(form.allowedTenantIds),
     allowedEmailDomains: textToList(form.allowedEmailDomains),
-    selfSignupEnabled: form.selfSignupEnabled,
+    // Public self-signup has no supported runtime route. Persist false so a
+    // legacy true value can be remediated from this control surface.
+    selfSignupEnabled: false,
     emailDeliveryMode: form.emailDeliveryMode,
     emailFromAddress: form.emailFromAddress.trim() || null,
   };
@@ -174,17 +179,20 @@ function ToggleField({
   label,
   checked,
   onChange,
+  disabled = false,
 }: {
   label: string;
   checked: boolean;
   onChange: (value: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
-    <label className="flex h-11 items-center gap-2 rounded-md border border-input px-3 text-sm">
+    <label className={`flex h-11 items-center gap-2 rounded-md border border-input px-3 text-sm ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}>
       <Input
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
+        disabled={disabled}
         className="h-4 w-4 rounded border-border"
       />
       {label}
@@ -200,6 +208,9 @@ export function AuthPolicyPage() {
 
   const settingsQuery = useAuthProviderSettings();
   const updateSettingsMutation = useUpdateAuthProviderSettings();
+  const emailDeliveryQuery = useEmailDeliveryStatus();
+  const runEmailDeliveryMutation = useRunEmailDelivery();
+  const retryEmailDeliveryMutation = useRetryEmailDelivery();
   const rolesQuery = useAssignableRoles();
   const requestsQuery = useRegistrationRequests({
     page: 1,
@@ -213,6 +224,7 @@ export function AuthPolicyPage() {
   const requests = requestsQuery.data?.data?.data ?? [];
   const total = requestsQuery.data?.data?.total ?? 0;
   const roles = rolesQuery.data?.data ?? [];
+  const emailDelivery = emailDeliveryQuery.data?.data;
   const defaultApprovalRole = roles.find((role) => role.roleCode === 'user')?.roleCode
     ?? roles[0]?.roleCode
     ?? 'user';
@@ -298,6 +310,7 @@ export function AuthPolicyPage() {
         ariaLabel: '인증 정책 항목 색인',
         items: [
           { id: 'admin-auth-login-settings', label: '로그인 설정' },
+          { id: 'admin-auth-email-delivery', label: '메일 전달' },
           { id: 'admin-auth-registration-requests', label: '가입 신청' },
         ],
         onItemSelect: (item) => {
@@ -392,9 +405,10 @@ export function AuthPolicyPage() {
                 onChange={(value) => updateField('microsoftSignupRequestEnabled', value)}
               />
               <ToggleField
-                label="셀프 회원가입"
-                checked={form.selfSignupEnabled}
-                onChange={(value) => updateField('selfSignupEnabled', value)}
+                label="셀프 회원가입 (미지원)"
+                checked={false}
+                onChange={() => undefined}
+                disabled
               />
             </div>
 
@@ -414,9 +428,17 @@ export function AuthPolicyPage() {
                 />
               </div>
               <div className="grid gap-1.5">
-                <label className="text-sm font-medium">Client Secret</label>
+                <label className="text-sm font-medium" htmlFor="microsoft-client-secret">Client Secret</label>
                 <Input
+                  id="microsoft-client-secret"
+                  name="microsoft-client-secret"
                   type="password"
+                  autoComplete="off"
+                  data-ssoo-input-intent="noncredential-secret"
+                  data-form-type="other"
+                  data-1p-ignore="true"
+                  data-lpignore="true"
+                  data-bwignore="true"
                   value={form.microsoftClientSecret}
                   onChange={(event) => updateField('microsoftClientSecret', event.target.value)}
                   placeholder={settings?.microsoftClientSecretConfigured ? '저장됨' : '미설정'}
@@ -485,6 +507,107 @@ export function AuthPolicyPage() {
 
             {saveError ? <p className="text-sm text-destructive">{saveError}</p> : null}
 
+          </div>
+        )}
+      </div>
+
+      <div id="admin-auth-email-delivery" className="scroll-mt-4 rounded-lg border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+              <MailCheck className="h-5 w-5" />
+              비밀번호 재설정 메일 전달
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              outbox 적재부터 SMTP 전달·실패·재시도까지 운영 상태를 확인합니다. 수신 주소는 마스킹됩니다.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                form.emailDeliveryMode === 'disabled'
+                  ? 'bg-muted text-muted-foreground'
+                  : emailDelivery?.state === 'ready'
+                    ? 'bg-ssoo-success-bg text-ssoo-success'
+                    : 'bg-destructive/10 text-destructive'
+              }`}
+            >
+              {form.emailDeliveryMode === 'disabled'
+                ? '정책 비활성'
+                : emailDelivery?.state === 'ready' ? '전달 준비됨' : '전달 차단'}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={runEmailDeliveryMutation.isPending || form.emailDeliveryMode === 'disabled'}
+              onClick={() => runEmailDeliveryMutation.mutate()}
+            >
+              <Send className="mr-1 h-4 w-4" />
+              지금 처리
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => emailDeliveryQuery.refetch()}>
+              <RefreshCw className="mr-1 h-4 w-4" />
+              새로고침
+            </Button>
+          </div>
+        </div>
+
+        {emailDeliveryQuery.isLoading ? (
+          <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">로딩 중...</div>
+        ) : emailDeliveryQuery.isError || !emailDelivery ? (
+          <div className="px-5 py-6 text-sm text-destructive">메일 전달 상태를 조회하지 못했습니다.</div>
+        ) : (
+          <div className="space-y-4 p-5">
+            <div className="grid gap-3 md:grid-cols-4">
+              <div className="rounded-md border p-3"><p className="text-xs text-muted-foreground">Pending</p><p className="mt-1 text-xl font-semibold">{emailDelivery.counts.pending ?? 0}</p></div>
+              <div className="rounded-md border p-3"><p className="text-xs text-muted-foreground">Processing</p><p className="mt-1 text-xl font-semibold">{emailDelivery.counts.processing ?? 0}</p></div>
+              <div className="rounded-md border p-3"><p className="text-xs text-muted-foreground">Sent</p><p className="mt-1 text-xl font-semibold">{emailDelivery.counts.sent ?? 0}</p></div>
+              <div className="rounded-md border p-3"><p className="text-xs text-muted-foreground">Failed</p><p className="mt-1 text-xl font-semibold">{emailDelivery.counts.failed ?? 0}</p></div>
+            </div>
+            <p className={`text-sm ${emailDelivery.state === 'blocked' ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {emailDelivery.reason}
+            </p>
+
+            {emailDelivery.recent.length === 0 ? (
+              <div className="rounded-md border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">메일 이력이 없습니다.</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>상태</TableHead>
+                    <TableHead>수신자</TableHead>
+                    <TableHead>템플릿</TableHead>
+                    <TableHead>생성일</TableHead>
+                    <TableHead>실패 사유</TableHead>
+                    <TableHead className="w-[80px]">작업</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {emailDelivery.recent.map((message) => (
+                    <TableRow key={message.messageId}>
+                      <TableCell><StatusBadge value={message.statusCode} /></TableCell>
+                      <TableCell className="font-mono text-sm">{message.recipient}</TableCell>
+                      <TableCell>{message.templateCode}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatDateTime(message.createdAt)}</TableCell>
+                      <TableCell className="max-w-[280px] truncate text-xs text-destructive" title={message.failReason ?? undefined}>{message.failReason ?? '-'}</TableCell>
+                      <TableCell>
+                        {message.statusCode === 'failed' ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="재시도"
+                            disabled={retryEmailDeliveryMutation.isPending}
+                            onClick={() => retryEmailDeliveryMutation.mutate(message.messageId)}
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        ) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         )}
       </div>

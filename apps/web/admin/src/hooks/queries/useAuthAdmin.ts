@@ -10,6 +10,8 @@ export const authAdminKeys = {
   roles: () => [...authAdminKeys.all, 'roles'] as const,
   registrationRequests: (params?: RegistrationRequestListParams) =>
     [...authAdminKeys.all, 'registration-requests', params] as const,
+  userAccount: (userId: string) => [...authAdminKeys.all, 'user-account', userId] as const,
+  emailDelivery: () => [...authAdminKeys.all, 'email-delivery'] as const,
 };
 
 export function useAuthProviderSettings() {
@@ -20,6 +22,40 @@ export function useAuthProviderSettings() {
   });
 }
 
+export function useUserAccountOperations(userId: string | null) {
+  return useQuery({
+    queryKey: authAdminKeys.userAccount(userId ?? ''),
+    queryFn: () => authAdminApi.getUserAccount(userId!),
+    enabled: Boolean(userId),
+    staleTime: 0,
+  });
+}
+
+function useAccountOperationMutation<TResult>(
+  operation: (userId: string) => Promise<TResult>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: operation,
+    onSuccess: (_result, userId) => {
+      queryClient.invalidateQueries({ queryKey: authAdminKeys.userAccount(userId) });
+      queryClient.invalidateQueries({ queryKey: ['users', 'list'] });
+    },
+  });
+}
+
+export function useRevokeUserSessions() {
+  return useAccountOperationMutation((userId) => authAdminApi.revokeUserSessions(userId));
+}
+
+export function useUnlockUserAccount() {
+  return useAccountOperationMutation((userId) => authAdminApi.unlockUser(userId));
+}
+
+export function useRequestUserPasswordReset() {
+  return useAccountOperationMutation((userId) => authAdminApi.requestUserPasswordReset(userId));
+}
+
 export function useUpdateAuthProviderSettings() {
   const queryClient = useQueryClient();
 
@@ -27,6 +63,38 @@ export function useUpdateAuthProviderSettings() {
     mutationFn: (data: UpdateAuthProviderSettingsRequest) => authAdminApi.updateSettings(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authAdminKeys.settings() });
+    },
+  });
+}
+
+export function useEmailDeliveryStatus() {
+  return useQuery({
+    queryKey: authAdminKeys.emailDelivery(),
+    queryFn: () => authAdminApi.getEmailDeliveryStatus(),
+    refetchInterval: 30_000,
+  });
+}
+
+function useEmailDeliveryMutation(operation: () => Promise<unknown>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: operation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authAdminKeys.emailDelivery() });
+    },
+  });
+}
+
+export function useRunEmailDelivery() {
+  return useEmailDeliveryMutation(() => authAdminApi.runEmailDelivery());
+}
+
+export function useRetryEmailDelivery() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId: string) => authAdminApi.retryEmailDelivery(messageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authAdminKeys.emailDelivery() });
     },
   });
 }

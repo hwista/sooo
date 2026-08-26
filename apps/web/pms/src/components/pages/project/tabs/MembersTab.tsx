@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 
 const PROJECT_MEMBER_ROLE_GROUP = 'PROJECT_MEMBER_ROLE';
 
@@ -281,7 +282,11 @@ export function MembersTab({ projectId }: Props) {
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">사용자 검색</label>
-              <Input
+              <SsooSearchInput
+                id="pms-project-member-lookup-input"
+                name="pms-project-member-lookup-query"
+                ariaLabel="프로젝트 멤버 사용자 검색"
+                intent="entity-lookup"
                 placeholder="이름, 로그인 ID, 이메일"
                 value={userSearch}
                 onChange={(e) => {

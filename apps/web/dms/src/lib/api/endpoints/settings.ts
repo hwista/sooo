@@ -2,6 +2,8 @@ export { settingsApi } from '../settingsApi';
 export type {
   DmsInstanceEnvClient,
   DeepPartialClient,
+  DmsRuntimeReadinessCheckClient,
+  DmsRuntimeReadinessClient,
   DmsPersonalSettingsClient,
   DmsSettingsConfigClient,
   DmsSystemConfigClient,

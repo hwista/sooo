@@ -53,7 +53,7 @@ export interface ListPageTemplateProps<TData, TValue> {
  *       { label: '삭제', variant: 'destructive', onClick: handleDelete },
  *     ],
  *     filters: [
- *       { key: 'name', type: 'text', placeholder: '프로젝트명' },
+ *       { key: 'name', type: 'text', id: 'project-name-search-input', name: 'project-name-search-query', ariaLabel: '프로젝트명 검색', placeholder: '프로젝트명' },
  *       { key: 'status', type: 'select', options: statusOptions },
  *     ],
  *     onSearch: handleSearch,

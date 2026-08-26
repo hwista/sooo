@@ -83,4 +83,7 @@ export const usersApi = {
 
   deactivate: (id: string) =>
     apiClient.delete<ApiResponse<null>>(`/users/${id}`).then((r) => r.data),
+
+  reactivate: (id: string) =>
+    apiClient.post<ApiResponse<UserItem>>(`/users/${id}/reactivate`).then((r) => r.data),
 };

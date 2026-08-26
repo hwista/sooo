@@ -26,6 +26,29 @@ export interface ListExceptionsParams {
   limit?: number;
 }
 
+export interface RolePermissionItem {
+  roleId: string;
+  roleCode: string;
+  roleName: string;
+  roleScopeCode: string;
+  description?: string | null;
+  isActive: boolean;
+  permissionCodes: string[];
+}
+
+export interface AccessAuditEvent {
+  id: string;
+  category: 'user' | 'auth-account' | 'session' | 'organization' | 'role-permission';
+  eventType: string;
+  eventAt: string;
+  subjectId: string;
+  summary: string;
+  operatorUserId?: string | null;
+  source?: string | null;
+  activity?: string | null;
+  transactionId?: string | null;
+}
+
 export const accessOpsApi = {
   catalog: async () => {
     const response = await apiClient.get<ApiResponse<PermissionCatalogResult>>(
@@ -57,5 +80,31 @@ export const accessOpsApi = {
       throw new Error('예외 목록 응답이 비어 있습니다.');
     }
     return response.data.data;
+  },
+
+  listRoles: async () => {
+    const response = await apiClient.get<ApiResponse<RolePermissionItem[]>>('/access/ops/roles');
+    if (!response.data.data) {
+      throw new Error('역할별 권한 응답이 비어 있습니다.');
+    }
+    return response.data.data;
+  },
+
+  updateRolePermissions: async (roleCode: string, permissionCodes: string[]) => {
+    const response = await apiClient.put<ApiResponse<RolePermissionItem>>(
+      `/access/ops/roles/${encodeURIComponent(roleCode)}/permissions`,
+      { permissionCodes },
+    );
+    if (!response.data.data) {
+      throw new Error('역할 권한 갱신 응답이 비어 있습니다.');
+    }
+    return response.data.data;
+  },
+
+  listAudit: async (limit = 100) => {
+    const response = await apiClient.get<ApiResponse<AccessAuditEvent[]>>('/access/ops/audit', {
+      params: { limit },
+    });
+    return response.data.data ?? [];
   },
 };

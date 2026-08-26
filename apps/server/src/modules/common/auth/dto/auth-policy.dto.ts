@@ -2,6 +2,7 @@ import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
+  IsEmail,
   IsIn,
   IsInt,
   IsOptional,
@@ -122,7 +123,7 @@ export class UpdateAuthProviderSettingsDto {
   emailDeliveryMode?: AuthEmailDeliveryMode;
 
   @ApiPropertyOptional({ description: '인증 메일 발신 주소' })
-  @IsString()
+  @IsEmail({}, { message: '인증 메일 발신 주소 형식이 올바르지 않습니다' })
   @MaxLength(320)
   @IsOptional()
   emailFromAddress?: string | null;

@@ -9,6 +9,11 @@ import type {
   CrmCostPlanAmsExternalMonthlyInputResult,
   CrmCostPlanAmsExternalMonthlyWorkflowResult,
   CrmCostPlanAmsReadiness,
+  CrmCostPlanAmsSourceExternalCostRequest,
+  CrmCostPlanAmsSourceVendorCreateRequest,
+  CrmCostPlanAmsSourceVendorWbsRequest,
+  CrmCostPlanAmsSourceWorkspace,
+  CrmCostPlanAmsSourceWorkspaceResult,
   CrmCostPlanAmsVendorWbsMapping,
   CrmCostPlanAmsVendorWbsMappingRequest,
   CrmCostPlanAmsVendorWbsMappingResult,
@@ -30,6 +35,10 @@ import type {
   CrmCostPlanInternalMonthlyInputRequest,
   CrmCostPlanInternalMonthlyInputResult,
   CrmCostPlanInternalMonthlyWorkflowResult,
+  CrmCostPlanInternalSourceGrid,
+  CrmCostPlanInternalSourceGridRequest,
+  CrmCostPlanInternalSourceGridResult,
+  CrmCostPlanInternalSourceItemCode,
   CrmCostPlanPreviewMonth,
   CrmCostPlanPreviewQuery,
   CrmCostPlanPreviewRegion,
@@ -42,14 +51,17 @@ import type {
 import { DatabaseService } from '../../../database/database.service.js';
 import { ContractService } from '../contract/contract.service.js';
 import { OpportunityService } from '../opportunity/opportunity.service.js';
+import { CrmOperationAttemptService, type CrmOperationRunContext } from '../operations/operation-attempt.service.js';
 import { AccountingPaymentExternalExecutorService } from './accounting-payment-external-executor.service.js';
 
 const CRM_COST_PLAN_PREVIEW_BOUNDARY_NOTICE = 'CRM 원가/AMS preview는 영업기회/계약 원가 라인, 확정 계약 외부원가 계획/실적, 내부원가 월별 입력/확정 원장, AMS 업체-WBS 매핑 원장, AMS 외부원가 월별 입력/정산 확정 원장을 조합합니다.';
 const CRM_COST_PLAN_INTERNAL_INPUT_BOUNDARY_NOTICE = 'CRM 내부원가 월별 입력은 사업년도/사업구분/계열/담당자/WBS 기준의 계획·실적 금액을 저장하고 확정 상태를 관리합니다. 확정된 입력은 확정 해제 전 직접 수정할 수 없습니다.';
 const CRM_COST_PLAN_INTERNAL_CONFIRM_BOUNDARY_NOTICE = 'CRM 내부원가 확정은 저장된 월별 계획·실적 입력을 잠그는 원장 상태입니다. 확정 row는 회계·지급 handoff snapshot 후보가 되지만 회계 전표 발행은 외부 회계 시스템의 후속 경계입니다.';
+const CRM_COST_PLAN_INTERNAL_SOURCE_GRID_BOUNDARY_NOTICE = '원본 호환 내부원가는 연도별 인건비·기타·사업부간조정·매출원가용역·사업부공통의 계획/실적 12개월 값을 저장하며, 차이는 원본과 동일하게 계획-실적으로 계산합니다.';
 const CRM_COST_PLAN_AMS_MAPPING_BOUNDARY_NOTICE = 'CRM AMS 업체-WBS 매핑은 확정 계약 WBS와 업체 기준만 저장합니다. 업체 마스터/계약 검증 고도화는 별도 후속 slice입니다.';
 const CRM_COST_PLAN_AMS_EXTERNAL_INPUT_BOUNDARY_NOTICE = 'CRM AMS 외부원가 월별 입력은 업체-WBS 기준의 12개월 계획·실적 금액을 저장하고 정산 확정 상태를 관리합니다. 확정된 입력은 확정 해제 전 직접 수정할 수 없습니다.';
 const CRM_COST_PLAN_AMS_EXTERNAL_CONFIRM_BOUNDARY_NOTICE = 'CRM AMS 외부원가 정산 확정은 저장된 업체-WBS 월별 계획·실적 입력을 잠그는 원장 상태입니다. 확정 row는 회계·지급 handoff snapshot 후보가 되지만 지급 실행은 외부 지급 시스템의 후속 경계입니다.';
+const CRM_COST_PLAN_AMS_SOURCE_BOUNDARY_NOTICE = '원본 호환 AMS는 사업년도별 공급업체 마스터, 확정 계약의 복수 WBS 매핑, 업체×WBS별 연간 계획/실적을 관리하며 차이는 실적-계획으로 계산합니다.';
 const CRM_COST_PLAN_ACCOUNTING_PAYMENT_BOUNDARY_NOTICE = 'CRM은 확정 내부원가와 AMS 정산 확정 row를 회계·지급 handoff snapshot으로 묶고, 데모 실행기는 전표·지급·외부 sync evidence 패키지를 생성합니다. 실제 ERP/API 반영은 외부 회계·지급 시스템 경계입니다.';
 const CRM_COST_PLAN_ACCOUNTING_PAYMENT_EXECUTION_EVIDENCE_BOUNDARY_NOTICE = 'CRM은 외부 회계·지급 시스템 또는 CRM 데모 실행기가 만든 전표·지급 실행 evidence path를 handoff snapshot에 수신해 보존합니다.';
 const CRM_COST_PLAN_ACCOUNTING_PAYMENT_EXECUTION_BOUNDARY_NOTICE = 'CRM 데모 실행기는 active 회계·지급 handoff snapshot의 확정 row를 기준으로 전표, 지급 요청, 지급 실행, 외부 sync evidence를 생성합니다. 실제 ERP/API 반영은 외부 회계·지급 시스템에서 수행합니다.';
@@ -63,6 +75,13 @@ const CRM_COST_PLAN_ACCOUNTING_PAYMENT_EXECUTION_STEP_KEYS = new Set<CrmCostPlan
   'payment-execution',
   'external-system-sync',
 ]);
+const CRM_COST_PLAN_INTERNAL_SOURCE_ITEMS = [
+  { code: 'labor', name: '인건비' },
+  { code: 'other', name: '기타' },
+  { code: 'dept_adj', name: '사업부간조정' },
+  { code: 'svc', name: '매출원가용역' },
+  { code: 'dept_common', name: '사업부공통' },
+] as const satisfies ReadonlyArray<{ code: CrmCostPlanInternalSourceItemCode; name: string }>;
 
 interface NormalizedCostPlanPreviewQuery extends Required<CrmCostPlanPreviewQuery> {}
 
@@ -120,6 +139,19 @@ interface CostPlanInternalMonthlyLedgerRow {
   updatedAt: Date | string;
 }
 
+interface CostPlanInternalSourceItemLedgerRow {
+  id: bigint;
+  targetYear: number;
+  itemCode: string;
+  itemName: string;
+  monthlyPlanAmounts: unknown;
+  monthlyActualAmounts: unknown;
+  planAmountTotal: bigint;
+  actualAmountTotal: bigint;
+  differenceAmountTotal: bigint;
+  updatedAt: Date | string;
+}
+
 interface CostPlanAmsVendorWbsMappingLedgerRow {
   id: bigint;
   targetYear: number;
@@ -157,6 +189,34 @@ interface CostPlanAmsExternalMonthlyLedgerRow {
   updatedAt: Date | string;
 }
 
+interface CostPlanAmsSourceVendorLedgerRow {
+  id: bigint;
+  targetYear: number;
+  vendorName: string;
+  sortOrder: number;
+  updatedAt: Date | string;
+}
+
+interface CostPlanAmsSourceVendorWbsLedgerRow {
+  id: bigint;
+  vendorId: bigint;
+  wbsCode: string;
+  contractId: bigint | null;
+  sortOrder: number;
+}
+
+interface CostPlanAmsSourceExternalLedgerRow {
+  id: bigint;
+  vendorId: bigint;
+  wbsCode: string;
+  monthlyPlanAmounts: unknown;
+  monthlyActualAmounts: unknown;
+  planAmountTotal: bigint;
+  actualAmountTotal: bigint;
+  differenceAmountTotal: bigint;
+  updatedAt: Date | string;
+}
+
 interface CostPlanAccountingPaymentHandoffLedgerRow {
   id: bigint | number | string;
   targetYear: number;
@@ -189,6 +249,7 @@ export class CostPlanService {
     private readonly contractService: ContractService,
     @Optional() private readonly db?: DatabaseService,
     @Optional() private readonly externalExecutor?: AccountingPaymentExternalExecutorService,
+    @Optional() private readonly operationAttemptService?: CrmOperationAttemptService,
   ) {}
 
   async getPreview(query: CrmCostPlanPreviewQuery = {}): Promise<CrmCostPlanPreviewResponse> {
@@ -204,10 +265,12 @@ export class CostPlanService {
         search: normalized.search || undefined,
       }),
     ]);
-    const [internalMonthlyRows, amsVendorMappingRows, amsExternalMonthlyRows] = await Promise.all([
+    const [internalMonthlyRows, internalSourceItemRows, amsVendorMappingRows, amsExternalMonthlyRows, amsSourceWorkspace] = await Promise.all([
       this.loadInternalMonthlyRows(normalized),
+      this.loadInternalSourceItemRows(normalized.year),
       this.loadAmsVendorMappingRows(normalized),
       this.loadAmsExternalMonthlyRows(normalized),
+      this.loadAmsSourceWorkspace(normalized.year, contractResponse.items),
     ]);
     const opportunities = this.filterOpportunities(opportunityResponse.items, normalized);
     const contracts = this.filterContracts(contractResponse.items, normalized);
@@ -260,6 +323,8 @@ export class CostPlanService {
       summary: this.buildSummary(rows, months, normalized, businessTypeOptions, industryLineOptions),
       months,
       rows,
+      internalCostSourceGrid: this.toInternalSourceGrid(normalized.year, internalSourceItemRows),
+      amsSourceWorkspace,
     };
   }
 
@@ -364,6 +429,34 @@ export class CostPlanService {
   async executeAccountingPayment(
     handoffId: string,
     request: CrmCostPlanAccountingPaymentExecutionRequest = {},
+    currentUserId?: bigint,
+    operationContext?: CrmOperationRunContext,
+  ): Promise<CrmCostPlanAccountingPaymentExecutionResult> {
+    if (this.operationAttemptService && currentUserId) {
+      return this.operationAttemptService.run({
+        target: 'accounting',
+        action: 'accounting-payment-execution',
+        sourceEntityType: 'crm.cost-plan-accounting-handoff',
+        sourceEntityId: handoffId,
+        requestedBy: currentUserId,
+        fingerprintInput: { handoffId, mode: request.mode ?? 'demo', memo: request.memo ?? null },
+        context: operationContext,
+        execute: () => this.performAccountingPaymentExecution(handoffId, request, currentUserId),
+        evidence: (result) => ({
+          handoffId: result.handoffId,
+          providerMode: result.externalExecution.providerMode,
+          providerName: result.externalExecution.providerName,
+          appliedStepKeys: result.appliedStepKeys,
+          recordedAt: result.recordedAt,
+        }),
+      });
+    }
+    return this.performAccountingPaymentExecution(handoffId, request, currentUserId);
+  }
+
+  private async performAccountingPaymentExecution(
+    handoffId: string,
+    request: CrmCostPlanAccountingPaymentExecutionRequest,
     currentUserId?: bigint,
   ): Promise<CrmCostPlanAccountingPaymentExecutionResult> {
     const existing = await this.loadActiveAccountingPaymentHandoffById(handoffId);
@@ -691,6 +784,248 @@ export class CostPlanService {
       input: this.toInternalMonthlyInput(saved),
       boundaryNotice: CRM_COST_PLAN_INTERNAL_INPUT_BOUNDARY_NOTICE,
     };
+  }
+
+  async saveInternalSourceGrid(
+    dto: CrmCostPlanInternalSourceGridRequest,
+    currentUserId?: bigint,
+  ): Promise<CrmCostPlanInternalSourceGridResult> {
+    const client = this.db?.client;
+    if (!client) {
+      throw new ServiceUnavailableException('CRM 원본 호환 내부원가 저장 DB 연결이 필요합니다.');
+    }
+
+    const targetYear = this.normalizeInputYear(dto.targetYear);
+    if (!Array.isArray(dto.items) || dto.items.length !== CRM_COST_PLAN_INTERNAL_SOURCE_ITEMS.length) {
+      throw new BadRequestException('원본 호환 내부원가는 고정 5개 항목을 모두 포함해야 합니다.');
+    }
+    const incomingByCode = new Map<CrmCostPlanInternalSourceItemCode, { monthlyPlanAmounts: number[]; monthlyActualAmounts: number[] }>();
+    dto.items.forEach((item) => {
+      const definition = CRM_COST_PLAN_INTERNAL_SOURCE_ITEMS.find((candidate) => candidate.code === item.itemCode);
+      if (!definition) {
+        throw new BadRequestException(`지원하지 않는 내부원가 항목입니다: ${String(item.itemCode)}`);
+      }
+      if (incomingByCode.has(definition.code)) {
+        throw new BadRequestException(`내부원가 항목이 중복되었습니다: ${definition.name}`);
+      }
+      incomingByCode.set(definition.code, {
+        monthlyPlanAmounts: this.normalizeSignedMonthlyAmounts(item.monthlyPlanAmounts, definition.name, '계획'),
+        monthlyActualAmounts: this.normalizeSignedMonthlyAmounts(item.monthlyActualAmounts, definition.name, '실적'),
+      });
+    });
+    const missing = CRM_COST_PLAN_INTERNAL_SOURCE_ITEMS.find((item) => !incomingByCode.has(item.code));
+    if (missing) {
+      throw new BadRequestException(`내부원가 필수 항목이 누락되었습니다: ${missing.name}`);
+    }
+
+    const transactionId = randomUUID();
+    const rows = await client.$transaction(async (tx: RawCostPlanWriter) => {
+      for (const [sortOrder, definition] of CRM_COST_PLAN_INTERNAL_SOURCE_ITEMS.entries()) {
+        const incoming = incomingByCode.get(definition.code)!;
+        const planAmountTotal = incoming.monthlyPlanAmounts.reduce((sum, value) => sum + value, 0);
+        const actualAmountTotal = incoming.monthlyActualAmounts.reduce((sum, value) => sum + value, 0);
+        const differenceAmountTotal = planAmountTotal - actualAmountTotal;
+        await tx.$executeRaw`
+          insert into crm.crm_cost_plan_internal_item_monthly_d (
+            target_year, item_code, item_name,
+            monthly_plan_amounts, monthly_actual_amounts,
+            plan_amount_total, actual_amount_total, difference_amount_total,
+            sort_order, is_active, created_by, updated_by,
+            last_source, last_activity, transaction_id
+          ) values (
+            ${targetYear}, ${definition.code}, ${definition.name},
+            ${JSON.stringify(incoming.monthlyPlanAmounts)}::jsonb,
+            ${JSON.stringify(incoming.monthlyActualAmounts)}::jsonb,
+            ${BigInt(planAmountTotal)}, ${BigInt(actualAmountTotal)}, ${BigInt(differenceAmountTotal)},
+            ${sortOrder}, true, ${currentUserId ?? null}, ${currentUserId ?? null},
+            'crm.cost-plan', 'internal-source-grid-save', ${transactionId}::uuid
+          )
+          on conflict (target_year, item_code)
+          do update
+             set item_name = excluded.item_name,
+                 monthly_plan_amounts = excluded.monthly_plan_amounts,
+                 monthly_actual_amounts = excluded.monthly_actual_amounts,
+                 plan_amount_total = excluded.plan_amount_total,
+                 actual_amount_total = excluded.actual_amount_total,
+                 difference_amount_total = excluded.difference_amount_total,
+                 sort_order = excluded.sort_order,
+                 is_active = true,
+                 updated_by = ${currentUserId ?? null},
+                 updated_at = now(),
+                 last_source = 'crm.cost-plan',
+                 last_activity = 'internal-source-grid-save',
+                 transaction_id = ${transactionId}::uuid
+        `;
+      }
+      return tx.$queryRaw<CostPlanInternalSourceItemLedgerRow[]>`
+        select cost_plan_internal_item_monthly_id as "id",
+               target_year as "targetYear",
+               item_code as "itemCode",
+               item_name as "itemName",
+               monthly_plan_amounts as "monthlyPlanAmounts",
+               monthly_actual_amounts as "monthlyActualAmounts",
+               plan_amount_total as "planAmountTotal",
+               actual_amount_total as "actualAmountTotal",
+               difference_amount_total as "differenceAmountTotal",
+               updated_at as "updatedAt"
+          from crm.crm_cost_plan_internal_item_monthly_d
+         where target_year = ${targetYear}
+           and is_active = true
+         order by sort_order, cost_plan_internal_item_monthly_id
+      `;
+    });
+
+    const grid = this.toInternalSourceGrid(targetYear, rows);
+    return { grid, boundaryNotice: CRM_COST_PLAN_INTERNAL_SOURCE_GRID_BOUNDARY_NOTICE };
+  }
+
+  async createAmsSourceVendor(
+    dto: CrmCostPlanAmsSourceVendorCreateRequest,
+    currentUserId?: bigint,
+  ): Promise<CrmCostPlanAmsSourceWorkspaceResult> {
+    const client = this.db?.client;
+    if (!client) throw new ServiceUnavailableException('CRM 원본 호환 AMS 저장 DB 연결이 필요합니다.');
+    const targetYear = this.normalizeInputYear(dto.targetYear);
+    const vendorName = this.normalizeRequiredText(dto.vendorName, '공급업체명', 200);
+    const transactionId = randomUUID();
+    await client.$executeRaw`
+      insert into crm.crm_cost_plan_ams_source_vendor_m (
+        target_year, vendor_name, sort_order, is_active,
+        created_by, updated_by, last_source, last_activity, transaction_id
+      ) values (
+        ${targetYear}, ${vendorName},
+        (select count(*)::int from crm.crm_cost_plan_ams_source_vendor_m where target_year = ${targetYear} and is_active = true),
+        true, ${currentUserId ?? null}, ${currentUserId ?? null},
+        'crm.cost-plan', 'ams-source-vendor-create', ${transactionId}::uuid
+      )
+    `;
+    return this.refreshAmsSourceWorkspaceResult(targetYear);
+  }
+
+  async deleteAmsSourceVendor(
+    id: string,
+    targetYearValue: number,
+  ): Promise<CrmCostPlanAmsSourceWorkspaceResult> {
+    const client = this.db?.client;
+    if (!client) throw new ServiceUnavailableException('CRM 원본 호환 AMS 저장 DB 연결이 필요합니다.');
+    const targetYear = this.normalizeInputYear(targetYearValue);
+    const vendorId = this.normalizeLedgerId(id, 'AMS 공급업체');
+    const deleted = await client.$executeRaw`
+      delete from crm.crm_cost_plan_ams_source_vendor_m
+       where cost_plan_ams_source_vendor_id = ${vendorId}
+         and target_year = ${targetYear}
+    `;
+    if (deleted === 0) throw new NotFoundException('삭제할 AMS 공급업체를 찾을 수 없습니다.');
+    return this.refreshAmsSourceWorkspaceResult(targetYear);
+  }
+
+  async saveAmsSourceVendorWbs(
+    id: string,
+    dto: CrmCostPlanAmsSourceVendorWbsRequest,
+    currentUserId?: bigint,
+  ): Promise<CrmCostPlanAmsSourceWorkspaceResult> {
+    const client = this.db?.client;
+    if (!client) throw new ServiceUnavailableException('CRM 원본 호환 AMS 저장 DB 연결이 필요합니다.');
+    const targetYear = this.normalizeInputYear(dto.targetYear);
+    const vendorId = this.normalizeLedgerId(id, 'AMS 공급업체');
+    const vendors = await this.loadAmsSourceVendors(targetYear);
+    if (!vendors.some((vendor) => vendor.id === vendorId)) throw new NotFoundException('AMS 공급업체를 찾을 수 없습니다.');
+    if (!Array.isArray(dto.wbsCodes)) throw new BadRequestException('AMS WBS 목록은 배열이어야 합니다.');
+    const contractResponse = await this.contractService.listResponse({ sort: 'start-asc' });
+    const eligibleWbs = this.getEligibleAmsSourceWbs(contractResponse.items);
+    const eligibleByCode = new Map(eligibleWbs.map((item) => [item.wbsCode, item]));
+    const wbsCodes = [...new Set(dto.wbsCodes.map((value) => this.normalizeRequiredText(value, 'WBS', 80)))];
+    const invalid = wbsCodes.find((code) => !eligibleByCode.has(code));
+    if (invalid) throw new BadRequestException(`확정 계약 WBS가 아닙니다: ${invalid}`);
+    const transactionId = randomUUID();
+    await client.$transaction(async (tx: RawCostPlanWriter) => {
+      await tx.$executeRaw`delete from crm.crm_cost_plan_ams_source_vendor_wbs_r where vendor_id = ${vendorId}`;
+      for (const [sortOrder, wbsCode] of wbsCodes.entries()) {
+        const eligible = eligibleByCode.get(wbsCode)!;
+        await tx.$executeRaw`
+          insert into crm.crm_cost_plan_ams_source_vendor_wbs_r (
+            vendor_id, wbs_code, contract_id, sort_order,
+            created_by, updated_by, last_source, last_activity, transaction_id
+          ) values (
+            ${vendorId}, ${wbsCode},
+            (select contract_id from crm.crm_contract_m where contract_code = ${eligible.contractId} and wbs_code = ${wbsCode} and is_active = true limit 1),
+            ${sortOrder},
+            ${currentUserId ?? null}, ${currentUserId ?? null},
+            'crm.cost-plan', 'ams-source-vendor-wbs-save', ${transactionId}::uuid
+          )
+        `;
+      }
+    });
+    return this.refreshAmsSourceWorkspaceResult(targetYear, contractResponse.items);
+  }
+
+  async saveAmsSourceExternalCost(
+    dto: CrmCostPlanAmsSourceExternalCostRequest,
+    currentUserId?: bigint,
+  ): Promise<CrmCostPlanAmsSourceWorkspaceResult> {
+    const client = this.db?.client;
+    if (!client) throw new ServiceUnavailableException('CRM 원본 호환 AMS 저장 DB 연결이 필요합니다.');
+    const targetYear = this.normalizeInputYear(dto.targetYear);
+    const vendors = await this.loadAmsSourceVendors(targetYear);
+    const vendorIds = new Set(vendors.map((vendor) => vendor.id.toString()));
+    const mappings = await this.loadAmsSourceVendorWbs(targetYear);
+    const expectedKeys = new Set(mappings.map((mapping) => `${mapping.vendorId.toString()}\u0000${mapping.wbsCode}`));
+    if (!Array.isArray(dto.rows) || dto.rows.length !== expectedKeys.size) {
+      throw new BadRequestException('AMS 외부원가는 현재 업체-WBS 매핑 행을 모두 포함해야 합니다.');
+    }
+    const normalizedRows = dto.rows.map((row) => {
+      const vendorId = this.normalizeLedgerId(row.vendorId, 'AMS 공급업체');
+      const wbsCode = this.normalizeRequiredText(row.wbsCode, 'WBS', 80);
+      const key = `${vendorId.toString()}\u0000${wbsCode}`;
+      if (!vendorIds.has(vendorId.toString()) || !expectedKeys.has(key)) {
+        throw new BadRequestException(`현재 매핑되지 않은 업체-WBS입니다: ${wbsCode}`);
+      }
+      return {
+        key,
+        vendorId,
+        wbsCode,
+        monthlyPlanAmounts: this.normalizeSignedMonthlyAmounts(row.monthlyPlanAmounts, wbsCode, '계획'),
+        monthlyActualAmounts: this.normalizeSignedMonthlyAmounts(row.monthlyActualAmounts, wbsCode, '실적'),
+      };
+    });
+    if (new Set(normalizedRows.map((row) => row.key)).size !== normalizedRows.length) {
+      throw new BadRequestException('AMS 업체-WBS 외부원가 행이 중복되었습니다.');
+    }
+    const transactionId = randomUUID();
+    await client.$transaction(async (tx: RawCostPlanWriter) => {
+      for (const [sortOrder, row] of normalizedRows.entries()) {
+        const planAmountTotal = row.monthlyPlanAmounts.reduce((sum, value) => sum + value, 0);
+        const actualAmountTotal = row.monthlyActualAmounts.reduce((sum, value) => sum + value, 0);
+        await tx.$executeRaw`
+          insert into crm.crm_cost_plan_ams_source_external_monthly_d (
+            vendor_id, wbs_code, monthly_plan_amounts, monthly_actual_amounts,
+            plan_amount_total, actual_amount_total, difference_amount_total,
+            sort_order, is_active, created_by, updated_by,
+            last_source, last_activity, transaction_id
+          ) values (
+            ${row.vendorId}, ${row.wbsCode},
+            ${JSON.stringify(row.monthlyPlanAmounts)}::jsonb, ${JSON.stringify(row.monthlyActualAmounts)}::jsonb,
+            ${BigInt(planAmountTotal)}, ${BigInt(actualAmountTotal)}, ${BigInt(actualAmountTotal - planAmountTotal)},
+            ${sortOrder}, true, ${currentUserId ?? null}, ${currentUserId ?? null},
+            'crm.cost-plan', 'ams-source-external-cost-save', ${transactionId}::uuid
+          )
+          on conflict (vendor_id, wbs_code)
+          do update set monthly_plan_amounts = excluded.monthly_plan_amounts,
+                        monthly_actual_amounts = excluded.monthly_actual_amounts,
+                        plan_amount_total = excluded.plan_amount_total,
+                        actual_amount_total = excluded.actual_amount_total,
+                        difference_amount_total = excluded.difference_amount_total,
+                        sort_order = excluded.sort_order,
+                        is_active = true,
+                        updated_by = ${currentUserId ?? null},
+                        updated_at = now(),
+                        last_source = 'crm.cost-plan',
+                        last_activity = 'ams-source-external-cost-save',
+                        transaction_id = ${transactionId}::uuid
+        `;
+      }
+    });
+    return this.refreshAmsSourceWorkspaceResult(targetYear);
   }
 
   async confirmInternalMonthlyInput(
@@ -1930,6 +2265,166 @@ export class CostPlanService {
     `;
   }
 
+  private async loadInternalSourceItemRows(targetYear: number): Promise<CostPlanInternalSourceItemLedgerRow[]> {
+    const client = this.db?.client;
+    if (!client) {
+      return [];
+    }
+    return client.$queryRaw<CostPlanInternalSourceItemLedgerRow[]>`
+      select cost_plan_internal_item_monthly_id as "id",
+             target_year as "targetYear",
+             item_code as "itemCode",
+             item_name as "itemName",
+             monthly_plan_amounts as "monthlyPlanAmounts",
+             monthly_actual_amounts as "monthlyActualAmounts",
+             plan_amount_total as "planAmountTotal",
+             actual_amount_total as "actualAmountTotal",
+             difference_amount_total as "differenceAmountTotal",
+             updated_at as "updatedAt"
+        from crm.crm_cost_plan_internal_item_monthly_d
+       where target_year = ${targetYear}
+         and is_active = true
+       order by sort_order, cost_plan_internal_item_monthly_id
+    `;
+  }
+
+  private async loadAmsSourceVendors(targetYear: number): Promise<CostPlanAmsSourceVendorLedgerRow[]> {
+    const client = this.db?.client;
+    if (!client) return [];
+    return client.$queryRaw<CostPlanAmsSourceVendorLedgerRow[]>`
+      select cost_plan_ams_source_vendor_id as "id",
+             target_year as "targetYear",
+             vendor_name as "vendorName",
+             sort_order as "sortOrder",
+             updated_at as "updatedAt"
+        from crm.crm_cost_plan_ams_source_vendor_m
+       where target_year = ${targetYear}
+         and is_active = true
+       order by sort_order, cost_plan_ams_source_vendor_id
+    `;
+  }
+
+  private async loadAmsSourceVendorWbs(targetYear: number): Promise<CostPlanAmsSourceVendorWbsLedgerRow[]> {
+    const client = this.db?.client;
+    if (!client) return [];
+    return client.$queryRaw<CostPlanAmsSourceVendorWbsLedgerRow[]>`
+      select r.cost_plan_ams_source_vendor_wbs_id as "id",
+             r.vendor_id as "vendorId",
+             r.wbs_code as "wbsCode",
+             r.contract_id as "contractId",
+             r.sort_order as "sortOrder"
+        from crm.crm_cost_plan_ams_source_vendor_wbs_r r
+        join crm.crm_cost_plan_ams_source_vendor_m v
+          on v.cost_plan_ams_source_vendor_id = r.vendor_id
+       where v.target_year = ${targetYear}
+         and v.is_active = true
+       order by v.sort_order, r.sort_order, r.cost_plan_ams_source_vendor_wbs_id
+    `;
+  }
+
+  private async loadAmsSourceExternalRows(targetYear: number): Promise<CostPlanAmsSourceExternalLedgerRow[]> {
+    const client = this.db?.client;
+    if (!client) return [];
+    return client.$queryRaw<CostPlanAmsSourceExternalLedgerRow[]>`
+      select d.cost_plan_ams_source_external_monthly_id as "id",
+             d.vendor_id as "vendorId",
+             d.wbs_code as "wbsCode",
+             d.monthly_plan_amounts as "monthlyPlanAmounts",
+             d.monthly_actual_amounts as "monthlyActualAmounts",
+             d.plan_amount_total as "planAmountTotal",
+             d.actual_amount_total as "actualAmountTotal",
+             d.difference_amount_total as "differenceAmountTotal",
+             d.updated_at as "updatedAt"
+        from crm.crm_cost_plan_ams_source_external_monthly_d d
+        join crm.crm_cost_plan_ams_source_vendor_m v
+          on v.cost_plan_ams_source_vendor_id = d.vendor_id
+       where v.target_year = ${targetYear}
+         and v.is_active = true
+         and d.is_active = true
+       order by v.sort_order, d.sort_order, d.cost_plan_ams_source_external_monthly_id
+    `;
+  }
+
+  private async loadAmsSourceWorkspace(targetYear: number, contracts: CrmContract[]): Promise<CrmCostPlanAmsSourceWorkspace> {
+    const [vendors, mappings, costs] = await Promise.all([
+      this.loadAmsSourceVendors(targetYear),
+      this.loadAmsSourceVendorWbs(targetYear),
+      this.loadAmsSourceExternalRows(targetYear),
+    ]);
+    const mappingsByVendor = new Map<string, CostPlanAmsSourceVendorWbsLedgerRow[]>();
+    mappings.forEach((mapping) => {
+      const key = mapping.vendorId.toString();
+      mappingsByVendor.set(key, [...(mappingsByVendor.get(key) ?? []), mapping]);
+    });
+    const costByKey = new Map(costs.map((cost) => [`${cost.vendorId.toString()}\u0000${cost.wbsCode}`, cost]));
+    const vendorById = new Map(vendors.map((vendor) => [vendor.id.toString(), vendor]));
+    return {
+      targetYear,
+      eligibleWbs: this.getEligibleAmsSourceWbs(contracts),
+      vendors: vendors.map((vendor) => ({
+        id: vendor.id.toString(),
+        targetYear: vendor.targetYear,
+        vendorName: vendor.vendorName,
+        wbs: (mappingsByVendor.get(vendor.id.toString()) ?? []).map((mapping) => ({
+          id: mapping.id.toString(),
+          wbsCode: mapping.wbsCode,
+          ...(mapping.contractId ? { contractId: mapping.contractId.toString() } : {}),
+        })),
+        updatedAt: this.toIsoString(vendor.updatedAt),
+      })),
+      externalCostRows: mappings.map((mapping) => {
+        const vendor = vendorById.get(mapping.vendorId.toString());
+        const cost = costByKey.get(`${mapping.vendorId.toString()}\u0000${mapping.wbsCode}`);
+        const monthlyPlanAmounts = this.resolveSignedMonthlyAmounts(cost?.monthlyPlanAmounts);
+        const monthlyActualAmounts = this.resolveSignedMonthlyAmounts(cost?.monthlyActualAmounts);
+        const planAmountTotal = monthlyPlanAmounts.reduce((sum, value) => sum + value, 0);
+        const actualAmountTotal = monthlyActualAmounts.reduce((sum, value) => sum + value, 0);
+        return {
+          ...(cost ? { id: cost.id.toString(), updatedAt: this.toIsoString(cost.updatedAt) } : {}),
+          vendorId: mapping.vendorId.toString(),
+          vendorName: vendor?.vendorName ?? '',
+          wbsCode: mapping.wbsCode,
+          monthlyPlanAmounts,
+          monthlyActualAmounts,
+          planAmountTotal,
+          actualAmountTotal,
+          differenceAmountTotal: actualAmountTotal - planAmountTotal,
+        };
+      }),
+      boundaryNotice: CRM_COST_PLAN_AMS_SOURCE_BOUNDARY_NOTICE,
+    };
+  }
+
+  private getEligibleAmsSourceWbs(contracts: CrmContract[]) {
+    const unique = new Map<string, CrmContract>();
+    contracts.forEach((contract) => {
+      if (contract.confirmed && contract.wbsCode && !unique.has(contract.wbsCode)) {
+        unique.set(contract.wbsCode, contract);
+      }
+    });
+    return [...unique.values()]
+      .sort((left, right) => (left.wbsCode ?? '').localeCompare(right.wbsCode ?? ''))
+      .map((contract) => ({
+        wbsCode: contract.wbsCode!,
+        contractId: contract.id,
+        contractCode: contract.code,
+        customerName: contract.customerName,
+        contractName: contract.contractName,
+        label: `${contract.wbsCode} (${contract.customerName} · ${contract.contractName})`,
+      }));
+  }
+
+  private async refreshAmsSourceWorkspaceResult(
+    targetYear: number,
+    contracts?: CrmContract[],
+  ): Promise<CrmCostPlanAmsSourceWorkspaceResult> {
+    const sourceContracts = contracts ?? (await this.contractService.listResponse({ sort: 'start-asc' })).items;
+    return {
+      workspace: await this.loadAmsSourceWorkspace(targetYear, sourceContracts),
+      boundaryNotice: CRM_COST_PLAN_AMS_SOURCE_BOUNDARY_NOTICE,
+    };
+  }
+
   private async findInternalMonthlyInputById(id: string): Promise<CostPlanInternalMonthlyLedgerRow | null> {
     const client = this.db?.client;
     if (!client) {
@@ -2208,6 +2703,35 @@ export class CostPlanService {
     };
   }
 
+  private toInternalSourceGrid(
+    targetYear: number,
+    rows: CostPlanInternalSourceItemLedgerRow[],
+  ): CrmCostPlanInternalSourceGrid {
+    const rowByCode = new Map(rows.map((row) => [row.itemCode, row]));
+    return {
+      targetYear,
+      items: CRM_COST_PLAN_INTERNAL_SOURCE_ITEMS.map((definition) => {
+        const row = rowByCode.get(definition.code);
+        const monthlyPlanAmounts = this.resolveSignedMonthlyAmounts(row?.monthlyPlanAmounts);
+        const monthlyActualAmounts = this.resolveSignedMonthlyAmounts(row?.monthlyActualAmounts);
+        const planAmountTotal = monthlyPlanAmounts.reduce((sum, amount) => sum + amount, 0);
+        const actualAmountTotal = monthlyActualAmounts.reduce((sum, amount) => sum + amount, 0);
+        return {
+          ...(row ? { id: row.id.toString() } : {}),
+          itemCode: definition.code,
+          itemName: definition.name,
+          monthlyPlanAmounts,
+          monthlyActualAmounts,
+          planAmountTotal,
+          actualAmountTotal,
+          differenceAmountTotal: planAmountTotal - actualAmountTotal,
+          ...(row ? { updatedAt: this.toIsoString(row.updatedAt) } : {}),
+        };
+      }),
+      boundaryNotice: CRM_COST_PLAN_INTERNAL_SOURCE_GRID_BOUNDARY_NOTICE,
+    };
+  }
+
   private toAmsVendorMapping(row: CostPlanAmsVendorWbsMappingLedgerRow): CrmCostPlanAmsVendorWbsMapping {
     return {
       id: row.id.toString(),
@@ -2296,6 +2820,19 @@ export class CostPlanService {
     });
   }
 
+  private normalizeSignedMonthlyAmounts(values: number[], subject: string, label: string): number[] {
+    if (!Array.isArray(values) || values.length !== 12) {
+      throw new BadRequestException(`${subject} ${label} 금액은 12개월 배열이어야 합니다.`);
+    }
+    return values.map((value, index) => {
+      const amount = Number(value);
+      if (!Number.isFinite(amount) || !Number.isSafeInteger(Math.round(amount))) {
+        throw new BadRequestException(`${subject} ${label} ${index + 1}월 금액은 안전한 숫자여야 합니다.`);
+      }
+      return Math.round(amount);
+    });
+  }
+
   private resolveMonthlyAmounts(value: unknown): number[] {
     const source = typeof value === 'string' ? this.tryParseJson(value) : value;
     if (!Array.isArray(source)) {
@@ -2304,6 +2841,17 @@ export class CostPlanService {
     return Array.from({ length: 12 }, (_, index) => {
       const amount = Number(source[index] ?? 0);
       return Number.isFinite(amount) && amount >= 0 ? Math.round(amount) : 0;
+    });
+  }
+
+  private resolveSignedMonthlyAmounts(value: unknown): number[] {
+    const source = typeof value === 'string' ? this.tryParseJson(value) : value;
+    if (!Array.isArray(source)) {
+      return Array.from({ length: 12 }, () => 0);
+    }
+    return Array.from({ length: 12 }, (_, index) => {
+      const amount = Number(source[index] ?? 0);
+      return Number.isFinite(amount) && Number.isSafeInteger(Math.round(amount)) ? Math.round(amount) : 0;
     });
   }
 

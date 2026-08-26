@@ -1,7 +1,7 @@
 # DMS Settings / Control / Operations Boundary
 
 > Status: launch architecture baseline
-> Last updated: 2026-07-06
+> Last updated: 2026-08-14
 > Scope: DMS-owned system settings, control, operations, and the boundary with Admin/platform settings.
 
 ## Decision summary
@@ -26,16 +26,16 @@ DMS owns the settings/control/operations that directly govern document-domain be
 | Area | DMS responsibility | Notes |
 | --- | --- | --- |
 | Document repository | document Git binding observability, publish/sync state, working tree status | Runtime paths/remotes are masked when sensitive. Deploy/runtime config may still be the actual source for immutable bindings. |
-| Storage | attachment/reference/image storage policy, local/NAS/SharePoint provider usage inside DMS | Organization-level Microsoft tenant policy remains Admin-owned. |
-| Ingest | DMS ingest queue path/status/defaults, document intake behavior | Common integration policy is not stored as a DMS secret/config. |
+| Storage | attachment/reference/image storage policy, Local default and optional NAS provider usage inside DMS | SharePoint storage integration is not supported. Organization-level Microsoft tenant policy remains Admin-owned. |
+| Ingest | DMS ingest queue path/status/defaults, document intake behavior, approval/retry/cancel/retention cleanup | Queue corruption must fail closed. Common integration policy is not stored as a DMS secret/config. |
 | Uploads | DMS attachment/image/text extraction upload limits | Applies to document-domain uploads only. |
 | Search/indexing | result count, chunking, overlap, semantic threshold, summary concurrency | Provider/model routing remains AI Control Plane-owned. |
 | Document AI assist | DMS context limits, file/image attachment limits, DMS capability consumption | DMS can consume capability mappings, not own global provider/model/persona/agent definitions. |
 | Extraction | document text/image/PDF extraction limits | Domain policy, not common AI provider ownership. |
 | Access workflow | document permission request/approval, document-only grants, owner/author document responsibility | Organization roles/app access grants remain Admin-owned. |
 | Templates | DMS document template management and template runtime location | Domain template lifecycle belongs in DMS. |
-| Runtime operations | DMS health/status/read-only diagnostics that help operate the document domain | Admin may summarize or link to these, but the control owner is DMS. |
-| Personal document preferences | author fallback, viewer zoom, sidebar defaults | Does not replace account security or SNS profile identity. Legacy workspace keys may still be read by the shell but are not a visible settings form. |
+| Runtime operations | DMS readiness, actual path read/write probes, Git/control-plane safety status, ingest controls | Admin may summarize or link to these, but the control owner is DMS. `/api/health` remains process liveness; launch traffic uses `/api/health/readiness` and DMS readiness evidence. |
+| Personal document preferences | author fallback, manual upload storage preference, viewer zoom, sidebar defaults | Storage preference is user-scoped and is consumed by attachment/reference/image upload routing; an item-level provider override wins. Does not replace account security or SNS profile identity. |
 
 ## Access model
 
@@ -44,6 +44,7 @@ DMS owns the settings/control/operations that directly govern document-domain be
 - Non-admin users must not see the system settings scope, system menu rows, or system search results in the settings tab page.
 - The `dms.settings.manage` permission is an admin-only system settings capability, not a prerequisite for personal DMS preferences.
 - The DMS settings API returns `config.personal` for authenticated users, but returns `config.system`, `docDir`, and runtime snapshots only when `access.canManageSystem=true`.
+- `/settings/{surface}/{sectionId}` is an authenticated reload/bookmark entry that hands off to the same settings tab implementation. It does not bypass either the page access filter or the server API authorization check.
 
 ## Admin-owned surfaces
 
@@ -78,6 +79,11 @@ The DMS settings screen should keep this grouping:
 - Do not add Admin `/dms/*` observation pages as a parallel DMS control/diagnostic surface in the current baseline.
 - If a cross-app link points to a surface that is not implemented yet, mark it as planned instead of pretending the route exists.
 - Do not use `dms.settings.manage` to block the settings entry point itself; use it only for DMS system/admin settings capabilities.
+- Persisted system/personal settings updates fail closed when DB persistence is initialized but unavailable. A failed write must not replace the in-memory last-known-good config.
+- An empty or suspiciously misbound Markdown root must stop control-plane reconciliation before any document deactivation. An existing inactive document found again in the canonical tree is reactivated instead of duplicated.
+- The ingest queue file is written atomically. Invalid JSON is preserved and surfaced as an operational failure; it is never interpreted and overwritten as an empty queue.
+- `ingest.maxConcurrentJobs` is an enforced processing limit. `ingest.retentionDays` controls explicit cleanup eligibility for published/cancelled queue history, not document deletion.
+- A page navigation that cancels an in-flight file-tree refresh is a lifecycle discard, not an operational error. Real failures on a retained page remain visible and retryable.
 
 ## Acceptance criteria
 
@@ -86,12 +92,17 @@ The DMS settings screen should keep this grouping:
 - DMS settings UI exposes 문서 운영·진단 / 문서 시스템 설정 / 문서 관리 / 내 문서 환경 설정.
 - Admin navigation does not expose DMS-owned observation/control pages in the current baseline.
 - Non-admin DMS users can open and save personal DMS preferences, while the settings tab page hides system scope/menu/search entries and system updates return 403.
+- Admin DMS runtime diagnostics expose aggregate `ready/degraded/blocked` checks and actual directory readable/writable state without exposing secrets.
+- Ingest operations can submit a smoke job, confirm publication, persist a failure, retry, cancel a pending/failed job, and clean only expired terminal history.
 - Build/preflight and Docker runtime checks are run before closeout.
 
 ## Changelog
 
 | 날짜 | 변경 내용 |
 | --- | --- |
+| 2026-08-14 | settings 전체 deep link/reload 계약, 개인 저장소 선호의 실제 upload routing, page lifecycle 취소 처리와 Admin SMTP 운영 경계를 반영 |
+| 2026-08-12 | 설정 DB fail-closed, Git/control-plane bulk deactivation guard와 reactivation, readiness/path R/W probe, ingest atomic queue·동시성·재시도·취소·보존 정리 계약 반영 |
+| 2026-07-22 | DMS storage ownership을 Local 기본/NAS 선택형으로 고정하고 SharePoint 저장소 지원 폐기 반영 |
 | 2026-07-06 | Admin DMS 관측 route baseline 을 제거하고 DMS 운영·진단/시스템 설정/관리/개인 설정 4개 surface 기준으로 갱신 |
 | 2026-06-10 | DMS settings access model 을 personal entry 허용 + admin-only system/runtime 관리로 명시 |
 | 2026-06-10 | Admin/platform vs DMS/domain-specific settings-control-operations boundary 정본 신설 |

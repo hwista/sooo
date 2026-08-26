@@ -18,6 +18,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     createServerApiUrl(`/crm/business-plan/plans/${encodeURIComponent(id)}/lines/${encodeURIComponent(lineId)}/monthly-plan`),
     createServerApiProxyInit(req, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: await req.text(),
     }),
   );

@@ -22,6 +22,9 @@ const CENTRAL_TOKEN_PATTERN = /^\s*(--(?:font-sans|font-mono|ssoo-[\w-]+|backgro
 const FONT_DECLARATION_PATTERN = /\bfont-family\s*:|\bfontFamily\s*:/;
 const ALLOWED_FONT_VALUE_PATTERN = /var\(--font-(?:sans|mono)\)|['"]inherit['"]|\binherit\b|design\/font-override/;
 const APP_THEME_SELECTOR_PATTERN = /\[data-ssoo-theme=|body\[data-ssoo-theme=/;
+const SOURCE_FIDELITY_OVERRIDE_START = 'design/source-fidelity-override:start';
+const SOURCE_FIDELITY_OVERRIDE_END = 'design/source-fidelity-override:end';
+const SOURCE_FIDELITY_OVERRIDE_METADATA_PATTERN = /\bref=[A-Z0-9-]+\b.*\bevidence=[A-Z0-9-]+\b/;
 
 const FORBIDDEN_TAILWIND_THEME_PATTERN = /\btheme\s*:|\b(?:fontFamily|fontSize|colors|spacing|borderRadius|boxShadow)\s*:/;
 const FORBIDDEN_SURFACE_TOKEN_PATTERNS = [
@@ -205,10 +208,52 @@ function isFinalPageFile(repoPath) {
   return FINAL_PAGE_PATH_PATTERNS.some((pattern) => pattern.test(repoPath));
 }
 
-function verifyComponentFontBoundary(filePath, issues) {
+function collectSourceFidelityOverrideLines(filePath, issues) {
+  const lines = readLines(filePath);
+  const overrideLines = new Set();
+  const repoPath = toRepoPath(filePath);
+  let activeStartIndex = null;
+
+  lines.forEach((line, index) => {
+    if (line.includes(SOURCE_FIDELITY_OVERRIDE_START)) {
+      if (activeStartIndex !== null) {
+        pushIssue(issues, filePath, index, 'nested-source-fidelity-override', 'source fidelity override blocks must not nest', line);
+        return;
+      }
+      if (!isFinalPageFile(repoPath)) {
+        pushIssue(issues, filePath, index, 'invalid-source-fidelity-override-path', 'source fidelity overrides are restricted to final page renderers', line);
+      }
+      if (!SOURCE_FIDELITY_OVERRIDE_METADATA_PATTERN.test(line)) {
+        pushIssue(issues, filePath, index, 'missing-source-fidelity-override-evidence', 'source fidelity override start markers require ref=<reference-id> and evidence=<test-id>', line);
+      }
+      activeStartIndex = index;
+      overrideLines.add(index);
+      return;
+    }
+
+    if (line.includes(SOURCE_FIDELITY_OVERRIDE_END)) {
+      if (activeStartIndex === null) {
+        pushIssue(issues, filePath, index, 'orphan-source-fidelity-override-end', 'source fidelity override end marker has no matching start', line);
+        return;
+      }
+      overrideLines.add(index);
+      activeStartIndex = null;
+      return;
+    }
+
+    if (activeStartIndex !== null) overrideLines.add(index);
+  });
+
+  if (activeStartIndex !== null) {
+    pushIssue(issues, filePath, activeStartIndex, 'unclosed-source-fidelity-override', 'source fidelity override start marker must have a matching end marker', lines[activeStartIndex]);
+  }
+  return overrideLines;
+}
+
+function verifyComponentFontBoundary(filePath, issues, overrideLines) {
   const lines = readLines(filePath);
   lines.forEach((line, index) => {
-    if (isCommentLine(line)) {
+    if (isCommentLine(line) || overrideLines.has(index)) {
       return;
     }
 
@@ -225,10 +270,10 @@ function verifyComponentFontBoundary(filePath, issues) {
   });
 }
 
-function verifyDomainSurfaceTokens(filePath, issues) {
+function verifyDomainSurfaceTokens(filePath, issues, overrideLines) {
   const lines = readLines(filePath);
   lines.forEach((line, index) => {
-    if (isCommentLine(line)) {
+    if (isCommentLine(line) || overrideLines.has(index)) {
       return;
     }
 
@@ -338,9 +383,10 @@ function main() {
 
   for (const filePath of [...componentFiles, ...sharedStandardFiles]) {
     const repoPath = toRepoPath(filePath);
-    verifyComponentFontBoundary(filePath, issues);
+    const overrideLines = collectSourceFidelityOverrideLines(filePath, issues);
+    verifyComponentFontBoundary(filePath, issues, overrideLines);
     if (isDomainSurfaceFile(repoPath) || isFinalPageFile(repoPath) || isSharedStandardFile(repoPath)) {
-      verifyDomainSurfaceTokens(filePath, issues);
+      verifyDomainSurfaceTokens(filePath, issues, overrideLines);
     }
   }
 

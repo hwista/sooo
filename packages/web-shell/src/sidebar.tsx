@@ -17,7 +17,8 @@ import {
 } from 'react';
 import { cn } from './cn';
 import { SSOO_SHELL_METRICS } from './shell-metrics';
-import { Button, Input } from '@ssoo/web-ui';
+import { Button } from '@ssoo/web-ui';
+import { SsooSearchInput } from './search-input';
 
 export type SsooSidebarMode =
   | 'collapsible'
@@ -205,14 +206,14 @@ function SsooSidebarBrandHeader({
 }
 
 export interface SsooSidebarSearchBoxProps {
-  id?: string;
-  ariaLabel?: string;
+  id: string;
+  name: string;
+  ariaLabel: string;
   placeholder?: string;
   icon?: SsooSidebarIcon;
   iconSlot?: ReactNode;
   value?: string;
   disabled?: boolean;
-  autoComplete?: string;
   onChange?: (value: string) => void;
   onClear?: () => void;
   clearable?: boolean;
@@ -228,13 +229,13 @@ export interface SsooSidebarSearchBoxProps {
 
 export function SsooSidebarSearchBox({
   id,
+  name,
   ariaLabel,
   placeholder = SSOO_SIDEBAR_SEARCH_PLACEHOLDER,
   icon: Icon,
   iconSlot,
   value,
   disabled = false,
-  autoComplete = 'off',
   onChange,
   onClear,
   clearable = true,
@@ -255,20 +256,20 @@ export function SsooSidebarSearchBox({
   };
 
   return (
-    <div className={cn('relative flex-1', className)}>
+    <div role="search" aria-label={ariaLabel} className={cn('relative flex-1', className)}>
       {hasIcon ? (
         <div className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2">
           {iconSlot ?? (Icon ? <Icon className="h-4 w-4 text-muted-foreground" /> : null)}
         </div>
       ) : null}
-      <Input
+      <SsooSearchInput
         id={id}
-        type="text"
-        aria-label={ariaLabel}
+        name={name}
+        ariaLabel={ariaLabel}
+        intent="navigation-search"
         placeholder={placeholder}
         value={value}
         disabled={disabled}
-        autoComplete={autoComplete}
         onChange={handleChange}
         onFocus={onFocus}
         onBlur={onBlur}
@@ -383,6 +384,8 @@ function SsooSidebarFooter({
 }
 
 export interface SsooSidebarSurfaceSearchConfig {
+  inputId: string;
+  inputName: string;
   placeholder?: string;
   value?: string;
   disabled?: boolean;
@@ -518,10 +521,12 @@ export function SsooSidebarSurface({
           const handleClear = search.onClear ?? (search.onChange ? () => search.onChange?.('') : undefined);
           return (
           <SsooSidebarSearchBox
+            id={search.inputId}
+            name={search.inputName}
             placeholder={search.placeholder ?? SSOO_SIDEBAR_SEARCH_PLACEHOLDER}
             value={search.value}
             disabled={search.disabled}
-            ariaLabel={search.ariaLabel}
+            ariaLabel={search.ariaLabel ?? SSOO_SIDEBAR_SEARCH_RAIL_LABEL}
             icon={search.icon ?? search.railIcon}
             iconSlot={search.iconSlot}
             clearable={search.clearable}

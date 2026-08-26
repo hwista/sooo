@@ -275,6 +275,34 @@ function createAmsMappingRow(seed?: Partial<{
   };
 }
 
+function createInternalSourceItemRow(seed?: Partial<{
+  id: bigint;
+  targetYear: number;
+  itemCode: string;
+  itemName: string;
+  monthlyPlanAmounts: number[];
+  monthlyActualAmounts: number[];
+  planAmountTotal: bigint;
+  actualAmountTotal: bigint;
+  differenceAmountTotal: bigint;
+  updatedAt: Date;
+}>) {
+  const monthlyPlanAmounts = seed?.monthlyPlanAmounts ?? [100, -20, ...Array.from({ length: 10 }, () => 0)];
+  const monthlyActualAmounts = seed?.monthlyActualAmounts ?? [70, 10, ...Array.from({ length: 10 }, () => 0)];
+  return {
+    id: seed?.id ?? 51n,
+    targetYear: seed?.targetYear ?? 2026,
+    itemCode: seed?.itemCode ?? 'labor',
+    itemName: seed?.itemName ?? '인건비',
+    monthlyPlanAmounts,
+    monthlyActualAmounts,
+    planAmountTotal: seed?.planAmountTotal ?? BigInt(monthlyPlanAmounts.reduce((sum, amount) => sum + amount, 0)),
+    actualAmountTotal: seed?.actualAmountTotal ?? BigInt(monthlyActualAmounts.reduce((sum, amount) => sum + amount, 0)),
+    differenceAmountTotal: seed?.differenceAmountTotal ?? BigInt(monthlyPlanAmounts.reduce((sum, amount) => sum + amount, 0) - monthlyActualAmounts.reduce((sum, amount) => sum + amount, 0)),
+    updatedAt: seed?.updatedAt ?? new Date('2026-08-12T01:00:00.000Z'),
+  };
+}
+
 function createAmsExternalMonthlyRow(seed?: Partial<{
   id: bigint;
   targetYear: number;
@@ -370,10 +398,12 @@ function getSqlText(args: unknown[]): string {
 
 function createService(params?: {
   internalMonthlyRows?: ReturnType<typeof createInternalMonthlyRow>[];
+  internalSourceItemRows?: ReturnType<typeof createInternalSourceItemRow>[];
   amsVendorMappingRows?: ReturnType<typeof createAmsMappingRow>[];
   amsExternalMonthlyRows?: ReturnType<typeof createAmsExternalMonthlyRow>[];
   accountingPaymentHandoffRows?: ReturnType<typeof createAccountingPaymentHandoffRow>[];
   saveRow?: ReturnType<typeof createInternalMonthlyRow>;
+  saveInternalSourceItemRows?: ReturnType<typeof createInternalSourceItemRow>[];
   saveAmsVendorMappingRow?: ReturnType<typeof createAmsMappingRow>;
   saveAmsExternalMonthlyRow?: ReturnType<typeof createAmsExternalMonthlyRow>;
   saveAccountingPaymentHandoffRow?: ReturnType<typeof createAccountingPaymentHandoffRow>;
@@ -436,6 +466,9 @@ function createService(params?: {
       if (sql.includes('crm_cost_plan_accounting_handoff_m')) {
         return [params?.saveAccountingPaymentHandoffRow ?? createAccountingPaymentHandoffRow()];
       }
+      if (sql.includes('crm_cost_plan_internal_item_monthly_d')) {
+        return params?.saveInternalSourceItemRows ?? [createInternalSourceItemRow()];
+      }
       if (sql.includes('crm_cost_plan_ams_external_monthly_d')) {
         return [params?.saveAmsExternalMonthlyRow ?? createAmsExternalMonthlyRow()];
       }
@@ -460,6 +493,9 @@ function createService(params?: {
         }
         if (sql.includes('crm_cost_plan_internal_monthly_d')) {
           return internalMonthlyRows;
+        }
+        if (sql.includes('crm_cost_plan_internal_item_monthly_d')) {
+          return params?.internalSourceItemRows ?? [];
         }
         return [];
       },
@@ -700,6 +736,58 @@ describe('CostPlanService', () => {
       status: 'draft',
       confirmed: false,
     });
+  });
+
+  it('saves the exact five signed internal cost source items and calculates plan minus actual', async () => {
+    const definitions = [
+      ['labor', '인건비'],
+      ['other', '기타'],
+      ['dept_adj', '사업부간조정'],
+      ['svc', '매출원가용역'],
+      ['dept_common', '사업부공통'],
+    ] as const;
+    const savedRows = definitions.map(([itemCode, itemName], index) => createInternalSourceItemRow({
+      id: BigInt(51 + index),
+      itemCode,
+      itemName,
+      monthlyPlanAmounts: [100 + index, -20, ...Array.from({ length: 10 }, () => 0)],
+      monthlyActualAmounts: [70, 10, ...Array.from({ length: 10 }, () => 0)],
+    }));
+    const { service, executeRawCalls } = createService({ saveInternalSourceItemRows: savedRows });
+
+    const result = await service.saveInternalSourceGrid({
+      targetYear: 2026,
+      items: definitions.map(([itemCode], index) => ({
+        itemCode,
+        monthlyPlanAmounts: [100 + index, -20, ...Array.from({ length: 10 }, () => 0)],
+        monthlyActualAmounts: [70, 10, ...Array.from({ length: 10 }, () => 0)],
+      })),
+    }, 1n);
+
+    expect(executeRawCalls).toHaveLength(5);
+    expect(executeRawCalls.every((call) => String(call[0]).includes('internal-source-grid-save'))).toBe(true);
+    expect(result.grid.items).toHaveLength(5);
+    expect(result.grid.items[0]).toMatchObject({
+      itemCode: 'labor',
+      monthlyPlanAmounts: [100, -20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      monthlyActualAmounts: [70, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      planAmountTotal: 80,
+      actualAmountTotal: 80,
+      differenceAmountTotal: 0,
+    });
+  });
+
+  it('rejects duplicate internal cost source items before writing', async () => {
+    const { service, executeRawCalls } = createService();
+    const duplicate = Array.from({ length: 5 }, () => ({
+      itemCode: 'labor' as const,
+      monthlyPlanAmounts: Array.from({ length: 12 }, () => 0),
+      monthlyActualAmounts: Array.from({ length: 12 }, () => 0),
+    }));
+
+    await expect(service.saveInternalSourceGrid({ targetYear: 2026, items: duplicate }, 1n))
+      .rejects.toThrow('중복');
+    expect(executeRawCalls).toHaveLength(0);
   });
 
   it('rejects monthly internal cost edits after confirmation', async () => {

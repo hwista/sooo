@@ -5,6 +5,7 @@ import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.j
 import type { UserService } from '../../common/user/user.service.js';
 import type { FileCrudService } from '../../dms/file/file-crud.service.js';
 import type { DmsCrmQuoteLifecycleService } from '../../dms/crm-quote-lifecycle/crm-quote-lifecycle.service.js';
+import type { DmsCrmOpportunityContractLifecycleService } from '../../dms/crm-opportunity-contract-lifecycle/crm-opportunity-contract-lifecycle.service.js';
 import type { TemplateService } from '../../dms/templates/template.service.js';
 import type { ContractService } from '../contract/contract.service.js';
 import type { QuoteSettingsService } from '../quote-settings/quote-settings.service.js';
@@ -496,23 +497,52 @@ function createUserService(): UserService {
 }
 
 function createTemplateService(): TemplateService {
+  const toTemplate = (templateKey: string) => ({
+    id: templateKey,
+    name: templateKey === 'crm-quote-v1'
+      ? 'CRM 견적서 기본 템플릿'
+      : templateKey === 'crm-opportunity-contract-v1'
+        ? 'CRM 영업기회 계약서 원천 호환 템플릿'
+        : '고객 지정 견적서',
+    description: 'CRM 견적 테스트 템플릿',
+    scope: 'global' as const,
+    kind: 'document' as const,
+    content: '# {{quoteNumber}} 견적서',
+    ownerId: 'system',
+    visibility: 'shared' as const,
+    status: 'active' as const,
+    sourceType: 'markdown-file' as const,
+    originType: 'referenced' as const,
+    referenceDocuments: [],
+    generation: {
+      source: 'manual' as const,
+      taskKey: templateKey === 'crm-opportunity-contract-v1'
+        ? 'crm-opportunity-contract-document'
+        : 'crm-quote-document',
+    },
+    updatedAt: '2026-07-10T00:00:00.000Z',
+    sourcePath: templateKey === 'crm-quote-v1'
+      ? 'templates/system/crm-quote-v1.md'
+      : `system/${templateKey}.md`,
+    docxTemplate: {
+      fileName: `${templateKey}.docx`,
+      sourcePath: `system/${templateKey}.docx`,
+      size: 2048,
+      checksum: 'a'.repeat(64),
+      uploadedAt: '2026-07-10T00:00:00.000Z',
+      uploadedBy: 'admin',
+      origin: templateKey === 'crm-quote-v1' ? 'generated' as const : 'uploaded' as const,
+    },
+  });
   return {
-    get: async (templateKey: string) => ({
-      id: templateKey,
-      name: templateKey === 'crm-quote-v1' ? 'CRM 견적서 기본 템플릿' : '테스트 템플릿',
-      description: 'CRM 견적 테스트 템플릿',
-      scope: 'global',
-      kind: 'document',
-      content: '# {{quoteNumber}} 견적서',
-      ownerId: 'system',
-      visibility: 'shared',
-      status: 'active',
-      sourceType: 'markdown-file',
-      originType: 'referenced',
-      referenceDocuments: [],
-      generation: { source: 'manual', taskKey: 'crm-quote-document' },
-      updatedAt: '2026-07-10T00:00:00.000Z',
-      sourcePath: 'templates/system/crm-quote-v1.md',
+    get: async (templateKey: string) => toTemplate(templateKey),
+    list: async () => ({
+      global: [
+        toTemplate('crm-quote-v1'),
+        toTemplate('crm-quote-customer-a'),
+        toTemplate('crm-opportunity-contract-v1'),
+      ],
+      personal: [],
     }),
   } as unknown as TemplateService;
 }
@@ -589,6 +619,57 @@ function createDmsCrmQuoteLifecycleService(calls: { dmsQuoteExecute: unknown[] }
   } as unknown as DmsCrmQuoteLifecycleService;
 }
 
+function createDmsCrmOpportunityContractLifecycleService(
+  calls: { dmsOpportunityContractExecute: unknown[] },
+): DmsCrmOpportunityContractLifecycleService {
+  return {
+    execute: async (request: unknown) => {
+      calls.dmsOpportunityContractExecute.push(request);
+      return {
+        opportunityId: '1',
+        opportunityCode: 'crm-opp-001',
+        templateKey: 'crm-opportunity-contract-v1',
+        executedAt: '2026-08-14T01:00:00.000Z',
+        governance: {
+          templateVersion: {
+            templateKey: 'crm-opportunity-contract-v1',
+            templateName: 'CRM 영업기회 계약서 원천 호환 템플릿',
+            status: 'active',
+            versionId: 'crm-opportunity-contract-v1@2026-08-14',
+            capturedAt: '2026-08-14T01:00:00.000Z',
+          },
+          templateReviewPath: '_generated/crm-opportunity-contract-lifecycle/crm-opp-001/template-review.md',
+          reviewedAt: '2026-08-14T01:00:00.000Z',
+          reviewerLoginId: 'sales.kim',
+          boundaryNotice: 'DMS opportunity contract governance evidence',
+        },
+        artifacts: [
+          {
+            kind: 'template-version-snapshot',
+            label: 'DMS opportunity contract template version snapshot',
+            path: '_generated/crm-opportunity-contract-lifecycle/crm-opp-001/template-version.md',
+          },
+          {
+            kind: 'template-review-record',
+            label: 'DMS opportunity contract template review record',
+            path: '_generated/crm-opportunity-contract-lifecycle/crm-opp-001/template-review.md',
+          },
+          {
+            kind: 'word-export',
+            label: 'DMS opportunity contract DOCX artifact',
+            path: '_assets/crm-opportunity-contract-lifecycle/crm-opp-001/contract.docx',
+            storageUri: 'local://contract.docx',
+            checksum: 'docx-checksum',
+            size: 2048,
+          },
+        ],
+        boundaryNotice: 'DMS는 영업기회 계약서 DOCX 템플릿과 artifact를 소유합니다.',
+        nextAction: 'CRM에서 생성된 DOCX를 내려받아 검토하세요.',
+      };
+    },
+  } as unknown as DmsCrmOpportunityContractLifecycleService;
+}
+
 function createService(rows = createOpportunityRows(), historyRows = createOpportunityHistoryRows(rows)) {
   const calls = {
     findMany: [] as unknown[],
@@ -605,6 +686,7 @@ function createService(rows = createOpportunityRows(), historyRows = createOppor
   };
   const db = {
     client: {
+      $queryRaw: async () => [],
       crmOpportunity: {
         findMany: async (args: { where?: { opportunityGroupCode?: string } }) => {
           calls.findMany.push(args);
@@ -665,6 +747,7 @@ function createWritableService(
   seedRows: OpportunityRow[] = [],
   contractService?: unknown,
   dmsCrmQuoteLifecycleService?: unknown,
+  dmsCrmOpportunityContractLifecycleService?: unknown,
 ) {
   const rows = [...seedRows];
   const quoteHandoffs: Array<{
@@ -686,16 +769,37 @@ function createWritableService(
     savedBy: bigint | null;
     savedAt: Date;
   }> = [];
+  const contractDocumentHandoffs: Array<{
+    id: bigint;
+    opportunityId: bigint;
+    opportunityCode: string;
+    documentTitle: string;
+    templateKey: string;
+    folderHint: string;
+    fileNameHint: string;
+    draftPath: string;
+    statusCode: string;
+    documentSnapshot: unknown;
+    variablesSnapshot: unknown;
+    artifactSnapshot: unknown | null;
+    memo: string | null;
+    isActive: boolean;
+    savedBy: bigint | null;
+    savedAt: Date;
+  }> = [];
   let nextId = 10n;
   let nextLineId = 100n;
   let nextQuoteHandoffId = 300n;
+  let nextContractDocumentHandoffId = 400n;
   const calls = {
     queueJob: [] as unknown[],
     update: [] as unknown[],
+    delete: [] as unknown[],
     rawExecute: [] as unknown[],
     rawQuery: [] as unknown[],
     fileWrite: [] as unknown[],
     dmsQuoteExecute: [] as unknown[],
+    dmsOpportunityContractExecute: [] as unknown[],
   };
   const tx = {
     $executeRaw: async (strings: TemplateStringsArray, ...values: unknown[]) => {
@@ -705,6 +809,15 @@ function createWritableService(
         const opportunityCode = values[0];
         quoteHandoffs
           .filter((handoff) => handoff.opportunityCode === opportunityCode && handoff.isActive)
+          .forEach((handoff) => {
+            handoff.statusCode = 'replaced';
+            handoff.isActive = false;
+          });
+      }
+      if (sql.includes('update crm.crm_opportunity_contract_dms_handoff_m')) {
+        const opportunityId = values[0] as bigint;
+        contractDocumentHandoffs
+          .filter((handoff) => handoff.opportunityId === opportunityId && handoff.isActive)
           .forEach((handoff) => {
             handoff.statusCode = 'replaced';
             handoff.isActive = false;
@@ -771,6 +884,28 @@ function createWritableService(
           savedAt: handoff.savedAt,
         }];
       }
+      if (sql.includes('insert into crm.crm_opportunity_contract_dms_handoff_m')) {
+        const handoff = {
+          id: nextContractDocumentHandoffId++,
+          opportunityId: values[0] as bigint,
+          opportunityCode: values[1] as string,
+          documentTitle: values[2] as string,
+          templateKey: values[3] as string,
+          folderHint: values[4] as string,
+          fileNameHint: values[5] as string,
+          draftPath: values[6] as string,
+          statusCode: values[7] as string,
+          documentSnapshot: JSON.parse(values[8] as string) as unknown,
+          variablesSnapshot: JSON.parse(values[9] as string) as unknown,
+          artifactSnapshot: values[10] ? JSON.parse(values[10] as string) as unknown : null,
+          memo: values[11] as string | null,
+          isActive: true,
+          savedBy: values[12] as bigint,
+          savedAt: new Date('2026-08-14T00:20:00.000Z'),
+        };
+        contractDocumentHandoffs.push(handoff);
+        return [handoff];
+      }
       return [];
     },
     crmOpportunity: {
@@ -826,6 +961,14 @@ function createWritableService(
 
         Object.assign(row, data, { updatedAt: new Date('2026-07-03T00:10:00.000Z') });
         return row;
+      },
+      delete: async ({ where }: { where: { id: bigint } }) => {
+        calls.delete.push({ where });
+        const rowIndex = rows.findIndex((item) => item.id === where.id);
+        if (rowIndex < 0) {
+          throw new Error('missing row');
+        }
+        return rows.splice(rowIndex, 1)[0];
       },
     },
     crmOpportunityLine: {
@@ -915,6 +1058,13 @@ function createWritableService(
             savedAt: handoff.savedAt,
           }] : [];
         }
+        if (sql.includes('from crm.crm_opportunity_contract_dms_handoff_m')) {
+          const opportunityCode = values[0] as string;
+          const handoff = [...contractDocumentHandoffs]
+            .filter((item) => item.opportunityCode === opportunityCode && item.isActive)
+            .sort((left, right) => Number(right.id - left.id))[0];
+          return handoff ? [handoff] : [];
+        }
         return [];
       },
       crmOpportunity: {
@@ -939,6 +1089,14 @@ function createWritableService(
 
           Object.assign(row, data, { updatedAt: new Date('2026-07-03T00:10:00.000Z') });
           return row;
+        },
+        delete: async ({ where }: { where: { id: bigint } }) => {
+          calls.delete.push({ where });
+          const rowIndex = rows.findIndex((item) => item.id === where.id);
+          if (rowIndex < 0) {
+            throw new Error('missing row');
+          }
+          return rows.splice(rowIndex, 1)[0];
         },
       },
     },
@@ -966,9 +1124,11 @@ function createWritableService(
       fileCrudService,
       createTemplateService(),
       dmsCrmQuoteLifecycleService as DmsCrmQuoteLifecycleService | undefined,
+      dmsCrmOpportunityContractLifecycleService as DmsCrmOpportunityContractLifecycleService | undefined,
     ),
     rows,
     quoteHandoffs,
+    contractDocumentHandoffs,
     calls,
   };
 }
@@ -1015,13 +1175,145 @@ const writablePayload = {
 };
 
 describe('OpportunityService', () => {
+  it('builds the source-exact 22-variable contract document from a confirmed latest opportunity', async () => {
+    const rows = createOpportunityRows();
+    rows[0].confirmed = true;
+    rows[0].statusCode = 'won';
+    const { service } = createService(rows);
+    const contractDocumentService = service as unknown as {
+      getOpportunityContractDocumentPreview(
+        id: string,
+        currentUser: TokenPayload,
+      ): Promise<{
+        readiness: string;
+        variables: Array<{ key: string; value: string }>;
+      }>;
+    };
+
+    expect(typeof contractDocumentService.getOpportunityContractDocumentPreview).toBe('function');
+    const preview = await contractDocumentService.getOpportunityContractDocumentPreview(
+      'crm-opp-001',
+      quotePreviewCurrentUser,
+    );
+    const variables = Object.fromEntries(preview.variables.map((variable) => [variable.key, variable.value]));
+
+    expect(Object.keys(variables)).toEqual([
+      '공급자_회사명',
+      '공급자_대표자',
+      '공급자_사업자번호',
+      '공급자_주소',
+      '공급자_전화',
+      '고객사명',
+      '건명',
+      '계약금액',
+      '계약금액_한글',
+      '외부원가',
+      '순이익',
+      '계약시작일',
+      '계약종료일',
+      '계약기간',
+      '사업구분',
+      '담당자명',
+      '담당자부서',
+      '담당자연락처',
+      '담당자이메일',
+      '수금조건',
+      '작성일',
+      '계약년도',
+    ]);
+    expect(variables).toMatchObject({
+      공급자_회사명: 'SSOO 영업팀',
+      고객사명: 'LS Electric',
+      건명: '스마트 배전반 통합 관제 고도화',
+      계약금액: '820,000,000',
+      외부원가: '592,000,000',
+      순이익: '228,000,000',
+      계약시작일: '2026.07.01',
+      계약종료일: '2026.12.31',
+      계약기간: '2026.07.01 ~ 2026.12.31',
+      담당자명: '김민준',
+      담당자부서: 'DX센터',
+      담당자연락처: '010-0000-0000',
+      담당자이메일: 'minjun@ssoo.example.com',
+      수금조건: '계약 후 30일 이내',
+      계약년도: '2026',
+    });
+    expect(variables.계약금액_한글).toMatch(/원$/);
+    expect(variables.작성일).toMatch(/^\d{4}년 \d{1,2}월 \d{1,2}일$/);
+  });
+
+  it('persists and reloads an exact 22-variable DMS draft handoff for a confirmed latest opportunity', async () => {
+    const rows = createOpportunityRows();
+    rows[0].confirmed = true;
+    rows[0].statusCode = 'won';
+    const { service, contractDocumentHandoffs, calls } = createWritableService(rows);
+
+    const result = await service.createOpportunityContractDocumentDraft(
+      'crm-opp-001',
+      { templateKey: 'crm-opportunity-contract-v1', memo: '원천 변수 검토' },
+      quotePreviewCurrentUser,
+    );
+
+    expect(result.handoff.status).toBe('draft-created');
+    expect(result.preview.latestHandoff?.id).toBe(result.handoff.id);
+    expect(result.preview.variables).toHaveLength(22);
+    expect(contractDocumentHandoffs).toHaveLength(1);
+    expect(contractDocumentHandoffs[0].variablesSnapshot).toHaveLength(22);
+    expect(calls.fileWrite).toHaveLength(1);
+    expect(calls.fileWrite[0]).toMatchObject({
+      content: expect.stringContaining('| 공급자_회사명 | SSOO 영업팀 | seller-profile |'),
+    });
+  });
+
+  it('executes the DMS DOCX lifecycle from the persisted 22-variable snapshot and records artifact evidence', async () => {
+    const rows = createOpportunityRows();
+    rows[0].confirmed = true;
+    rows[0].statusCode = 'won';
+    const lifecycleCalls = { dmsOpportunityContractExecute: [] as unknown[] };
+    const dmsLifecycle = createDmsCrmOpportunityContractLifecycleService(lifecycleCalls);
+    const { service, contractDocumentHandoffs } = createWritableService(
+      rows,
+      undefined,
+      undefined,
+      dmsLifecycle,
+    );
+    await service.createOpportunityContractDocumentDraft(
+      'crm-opp-001',
+      { templateKey: 'crm-opportunity-contract-v1' },
+      quotePreviewCurrentUser,
+    );
+
+    const result = await service.executeOpportunityContractDocumentLifecycle(
+      'crm-opp-001',
+      { memo: 'DOCX 산출' },
+      quotePreviewCurrentUser,
+    );
+
+    expect(lifecycleCalls.dmsOpportunityContractExecute).toHaveLength(1);
+    expect(lifecycleCalls.dmsOpportunityContractExecute[0]).toMatchObject({
+      templateKey: 'crm-opportunity-contract-v1',
+      variables: expect.arrayContaining([
+        expect.objectContaining({ key: '계약금액', value: '820,000,000' }),
+        expect.objectContaining({ key: '외부원가', value: '592,000,000' }),
+      ]),
+    });
+    expect(result.handoff.status).toBe('execution-completed');
+    expect(result.artifact.storageUri).toBe('local://contract.docx');
+    expect(result.preview.latestHandoff?.artifact?.checksum).toBe('docx-checksum');
+    expect(contractDocumentHandoffs.filter((handoff) => handoff.isActive)).toHaveLength(1);
+  });
+
   it('returns seeded CRM opportunities from the CRM RDB ledger with read-only integration boundaries', async () => {
     const { service, calls } = createService();
 
     const opportunities = await service.listOpportunities();
+    const latestLsElectric = opportunities.find((item) => item.id === 'crm-opp-001');
 
     expect(opportunities).toHaveLength(5);
-    expect(opportunities[0]).toMatchObject({
+    expect(opportunities.map((item) => item.customerName)).toEqual([...opportunities]
+      .map((item) => item.customerName)
+      .sort((left, right) => left.localeCompare(right, 'ko')));
+    expect(latestLsElectric).toMatchObject({
       id: 'crm-opp-001',
       groupId: 'crm-opp-001',
       customerName: 'LS Electric',
@@ -1031,8 +1323,8 @@ describe('OpportunityService', () => {
       pmsHandoffStatus: 'planned',
       dmsLinkStatus: 'planned',
     });
-    expect(opportunities[0]?.revenueLines).toHaveLength(2);
-    expect(opportunities[0]?.costLines).toHaveLength(2);
+    expect(latestLsElectric?.revenueLines).toHaveLength(2);
+    expect(latestLsElectric?.costLines).toHaveLength(2);
     expect(opportunities.every((item) => item.adminBoundary === 'shared-admin')).toBe(true);
     expect(calls.findMany[0]).toMatchObject({
       where: { isActive: true },
@@ -1098,7 +1390,8 @@ describe('OpportunityService', () => {
       paymentTermLabel: '계약 후 30일 이내',
       readOnly: true,
     });
-    expect(preview.workflow.unavailableActions).toEqual(['CRM 직접 PDF 저장', 'CRM 직접 Word 견적서 생성']);
+    expect(preview.workflow.unavailableActions).toEqual([]);
+    expect(preview.workflow.boundaryNotice).toContain('브라우저 인쇄/PDF 저장');
     expect(preview.party).toMatchObject({
       customerName: 'LS Electric',
       sellerName: 'SSOO 영업팀',
@@ -1235,7 +1528,7 @@ describe('OpportunityService', () => {
       expect.objectContaining({ key: 'word-export', status: 'pending' }),
       expect.objectContaining({ key: 'pdf-export', status: 'pending' }),
     ]));
-    expect(result.preview.unavailableActions).toEqual(['CRM 직접 PDF 저장', 'CRM 직접 Word 견적서 생성']);
+    expect(result.preview.unavailableActions).toEqual([]);
     expect(calls.queueJob[calls.queueJob.length - 1]).toMatchObject({
       entityType: 'opportunity',
       entityId: '1',
@@ -1244,6 +1537,27 @@ describe('OpportunityService', () => {
         reasonCode: 'quote_dms_draft_created',
       },
     });
+  });
+
+  it('persists the selected uploaded quote template key in the DMS handoff', async () => {
+    const { service, quoteHandoffs } = createWritableService(createOpportunityRows());
+
+    const result = await service.createQuoteDmsDocumentDraft(
+      'crm-opp-001',
+      { templateKey: 'crm-quote-customer-a', memo: '고객 지정 양식' },
+      quotePreviewCurrentUser,
+    );
+
+    expect(quoteHandoffs[0]?.templateKey).toBe('crm-quote-customer-a');
+    expect(result.templateKey).toBe('crm-quote-customer-a');
+    expect(result.preview.templateKey).toBe('crm-quote-customer-a');
+    expect(result.preview.templateOptions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        templateKey: 'crm-quote-customer-a',
+        docxOrigin: 'uploaded',
+        selectable: true,
+      }),
+    ]));
   });
 
   it('records quote DMS lifecycle execution evidence on the active handoff snapshot', async () => {
@@ -1405,7 +1719,24 @@ describe('OpportunityService', () => {
     expect(response.items[0]?.id).toBe('crm-opp-001');
     expect(response.summary.totalCount).toBe(5);
     expect(response.summary.filteredCount).toBe(1);
-    expect(response.summary.activeFilters).toEqual({ search: 'LS', status: 'proposal', sort: 'margin-desc' });
+    expect(response.summary.activeFilters).toEqual({ search: 'LS', status: 'proposal', sourceStatus: 'all', sort: 'margin-desc' });
+  });
+
+  it('supports source-demo status and profit sorting without changing canonical totals', async () => {
+    const { service } = createService();
+
+    const response = await service.listResponse({ sourceStatus: '진행중', sort: 'profit-desc' });
+
+    expect(response.items.every((item) => item.status === 'proposal')).toBe(true);
+    expect(response.items.map((item) => item.marginTotal)).toEqual([...response.items]
+      .map((item) => item.marginTotal)
+      .sort((left, right) => right - left));
+    expect(response.summary.activeFilters).toEqual({
+      search: '',
+      status: 'all',
+      sourceStatus: '진행중',
+      sort: 'profit-desc',
+    });
   });
 
   it('creates an opportunity ledger row with calculated revenue and cost totals', async () => {
@@ -1552,6 +1883,47 @@ describe('OpportunityService', () => {
     await expect(service.updateOpportunity('crm-opp-001-v2', writablePayload)).rejects.toThrow('이전 차수 영업기회는 수정할 수 없습니다.');
   });
 
+  it('deletes only the latest unconfirmed opportunity and returns the previous version', async () => {
+    const rows = createOpportunityRows()
+      .filter((row) => row.opportunityGroupCode === 'crm-opp-001')
+      .map((row) => row.opportunityCode === 'crm-opp-001' ? { ...row, confirmed: false } : row);
+    const { service, rows: writableRows, calls } = createWritableService(rows);
+
+    const result = await service.deleteOpportunity('crm-opp-001');
+
+    expect(result).toEqual({
+      deletedOpportunityId: 'crm-opp-001',
+      groupId: 'crm-opp-001',
+      deletedVersion: 3,
+      nextOpportunityId: 'crm-opp-001-v2',
+    });
+    expect(writableRows.map((row) => row.opportunityCode)).toEqual(['crm-opp-001-v2']);
+    expect(calls.delete[0]).toEqual({ where: { id: 1n } });
+    expect(calls.queueJob[calls.queueJob.length - 1]).toMatchObject({
+      sourceApp: 'crm',
+      entityType: 'opportunity',
+      entityId: '1',
+      jobType: 'delete',
+      payload: { reasonCode: 'opportunity_deleted' },
+    });
+  });
+
+  it('rejects deletion for confirmed and previous opportunity versions', async () => {
+    const confirmedRows = createOpportunityRows()
+      .filter((row) => row.opportunityGroupCode === 'crm-opp-001')
+      .map((row) => row.opportunityCode === 'crm-opp-001' ? { ...row, confirmed: true } : row);
+    const { service: confirmedService } = createWritableService(confirmedRows);
+
+    await expect(confirmedService.deleteOpportunity('crm-opp-001')).rejects.toThrow('확정된 영업기회는 삭제할 수 없습니다.');
+
+    const previousRows = createOpportunityRows()
+      .filter((row) => row.opportunityGroupCode === 'crm-opp-001')
+      .map((row) => ({ ...row, confirmed: false }));
+    const { service: previousService } = createWritableService(previousRows);
+
+    await expect(previousService.deleteOpportunity('crm-opp-001-v2')).rejects.toThrow('이전 차수 영업기회는 삭제할 수 없습니다.');
+  });
+
   it('confirms an active opportunity without creating a new version or contract handoff', async () => {
     const [row] = createOpportunityRows();
     const { service, rows, calls } = createWritableService(row ? [row] : []);
@@ -1632,7 +2004,112 @@ describe('OpportunityService', () => {
     });
   });
 
-  it('rejects reopen and version addition after opportunity contract conversion', async () => {
+  it('reopens a converted opportunity by revoking its linked contract in one domain operation', async () => {
+    const [source] = createOpportunityRows();
+    const row = source ? {
+      ...source,
+      confirmed: true,
+      statusCode: 'won',
+      contractCreated: true,
+      contractCreatedAt: new Date('2026-07-06T00:00:00.000Z'),
+      contractCode: 'crm-ct-converted',
+    } : null;
+    const revokeCalls: unknown[] = [];
+    const contractService = {
+      revokeConvertedContract: async (request: {
+        opportunityId: bigint;
+        opportunityCode: string;
+        contractCode: string;
+        reopenOpportunity: boolean;
+        currentUserId?: bigint;
+      }) => {
+        revokeCalls.push(request);
+        if (row) {
+          Object.assign(row, {
+            confirmed: false,
+            statusCode: 'proposal',
+            contractCreated: false,
+            contractCreatedAt: null,
+            contractCode: null,
+          });
+        }
+        return { contractCode: request.contractCode, opportunityCode: request.opportunityCode };
+      },
+    };
+    const { service, calls } = createWritableService(row ? [row] : [], contractService);
+
+    const result = await service.reopenOpportunity('crm-opp-001', 7n);
+
+    expect(result).toMatchObject({
+      confirmed: false,
+      status: 'proposal',
+      contractCreated: false,
+      contractCode: undefined,
+    });
+    expect(revokeCalls).toEqual([{
+      opportunityId: 1n,
+      opportunityCode: 'crm-opp-001',
+      contractCode: 'crm-ct-converted',
+      reopenOpportunity: true,
+      currentUserId: 7n,
+    }]);
+    expect(calls.queueJob[calls.queueJob.length - 1]).toMatchObject({
+      payload: { reasonCode: 'opportunity_reopened_with_contract_revocation' },
+    });
+  });
+
+  it('revokes a converted contract while keeping the latest opportunity confirmed and is retry-safe', async () => {
+    const [source] = createOpportunityRows();
+    const row = source ? {
+      ...source,
+      confirmed: true,
+      statusCode: 'won',
+      contractCreated: true,
+      contractCreatedAt: new Date('2026-07-06T00:00:00.000Z'),
+      contractCode: 'crm-ct-converted',
+    } : null;
+    const revokeCalls: unknown[] = [];
+    const contractService = {
+      revokeConvertedContract: async (request: {
+        opportunityId: bigint;
+        opportunityCode: string;
+        contractCode: string;
+        reopenOpportunity: boolean;
+        currentUserId?: bigint;
+      }) => {
+        revokeCalls.push(request);
+        if (row) {
+          Object.assign(row, {
+            confirmed: true,
+            statusCode: 'won',
+            contractCreated: false,
+            contractCreatedAt: null,
+            contractCode: null,
+          });
+        }
+        return { contractCode: request.contractCode, opportunityCode: request.opportunityCode };
+      },
+    };
+    const { service, calls } = createWritableService(row ? [row] : [], contractService);
+
+    const result = await service.revokeOpportunityContract('crm-opp-001', 7n);
+    const retried = await service.revokeOpportunityContract('crm-opp-001', 7n);
+
+    expect(result).toMatchObject({ confirmed: true, status: 'won', contractCreated: false });
+    expect(retried).toMatchObject({ confirmed: true, status: 'won', contractCreated: false });
+    expect(revokeCalls).toEqual([{
+      opportunityId: 1n,
+      opportunityCode: 'crm-opp-001',
+      contractCode: 'crm-ct-converted',
+      reopenOpportunity: false,
+      currentUserId: 7n,
+    }]);
+    expect(calls.queueJob[calls.queueJob.length - 1]).toMatchObject({
+      payload: { reasonCode: 'opportunity_contract_revoked' },
+    });
+  });
+
+  it('continues to reject version addition while a linked contract exists', async () => {
     const [source] = createOpportunityRows();
     const row = source ? {
       ...source,
@@ -1644,8 +2121,6 @@ describe('OpportunityService', () => {
     } : null;
     const { service } = createWritableService(row ? [row] : []);
 
-    await expect(service.reopenOpportunity('crm-opp-001'))
-      .rejects.toThrow('계약으로 전환된 영업기회는 확정 해제할 수 없습니다.');
     await expect(service.addOpportunityVersion('crm-opp-001'))
       .rejects.toThrow('계약으로 전환된 영업기회는 차수를 추가할 수 없습니다.');
   });

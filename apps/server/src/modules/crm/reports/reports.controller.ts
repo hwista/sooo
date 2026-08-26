@@ -4,20 +4,20 @@ import { success } from '../../../common/index.js';
 import { CurrentUser } from '../../common/auth/decorators/current-user.decorator.js';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
-import { CrmOpportunityFeatureGuard } from '../access/crm-opportunity-feature.guard.js';
-import { RequireCrmOpportunityFeature } from '../access/require-crm-opportunity-feature.decorator.js';
+import { CrmDomainFeatureGuard } from '../access/crm-domain-feature.guard.js';
+import { RequireCrmDomainFeature } from '../access/require-crm-domain-feature.decorator.js';
 import { CrmReportsConfirmDto, CrmReportsPreviewQueryDto } from './dto/reports.dto.js';
 import { ReportsService } from './reports.service.js';
 
 @ApiTags('crm-reports')
 @ApiBearerAuth()
 @Controller('crm/reports')
-@UseGuards(RolesGuard, CrmOpportunityFeatureGuard)
+@UseGuards(RolesGuard, CrmDomainFeatureGuard)
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('preview')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadReport')
   @ApiOperation({ summary: 'CRM 보고 지표 Preview' })
   @ApiOkResponse({ description: '사업구분/담당자/WBS별 pipeline과 계약 계획/실적 요약' })
   @ApiUnauthorizedResponse({ description: '인증 필요' })
@@ -27,7 +27,7 @@ export class ReportsController {
   }
 
   @Post('confirm')
-  @RequireCrmOpportunityFeature('canConfirmOpportunity')
+  @RequireCrmDomainFeature('canConfirmReport')
   @ApiOperation({ summary: 'CRM 보고 Preview snapshot 확정' })
   @ApiBody({ type: CrmReportsConfirmDto })
   @ApiOkResponse({ description: '확정된 CRM 보고 snapshot' })
@@ -38,7 +38,7 @@ export class ReportsController {
   }
 
   @Post('confirmations/:id/reopen')
-  @RequireCrmOpportunityFeature('canConfirmOpportunity')
+  @RequireCrmDomainFeature('canConfirmReport')
   @ApiOperation({ summary: 'CRM 보고 snapshot 확정 해제' })
   @ApiOkResponse({ description: '확정 해제된 CRM 보고 snapshot' })
   @ApiUnauthorizedResponse({ description: '인증 필요' })

@@ -1,6 +1,7 @@
 'use client';
 
-import { ContractPerformanceWorkspaceClient, normalizeContractPerformanceQuery } from './ContractPerformanceWorkspaceClient';
+import { ContractPerformanceWorkspaceClient } from './ContractPerformanceWorkspaceClient';
+import { normalizeContractPerformanceQuery } from './contractPerformanceQuery';
 import { contractPerformanceFallback } from './contractPerformanceFallback';
 
 export function ContractPerformanceWorkspaceMdiPage({ path }: { path: string }) {

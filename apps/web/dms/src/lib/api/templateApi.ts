@@ -1,5 +1,6 @@
 import type { TemplateItem } from '@/types/template';
 import { request, type ApiResponse } from './core';
+import { fetchWithSharedAuth } from './sharedAuth';
 import { streamSSE, type SSEEvent } from './streaming';
 
 export const templateApi = {
@@ -22,6 +23,38 @@ export const templateApi = {
       method: 'POST',
       body: template,
     });
+  },
+
+  uploadDocx: async (
+    template: Pick<TemplateItem, 'id' | 'scope'>,
+    file: File,
+  ): Promise<ApiResponse<TemplateItem>> => {
+    const formData = new FormData();
+    formData.append('scope', template.scope);
+    formData.append('file', file);
+    try {
+      const response = await fetchWithSharedAuth(`/api/templates/${encodeURIComponent(template.id)}/docx`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',
+      });
+      const payload = await response.json().catch(() => null) as TemplateItem | { error?: string; message?: string } | null;
+      if (!response.ok || !payload) {
+        return {
+          success: false,
+          status: response.status,
+          error: payload && 'error' in payload
+            ? payload.error ?? payload.message ?? `HTTP ${response.status}: DOCX 템플릿 업로드 실패`
+            : `HTTP ${response.status}: DOCX 템플릿 업로드 실패`,
+        };
+      }
+      return { success: true, data: payload as TemplateItem };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'DOCX 템플릿 업로드 중 오류가 발생했습니다.',
+      };
+    }
   },
 
   remove: async (id: string, scope: 'global' | 'personal'): Promise<ApiResponse<{ id: string }>> => {

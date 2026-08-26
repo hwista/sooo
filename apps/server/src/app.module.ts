@@ -12,6 +12,7 @@ import { configValidationSchema } from './config/config.validation.js';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter.js';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from './modules/common/auth/guards/jwt-auth.guard.js';
+import { HealthController } from './modules/common/health/health.controller.js';
 
 const SERVER_ENV_FILE_PATHS = [
   '.env.local',
@@ -40,7 +41,7 @@ const SERVER_ENV_FILE_PATHS = [
     DmsModule,
     CrmModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [
     // 전역 인터셉터: 요청 컨텍스트 설정 (히스토리 관리용)
     {

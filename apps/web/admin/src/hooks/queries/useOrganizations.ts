@@ -1,0 +1,43 @@
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  organizationsApi,
+  type CreateOrganizationRequest,
+  type UpdateOrganizationRequest,
+} from '@/lib/api/endpoints/organizations';
+
+export const organizationKeys = {
+  all: ['organizations'] as const,
+  list: (includeInactive: boolean) => [...organizationKeys.all, 'list', includeInactive] as const,
+};
+
+export function useOrganizationList(includeInactive: boolean) {
+  return useQuery({
+    queryKey: organizationKeys.list(includeInactive),
+    queryFn: () => organizationsApi.list(includeInactive),
+    staleTime: 30 * 1000,
+  });
+}
+
+function useOrganizationMutation<TVariables>(mutationFn: (variables: TVariables) => Promise<unknown>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: organizationKeys.all }),
+  });
+}
+
+export function useCreateOrganization() {
+  return useOrganizationMutation((data: CreateOrganizationRequest) => organizationsApi.create(data));
+}
+
+export function useUpdateOrganization() {
+  return useOrganizationMutation(({ id, data }: { id: string; data: UpdateOrganizationRequest }) => (
+    organizationsApi.update(id, data)
+  ));
+}
+
+export function useDeactivateOrganization() {
+  return useOrganizationMutation((id: string) => organizationsApi.deactivate(id));
+}

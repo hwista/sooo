@@ -25,6 +25,7 @@ RUN --mount=type=secret,id=ssoo_tls_ca,required=false \
     pnpm install --filter web-admin... --frozen-lockfile
 
 FROM base AS builder
+ARG SSOO_RELEASE_SHA=local-development
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ARG ADMIN_SERVER_API_URL=http://server:4000/api
 ARG NEXT_PUBLIC_ADMIN_APP_URL=http://localhost:3000
@@ -39,6 +40,7 @@ ENV NEXT_PUBLIC_CRM_APP_URL=${NEXT_PUBLIC_CRM_APP_URL}
 ENV NEXT_PUBLIC_PMS_APP_URL=${NEXT_PUBLIC_PMS_APP_URL}
 ENV NEXT_PUBLIC_DMS_APP_URL=${NEXT_PUBLIC_DMS_APP_URL}
 ENV NEXT_PUBLIC_SNS_APP_URL=${NEXT_PUBLIC_SNS_APP_URL}
+ENV SSOO_RELEASE_SHA=${SSOO_RELEASE_SHA}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=deps /app/ ./

@@ -52,3 +52,13 @@ export function useDeactivateUser() {
     },
   });
 }
+
+export function useReactivateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => usersApi.reactivate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+    },
+  });
+}

@@ -702,8 +702,7 @@ assertIncludes(dmsCrmContractLifecycleController, 'DmsCrmContractLifecycleExecut
 
 const dmsCrmContractLifecycleService = readText('apps/server/src/modules/dms/crm-contract-lifecycle/crm-contract-lifecycle.service.ts');
 assertIncludes(dmsCrmContractLifecycleService, 'DMS_CRM_CONTRACT_LIFECYCLE_STORAGE', 'DMS CRM contract lifecycle service must expose an injectable storage boundary');
-assertIncludes(dmsCrmContractLifecycleService, "nodeRequire('adm-zip')", 'DMS CRM contract lifecycle service must create real DOCX artifacts');
-assertIncludes(dmsCrmContractLifecycleService, 'renderDocxArtifact', 'DMS CRM contract lifecycle service must render DOCX artifacts');
+assertIncludes(dmsCrmContractLifecycleService, 'renderDocxTemplate', 'DMS CRM contract lifecycle service must render selected DOCX template binaries');
 assertIncludes(dmsCrmContractLifecycleService, 'renderPdfArtifact', 'DMS CRM contract lifecycle service must render PDF artifacts');
 assertIncludes(dmsCrmContractLifecycleService, 'loadActiveTemplate', 'DMS CRM contract lifecycle service must validate and load active DMS templates');
 assertIncludes(dmsCrmContractLifecycleService, 'toTemplateVersionSnapshot', 'DMS CRM contract lifecycle service must capture template version evidence');
@@ -786,8 +785,7 @@ assertIncludes(dmsCrmQuoteLifecycleController, 'DmsCrmQuoteLifecycleExecutionDto
 
 const dmsCrmQuoteLifecycleService = readText('apps/server/src/modules/dms/crm-quote-lifecycle/crm-quote-lifecycle.service.ts');
 assertIncludes(dmsCrmQuoteLifecycleService, 'DMS_CRM_QUOTE_LIFECYCLE_STORAGE', 'DMS CRM quote lifecycle service must expose an injectable storage boundary');
-assertIncludes(dmsCrmQuoteLifecycleService, "nodeRequire('adm-zip')", 'DMS CRM quote lifecycle service must create DOCX artifacts');
-assertIncludes(dmsCrmQuoteLifecycleService, 'renderDocxArtifact', 'DMS CRM quote lifecycle service must render DOCX artifacts');
+assertIncludes(dmsCrmQuoteLifecycleService, 'renderDocxTemplate', 'DMS CRM quote lifecycle service must render selected DOCX template binaries');
 assertIncludes(dmsCrmQuoteLifecycleService, 'renderPdfArtifact', 'DMS CRM quote lifecycle service must render PDF artifacts');
 assertIncludes(dmsCrmQuoteLifecycleService, 'loadActiveTemplate', 'DMS CRM quote lifecycle service must validate and load active DMS templates');
 assertIncludes(dmsCrmQuoteLifecycleService, 'toTemplateVersionSnapshot', 'DMS CRM quote lifecycle service must capture template version evidence');
@@ -797,6 +795,12 @@ assertIncludes(dmsCrmQuoteLifecycleService, 'storage.upload', 'DMS CRM quote lif
 assertIncludes(dmsCrmQuoteLifecycleService, "'template-review'", 'DMS CRM quote lifecycle service must execute template review evidence');
 assertIncludes(dmsCrmQuoteLifecycleService, "'word-export'", 'DMS CRM quote lifecycle service must execute Word export evidence');
 assertIncludes(dmsCrmQuoteLifecycleService, "'pdf-export'", 'DMS CRM quote lifecycle service must execute PDF export evidence');
+
+const dmsDocxTemplateRenderer = readText('apps/server/src/modules/dms/templates/docx-template-renderer.ts');
+assertIncludes(dmsDocxTemplateRenderer, "nodeRequire('adm-zip')", 'DMS DOCX template renderer must operate on real DOCX ZIP binaries');
+assertIncludes(dmsDocxTemplateRenderer, 'REQUIRED_DOCX_ENTRIES', 'DMS DOCX template renderer must validate required OOXML entries');
+assertIncludes(dmsDocxTemplateRenderer, "'word/document.xml'", 'DMS DOCX template renderer must render the main OOXML document part');
+assertIncludes(dmsDocxTemplateRenderer, 'zip.toBuffer()', 'DMS DOCX template renderer must return a downloadable DOCX binary');
 
 const dmsCrmQuoteLifecycleServiceSpec = readText('apps/server/src/modules/dms/crm-quote-lifecycle/crm-quote-lifecycle.service.spec.ts');
 assertIncludes(dmsCrmQuoteLifecycleServiceSpec, 'creates CRM quote lifecycle artifacts and returns CRM evidence steps', 'DMS CRM quote lifecycle spec must cover artifact execution');
@@ -1405,7 +1409,10 @@ assertIncludes(crmBusinessPlanService, 'savePerformanceActualInput', 'CRM busine
 assertIncludes(crmBusinessPlanService, 'addManualActualPerformanceGroup', 'CRM business plan performance must merge direct actual input rows');
 assertIncludes(crmBusinessPlanService, "'manual-actual'", 'CRM business plan performance must label direct actual rows with a manual-actual source');
 assertIncludes(crmBusinessPlanService, 'includePlan: false', 'CRM business plan performance must not double-count contract plan amounts when a confirmed plan exists');
-assertIncludes(crmBusinessPlanService, 'includePlan: true', 'CRM business plan performance must keep the fallback contract-plan basis without a confirmed plan');
+assertIncludes(crmBusinessPlanService, 'includePlan: !sourceCompatible', 'CRM business plan performance must keep the fallback contract-plan basis only in extended mode without a confirmed plan');
+assertIncludes(crmBusinessPlanService, 'CRM_BUSINESS_PLAN_PERFORMANCE_FALLBACK_PLAN_BASIS_LABEL', 'CRM business plan performance must preserve the extended fallback plan basis label');
+assertIncludes(crmBusinessPlanService, 'CRM_BUSINESS_PLAN_PERFORMANCE_SOURCE_MISSING_PLAN_BASIS_LABEL', 'CRM business plan performance must distinguish a missing confirmed plan in source-compatible mode');
+assertIncludes(crmBusinessPlanService, "options.actualBasis === 'source-compatible'", 'CRM source-compatible performance must use contract billing-plan amounts as actuals');
 assertIncludes(crmBusinessPlanService, 'distributeAnnualAmount', 'CRM business plan performance must convert annual confirmed plan amounts into monthly plan values');
 assertIncludes(crmBusinessPlanService, 'confirmedPlanCode: confirmedPlan?.code', 'CRM business plan performance summary must identify the confirmed plan code');
 assertIncludes(crmBusinessPlanService, 'CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_UNAVAILABLE_ACTIONS', 'CRM business plan performance must keep remaining write/accounting actions unavailable for confirmed-plan previews');
@@ -1416,12 +1423,13 @@ assertIncludes(crmBusinessPlanServiceSpec, 'adjusts duplicated contract external
 assertIncludes(crmBusinessPlanServiceSpec, 'adds manual actual input rows to the business plan performance preview', 'CRM business plan performance spec must cover direct actual row merging');
 assertIncludes(crmBusinessPlanServiceSpec, 'saves manual monthly actual input with a stable ledger activity', 'CRM business plan performance spec must cover direct actual writes');
 assertIncludes(crmBusinessPlanServiceSpec, 'uses manual monthly business plan inputs before falling back to annual distribution', 'CRM business plan spec must cover monthly direct input performance basis');
+assertIncludes(crmBusinessPlanServiceSpec, 'uses confirmed contract billing plans as actuals in source-compatible mode', 'CRM business plan performance spec must cover source-compatible billing-plan actual semantics');
 assertIncludes(crmBusinessPlanServiceSpec, 'updates a draft business plan line with monthly direct input and recalculates totals', 'CRM business plan spec must cover monthly direct input writes');
 assertIncludes(crmBusinessPlanServiceSpec, 'rejects monthly direct input for confirmed business plan ledgers', 'CRM business plan spec must reject confirmed monthly input writes');
 assertIncludes(crmBusinessPlanServiceSpec, 'creates a carry-forward draft from the previous confirmed business plan', 'CRM business plan service spec must cover previous-year carry-forward draft creation');
-assertIncludes(crmBusinessPlanServiceSpec, "source: 'confirmed-plan'", 'CRM business plan performance spec must assert confirmed-plan source rows');
+assertIncludes(crmBusinessPlanServiceSpec, "row.source === 'confirmed-plan'", 'CRM business plan performance spec must assert confirmed-plan source rows');
 assertIncludes(crmBusinessPlanServiceSpec, "row.source === 'confirmed-cost'", 'CRM business plan performance spec must assert confirmed-cost source rows');
-assertIncludes(crmBusinessPlanServiceSpec, "planBasisLabel).toBe('확정 사업계획 차수 매출 기준')", 'CRM business plan performance spec must assert confirmed-plan basis label');
+assertIncludes(crmBusinessPlanServiceSpec, "planBasisLabel).toBe('확정 사업계획 차수 매출·외부원가 기준')", 'CRM business plan performance spec must assert confirmed-plan basis label');
 assertIncludes(crmBusinessPlanServiceSpec, "not.toContain('확정 사업계획 차수 기준 비교')", 'CRM business plan performance spec must remove confirmed-plan comparison from unavailable actions when implemented');
 
 const crmReportsService = readText('apps/server/src/modules/crm/reports/reports.service.ts');
@@ -1759,7 +1767,7 @@ assertIncludes(crmOpportunityWorkspace, 'formatQuoteLifecycleStatus', 'CRM oppor
 assertIncludes(crmOpportunityWorkspace, 'latestHandoff', 'CRM opportunity workspace must show latest quote DMS handoff evidence');
 assertIncludes(crmOpportunityWorkspace, 'DMS 초안 저장', 'CRM opportunity workspace must expose quote DMS markdown draft creation');
 assertIncludes(crmOpportunityWorkspace, 'DMS 산출 실행', 'CRM opportunity workspace must expose quote DMS artifact execution');
-assertIncludes(crmOpportunityWorkspace, '미구현', 'CRM quote preview UI must mark unavailable PDF/contract actions as unimplemented');
+assertIncludes(crmOpportunityWorkspace, 'dmsDocument.unavailableActions.map', 'CRM quote preview UI must render any server-declared unavailable boundary actions');
 
 const crmOpportunityDetailRoute = readText('apps/web/crm/src/app/api/crm/opportunities/[id]/route.ts');
 assertIncludes(crmOpportunityDetailRoute, 'export async function GET', 'CRM opportunity detail proxy must support selected row detail reads');
@@ -1784,12 +1792,13 @@ assertIncludes(crmBusinessPlanMonthlyInputRoute, '/monthly-plan', 'CRM business 
 
 const crmBusinessPlanWorkspace = readText('apps/web/crm/src/components/pages/business-plan/BusinessPlanPreviewWorkspaceClient.tsx');
 assertIncludes(crmBusinessPlanWorkspace, '/api/crm/business-plan/plans/carry-forward', 'CRM business plan UI must call the carry-forward proxy');
-assertIncludes(crmBusinessPlanWorkspace, '/monthly-plan', 'CRM business plan UI must call the monthly direct input proxy');
-assertIncludes(crmBusinessPlanWorkspace, 'monthlyPlanRevenueAmounts', 'CRM business plan UI must render monthly plan values from the shared line contract');
-assertIncludes(crmBusinessPlanWorkspace, '월별 계획 저장', 'CRM business plan UI must expose monthly direct input saving');
+assertIncludes(crmBusinessPlanWorkspace, '/rows', 'CRM business plan UI must call the full source-row CRUD proxies');
+assertIncludes(crmBusinessPlanWorkspace, 'toBusinessPlanRowRequest', 'CRM business plan UI must serialize three-year source-grid rows');
+assertIncludes(crmBusinessPlanWorkspace, '12개월 매출·외부원가', 'CRM business plan UI must expose monthly revenue and external-cost inputs');
+assertIncludes(crmBusinessPlanWorkspace, '붙여넣기 값을 그리드에 반영', 'CRM business plan UI must expose spreadsheet paste behavior');
+assertIncludes(crmBusinessPlanWorkspace, '최신 차수 삭제', 'CRM business plan UI must expose draft version deletion');
 assertIncludes(crmBusinessPlanWorkspace, 'sourceBaseYear: query.baseYear - 1', 'CRM business plan UI must default carry-forward source to the previous base year');
 assertIncludes(crmBusinessPlanWorkspace, '전년 이월', 'CRM business plan UI must expose the previous-year carry-forward action');
-assertIncludes(crmBusinessPlanWorkspace, '원가 배부 저장은 후속', 'CRM business plan UI must keep cost allocation storage as the remaining future boundary');
 
 const crmBusinessPlanFallback = readText('apps/web/crm/src/components/pages/business-plan/businessPlanPreviewFallback.ts');
 assertNotIncludes(crmBusinessPlanFallback, '월별 직접 입력', 'CRM business plan fallback must not mark monthly direct input unavailable after implementation');
@@ -1818,7 +1827,7 @@ assertIncludes(crmBusinessPlanPerformanceWorkspace, '확정 사업계획 차수 
 
 const crmBusinessPlanPerformanceFallback = readText('apps/web/crm/src/components/pages/business-plan-performance/businessPlanPerformancePreviewFallback.ts');
 assertIncludes(crmBusinessPlanPerformanceFallback, '확정 사업계획 차수 기준 비교', 'CRM business plan performance fallback must keep confirmed-plan comparison unavailable without a confirmed plan');
-assertIncludes(crmBusinessPlanPerformanceFallback, '계약 청구실적 원가 기준', 'CRM business plan performance fallback must expose the default cost basis');
+assertIncludes(crmBusinessPlanPerformanceFallback, '계획·실적 계약 청구 외부원가', 'CRM business plan performance fallback must expose the default cost basis');
 assertIncludes(crmBusinessPlanPerformanceFallback, 'directActualInputCount: 0', 'CRM business plan performance fallback must initialize direct actual input counts');
 assertIncludes(crmBusinessPlanPerformanceFallback, 'amsExternalCostAdjustedWbsCount: 0', 'CRM business plan performance fallback must initialize AMS duplicate adjustment counts');
 

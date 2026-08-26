@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-audit",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T06:15:02.707Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-audit",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-07"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-07",
+      "sourcePage": "billing-actual",
+      "status": "partial",
+      "ownerSurface": "CRM /contracts?sourceSurface=billing-actual",
+      "targetUrl": "http://127.0.0.1:3105/contracts?sourceSurface=billing-actual",
+      "capturedAt": "2026-08-20T06:15:02.707Z",
+      "audit": {
+        "normalStateId": "actual-seeded",
+        "sourceScreenshot": "ux-07-billing-actual.png",
+        "targetDesktopScreenshot": "ux-07-billing-actual--audit-desktop.png",
+        "targetMobileScreenshot": "ux-07-billing-actual--audit-mobile.png",
+        "differenceScreenshot": "ux-07-billing-actual--audit-difference.png",
+        "targetDomManifest": "ux-07-billing-actual--audit.dom.json",
+        "missingStateIds": [
+          "confirmed-contract-list",
+          "contract-selected",
+          "actual-empty",
+          "save-validation"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "4f469c7f672b66504faff35a6605478d39263990d2f04c6564c82c31492e3a05",
+          "targetDesktop": "1f95ef98307df89d89790d0678944192bf0248c1f8829387327974a41be28150",
+          "targetMobile": "659bc93d0d980d513a0127bf71b1e7adfd6c9e1c22e78ecf5c01529f70520397",
+          "difference": "05e5c64d95d8bec2cdaebbdb2c22953c0a06adb45f393c0e98f4a26c0780ff10",
+          "targetDom": "ac828071e21af2be54d0946b2da38feea75c933e288ffeb8a1097842b8c81778"
+        }
+      }
+    }
+  ]
+}

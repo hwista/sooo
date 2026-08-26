@@ -7,5 +7,6 @@ import { IngestQueueService } from './ingest-queue.service.js';
   imports: [AccessModule],
   controllers: [IngestController],
   providers: [IngestQueueService],
+  exports: [IngestQueueService],
 })
 export class IngestModule {}

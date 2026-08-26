@@ -1,14 +1,27 @@
 import { randomUUID } from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import type {
   CrmContractUpsertLine,
   CrmContractUpsertRequest,
+  CrmDmsDocumentTemplateOption,
   CrmOpportunityUpsertRequest,
   CrmAdminBoundary,
   CrmIntegrationStatus,
   CrmOpportunity,
   CrmOpportunityContractConversionRequest,
   CrmOpportunityContractConversionResponse,
+  CrmOpportunityContractDocumentArtifact,
+  CrmOpportunityContractDocumentDraftRequest,
+  CrmOpportunityContractDocumentDraftResult,
+  CrmOpportunityContractDocumentHandoffSummary,
+  CrmOpportunityContractDocumentLifecycleExecutionRequest,
+  CrmOpportunityContractDocumentLifecycleExecutionResult,
+  CrmOpportunityContractDocumentLifecycleStep,
+  CrmOpportunityContractDocumentPreview,
+  CrmOpportunityContractDocumentVariable,
+  CrmOpportunityDeleteResult,
   CrmOpportunityDiscountType,
   CrmOpportunityHistoryEntry,
   CrmOpportunityHistoryEventType,
@@ -22,6 +35,7 @@ import type {
   CrmOpportunityQuotePreview,
   CrmOpportunityServiceType,
   CrmOpportunitySort,
+  CrmSourceOpportunityStatus,
   CrmOpportunityStatus,
   CrmOpportunitySummary,
   CrmOpportunityVersionListResponse,
@@ -55,17 +69,27 @@ import { AiIndexingService } from '../../common/ai-index/ai-indexing.service.js'
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import { UserService } from '../../common/user/user.service.js';
 import { FileCrudService } from '../../dms/file/file-crud.service.js';
+import { DmsCrmOpportunityContractLifecycleService } from '../../dms/crm-opportunity-contract-lifecycle/crm-opportunity-contract-lifecycle.service.js';
 import { DmsCrmQuoteLifecycleService } from '../../dms/crm-quote-lifecycle/crm-quote-lifecycle.service.js';
+import { storageAdapterService } from '../../dms/storage/storage-adapter.service.js';
 import { TemplateService } from '../../dms/templates/template.service.js';
 import { ContractService } from '../contract/contract.service.js';
 import { QuoteSettingsService } from '../quote-settings/quote-settings.service.js';
+import { CrmOperationAttemptService, type CrmOperationRunContext } from '../operations/operation-attempt.service.js';
 
-const DEFAULT_SORT: CrmOpportunitySort = 'updated-desc';
+const DEFAULT_SORT: CrmOpportunitySort = 'customer-asc';
 const CRM_BOUNDARY_NOTICE = 'CRM은 계약/청구/매출/원가 원장을 소유하고 PMS는 실행 수행과 읽기용 인계 스냅샷만 소비합니다.';
 const UNIMPLEMENTED_INTEGRATIONS = ['견적 생성', 'DMS 연결', 'PMS 인계'];
-const CRM_QUOTE_DMS_BOUNDARY_NOTICE = 'CRM은 영업기회 원장 기반 견적 문서 입력 패킷과 DMS markdown 초안 요청만 제공하고 DMS는 템플릿, Word/PDF export, 파일 lifecycle을 소유합니다.';
-const QUOTE_UNAVAILABLE_ACTIONS = ['CRM 직접 PDF 저장', 'CRM 직접 Word 견적서 생성'];
+const CRM_QUOTE_DMS_BOUNDARY_NOTICE = 'CRM은 영업기회 원장 기반 브라우저 견적 인쇄/PDF와 DMS 문서 입력 패킷을 제공하고 DMS는 템플릿 기반 Word/PDF export와 파일 lifecycle을 소유합니다.';
+// DOCX/PDF generation is implemented through the DMS lifecycle boundary.
+// Keep this list for response compatibility, but do not expose a completed
+// delegated action as an unavailable CRM feature.
+const QUOTE_UNAVAILABLE_ACTIONS: string[] = [];
 const CRM_QUOTE_DMS_TEMPLATE_KEY = 'crm-quote-v1';
+const CRM_QUOTE_DMS_TEMPLATE_TASK_KEY = 'crm-quote-document';
+const CRM_OPPORTUNITY_CONTRACT_DMS_TEMPLATE_KEY = 'crm-opportunity-contract-v1';
+const CRM_OPPORTUNITY_CONTRACT_DMS_TEMPLATE_TASK_KEY = 'crm-opportunity-contract-document';
+const CRM_OPPORTUNITY_CONTRACT_DMS_BOUNDARY_NOTICE = 'CRM은 확정 영업기회와 원천 22개 변수 snapshot을 소유하고, DMS는 계약서 DOCX 템플릿 binary·버전·render·artifact storage를 소유합니다.';
 const CRM_QUOTE_DMS_EXECUTION_STEP_KEYS: CrmQuoteDmsDocumentExecutionStepKey[] = [
   'template-review',
   'word-export',
@@ -73,10 +97,13 @@ const CRM_QUOTE_DMS_EXECUTION_STEP_KEYS: CrmQuoteDmsDocumentExecutionStepKey[] =
 ];
 const QUOTE_VALIDITY_DAYS = 30;
 const STATUSES: CrmOpportunityStatus[] = ['draft', 'qualified', 'proposal', 'won', 'lost', 'hold'];
-const SORTS: CrmOpportunitySort[] = ['updated-desc', 'revenue-desc', 'margin-desc'];
+const SOURCE_STATUSES: CrmSourceOpportunityStatus[] = ['진행중', '검토중', '계약완료', '실패'];
+const SORTS: CrmOpportunitySort[] = ['customer-asc', 'updated-desc', 'revenue-desc', 'profit-desc', 'margin-desc'];
 const DISCOUNT_TYPES: CrmOpportunityDiscountType[] = ['amount', 'rate'];
 const QUOTE_WORKFLOW_STATUSES: CrmQuoteWorkflowStatus[] = ['draft', 'review', 'approved', 'sent', 'accepted', 'rejected', 'void'];
 const PAYMENT_TERM_LABELS: Record<string, string> = {
+  monthly: '월별',
+  quarterly: '분기별',
   계약즉시: '계약 즉시',
   NET30: '계약 후 30일 이내',
   NET60: '계약 후 60일 이내',
@@ -324,6 +351,34 @@ interface CrmQuoteDmsHandoffLedgerRow {
   savedAt: Date;
 }
 
+interface CrmOpportunityContractDmsHandoffLedgerRow {
+  id: bigint;
+  opportunityId: bigint;
+  opportunityCode: string;
+  documentTitle: string;
+  templateKey: string;
+  folderHint: string;
+  fileNameHint: string;
+  draftPath: string;
+  statusCode: string;
+  documentSnapshot: unknown;
+  variablesSnapshot: unknown;
+  artifactSnapshot: unknown | null;
+  memo: string | null;
+  savedBy: bigint | null;
+  savedAt: Date;
+}
+
+interface OpportunityContractDocumentHandoff extends CrmOpportunityContractDocumentHandoffSummary {
+  opportunityId: string;
+  opportunityCode: string;
+  documentTitle: string;
+  folderHint: string;
+  fileNameHint: string;
+  documentSnapshot: Omit<CrmOpportunityContractDocumentPreview, 'latestHandoff'>;
+  variablesSnapshot: CrmOpportunityContractDocumentVariable[];
+}
+
 @Injectable()
 export class OpportunityService {
   private readonly logger = new Logger(OpportunityService.name);
@@ -337,6 +392,8 @@ export class OpportunityService {
     @Optional() private readonly fileCrudService?: FileCrudService,
     @Optional() private readonly templateService?: TemplateService,
     @Optional() private readonly dmsCrmQuoteLifecycleService?: DmsCrmQuoteLifecycleService,
+    @Optional() private readonly dmsCrmOpportunityContractLifecycleService?: DmsCrmOpportunityContractLifecycleService,
+    @Optional() private readonly operationAttemptService?: CrmOperationAttemptService,
   ) {}
 
   async listOpportunities(query: CrmOpportunityListQuery = {}): Promise<CrmOpportunity[]> {
@@ -462,6 +519,36 @@ export class OpportunityService {
     return this.getOpportunity(existing.id.toString());
   }
 
+  async deleteOpportunity(id: string): Promise<CrmOpportunityDeleteResult> {
+    const existing = await this.findOpportunityRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM opportunity not found');
+    }
+
+    if (existing.confirmed) {
+      throw new BadRequestException('확정된 영업기회는 삭제할 수 없습니다.');
+    }
+
+    const versions = await this.loadOpportunityVersionRows(existing.opportunityGroupCode);
+    if (!this.isLatestVersion(existing, versions)) {
+      throw new BadRequestException('이전 차수 영업기회는 삭제할 수 없습니다.');
+    }
+
+    const nextOpportunity = versions
+      .filter((version) => version.id !== existing.id)
+      .sort((left, right) => right.versionNo - left.versionNo)[0];
+
+    await this.db.client.crmOpportunity.delete({ where: { id: existing.id } });
+    await this.queueOpportunityAiIndexJob(existing.id, 'delete', 'opportunity_deleted');
+
+    return {
+      deletedOpportunityId: existing.opportunityCode,
+      groupId: existing.opportunityGroupCode,
+      deletedVersion: existing.versionNo,
+      ...(nextOpportunity ? { nextOpportunityId: nextOpportunity.opportunityCode } : {}),
+    };
+  }
+
   async confirmOpportunity(id: string): Promise<CrmOpportunity> {
     const existing = await this.findOpportunityRow(id);
     if (!existing) {
@@ -499,7 +586,7 @@ export class OpportunityService {
     return this.getOpportunity(existing.id.toString());
   }
 
-  async reopenOpportunity(id: string): Promise<CrmOpportunity> {
+  async reopenOpportunity(id: string, currentUserId?: bigint): Promise<CrmOpportunity> {
     const existing = await this.findOpportunityRow(id);
     if (!existing) {
       throw new NotFoundException('CRM opportunity not found');
@@ -508,13 +595,29 @@ export class OpportunityService {
     if (!existing.confirmed) {
       throw new BadRequestException('미확정 영업기회는 확정 해제할 수 없습니다.');
     }
-    if (existing.contractCreated) {
-      throw new BadRequestException('계약으로 전환된 영업기회는 확정 해제할 수 없습니다.');
-    }
 
     const versions = await this.loadOpportunityVersionRows(existing.opportunityGroupCode);
     if (!this.isLatestVersion(existing, versions)) {
       throw new BadRequestException('이전 차수 영업기회는 확정 해제할 수 없습니다.');
+    }
+
+    if (existing.contractCreated) {
+      if (!existing.contractCode) {
+        throw new BadRequestException('연결 계약 코드를 확인할 수 없습니다.');
+      }
+      if (!this.contractService) {
+        throw new BadRequestException('계약 회수 서비스를 사용할 수 없습니다.');
+      }
+
+      await this.contractService.revokeConvertedContract({
+        opportunityId: existing.id,
+        opportunityCode: existing.opportunityCode,
+        contractCode: existing.contractCode,
+        reopenOpportunity: true,
+        currentUserId,
+      });
+      await this.queueOpportunityAiIndexJob(existing.id, 'upsert', 'opportunity_reopened_with_contract_revocation');
+      return this.getOpportunity(existing.id.toString());
     }
 
     await this.db.client.crmOpportunity.update({
@@ -522,12 +625,47 @@ export class OpportunityService {
       data: {
         confirmed: false,
         statusCode: existing.statusCode === 'won' ? 'proposal' : existing.statusCode,
+        updatedBy: currentUserId,
         lastSource: 'crm.opportunity',
         lastActivity: 'reopen',
       },
     });
 
     await this.queueOpportunityAiIndexJob(existing.id, 'upsert', 'opportunity_reopened');
+    return this.getOpportunity(existing.id.toString());
+  }
+
+  async revokeOpportunityContract(id: string, currentUserId?: bigint): Promise<CrmOpportunity> {
+    const existing = await this.findOpportunityRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM opportunity not found');
+    }
+    if (!existing.confirmed) {
+      throw new BadRequestException('확정된 영업기회의 계약만 회수할 수 있습니다.');
+    }
+
+    const versions = await this.loadOpportunityVersionRows(existing.opportunityGroupCode);
+    if (!this.isLatestVersion(existing, versions)) {
+      throw new BadRequestException('최신 차수 영업기회의 계약만 회수할 수 있습니다.');
+    }
+    if (!existing.contractCreated) {
+      return this.getOpportunity(existing.id.toString());
+    }
+    if (!existing.contractCode) {
+      throw new BadRequestException('연결 계약 코드를 확인할 수 없습니다.');
+    }
+    if (!this.contractService) {
+      throw new BadRequestException('계약 회수 서비스를 사용할 수 없습니다.');
+    }
+
+    await this.contractService.revokeConvertedContract({
+      opportunityId: existing.id,
+      opportunityCode: existing.opportunityCode,
+      contractCode: existing.contractCode,
+      reopenOpportunity: false,
+      currentUserId,
+    });
+    await this.queueOpportunityAiIndexJob(existing.id, 'upsert', 'opportunity_contract_revoked');
     return this.getOpportunity(existing.id.toString());
   }
 
@@ -569,8 +707,139 @@ export class OpportunityService {
     const sellerProfile = await this.quoteSettingsService?.getSellerProfile();
     const ownerContact = await this.loadQuoteOwnerContact(opportunity.ownerUserId, currentUser);
     const latestHandoff = await this.loadLatestQuoteDmsDocumentHandoff(opportunity.id);
-    const templateEvidence = await this.loadQuoteDmsTemplateEvidence(CRM_QUOTE_DMS_TEMPLATE_KEY);
-    return this.toQuotePreview(opportunity, sellerProfile, ownerContact, latestHandoff, templateEvidence);
+    const templateKey = latestHandoff?.templateKey ?? CRM_QUOTE_DMS_TEMPLATE_KEY;
+    const [templateEvidence, templateOptions] = await Promise.all([
+      this.loadQuoteDmsTemplateEvidence(templateKey),
+      this.loadQuoteDmsTemplateOptions(),
+    ]);
+    return this.toQuotePreview(opportunity, sellerProfile, ownerContact, latestHandoff, templateEvidence, templateOptions);
+  }
+
+  async getOpportunityContractDocumentPreview(
+    id: string,
+    currentUser?: TokenPayload,
+  ): Promise<CrmOpportunityContractDocumentPreview> {
+    const existing = await this.findOpportunityRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM opportunity not found');
+    }
+    const versions = await this.loadOpportunityVersionRows(existing.opportunityGroupCode);
+    const opportunity = this.toContract(existing, {
+      versionCount: versions.length,
+      isLatest: this.isLatestVersion(existing, versions),
+    });
+    const [sellerProfile, ownerContact, latestHandoff, templateOptions] = await Promise.all([
+      this.quoteSettingsService?.getSellerProfile(),
+      opportunity.ownerUserId
+        ? this.loadQuoteOwnerContact(opportunity.ownerUserId, currentUser)
+        : Promise.resolve({ status: 'opportunity-owner-profile-missing', profile: null } as QuoteOwnerContactResolution),
+      this.loadLatestOpportunityContractDocumentHandoff(opportunity.id),
+      this.loadOpportunityContractDocumentTemplateOptions(),
+    ]);
+    return this.toOpportunityContractDocumentPreview(
+      opportunity,
+      sellerProfile,
+      ownerContact,
+      latestHandoff,
+      templateOptions,
+    );
+  }
+
+  async createOpportunityContractDocumentDraft(
+    id: string,
+    dto: CrmOpportunityContractDocumentDraftRequest,
+    currentUser: TokenPayload,
+  ): Promise<CrmOpportunityContractDocumentDraftResult> {
+    if (!this.fileCrudService) {
+      throw new BadRequestException('DMS file service is not available for CRM opportunity contract draft handoff.');
+    }
+    const existing = await this.findOpportunityRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM opportunity not found');
+    }
+    const preview = await this.getOpportunityContractDocumentPreview(existing.opportunityCode, currentUser);
+    const templateKey = dto.templateKey?.trim() || preview.templateKey;
+    this.assertOpportunityContractDocumentTemplateSelectable(templateKey, preview.templateOptions);
+    const selectedPreview = templateKey === preview.templateKey
+      ? preview
+      : await this.toOpportunityContractDocumentPreviewWithTemplate(existing, templateKey, currentUser);
+    if (selectedPreview.readiness !== 'ready') {
+      throw new BadRequestException(selectedPreview.blockedReasons.join(' ') || '영업기회 계약서 초안 저장 준비가 완료되지 않았습니다.');
+    }
+    const markdown = this.toOpportunityContractDocumentDraftMarkdown(selectedPreview, dto.memo);
+    const writeResult = await this.fileCrudService.write(selectedPreview.draftPathHint, markdown, currentUser);
+    if (!writeResult.success) {
+      throw new BadRequestException(`DMS opportunity contract markdown draft save failed: ${writeResult.error}`);
+    }
+    const handoff = await this.persistOpportunityContractDocumentHandoff(
+      existing,
+      selectedPreview,
+      selectedPreview.draftPathHint,
+      'draft-created',
+      null,
+      dto.memo,
+      currentUser,
+    );
+    return {
+      preview: await this.getOpportunityContractDocumentPreview(existing.opportunityCode, currentUser),
+      handoff,
+    };
+  }
+
+  async executeOpportunityContractDocumentLifecycle(
+    id: string,
+    dto: CrmOpportunityContractDocumentLifecycleExecutionRequest,
+    currentUser: TokenPayload,
+    operationContext?: CrmOperationRunContext,
+  ): Promise<CrmOpportunityContractDocumentLifecycleExecutionResult> {
+    if (this.operationAttemptService) {
+      return this.operationAttemptService.run({
+        target: 'dms',
+        action: 'opportunity-contract-document-lifecycle',
+        sourceEntityType: 'crm.opportunity',
+        sourceEntityId: id,
+        requestedBy: BigInt(currentUser.userId),
+        fingerprintInput: { opportunityId: id, memo: dto.memo ?? null },
+        context: operationContext,
+        execute: () => this.performOpportunityContractDocumentLifecycle(id, dto, currentUser),
+        evidence: (result) => ({
+          opportunityId: result.preview.opportunityId,
+          templateKey: result.handoff.templateKey,
+          artifactPath: result.artifact.path,
+        }),
+      });
+    }
+    return this.performOpportunityContractDocumentLifecycle(id, dto, currentUser);
+  }
+
+  async readOpportunityContractDocumentArtifact(
+    id: string,
+  ): Promise<{ buffer: Buffer; fileName: string; contentType: string }> {
+    const existing = await this.findOpportunityRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM opportunity not found');
+    }
+    const handoff = await this.loadLatestOpportunityContractDocumentHandoff(existing.opportunityCode);
+    const storageUri = handoff?.artifact?.storageUri?.trim() ?? '';
+    if (handoff?.status !== 'execution-completed' || !/^(local|nas):\/\//.test(storageUri)) {
+      throw new NotFoundException('완료된 DMS 영업기회 계약서 DOCX artifact를 찾을 수 없습니다.');
+    }
+    return this.readDmsDocxArtifact(storageUri);
+  }
+
+  async readOpportunityContractDocumentSample(): Promise<{ buffer: Buffer; fileName: string; contentType: string }> {
+    if (!this.templateService) {
+      throw new BadRequestException('DMS template service is not available.');
+    }
+    const template = await this.templateService.get(CRM_OPPORTUNITY_CONTRACT_DMS_TEMPLATE_KEY, 'global', 'system');
+    if (!template?.docxTemplate) {
+      throw new NotFoundException('CRM 영업기회 계약서 샘플 DOCX 템플릿을 찾을 수 없습니다.');
+    }
+    return {
+      buffer: this.templateService.readDocxBinary(template),
+      fileName: 'CRM_영업기회_계약서_샘플.docx',
+      contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    };
   }
 
   async updateQuoteWorkflow(
@@ -645,8 +914,20 @@ export class OpportunityService {
     const sellerProfile = await this.quoteSettingsService?.getSellerProfile();
     const ownerContact = await this.loadQuoteOwnerContact(opportunity.ownerUserId, currentUser);
     const previousHandoff = await this.loadLatestQuoteDmsDocumentHandoff(opportunity.id);
-    const templateEvidence = await this.loadQuoteDmsTemplateEvidence(CRM_QUOTE_DMS_TEMPLATE_KEY);
-    const preview = this.toQuotePreview(opportunity, sellerProfile, ownerContact, previousHandoff, templateEvidence);
+    const templateKey = dto.templateKey?.trim() || CRM_QUOTE_DMS_TEMPLATE_KEY;
+    const [templateEvidence, templateOptions] = await Promise.all([
+      this.loadQuoteDmsTemplateEvidence(templateKey),
+      this.loadQuoteDmsTemplateOptions(),
+    ]);
+    this.assertQuoteDmsTemplateSelectable(templateKey, templateOptions);
+    const preview = this.toQuotePreview(
+      opportunity,
+      sellerProfile,
+      ownerContact,
+      previousHandoff,
+      templateEvidence,
+      templateOptions,
+    );
     if (preview.dmsDocument.readiness !== 'ready') {
       throw new BadRequestException(preview.dmsDocument.blockedReasons.join(' ') || '견적 DMS 초안 저장 준비가 완료되지 않았습니다.');
     }
@@ -675,6 +956,43 @@ export class OpportunityService {
       handoff,
       preview: nextPreview.dmsDocument,
     };
+  }
+
+  async readQuoteDmsArtifact(
+    id: string,
+    kind: string,
+  ): Promise<{ buffer: Buffer; fileName: string; contentType: string }> {
+    if (kind !== 'word-export' && kind !== 'pdf-export') {
+      throw new BadRequestException('다운로드 가능한 견적 산출물은 word-export 또는 pdf-export입니다.');
+    }
+    const existing = await this.findOpportunityRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM opportunity not found');
+    }
+    const handoff = await this.loadLatestQuoteDmsDocumentHandoff(existing.opportunityCode);
+    const step = handoff?.lifecycleSnapshot.find((candidate) => candidate.key === kind);
+    const storageUri = step?.status === 'completed' ? step.evidencePath?.trim() : '';
+    if (!storageUri || !/^(local|nas):\/\//.test(storageUri)) {
+      throw new NotFoundException('완료된 DMS 견적 산출물 evidence를 찾을 수 없습니다.');
+    }
+
+    try {
+      const opened = storageAdapterService.open({ storageUri });
+      const resolved = storageAdapterService.resolveContainedPath(opened.provider, opened.path);
+      const expectedExtension = kind === 'word-export' ? '.docx' : '.pdf';
+      if (path.extname(resolved.fullPath).toLowerCase() !== expectedExtension || !fs.existsSync(resolved.fullPath)) {
+        throw new Error('산출물 파일 형식 또는 경로가 lifecycle evidence와 일치하지 않습니다.');
+      }
+      return {
+        buffer: fs.readFileSync(resolved.fullPath),
+        fileName: path.basename(resolved.fullPath),
+        contentType: kind === 'word-export'
+          ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          : 'application/pdf',
+      };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'DMS 견적 산출물을 열 수 없습니다.');
+    }
   }
 
   async recordQuoteDmsDocumentExecutionEvidence(
@@ -722,6 +1040,33 @@ export class OpportunityService {
   }
 
   async executeQuoteDmsDocumentLifecycle(
+    id: string,
+    dto: CrmQuoteDmsDocumentLifecycleExecutionRequest,
+    currentUser: TokenPayload,
+    operationContext?: CrmOperationRunContext,
+  ): Promise<CrmQuoteDmsDocumentLifecycleExecutionResult> {
+    if (this.operationAttemptService) {
+      return this.operationAttemptService.run({
+        target: 'dms',
+        action: 'quote-dms-lifecycle',
+        sourceEntityType: 'crm.opportunity',
+        sourceEntityId: id,
+        requestedBy: BigInt(currentUser.userId),
+        fingerprintInput: { opportunityId: id, memo: dto.memo ?? null },
+        context: operationContext,
+        execute: () => this.performQuoteDmsDocumentLifecycle(id, dto, currentUser),
+        evidence: (result) => ({
+          opportunityId: result.opportunityId,
+          templateKey: result.templateKey,
+          appliedStepKeys: result.appliedStepKeys,
+          recordedAt: result.recordedAt,
+        }),
+      });
+    }
+    return this.performQuoteDmsDocumentLifecycle(id, dto, currentUser);
+  }
+
+  private async performQuoteDmsDocumentLifecycle(
     id: string,
     dto: CrmQuoteDmsDocumentLifecycleExecutionRequest,
     currentUser: TokenPayload,
@@ -1007,12 +1352,16 @@ export class OpportunityService {
 
     return opportunities.filter((item) => {
       const matchesStatus = normalized.status === 'all' || item.status === normalized.status;
+      const matchesSourceStatus = normalized.sourceStatus === 'all'
+        || this.toSourceOpportunityStatus(item.status) === normalized.sourceStatus;
       const searchable = [item.customerName, item.opportunityName, item.ownerName, item.businessType, item.industryLine].join(' ').toLowerCase();
       const matchesSearch = search.length === 0 || searchable.includes(search);
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesSourceStatus && matchesSearch;
     }).sort((left, right) => {
       if (normalized.sort === 'revenue-desc') return right.revenueTotal - left.revenueTotal;
+      if (normalized.sort === 'profit-desc') return right.marginTotal - left.marginTotal;
       if (normalized.sort === 'margin-desc') return right.marginRate - left.marginRate;
+      if (normalized.sort === 'customer-asc') return left.customerName.localeCompare(right.customerName, 'ko');
       return Date.parse(right.updatedAt) - Date.parse(left.updatedAt);
     });
   }
@@ -1223,6 +1572,8 @@ export class OpportunityService {
       customerName: row.customerName,
       contractName: row.opportunityName,
       ownerName: row.ownerName,
+      clientContactName: row.quoteClientContactName ?? undefined,
+      ownerUserId: row.ownerUserId?.toString(),
       businessType: row.businessType,
       industryLine: row.industryLine,
       region: this.toRegion(row.regionCode),
@@ -1328,6 +1679,9 @@ export class OpportunityService {
     return {
       id: row.opportunityCode,
       groupId: row.opportunityGroupCode,
+      customerName: row.customerName,
+      opportunityName: row.opportunityName,
+      ownerName: row.ownerName,
       version: row.versionNo,
       isLatest,
       confirmed: row.confirmed,
@@ -1337,6 +1691,8 @@ export class OpportunityService {
       status: this.toStatus(row.statusCode),
       quoteStatus: this.toQuoteWorkflowStatus(row.quoteStatusCode),
       paymentTermCode: row.paymentTermCode ?? undefined,
+      expectedStartDate: this.toDateString(row.expectedStartDate),
+      expectedEndDate: this.toDateString(row.expectedEndDate),
       revenueSubtotal,
       specialDiscountAmount,
       revenueTotal,
@@ -1381,6 +1737,7 @@ export class OpportunityService {
     ownerContact: QuoteOwnerContactResolution,
     latestHandoff: CrmQuoteDmsDocumentHandoff | null,
     templateEvidence: CrmQuoteDmsTemplateEvidence = this.toUnavailableQuoteDmsTemplateEvidence(CRM_QUOTE_DMS_TEMPLATE_KEY),
+    templateOptions: CrmDmsDocumentTemplateOption[] = [],
   ): CrmOpportunityQuotePreview {
     const productLines = opportunity.revenueLines
       .filter((line) => line.category === 'product')
@@ -1434,6 +1791,7 @@ export class OpportunityService {
       previewStatus,
       latestHandoff,
       templateEvidence,
+      templateOptions,
     );
 
     return {
@@ -1453,7 +1811,7 @@ export class OpportunityService {
         quoteMemo: opportunity.quoteMemo,
         readOnly: true,
         unavailableActions: QUOTE_UNAVAILABLE_ACTIONS,
-        boundaryNotice: '견적 후보는 영업기회 원장 기반 미리보기이며 DMS markdown 초안 handoff까지만 CRM에서 실행합니다. Word/PDF export는 DMS가 소유하고 계약 전환은 확정된 최신 영업기회 상세에서 실행합니다.',
+        boundaryNotice: '견적 후보는 영업기회 원장 기반 미리보기이며 브라우저 인쇄/PDF 저장을 제공합니다. 템플릿 기반 Word/PDF export는 DMS가 소유하고 계약 전환은 확정된 최신 영업기회 상세에서 실행합니다.',
       },
       party: {
         customerName: opportunity.customerName,
@@ -1487,6 +1845,582 @@ export class OpportunityService {
     };
   }
 
+  private async toOpportunityContractDocumentPreviewWithTemplate(
+    row: CrmOpportunityLedgerRow,
+    templateKey: string,
+    currentUser: TokenPayload,
+  ): Promise<CrmOpportunityContractDocumentPreview> {
+    const preview = await this.getOpportunityContractDocumentPreview(row.opportunityCode, currentUser);
+    const selected = preview.templateOptions.find((option) => option.templateKey === templateKey);
+    this.assertOpportunityContractDocumentTemplateSelectable(templateKey, preview.templateOptions);
+    const hints = this.toOpportunityContractDocumentPathHints(
+      preview.customerName,
+      preview.opportunityName,
+      row.opportunityCode,
+      selected?.templateName ?? templateKey,
+    );
+    return {
+      ...preview,
+      templateKey,
+      ...hints,
+      lifecycle: this.toOpportunityContractDocumentLifecycle(
+        preview.readiness,
+        preview.blockedReasons,
+        preview.latestHandoff,
+        templateKey,
+      ),
+    };
+  }
+
+  private toOpportunityContractDocumentPreview(
+    opportunity: CrmOpportunity,
+    sellerProfile: CrmQuoteSellerProfile | null | undefined,
+    ownerContact: QuoteOwnerContactResolution,
+    latestHandoff: OpportunityContractDocumentHandoff | null,
+    templateOptions: CrmDmsDocumentTemplateOption[],
+  ): CrmOpportunityContractDocumentPreview {
+    const templateKey = latestHandoff?.templateKey ?? CRM_OPPORTUNITY_CONTRACT_DMS_TEMPLATE_KEY;
+    const selectedTemplate = templateOptions.find((option) => option.templateKey === templateKey);
+    const now = new Date();
+    const variables = this.toOpportunityContractDocumentVariables(opportunity, sellerProfile, ownerContact, now);
+    const missingVariables = variables.filter((variable) => !variable.value.trim());
+    const blockedReasons = [
+      ...(!opportunity.confirmed ? ['원천 데모와 동일하게 확정된 영업기회만 계약서를 생성할 수 있습니다.'] : []),
+      ...(!opportunity.isLatest ? ['이전 차수 영업기회에서는 계약서를 생성할 수 없습니다.'] : []),
+      ...(opportunity.revenueTotal <= 0 ? ['계약금액이 0원인 영업기회에서는 계약서를 생성할 수 없습니다.'] : []),
+      ...(!opportunity.expectedStartDate || !opportunity.expectedEndDate ? ['계약 시작일과 종료일이 필요합니다.'] : []),
+      ...(missingVariables.length > 0
+        ? [`실제 문서 입력값이 필요합니다: ${missingVariables.map((variable) => variable.key).join(', ')}`]
+        : []),
+      ...(!selectedTemplate?.selectable
+        ? [selectedTemplate?.unavailableReason ?? `선택 가능한 DMS 영업기회 계약서 DOCX 템플릿 ${templateKey}이 없습니다.`]
+        : []),
+    ];
+    const readiness = blockedReasons.length === 0 ? 'ready' : 'blocked';
+    const documentTitle = `${opportunity.customerName} ${opportunity.opportunityName} 계약서`;
+    const hints = this.toOpportunityContractDocumentPathHints(
+      opportunity.customerName,
+      opportunity.opportunityName,
+      opportunity.id,
+      selectedTemplate?.templateName ?? templateKey,
+      now,
+    );
+    return {
+      opportunityId: opportunity.id,
+      opportunityCode: opportunity.id,
+      opportunityVersion: opportunity.version,
+      customerName: opportunity.customerName,
+      opportunityName: opportunity.opportunityName,
+      confirmed: opportunity.confirmed,
+      latestVersion: opportunity.isLatest,
+      documentTitle,
+      templateKey,
+      templateOptions,
+      ...hints,
+      readiness,
+      blockedReasons,
+      variables,
+      lifecycle: this.toOpportunityContractDocumentLifecycle(
+        readiness,
+        blockedReasons,
+        latestHandoff,
+        templateKey,
+      ),
+      latestHandoff: latestHandoff ? this.toOpportunityContractDocumentHandoffSummary(latestHandoff) : null,
+      boundaryNotice: CRM_OPPORTUNITY_CONTRACT_DMS_BOUNDARY_NOTICE,
+      nextAction: readiness === 'ready'
+        ? latestHandoff?.status === 'execution-completed'
+          ? '생성된 DOCX 계약서를 내려받아 원천 22개 변수 치환 결과를 검토하세요.'
+          : latestHandoff
+            ? 'DMS 템플릿 검토와 DOCX 산출을 실행하세요.'
+            : '원천 22개 변수 snapshot을 DMS markdown 초안으로 저장하세요.'
+        : '차단 사유의 실제 CRM·판매자·담당자·DMS 템플릿 데이터를 먼저 보완하세요.',
+    };
+  }
+
+  private toOpportunityContractDocumentVariables(
+    opportunity: CrmOpportunity,
+    sellerProfile: CrmQuoteSellerProfile | null | undefined,
+    ownerContact: QuoteOwnerContactResolution,
+    now: Date,
+  ): CrmOpportunityContractDocumentVariable[] {
+    const startDate = this.toDotDate(opportunity.expectedStartDate);
+    const endDate = this.toDotDate(opportunity.expectedEndDate);
+    const owner = ownerContact.profile;
+    const values: Array<[
+      CrmOpportunityContractDocumentVariable['key'],
+      string,
+      CrmOpportunityContractDocumentVariable['source'],
+    ]> = [
+      ['공급자_회사명', sellerProfile?.companyName?.trim() ?? '', 'seller-profile'],
+      ['공급자_대표자', sellerProfile?.ceoName?.trim() ?? '', 'seller-profile'],
+      ['공급자_사업자번호', sellerProfile?.businessRegistrationNo?.trim() ?? '', 'seller-profile'],
+      ['공급자_주소', sellerProfile?.address?.trim() ?? '', 'seller-profile'],
+      ['공급자_전화', sellerProfile?.tel?.trim() ?? '', 'seller-profile'],
+      ['고객사명', opportunity.customerName.trim(), 'opportunity'],
+      ['건명', opportunity.opportunityName.trim(), 'opportunity'],
+      ['계약금액', this.formatSourceNumber(opportunity.revenueTotal), 'opportunity'],
+      ['계약금액_한글', this.toSourceKoreanWon(opportunity.revenueTotal), 'opportunity'],
+      // The source labels this external cost but calls calcCostTotal(d), so preserve total cost exactly.
+      ['외부원가', this.formatSourceNumber(opportunity.costTotal), 'opportunity'],
+      ['순이익', this.formatSourceNumber(opportunity.revenueTotal - opportunity.costTotal), 'opportunity'],
+      ['계약시작일', startDate, 'opportunity'],
+      ['계약종료일', endDate, 'opportunity'],
+      ['계약기간', startDate && endDate ? `${startDate} ~ ${endDate}` : '', 'opportunity'],
+      ['사업구분', opportunity.businessType.trim(), 'opportunity'],
+      ['담당자명', owner?.displayName?.trim() ?? '', 'owner-profile'],
+      ['담당자부서', owner?.departmentName?.trim() ?? '', 'owner-profile'],
+      ['담당자연락처', owner?.phone?.trim() ?? '', 'owner-profile'],
+      ['담당자이메일', owner?.email?.trim() ?? '', 'owner-profile'],
+      ['수금조건', this.formatPaymentTerm(opportunity.paymentTermCode), 'opportunity'],
+      ['작성일', `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`, 'system-date'],
+      ['계약년도', opportunity.expectedStartDate?.slice(0, 4) || String(now.getFullYear()), 'opportunity'],
+    ];
+    return values.map(([key, value, source]) => ({ key, label: key, value, required: true, source }));
+  }
+
+  private async loadOpportunityContractDocumentTemplateOptions(): Promise<CrmDmsDocumentTemplateOption[]> {
+    if (!this.templateService || typeof this.templateService.list !== 'function') {
+      return [];
+    }
+    const templates = await this.templateService.list('system');
+    return templates.global
+      .filter((template) => template.kind === 'document')
+      .filter((template) => template.id === CRM_OPPORTUNITY_CONTRACT_DMS_TEMPLATE_KEY
+        || template.generation?.taskKey === CRM_OPPORTUNITY_CONTRACT_DMS_TEMPLATE_TASK_KEY)
+      .map((template) => {
+        const status = template.status ?? 'active';
+        const selectable = status === 'active' && Boolean(template.docxTemplate);
+        return {
+          templateKey: template.id,
+          templateName: template.name,
+          taskKey: CRM_OPPORTUNITY_CONTRACT_DMS_TEMPLATE_TASK_KEY,
+          sourcePath: template.sourcePath,
+          status,
+          docxFileName: template.docxTemplate?.fileName,
+          docxOrigin: template.docxTemplate?.origin,
+          reviewStatus: template.reviewConfirmation?.status ?? 'pending',
+          selectable,
+          unavailableReason: selectable
+            ? undefined
+            : status !== 'active'
+              ? `DMS 계약서 템플릿 ${template.name} 상태가 ${status}입니다.`
+              : `DMS 계약서 템플릿 ${template.name}에 실제 DOCX binary가 없습니다.`,
+        };
+      });
+  }
+
+  private assertOpportunityContractDocumentTemplateSelectable(
+    templateKey: string,
+    templateOptions: CrmDmsDocumentTemplateOption[],
+  ): void {
+    const option = templateOptions.find((candidate) => candidate.templateKey === templateKey);
+    if (!option?.selectable) {
+      throw new BadRequestException(option?.unavailableReason ?? `선택 가능한 DMS 영업기회 계약서 템플릿 ${templateKey}이 없습니다.`);
+    }
+  }
+
+  private async loadLatestOpportunityContractDocumentHandoff(
+    opportunityCode: string,
+  ): Promise<OpportunityContractDocumentHandoff | null> {
+    const rows = await this.db.client.$queryRaw<CrmOpportunityContractDmsHandoffLedgerRow[]>`
+      select
+        opportunity_contract_dms_handoff_id as "id",
+        opportunity_id as "opportunityId",
+        opportunity_code as "opportunityCode",
+        document_title as "documentTitle",
+        template_key as "templateKey",
+        folder_hint as "folderHint",
+        file_name_hint as "fileNameHint",
+        draft_path as "draftPath",
+        status_code as "statusCode",
+        document_snapshot as "documentSnapshot",
+        variables_snapshot as "variablesSnapshot",
+        artifact_snapshot as "artifactSnapshot",
+        memo,
+        saved_by as "savedBy",
+        saved_at as "savedAt"
+      from crm.crm_opportunity_contract_dms_handoff_m
+      where opportunity_code = ${opportunityCode}
+        and is_active = true
+      order by opportunity_contract_dms_handoff_id desc
+      limit 1
+    `;
+    return rows[0] ? this.toOpportunityContractDocumentHandoff(rows[0]) : null;
+  }
+
+  private async persistOpportunityContractDocumentHandoff(
+    opportunity: CrmOpportunityLedgerRow,
+    preview: CrmOpportunityContractDocumentPreview,
+    draftPath: string,
+    status: 'draft-created' | 'execution-completed',
+    artifact: CrmOpportunityContractDocumentArtifact | null,
+    memo: string | undefined,
+    currentUser: TokenPayload,
+  ): Promise<CrmOpportunityContractDocumentHandoffSummary> {
+    const documentSnapshot = { ...preview };
+    delete (documentSnapshot as Partial<CrmOpportunityContractDocumentPreview>).latestHandoff;
+    const currentUserId = BigInt(currentUser.userId);
+    const savedRows = await this.db.client.$transaction(async (tx) => {
+      const writer = tx as RawOpportunityWriter;
+      await writer.$executeRaw`
+        update crm.crm_opportunity_contract_dms_handoff_m
+           set status_code = 'replaced',
+               is_active = false,
+               updated_at = now(),
+               last_source = 'crm.opportunity-contract-document',
+               last_activity = 'opportunity-contract-document-replaced'
+         where opportunity_id = ${opportunity.id}
+           and is_active = true
+      `;
+      const inserted = await writer.$queryRaw<CrmOpportunityContractDmsHandoffLedgerRow[]>`
+        insert into crm.crm_opportunity_contract_dms_handoff_m (
+          opportunity_id,
+          opportunity_code,
+          document_title,
+          template_key,
+          folder_hint,
+          file_name_hint,
+          draft_path,
+          status_code,
+          document_snapshot,
+          variables_snapshot,
+          artifact_snapshot,
+          memo,
+          saved_by,
+          last_source,
+          last_activity
+        ) values (
+          ${opportunity.id},
+          ${opportunity.opportunityCode},
+          ${preview.documentTitle},
+          ${preview.templateKey},
+          ${preview.folderHint},
+          ${preview.fileNameHint},
+          ${draftPath},
+          ${status},
+          ${JSON.stringify(documentSnapshot)}::jsonb,
+          ${JSON.stringify(preview.variables)}::jsonb,
+          ${artifact ? JSON.stringify(artifact) : null}::jsonb,
+          ${memo?.trim() || null},
+          ${currentUserId},
+          'crm.opportunity-contract-document',
+          ${status === 'execution-completed' ? 'opportunity-contract-document-executed' : 'opportunity-contract-document-draft'}
+        )
+        returning
+          opportunity_contract_dms_handoff_id as "id",
+          opportunity_id as "opportunityId",
+          opportunity_code as "opportunityCode",
+          document_title as "documentTitle",
+          template_key as "templateKey",
+          folder_hint as "folderHint",
+          file_name_hint as "fileNameHint",
+          draft_path as "draftPath",
+          status_code as "statusCode",
+          document_snapshot as "documentSnapshot",
+          variables_snapshot as "variablesSnapshot",
+          artifact_snapshot as "artifactSnapshot",
+          memo,
+          saved_by as "savedBy",
+          saved_at as "savedAt"
+      `;
+      await writer.$executeRaw`
+        update crm.crm_opportunity_m
+           set dms_link_status_code = ${status === 'execution-completed' ? 'linked' : 'draft-created'},
+               updated_by = ${currentUserId},
+               updated_at = now(),
+               last_source = 'crm.opportunity-contract-document',
+               last_activity = ${status === 'execution-completed' ? 'opportunity-contract-document-executed' : 'opportunity-contract-document-draft'}
+         where opportunity_id = ${opportunity.id}
+      `;
+      return inserted;
+    });
+    if (!savedRows[0]) {
+      throw new BadRequestException('CRM 영업기회 계약서 DMS handoff snapshot을 저장하지 못했습니다.');
+    }
+    await this.queueOpportunityAiIndexJob(opportunity.id, 'upsert', `opportunity_contract_document_${status}`);
+    return this.toOpportunityContractDocumentHandoffSummary(this.toOpportunityContractDocumentHandoff(savedRows[0]));
+  }
+
+  private async performOpportunityContractDocumentLifecycle(
+    id: string,
+    dto: CrmOpportunityContractDocumentLifecycleExecutionRequest,
+    currentUser: TokenPayload,
+  ): Promise<CrmOpportunityContractDocumentLifecycleExecutionResult> {
+    if (!this.dmsCrmOpportunityContractLifecycleService) {
+      throw new BadRequestException('DMS opportunity contract lifecycle service is not available.');
+    }
+    const existing = await this.findOpportunityRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM opportunity not found');
+    }
+    const latest = await this.loadLatestOpportunityContractDocumentHandoff(existing.opportunityCode);
+    if (!latest) {
+      throw new BadRequestException('영업기회 계약서 DMS markdown 초안 handoff를 먼저 생성해야 합니다.');
+    }
+    const currentPreview = await this.getOpportunityContractDocumentPreview(existing.opportunityCode, currentUser);
+    if (currentPreview.readiness !== 'ready') {
+      throw new BadRequestException(currentPreview.blockedReasons.join(' ') || '영업기회 계약서 실행 준비가 완료되지 않았습니다.');
+    }
+    this.assertOpportunityContractDocumentTemplateSelectable(latest.templateKey, currentPreview.templateOptions);
+    const dmsExecution = await this.dmsCrmOpportunityContractLifecycleService.execute({
+      opportunityId: existing.id.toString(),
+      opportunityCode: existing.opportunityCode,
+      documentTitle: latest.documentTitle,
+      fileNameHint: latest.fileNameHint,
+      templateKey: latest.templateKey,
+      draftPath: latest.draftPath,
+      variables: latest.variablesSnapshot,
+      ...(dto.memo?.trim() ? { memo: dto.memo.trim() } : {}),
+    }, currentUser);
+    const word = dmsExecution.artifacts.find((candidate) => candidate.kind === 'word-export');
+    if (!word?.storageUri) {
+      throw new BadRequestException('DMS lifecycle 실행 결과에 DOCX artifact storage URI가 없습니다.');
+    }
+    const artifact: CrmOpportunityContractDocumentArtifact = {
+      kind: 'word-export',
+      label: word.label,
+      path: word.path,
+      storageUri: word.storageUri,
+      checksum: word.checksum,
+      size: word.size,
+    };
+    const persistedPreview: CrmOpportunityContractDocumentPreview = {
+      ...latest.documentSnapshot,
+      readiness: currentPreview.readiness,
+      blockedReasons: currentPreview.blockedReasons,
+      templateOptions: currentPreview.templateOptions,
+      lifecycle: this.toOpportunityContractDocumentLifecycle('ready', [], {
+        ...latest,
+        status: 'execution-completed',
+        artifact,
+      }, latest.templateKey),
+      latestHandoff: this.toOpportunityContractDocumentHandoffSummary(latest),
+    };
+    const handoff = await this.persistOpportunityContractDocumentHandoff(
+      existing,
+      persistedPreview,
+      latest.draftPath,
+      'execution-completed',
+      artifact,
+      dto.memo,
+      currentUser,
+    );
+    return {
+      preview: await this.getOpportunityContractDocumentPreview(existing.opportunityCode, currentUser),
+      handoff,
+      artifact,
+      boundaryNotice: dmsExecution.boundaryNotice,
+      nextAction: dmsExecution.nextAction,
+    };
+  }
+
+  private toOpportunityContractDocumentHandoff(
+    row: CrmOpportunityContractDmsHandoffLedgerRow,
+  ): OpportunityContractDocumentHandoff {
+    const artifact = this.fromJson<CrmOpportunityContractDocumentArtifact | null>(row.artifactSnapshot, null);
+    const documentSnapshot = this.fromJson<Omit<CrmOpportunityContractDocumentPreview, 'latestHandoff'>>(
+      row.documentSnapshot,
+      {
+        opportunityId: row.opportunityCode,
+        opportunityCode: row.opportunityCode,
+        opportunityVersion: 1,
+        customerName: '',
+        opportunityName: '',
+        confirmed: false,
+        latestVersion: false,
+        documentTitle: row.documentTitle,
+        templateKey: row.templateKey,
+        templateOptions: [],
+        folderHint: row.folderHint,
+        fileNameHint: row.fileNameHint,
+        draftPathHint: row.draftPath,
+        readiness: 'blocked',
+        blockedReasons: ['저장된 CRM 계약서 문서 snapshot을 해석할 수 없습니다.'],
+        variables: [],
+        lifecycle: [],
+        boundaryNotice: CRM_OPPORTUNITY_CONTRACT_DMS_BOUNDARY_NOTICE,
+        nextAction: 'CRM 계약서 문서 snapshot을 다시 생성하세요.',
+      },
+    );
+    return {
+      id: row.id.toString(),
+      opportunityId: row.opportunityId.toString(),
+      opportunityCode: row.opportunityCode,
+      documentTitle: row.documentTitle,
+      folderHint: row.folderHint,
+      fileNameHint: row.fileNameHint,
+      status: row.statusCode === 'execution-completed'
+        ? 'execution-completed'
+        : row.statusCode === 'replaced'
+          ? 'replaced'
+          : 'draft-created',
+      templateKey: row.templateKey,
+      draftPath: row.draftPath,
+      savedAt: row.savedAt.toISOString(),
+      savedBy: row.savedBy?.toString(),
+      memo: row.memo ?? undefined,
+      artifact: artifact ?? undefined,
+      documentSnapshot,
+      variablesSnapshot: this.fromJson<CrmOpportunityContractDocumentVariable[]>(row.variablesSnapshot, []),
+    };
+  }
+
+  private toOpportunityContractDocumentHandoffSummary(
+    handoff: OpportunityContractDocumentHandoff,
+  ): CrmOpportunityContractDocumentHandoffSummary {
+    return {
+      id: handoff.id,
+      status: handoff.status,
+      templateKey: handoff.templateKey,
+      draftPath: handoff.draftPath,
+      savedAt: handoff.savedAt,
+      savedBy: handoff.savedBy,
+      memo: handoff.memo,
+      artifact: handoff.artifact,
+    };
+  }
+
+  private toOpportunityContractDocumentLifecycle(
+    readiness: 'ready' | 'blocked',
+    blockedReasons: string[],
+    handoff: CrmOpportunityContractDocumentHandoffSummary | null,
+    templateKey: string,
+  ): CrmOpportunityContractDocumentLifecycleStep[] {
+    const executed = handoff?.status === 'execution-completed' && Boolean(handoff.artifact);
+    const blocked = readiness === 'blocked';
+    const templateReviewPath = handoff?.artifact?.path
+      ? `${handoff.artifact.path.split('/').slice(0, -1).join('/').replace(/^_assets\//, '_generated/')}/template-review.md`
+      : undefined;
+    return [
+      {
+        key: 'markdown-draft',
+        label: 'CRM 원천 22개 변수 초안',
+        owner: 'crm',
+        status: handoff ? 'completed' : blocked ? 'blocked' : 'ready',
+        evidenceLabel: 'CRM opportunity contract markdown handoff',
+        evidencePath: handoff?.draftPath,
+        note: handoff ? 'CRM이 원천 22개 변수 snapshot과 markdown 초안을 저장했습니다.' : 'CRM 원천 변수 초안 저장 대기 중입니다.',
+        blockingReasons: !handoff && blocked ? blockedReasons : undefined,
+      },
+      {
+        key: 'template-review',
+        label: 'DMS DOCX 템플릿 검토',
+        owner: 'dms',
+        status: executed ? 'completed' : blocked ? 'blocked' : handoff ? 'pending' : 'ready',
+        evidenceLabel: `DMS ${templateKey} template review record`,
+        evidencePath: executed ? templateReviewPath : undefined,
+        note: executed ? '실제 사용한 DMS 템플릿 버전과 검토 기록을 보존했습니다.' : 'DMS template review 실행 대기 중입니다.',
+        blockingReasons: !executed && blocked ? blockedReasons : undefined,
+      },
+      {
+        key: 'word-export',
+        label: 'DMS DOCX 계약서 산출',
+        owner: 'dms',
+        status: executed ? 'completed' : blocked ? 'blocked' : handoff ? 'pending' : 'ready',
+        evidenceLabel: 'DMS opportunity contract DOCX artifact',
+        evidencePath: handoff?.artifact?.storageUri,
+        note: executed ? '원천 22개 변수를 치환한 DOCX artifact를 저장했습니다.' : 'DMS DOCX render 실행 대기 중입니다.',
+        blockingReasons: !executed && blocked ? blockedReasons : undefined,
+      },
+    ];
+  }
+
+  private toOpportunityContractDocumentPathHints(
+    customerName: string,
+    opportunityName: string,
+    opportunityCode: string,
+    templateName: string,
+    now = new Date(),
+  ): Pick<CrmOpportunityContractDocumentPreview, 'folderHint' | 'fileNameHint' | 'draftPathHint'> {
+    const customer = this.toFileHintPart(customerName);
+    const opportunity = this.toFileHintPart(opportunityName);
+    const template = this.toFileHintPart(templateName);
+    const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const folderHint = `/CRM/${customer}/opportunity-contracts/${this.toFileHintPart(opportunityCode)}`;
+    const fileNameHint = `${customer}_${opportunity}_${template}_${date}.docx`;
+    return {
+      folderHint,
+      fileNameHint,
+      draftPathHint: `${folderHint.slice(1)}/${fileNameHint.replace(/\.docx$/i, '_draft.md')}`,
+    };
+  }
+
+  private toOpportunityContractDocumentDraftMarkdown(
+    preview: CrmOpportunityContractDocumentPreview,
+    memo?: string,
+  ): string {
+    return `${[
+      `# ${this.escapeMarkdownText(preview.documentTitle)}`,
+      '',
+      '> CRM 확정 영업기회에서 원천 데모의 22개 변수를 그대로 고정한 DMS DOCX 입력 초안입니다.',
+      '',
+      '| Key | 값 | 출처 |',
+      '|---|---|---|',
+      ...preview.variables.map((variable) => `| ${this.escapeMarkdownTableCell(variable.key)} | ${this.escapeMarkdownTableCell(variable.value)} | ${variable.source} |`),
+      '',
+      '## CRM-DMS 책임 경계',
+      '',
+      CRM_OPPORTUNITY_CONTRACT_DMS_BOUNDARY_NOTICE,
+      ...(memo?.trim() ? ['', '## 저장 메모', '', this.escapeMarkdownText(memo.trim().slice(0, 1000))] : []),
+    ].join('\n')}\n`;
+  }
+
+  private readDmsDocxArtifact(storageUri: string): { buffer: Buffer; fileName: string; contentType: string } {
+    try {
+      const opened = storageAdapterService.open({ storageUri });
+      const resolved = storageAdapterService.resolveContainedPath(opened.provider, opened.path);
+      if (path.extname(resolved.fullPath).toLowerCase() !== '.docx' || !fs.existsSync(resolved.fullPath)) {
+        throw new Error('산출물 파일 형식 또는 경로가 lifecycle evidence와 일치하지 않습니다.');
+      }
+      return {
+        buffer: fs.readFileSync(resolved.fullPath),
+        fileName: path.basename(resolved.fullPath),
+        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      };
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'DMS 영업기회 계약서 산출물을 열 수 없습니다.');
+    }
+  }
+
+  private toDotDate(value: string | undefined): string {
+    return value?.slice(0, 10).replace(/-/g, '.') ?? '';
+  }
+
+  private formatSourceNumber(value: number): string {
+    return Math.round(value).toLocaleString('ko-KR');
+  }
+
+  private toSourceKoreanWon(value: number): string {
+    let remaining = Math.max(0, Math.round(value));
+    if (remaining === 0) {
+      return '영원';
+    }
+    const units = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    const places = ['', '십', '백', '천'];
+    const bigs = ['', '만', '억', '조'];
+    let result = '';
+    let bigIndex = 0;
+    while (remaining > 0) {
+      const chunk = remaining % 10000;
+      if (chunk > 0) {
+        let chunkText = '';
+        let part = chunk;
+        for (let place = 0; part > 0; place += 1) {
+          const digit = part % 10;
+          if (digit > 0) {
+            chunkText = `${units[digit]}${places[place]}${chunkText}`;
+          }
+          part = Math.floor(part / 10);
+        }
+        result = `${chunkText}${bigs[bigIndex] ?? ''}${result}`;
+      }
+      bigIndex += 1;
+      remaining = Math.floor(remaining / 10000);
+    }
+    return `${result}원`;
+  }
+
   private async loadQuoteDmsTemplateEvidence(templateKey: string): Promise<CrmQuoteDmsTemplateEvidence> {
     if (!this.templateService) {
       return this.toUnavailableQuoteDmsTemplateEvidence(templateKey);
@@ -1502,6 +2436,60 @@ export class OpportunityService {
     }
 
     return this.toAvailableQuoteDmsTemplateEvidence(template);
+  }
+
+  private async loadQuoteDmsTemplateOptions(): Promise<CrmDmsDocumentTemplateOption[]> {
+    if (!this.templateService || typeof this.templateService.list !== 'function') {
+      return [];
+    }
+
+    const templates = await this.templateService.list('system');
+    return templates.global
+      .filter((template) => template.kind === 'document')
+      .filter((template) => template.id === CRM_QUOTE_DMS_TEMPLATE_KEY
+        || template.generation?.taskKey === CRM_QUOTE_DMS_TEMPLATE_TASK_KEY)
+      .map((template) => {
+        const status = template.status ?? 'active';
+        const selectable = status === 'active' && Boolean(template.docxTemplate);
+        return {
+          templateKey: template.id,
+          templateName: template.name,
+          taskKey: CRM_QUOTE_DMS_TEMPLATE_TASK_KEY,
+          sourcePath: template.sourcePath,
+          status,
+          docxFileName: template.docxTemplate?.fileName,
+          docxOrigin: template.docxTemplate?.origin,
+          reviewStatus: template.reviewConfirmation?.status ?? 'pending',
+          selectable,
+          ...(!selectable
+            ? { unavailableReason: status !== 'active' ? '보관된 템플릿입니다.' : '실제 DOCX binary가 연결되지 않았습니다.' }
+            : {}),
+        } satisfies CrmDmsDocumentTemplateOption;
+      })
+      .sort((left, right) => {
+        if (left.templateKey === CRM_QUOTE_DMS_TEMPLATE_KEY) return -1;
+        if (right.templateKey === CRM_QUOTE_DMS_TEMPLATE_KEY) return 1;
+        return left.templateName.localeCompare(right.templateName, 'ko');
+      });
+  }
+
+  private assertQuoteDmsTemplateSelectable(
+    templateKey: string,
+    templateOptions: CrmDmsDocumentTemplateOption[],
+  ): void {
+    if (!this.templateService || typeof this.templateService.list !== 'function') {
+      if (templateKey !== CRM_QUOTE_DMS_TEMPLATE_KEY) {
+        throw new BadRequestException(`DMS 견적 템플릿 ${templateKey}을 검증할 수 없습니다.`);
+      }
+      return;
+    }
+    const selected = templateOptions.find((option) => option.templateKey === templateKey);
+    if (!selected) {
+      throw new BadRequestException(`DMS 견적 템플릿 ${templateKey}은 견적 문서 용도로 등록되지 않았습니다.`);
+    }
+    if (!selected.selectable) {
+      throw new BadRequestException(selected.unavailableReason ?? `DMS 견적 템플릿 ${templateKey}을 사용할 수 없습니다.`);
+    }
   }
 
   private toAvailableQuoteDmsTemplateEvidence(template: TemplateItem): CrmQuoteDmsTemplateEvidence {
@@ -1782,6 +2770,7 @@ export class OpportunityService {
     previewStatus: 'candidate' | 'blocked',
     latestHandoff: CrmQuoteDmsDocumentHandoff | null,
     templateEvidence: CrmQuoteDmsTemplateEvidence,
+    templateOptions: CrmDmsDocumentTemplateOption[],
   ): CrmQuoteDmsDocumentPreview {
     const blockedReasons = [
       ...(previewStatus === 'blocked' ? ['견적 후보 매출이 없거나 영업기회 상태가 보류/실패입니다.'] : []),
@@ -1810,8 +2799,9 @@ export class OpportunityService {
       ownerName: opportunity.ownerName,
       documentType: 'quote',
       documentTitle,
-      templateKey: CRM_QUOTE_DMS_TEMPLATE_KEY,
+      templateKey: templateEvidence.templateKey,
       templateEvidence,
+      templateOptions,
       folderHint,
       fileNameHint,
       draftPathHint: this.toQuoteDmsDraftPathFromParts(opportunity.customerName, quoteNumber, opportunity.opportunityName),
@@ -2170,6 +3160,7 @@ export class OpportunityService {
         documentTitle: row.documentTitle,
         templateKey: row.templateKey,
         templateEvidence: this.toUnavailableQuoteDmsTemplateEvidence(row.templateKey),
+        templateOptions: [],
         folderHint: row.folderHint,
         fileNameHint: row.fileNameHint,
         draftPathHint: row.draftPath,
@@ -2886,7 +3877,17 @@ export class OpportunityService {
 
   private normalizeQuery(query: CrmOpportunityListQuery): Required<CrmOpportunityListQuery> {
     const status = query.status && STATUSES.includes(query.status as CrmOpportunityStatus) ? query.status : 'all';
+    const sourceStatus = query.sourceStatus && SOURCE_STATUSES.includes(query.sourceStatus as CrmSourceOpportunityStatus)
+      ? query.sourceStatus
+      : 'all';
     const sort = query.sort && SORTS.includes(query.sort) ? query.sort : DEFAULT_SORT;
-    return { search: query.search?.trim() ?? '', status, sort };
+    return { search: query.search?.trim() ?? '', status, sourceStatus, sort };
+  }
+
+  private toSourceOpportunityStatus(status: CrmOpportunityStatus): CrmSourceOpportunityStatus {
+    if (status === 'proposal') return '진행중';
+    if (status === 'won') return '계약완료';
+    if (status === 'lost') return '실패';
+    return '검토중';
   }
 }

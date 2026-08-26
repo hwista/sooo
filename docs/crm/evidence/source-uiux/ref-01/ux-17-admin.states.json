@@ -1,0 +1,222 @@
+{
+  "states": [
+    {
+      "name": "logged-out-login",
+      "captured": true,
+      "screenshot": "ux-17-login.png",
+      "screenshotSha256": "121ff1b1975b1ceb9cd9bae9c80e30ff206c3084dd16fdffa4d04238a8499fc6",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.admin.js"
+    },
+    {
+      "name": "login-validation",
+      "captured": true,
+      "screenshot": "ux-17-admin--login-validation.png",
+      "screenshotSha256": "72465adb261c231aa5f4bc6f4a95c7e5a2beb743b7c2b850d578759aae31aa13",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.admin.js"
+    },
+    {
+      "name": "login-error",
+      "captured": true,
+      "screenshot": "ux-17-admin--login-error.png",
+      "screenshotSha256": "9321614a2849e8296628d2b8d53de4cb1a1b0127a64615a9c8ac0c3d9379a046",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.admin.js"
+    },
+    {
+      "name": "seeded-admin-list",
+      "captured": true,
+      "screenshot": "ux-17-admin.png",
+      "screenshotSha256": "fc574be305c7ce56417d52e2c25c0f8518069fda6f7b8bacba00b93b0cf886f4",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.admin.js"
+    },
+    {
+      "name": "filtered-empty",
+      "captured": true,
+      "screenshot": "ux-17-admin--filtered-empty.png",
+      "screenshotSha256": "ebc29a99bd824b35818e2ee103d658753200363fd4f4228cc6d240b17fc57e60",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.admin.js"
+    },
+    {
+      "name": "create-edit-validation",
+      "captured": true,
+      "screenshot": "ux-17-admin--create-edit-validation.png",
+      "screenshotSha256": "62b9ef1cf0692d17b88d223e718d365aa18d9006daf95eccd0577450866d4429",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.admin.js"
+    },
+    {
+      "name": "deactivate-reset-confirmation",
+      "captured": true,
+      "screenshot": "ux-17-admin--deactivate-reset-confirmation.png",
+      "screenshotSha256": "60da342d388f6ae6d79b9d2c416b45c6d7c7806d69660acc6aa60ba601962713",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.admin.js"
+    },
+    {
+      "name": "profile-password",
+      "captured": true,
+      "screenshot": "ux-17-admin--profile-password.png",
+      "screenshotSha256": "0df348718f67b4e29c121e53a76ebe13ebd13a1e19072371d7f224639f43fbb3",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.admin.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "logged-out-login",
+      "behavior": "logged out login",
+      "sourceAnchors": [
+        "index.html",
+        "app.admin.js"
+      ]
+    },
+    {
+      "id": "login-validation",
+      "behavior": "login validation",
+      "sourceAnchors": [
+        "index.html",
+        "app.admin.js"
+      ]
+    },
+    {
+      "id": "login-error",
+      "behavior": "login error",
+      "sourceAnchors": [
+        "index.html",
+        "app.admin.js"
+      ]
+    },
+    {
+      "id": "seeded-admin-list",
+      "behavior": "seeded admin list",
+      "sourceAnchors": [
+        "index.html",
+        "app.admin.js"
+      ]
+    },
+    {
+      "id": "filtered-empty",
+      "behavior": "filtered empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.admin.js"
+      ]
+    },
+    {
+      "id": "create-edit-validation",
+      "behavior": "create edit validation",
+      "sourceAnchors": [
+        "index.html",
+        "app.admin.js"
+      ]
+    },
+    {
+      "id": "deactivate-reset-confirmation",
+      "behavior": "deactivate reset confirmation",
+      "sourceAnchors": [
+        "index.html",
+        "app.admin.js"
+      ]
+    },
+    {
+      "id": "profile-password",
+      "behavior": "profile password",
+      "sourceAnchors": [
+        "index.html",
+        "app.admin.js"
+      ]
+    }
+  ]
+}

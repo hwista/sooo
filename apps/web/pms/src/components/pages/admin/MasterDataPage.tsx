@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { LoadingState, ErrorState } from '@/components/common/StateDisplay';
 import {
   useCreatePmsMasterImportProfile,
@@ -1276,7 +1277,11 @@ export function MasterDataPage() {
 
       <div className="flex items-center justify-between gap-3 border-b px-6 py-3">
         <div className="flex w-full max-w-md items-center gap-2">
-          <Input
+          <SsooSearchInput
+            id="pms-master-data-search-input"
+            name="pms-master-data-search-query"
+            ariaLabel="PMS 기준정보 검색"
+            intent="data-filter"
             placeholder="코드, 이름, 담당, 유형 검색"
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}

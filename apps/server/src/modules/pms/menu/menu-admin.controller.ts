@@ -4,7 +4,7 @@ import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
 import { Roles } from '../../common/auth/decorators/roles.decorator.js';
 import { MenuAdminService } from './menu-admin.service.js';
 import { success } from '../../../common/index.js';
-import type { CreateMenuDto, UpdateMenuDto } from './dto/menu-admin.dto.js';
+import { CreateMenuDto, UpdateMenuDto } from './dto/menu-admin.dto.js';
 
 @ApiTags('Menu Administration')
 @ApiBearerAuth()

@@ -9,20 +9,15 @@ import type {
   CrmReportsBreakdownKind,
   CrmReportsConfirmationResult,
   CrmReportsMonthlyTrend,
-  CrmReportsPreviewQuery,
   CrmReportsPreviewRegion,
   CrmReportsPreviewResponse,
 } from '@ssoo/types/crm';
 import { Badge, Button, Input, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { useAuthStore } from '@/stores/auth.store';
-
-export interface ReportsPreviewWorkspaceQuery {
-  year: number;
-  businessType: string;
-  industryLine: string;
-  region: CrmReportsPreviewRegion;
-  search: string;
-}
+import { useCrmBusinessYearOptions } from '@/lib/crmCommonCodeOptions';
+import { useCrmDomainAccess } from '@/lib/useCrmDomainAccess';
+import { toRequiredReportsPreviewQuery, type ReportsPreviewWorkspaceQuery } from './reportsPreviewQuery';
 
 interface BackendSuccessResponse<T> {
   success: true;
@@ -113,6 +108,8 @@ export function ReportsPreviewWorkspaceClient({
   query: ReportsPreviewWorkspaceQuery;
 }) {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { access: domainAccess, error: domainAccessError } = useCrmDomainAccess(accessToken);
+  const canConfirmReport = domainAccess?.features.canConfirmReport === true;
   const [currentData, setCurrentData] = useState(data);
   const [isReloading, setIsReloading] = useState(data.breakdowns.length === 0 && data.attentionItems.length === 0);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -120,7 +117,8 @@ export function ReportsPreviewWorkspaceClient({
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
   const [confirmationError, setConfirmationError] = useState<string | null>(null);
   const apiHref = useMemo(() => buildApiHref(query), [query]);
-  const yearOptions = useMemo(() => getYearOptions(query.year), [query.year]);
+  const businessYears = useCrmBusinessYearOptions(query.year, getYearOptions(query.year));
+  const yearOptions = businessYears.years;
   const latestConfirmation = currentData.summary.latestConfirmation;
 
   useEffect(() => {
@@ -242,11 +240,11 @@ export function ReportsPreviewWorkspaceClient({
               <RefreshCw className="mr-2 h-4 w-4" />
               새로고침
             </Button>
-            <Button size="sm" type="button" onClick={() => void confirmReport()} disabled={isReloading || isConfirming}>
+            <Button size="sm" type="button" onClick={() => void confirmReport()} disabled={!canConfirmReport || isReloading || isConfirming} title={canConfirmReport ? '현재 보고 확정' : '보고 확정 권한이 없습니다.'}>
               <CheckCircle2 className="mr-2 h-4 w-4" />
               {isConfirming ? '처리 중' : '보고 확정'}
             </Button>
-            <Button variant="outline" size="sm" type="button" onClick={() => void reopenReport()} disabled={!latestConfirmation || isReloading || isConfirming}>
+            <Button variant="outline" size="sm" type="button" onClick={() => void reopenReport()} disabled={!canConfirmReport || !latestConfirmation || isReloading || isConfirming} title={canConfirmReport ? '보고 확정 해제' : '보고 확정 해제 권한이 없습니다.'}>
               <RotateCcw className="mr-2 h-4 w-4" />
               확정 해제
             </Button>
@@ -304,7 +302,7 @@ export function ReportsPreviewWorkspaceClient({
             </label>
             <label className="min-w-[220px] flex-1 text-sm font-medium text-muted-foreground">
               검색
-              <Input name="search" defaultValue={query.search} placeholder="고객, 건명, 담당자, WBS" className="mt-1" />
+              <SsooSearchInput id="crm-reports-search-input" name="search" ariaLabel="CRM 보고서 검색" intent="data-filter" defaultValue={query.search} placeholder="고객, 건명, 담당자, WBS" className="mt-1" />
             </label>
             <Button type="submit">
               <Search className="mr-2 h-4 w-4" />
@@ -317,6 +315,12 @@ export function ReportsPreviewWorkspaceClient({
               <AlertCircle className="h-4 w-4" />
               {loadError}
             </div>
+          ) : null}
+          {domainAccess && !canConfirmReport ? (
+            <div className="border-b bg-ssoo-warning-bg px-4 py-3 text-sm text-ssoo-warning">보고 확정 권한이 없어 Preview 조회만 가능합니다.</div>
+          ) : null}
+          {domainAccessError ? (
+            <div className="border-b bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger">{domainAccessError}</div>
           ) : null}
           {confirmationMessage ? (
             <div className="border-b px-4 py-3 text-sm text-ssoo-success">{confirmationMessage}</div>
@@ -443,39 +447,4 @@ function AttentionItems({ items }: { items: CrmReportsAttentionItem[] }) {
       )}
     </div>
   );
-}
-
-export function normalizeReportsPreviewQuery(path: string): ReportsPreviewWorkspaceQuery {
-  const url = new URL(path, 'http://crm.local');
-  return normalizeReportsPreviewQueryRecord(Object.fromEntries(url.searchParams.entries()));
-}
-
-export function normalizeReportsPreviewQueryRecord(query: Record<string, string | string[] | undefined>): ReportsPreviewWorkspaceQuery {
-  const currentYear = new Date().getFullYear();
-  const yearValue = Number(value(query.year) || currentYear);
-  const region = value(query.region) as CrmReportsPreviewRegion;
-  return {
-    year: Number.isFinite(yearValue) && yearValue >= 2000 && yearValue <= 2100 ? Math.trunc(yearValue) : currentYear,
-    businessType: value(query.businessType).slice(0, 120),
-    industryLine: value(query.industryLine).slice(0, 120),
-    region: region === 'domestic' || region === 'overseas' ? region : 'all',
-    search: value(query.search).slice(0, 200),
-  };
-}
-
-export function toRequiredReportsPreviewQuery(query: ReportsPreviewWorkspaceQuery): Required<CrmReportsPreviewQuery> {
-  return {
-    year: query.year,
-    businessType: query.businessType,
-    industryLine: query.industryLine,
-    region: query.region,
-    search: query.search,
-  };
-}
-
-function value(input: string | string[] | undefined): string {
-  if (Array.isArray(input)) {
-    return input[0]?.trim() ?? '';
-  }
-  return input?.trim() ?? '';
 }

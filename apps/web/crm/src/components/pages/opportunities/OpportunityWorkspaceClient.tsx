@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
@@ -10,10 +10,12 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ChevronUp,
+  Download,
   FileCheck2,
   LockKeyhole,
   Pencil,
   Plus,
+  Printer,
   RefreshCw,
   RotateCcw,
   Save,
@@ -27,6 +29,7 @@ import type {
   CrmOpportunity,
   CrmOpportunityAccessSnapshot,
   CrmOpportunityContractConversionResponse,
+  CrmOpportunityDeleteResult,
   CrmDashboardResponse,
   CrmOpportunityDiscountType,
   CrmOpportunityGlobalAccessSnapshot,
@@ -39,6 +42,7 @@ import type {
   CrmOpportunityQuotePreview,
   CrmOpportunityServiceType,
   CrmOpportunitySort,
+  CrmSourceOpportunityStatus,
   CrmOpportunityStatus,
   CrmQuotePreviewLine,
   CrmQuoteDmsDocumentDraft,
@@ -51,15 +55,37 @@ import type {
   CrmOpportunityUpsertLine,
   CrmOpportunityUpsertRequest,
   CrmOpportunityVersionListResponse,
+  CrmOpportunityVersionSummary,
 } from '@ssoo/types/crm';
 import { useAuthStore } from '@/stores/auth.store';
-import { Button, Checkbox, Input, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Textarea } from '@ssoo/web-ui';
+import { useCrmCommonCodeOptions, withCurrentCodeOption } from '@/lib/crmCommonCodeOptions';
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Input,
+  NativeSelect,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Textarea,
+} from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
+import { OpportunityContractDocumentCard } from './OpportunityContractDocumentCard';
 
 export interface OpportunityWorkspaceQuery {
   search: string;
   status: CrmOpportunityStatus | 'all';
+  sourceStatus: CrmSourceOpportunityStatus | 'all';
   sort: CrmOpportunitySort;
   selected: string;
+  sourceSurface: 'workspace' | 'dashboard' | 'list' | 'form' | 'contract-document';
+  create: boolean;
 }
 
 const statusLabels: Record<CrmOpportunityStatus, string> = {
@@ -92,6 +118,8 @@ const regionLabels: Record<CrmOpportunity['region'], string> = {
 };
 
 const paymentTermLabels: Record<string, string> = {
+  monthly: '월별',
+  quarterly: '분기별',
   계약즉시: '계약 즉시',
   NET30: '계약 후 30일 이내',
   NET60: '계약 후 60일 이내',
@@ -117,10 +145,14 @@ const serviceTypeLabels: Record<CrmOpportunityServiceType, string> = {
 };
 
 const sortLabels: Record<CrmOpportunitySort, string> = {
+  'customer-asc': '고객명순',
   'updated-desc': '최근 수정순',
   'revenue-desc': '매출 높은순',
+  'profit-desc': '이익순',
   'margin-desc': '손익률 높은순',
 };
+
+const sourceStatusLabels: CrmSourceOpportunityStatus[] = ['진행중', '검토중', '계약완료', '실패'];
 
 const historyEventLabels: Record<string, string> = {
   create: '생성',
@@ -154,7 +186,11 @@ const ownerContactStatusLabels: Record<CrmQuotePreviewOwnerContactStatus, string
 };
 
 const formatCurrency = (value: number) => `${Math.round(value / 100000000).toLocaleString('ko-KR')}억`;
+const formatSourceEok = (value: number) => `${(value / 100000000).toFixed(1)}억`;
 const formatWon = (value: number) => `${Math.round(value).toLocaleString('ko-KR')}원`;
+const isSourceUiuxOpportunity = (item: CrmOpportunity) => item.id.startsWith('crm-uiux-opp-');
+const getSourceOpportunityRevenue = (item: CrmOpportunity) => item.revenueLines.reduce((sum, line) => sum + line.amount, 0);
+const getSourceOpportunityCost = (item: CrmOpportunity) => item.costLines.reduce((sum, line) => sum + line.amount, 0);
 const formatSellerInfoStatus = (value: CrmQuotePreviewSellerInfoStatus) => sellerInfoStatusLabels[value] ?? value;
 const formatOwnerContactStatus = (value: CrmQuotePreviewOwnerContactStatus) => ownerContactStatusLabels[value] ?? value;
 const OWNER_LOOKUP_EMPTY_VALUE = '__none';
@@ -186,6 +222,156 @@ const formatDateTime = (value: string) => {
     minute: '2-digit',
   });
 };
+
+const escapeQuotePrintHtml = (value: string | number | null | undefined) => String(value ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&apos;');
+
+// design/source-fidelity-override:start ref=CRM-REF-01 evidence=BT-27
+const SOURCE_QUOTE_DOCUMENT_CSS = `
+.source-quote-document{padding:32px 40px;background:#fff;color:#1a1a18;font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;min-width:700px}
+.source-quote-title{text-align:center;margin-bottom:28px;padding-bottom:16px;border-bottom:2px solid #1a1a18}
+.source-quote-title strong{display:block;font-size:28px;font-weight:900;letter-spacing:6px;color:#1a1a18}
+.source-quote-title span{display:block;font-size:12px;color:#888;margin-top:4px;letter-spacing:1px}
+.source-quote-party{display:grid;grid-template-columns:1fr 1fr;margin-bottom:28px;border:.5px solid #ccc}
+.source-quote-party>section{padding:20px 24px}
+.source-quote-party>section:first-child{border-right:.5px solid #ccc}
+.source-quote-party>section:last-child{background:#fafafa}
+.source-quote-party table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.source-quote-party td{padding:5px 0;vertical-align:top;color:#1a1a18;word-break:break-all}
+.source-quote-party td:first-child{width:72px;color:#5f5e5a;font-weight:500;white-space:nowrap}
+.source-quote-intro{font-size:13px;color:#1a1a18;line-height:2;border-top:.5px solid #e8e8e8;padding-top:14px}
+.source-quote-section-title{font-size:13px;font-weight:600;color:#1a1a18;margin:20px 0 8px;padding-bottom:5px;border-bottom:1.5px solid #1a1a18}
+.source-quote-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px}
+.source-quote-table th{background:#1a1a18;color:#fff;padding:7px 10px;text-align:left;font-weight:500;white-space:nowrap}
+.source-quote-table th.r,.source-quote-table td.r{text-align:right}
+.source-quote-table td{padding:6px 10px;border-bottom:.5px solid #e8e8e8;color:#1a1a18;vertical-align:middle}
+.source-quote-table tr:nth-child(even) td{background:#fafafa}
+.source-quote-table tr.subtotal td{background:#f5f5f0;font-weight:600;border-top:.5px solid #ccc}
+.source-quote-summary{margin-top:16px;border:.5px solid #ccc;border-radius:6px;overflow:hidden}
+.source-quote-summary>div{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:.5px solid #e8e8e8;font-size:13px}
+.source-quote-summary>div:last-child{border-bottom:none}
+.source-quote-summary .dc{background:#faeeda;color:#633806}
+.source-quote-summary .total{background:#1a1a18;color:#fff;font-weight:600;font-size:14px}
+.source-quote-summary span:last-child{font-variant-numeric:tabular-nums;font-weight:600}
+.source-quote-validity{margin-top:16px;font-size:12px;color:#5f5e5a;padding:10px 14px;background:#f5f5f0;border-radius:6px;border-left:3px solid #1a1a18;line-height:1.7}
+@media(max-width:760px){.source-quote-document{padding:20px 16px;min-width:0}.source-quote-party>section{padding:16px}.source-quote-party{grid-template-columns:1fr}.source-quote-party>section:first-child{border-right:0;border-bottom:.5px solid #ccc}.source-quote-table{display:block;max-width:100%;overflow-x:auto}}
+`;
+
+const formatSourceQuoteWon = (value: number) => `${Math.round(value).toLocaleString('ko-KR')} 원`;
+const formatSourceQuoteDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일`;
+};
+
+function renderSourceQuoteProductRows(lines: CrmQuotePreviewLine[]): string {
+  if (lines.length === 0) return '<tr><td colspan="5" style="text-align:center;color:#888;padding:10px">항목 없음</td></tr>';
+  return lines.map((line, index) => `<tr><td>${index + 1}</td><td>${escapeQuotePrintHtml(line.label)}</td><td class="r">${escapeQuotePrintHtml((line.quantity ?? 0).toLocaleString('ko-KR'))}</td><td class="r">${escapeQuotePrintHtml(formatSourceQuoteWon(line.unitPrice ?? 0))}</td><td class="r">${escapeQuotePrintHtml(formatSourceQuoteWon(line.amount))}</td></tr>`).join('');
+}
+
+function renderSourceQuoteServiceRows(lines: CrmQuotePreviewLine[]): string {
+  if (lines.length === 0) return '<tr><td colspan="7" style="text-align:center;color:#888;padding:10px">항목 없음</td></tr>';
+  return lines.map((line, index) => `<tr><td>${index + 1}</td><td>${escapeQuotePrintHtml(line.department ?? '')}</td><td>${escapeQuotePrintHtml(line.memberName ?? line.label)}</td><td>${escapeQuotePrintHtml(line.grade ?? '')}</td><td class="r">${escapeQuotePrintHtml((line.quantity ?? 0).toLocaleString('ko-KR'))}</td><td class="r">${escapeQuotePrintHtml(formatSourceQuoteWon(line.unitPrice ?? 0))}</td><td class="r">${escapeQuotePrintHtml(formatSourceQuoteWon(line.amount))}</td></tr>`).join('');
+}
+
+function buildSourceQuoteBodyHtml(preview: CrmOpportunityQuotePreview): string {
+  const seller = preview.party.sellerProfile;
+  const owner = preview.party.ownerContact;
+  const opportunityName = preview.dmsDocument.opportunityName;
+  const ownerDisplay = owner?.departmentName
+    ? `${preview.party.ownerName} (${owner.departmentName})`
+    : preview.party.ownerName;
+  const safeCiReference = seller?.ciStorageRef && /^(?:data:image\/|https?:\/\/|\/)/i.test(seller.ciStorageRef)
+    ? seller.ciStorageRef
+    : seller?.ciStatus === 'configured' && seller.ciStorageRef
+      ? '/api/crm/quote-seller-profile/ci'
+      : null;
+  const specialDiscountLabel = preview.summary.specialDiscountType === 'rate'
+    ? `Special DC (${preview.summary.specialDiscountValue}%)`
+    : 'Special DC';
+
+  return `
+  <div class="source-quote-document" data-source-quote-document="true">
+    <div class="source-quote-title"><strong>QUOTATION</strong><span>견 적 서</span></div>
+    <div class="source-quote-party">
+      <section>
+        <table style="margin-bottom:20px"><tbody>
+          <tr><td>수 &nbsp; 신</td><td style="font-weight:700;font-size:15px">${escapeQuotePrintHtml(preview.party.customerName)} 귀중</td></tr>
+          <tr><td>참 &nbsp; 조</td><td>${escapeQuotePrintHtml(preview.party.clientContactName || '담당자')} 님</td></tr>
+          <tr><td>일 &nbsp; 자</td><td>${escapeQuotePrintHtml(formatSourceQuoteDate(preview.workflow.issuedAt))}</td></tr>
+        </tbody></table>
+        <div class="source-quote-intro">아래와 같이 견적을 제출합니다.<br><span style="display:inline-block;width:14px;font-weight:600">1.</span> 프로젝트명 : <strong>${escapeQuotePrintHtml(opportunityName)}</strong><br><span style="display:inline-block;width:14px;font-weight:600">2.</span> 견적금액 &nbsp;&nbsp;: <strong style="font-size:14px">${escapeQuotePrintHtml(formatSourceQuoteWon(preview.summary.quoteTotal))} (${escapeQuotePrintHtml(preview.summary.vatNotice)})</strong><br><span style="display:inline-block;width:14px;font-weight:600">3.</span> 수금조건 &nbsp;&nbsp;: <strong>${escapeQuotePrintHtml(preview.workflow.paymentTermLabel)}</strong></div>
+      </section>
+      <section>
+        ${safeCiReference ? `<img src="${escapeQuotePrintHtml(safeCiReference)}" alt="CI" style="max-height:36px;max-width:140px;object-fit:contain;margin-bottom:14px;display:block">` : ''}
+        <table><tbody>
+          <tr><td colspan="2" style="width:auto;font-size:15px;font-weight:700;padding-bottom:10px;border-bottom:.5px solid #ddd">${escapeQuotePrintHtml(preview.party.sellerName || '(회사명 미입력)')}</td></tr>
+          ${seller?.ceoName ? `<tr><td>대표이사</td><td>${escapeQuotePrintHtml(seller.ceoName)}</td></tr>` : ''}
+          <tr><td>담 &nbsp; 당</td><td>${escapeQuotePrintHtml(ownerDisplay || '-')}</td></tr>
+          ${owner?.phone ? `<tr><td>Tel</td><td>${escapeQuotePrintHtml(owner.phone)}</td></tr>` : seller?.tel ? `<tr><td>Tel</td><td>${escapeQuotePrintHtml(seller.tel)}</td></tr>` : ''}
+          ${owner?.email ? `<tr><td>e-Mail</td><td style="font-size:12px">${escapeQuotePrintHtml(owner.email)}</td></tr>` : ''}
+          ${seller?.address ? `<tr><td>주 &nbsp; 소</td><td style="font-size:12px;line-height:1.6">${escapeQuotePrintHtml(seller.address)}</td></tr>` : ''}
+        </tbody></table>
+      </section>
+    </div>
+    ${preview.productLines.length > 0 ? `<div class="source-quote-section-title">📦 상품 공급 내역</div><table class="source-quote-table"><thead><tr><th style="width:5%">No</th><th>상품명</th><th class="r" style="width:10%">수량</th><th class="r" style="width:18%">단가</th><th class="r" style="width:20%">금액</th></tr></thead><tbody>${renderSourceQuoteProductRows(preview.productLines)}<tr class="subtotal"><td colspan="4" class="r">상품 소계</td><td class="r">${escapeQuotePrintHtml(formatSourceQuoteWon(preview.summary.productSubtotal))}</td></tr></tbody></table>` : ''}
+    ${preview.serviceLines.length > 0 ? `<div class="source-quote-section-title">👥 용역 제공 내역</div><table class="source-quote-table"><thead><tr><th style="width:5%">No</th><th style="width:14%">소속</th><th>성명</th><th style="width:10%">등급</th><th class="r" style="width:12%">M/M</th><th class="r" style="width:18%">단가</th><th class="r" style="width:20%">금액</th></tr></thead><tbody>${renderSourceQuoteServiceRows(preview.serviceLines)}<tr class="subtotal"><td colspan="6" class="r">용역 소계</td><td class="r">${escapeQuotePrintHtml(formatSourceQuoteWon(preview.summary.serviceSubtotal))}</td></tr></tbody></table>` : ''}
+    <div class="source-quote-summary"><div><span>공급가액 합계</span><span>${escapeQuotePrintHtml(formatSourceQuoteWon(preview.summary.revenueSubtotal))}</span></div>${preview.summary.specialDiscountAmount > 0 ? `<div class="dc"><span>${escapeQuotePrintHtml(specialDiscountLabel)}</span><span>- ${escapeQuotePrintHtml(formatSourceQuoteWon(preview.summary.specialDiscountAmount))}</span></div>` : ''}<div class="total"><span>최종 견적 금액 (${escapeQuotePrintHtml(preview.summary.vatNotice)})</span><span>${escapeQuotePrintHtml(formatSourceQuoteWon(preview.summary.quoteTotal))}</span></div></div>
+    <div class="source-quote-validity">※ 본 견적서는 작성일로부터 ${escapeQuotePrintHtml(preview.workflow.validityDays)}일간 유효합니다.<br>※ 금액은 부가세(VAT) 별도이며, 계약 조건은 별도 협의에 따릅니다.</div>
+  </div>`;
+}
+
+function openQuotePrintPreview(preview: CrmOpportunityQuotePreview): void {
+  const printWindow = window.open('', '_blank', 'popup,width=900,height=700,scrollbars=yes');
+  if (!printWindow) {
+    window.alert('견적서 인쇄 창을 열 수 없습니다. 브라우저의 팝업 차단 설정을 확인하세요.');
+    return;
+  }
+
+  printWindow.opener = null;
+  printWindow.document.open();
+  printWindow.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeQuotePrintHtml(preview.workflow.quoteNumber)} 견적서</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;background:#fff}.source-quote-print-actions{text-align:right;padding:10px 15mm;border-bottom:1px solid #eee}.source-quote-print-actions button{padding:8px 20px;background:#1a1a18;color:#fff;border:0;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit}.source-quote-print-actions button+button{padding:8px 16px;background:#f5f5f0;color:#1a1a18;border:1px solid #ccc;margin-left:8px}${SOURCE_QUOTE_DOCUMENT_CSS}.source-quote-document{padding:15mm;min-width:700px}@page{size:A4;margin:0}@media(max-width:760px){.source-quote-print-actions{display:flex;justify-content:flex-end;gap:8px;padding:8px}.source-quote-print-actions button{padding:8px 12px}.source-quote-print-actions button+button{margin-left:0}.source-quote-document{padding:20px 16px;min-width:0}}@media print{.source-quote-print-actions{display:none!important}.source-quote-document{padding:10mm 12mm;min-width:0}}</style></head><body><div class="source-quote-print-actions"><button type="button" onclick="window.print()">🖨 인쇄 / PDF 저장</button><button type="button" onclick="window.close()">닫기</button></div>${buildSourceQuoteBodyHtml(preview)}</body></html>`);
+  printWindow.document.close();
+  printWindow.focus();
+}
+
+function SourceQuotePreviewDialog({
+  open,
+  preview,
+  onOpenChange,
+}: {
+  open: boolean;
+  preview: CrmOpportunityQuotePreview | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  if (!preview) return null;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        aria-describedby={undefined}
+        className="left-1/2 top-[30px] block max-h-[calc(100vh-60px)] w-[min(780px,calc(100vw-16px))] max-w-none translate-x-[-50%] translate-y-0 overflow-y-auto overflow-x-hidden gap-0 border-[#d8d8d2] bg-white p-0 shadow-lg [&>button.absolute]:hidden"
+        data-source-quote-preview="true"
+      >
+        <style>{SOURCE_QUOTE_DOCUMENT_CSS}</style>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#d8d8d2] bg-[#f5f5f0] px-5 py-3.5">
+          <DialogTitle className="text-[15px] font-medium leading-none text-[#1a1a18]">📄 견적서 미리보기</DialogTitle>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => openQuotePrintPreview(preview)}>
+              <Printer className="h-3.5 w-3.5" /> 인쇄 / PDF
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => onOpenChange(false)}>✕ 닫기</Button>
+          </div>
+        </div>
+        <div className="max-w-full overflow-x-auto" dangerouslySetInnerHTML={{ __html: buildSourceQuoteBodyHtml(preview) }} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+// design/source-fidelity-override:end
 
 type OpportunityEditorMode = 'create' | 'edit';
 type OpportunityDraftLineKind = 'revenueLines' | 'costLines';
@@ -257,22 +443,29 @@ interface BackendErrorResponse {
   message?: string;
 }
 
-function buildHref(query: OpportunityWorkspaceQuery, patch: Partial<Record<'search' | 'status' | 'sort' | 'selected', string>>) {
+function buildHref(
+  query: OpportunityWorkspaceQuery,
+  patch: Partial<Record<'search' | 'status' | 'sourceStatus' | 'sort' | 'selected' | 'sourceSurface' | 'create', string>>,
+) {
   const params = new URLSearchParams();
   const next = { ...query, ...patch };
   if (next.search) params.set('search', next.search);
   if (next.status && next.status !== 'all') params.set('status', next.status);
-  if (next.sort && next.sort !== 'updated-desc') params.set('sort', next.sort);
+  if (next.sourceStatus && next.sourceStatus !== 'all') params.set('sourceStatus', next.sourceStatus);
+  if (next.sort && next.sort !== 'customer-asc') params.set('sort', next.sort);
   if (next.selected) params.set('selected', next.selected);
+  if (next.sourceSurface && next.sourceSurface !== 'workspace') params.set('sourceSurface', next.sourceSurface);
+  if (next.create === true || next.create === 'opportunity') params.set('create', 'opportunity');
   const suffix = params.toString();
   return suffix ? `/?${suffix}` : '/';
 }
 
-function buildApiHref(query: OpportunityWorkspaceQuery) {
+function buildApiHref(query: Pick<OpportunityWorkspaceQuery, 'search' | 'status' | 'sourceStatus' | 'sort'>) {
   const params = new URLSearchParams();
   if (query.search) params.set('search', query.search);
   if (query.status && query.status !== 'all') params.set('status', query.status);
-  if (query.sort && query.sort !== 'updated-desc') params.set('sort', query.sort);
+  if (query.sourceStatus && query.sourceStatus !== 'all') params.set('sourceStatus', query.sourceStatus);
+  if (query.sort && query.sort !== 'customer-asc') params.set('sort', query.sort);
   const suffix = params.toString();
   return suffix ? `/api/crm/opportunities?${suffix}` : '/api/crm/opportunities';
 }
@@ -559,6 +752,53 @@ function getBackendErrorMessage(responseBody: BackendSuccessResponse<unknown> | 
   return responseBody.error?.message || responseBody.message || 'CRM 영업기회 저장 중 오류가 발생했습니다.';
 }
 
+async function hydrateQuotePreviewCi(
+  preview: CrmOpportunityQuotePreview,
+  accessToken: string,
+  signal: AbortSignal,
+): Promise<CrmOpportunityQuotePreview> {
+  const sellerProfile = preview.party.sellerProfile;
+  const storageRef = sellerProfile?.ciStorageRef?.trim();
+  if (
+    sellerProfile?.ciStatus !== 'configured'
+    || !storageRef
+    || /^(?:data:image\/|https?:\/\/|\/)/i.test(storageRef)
+  ) {
+    return preview;
+  }
+
+  const response = await fetch('/api/crm/quote-seller-profile/ci', {
+    cache: 'no-store',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error('설정된 공급자 CI 이미지를 불러오지 못했습니다. 견적 설정을 확인하세요.');
+  }
+  const contentType = response.headers.get('content-type')?.split(';', 1)[0]?.trim() ?? '';
+  if (!/^image\/(?:png|jpeg|gif|webp)$/.test(contentType)) {
+    throw new Error('설정된 공급자 CI 이미지 형식이 올바르지 않습니다.');
+  }
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+  }
+  const dataUrl = `data:${contentType};base64,${window.btoa(binary)}`;
+  const dmsSellerProfile = preview.dmsDocument.sellerProfile;
+  return {
+    ...preview,
+    party: {
+      ...preview.party,
+      sellerProfile: { ...sellerProfile, ciStorageRef: dataUrl },
+    },
+    dmsDocument: {
+      ...preview.dmsDocument,
+      sellerProfile: dmsSellerProfile ? { ...dmsSellerProfile, ciStorageRef: dataUrl } : dmsSellerProfile,
+    },
+  };
+}
+
 export function OpportunityWorkspaceClient({
   data,
   dashboard,
@@ -586,6 +826,7 @@ export function OpportunityWorkspaceClient({
   const [workflowError, setWorkflowError] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<CrmOpportunity | null>(null);
   const [selectedDetailError, setSelectedDetailError] = useState<string | null>(null);
+  const deletedOpportunityIdRef = useRef<string | null>(null);
   const [versionData, setVersionData] = useState<CrmOpportunityVersionListResponse | null>(null);
   const [isVersionLoading, setIsVersionLoading] = useState(false);
   const [versionError, setVersionError] = useState<string | null>(null);
@@ -593,6 +834,7 @@ export function OpportunityWorkspaceClient({
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [quotePreview, setQuotePreview] = useState<CrmOpportunityQuotePreview | null>(null);
+  const [sourceQuotePreviewOpen, setSourceQuotePreviewOpen] = useState(false);
   const [isQuotePreviewLoading, setIsQuotePreviewLoading] = useState(false);
   const [quotePreviewError, setQuotePreviewError] = useState<string | null>(null);
   const [isQuoteWorkflowSaving, setIsQuoteWorkflowSaving] = useState(false);
@@ -607,11 +849,11 @@ export function OpportunityWorkspaceClient({
   const [ownerLookupSearch, setOwnerLookupSearch] = useState('');
   const [isOwnerLookupLoading, setIsOwnerLookupLoading] = useState(false);
   const [ownerLookupError, setOwnerLookupError] = useState<string | null>(null);
-  const { search, sort, status } = query;
+  const { search, sort, sourceStatus, status } = query;
   const router = useRouter();
   const apiHref = useMemo(
-    () => buildApiHref({ search, sort, status, selected: '' }),
-    [search, sort, status],
+    () => buildApiHref({ search, sort, sourceStatus, status }),
+    [search, sort, sourceStatus, status],
   );
 
   useEffect(() => {
@@ -785,9 +1027,16 @@ export function OpportunityWorkspaceClient({
     return () => abortController.abort();
   }, [accessToken]);
 
+  const sourceItems = useMemo(
+    () => currentData.items.filter(isSourceUiuxOpportunity),
+    [currentData.items],
+  );
+  const sourceSurfaceItems = query.sourceSurface === 'workspace' ? currentData.items : sourceItems;
   const selectedFromList = query.selected
-    ? currentData.items.find((item) => item.id === query.selected) ?? null
-    : currentData.items[0] ?? null;
+    ? sourceSurfaceItems.find((item) => item.id === query.selected) ?? null
+    : query.sourceSurface === 'form'
+      ? sourceSurfaceItems.find((item) => item.confirmed && item.isLatest) ?? sourceSurfaceItems[0] ?? null
+      : sourceSurfaceItems[0] ?? null;
   const selected = selectedFromList ?? (query.selected && selectedDetail?.id === query.selected ? selectedDetail : null);
   const totalPages = Math.max(1, Math.ceil(currentData.items.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -795,10 +1044,31 @@ export function OpportunityWorkspaceClient({
     () => currentData.items.slice((safePage - 1) * pageSize, safePage * pageSize),
     [currentData.items, pageSize, safePage]
   );
+  const sourcePagedItems = useMemo(
+    () => sourceItems.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [pageSize, safePage, sourceItems],
+  );
   const isInitialLedgerLoading = isReloading && currentData.items.length === 0 && !loadError;
+  const firstConfirmedOpportunityId = sourceItems.find((item) => item.confirmed && item.isLatest)?.id ?? '';
 
   useEffect(() => {
-    if (!query.selected || selectedFromList || !accessToken) {
+    if (
+      query.sourceSurface === 'contract-document'
+      && !query.selected
+      && firstConfirmedOpportunityId
+    ) {
+      router.replace(buildHref(query, { selected: firstConfirmedOpportunityId }));
+    }
+  }, [firstConfirmedOpportunityId, query, router]);
+
+  useEffect(() => {
+    if (
+      !query.selected
+      || selectedFromList
+      || !accessToken
+      || isInitialLedgerLoading
+      || query.selected === deletedOpportunityIdRef.current
+    ) {
       setSelectedDetail(null);
       setSelectedDetailError(null);
       return;
@@ -828,7 +1098,13 @@ export function OpportunityWorkspaceClient({
     })();
 
     return () => abortController.abort();
-  }, [accessToken, query.selected, selectedFromList]);
+  }, [accessToken, isInitialLedgerLoading, query.selected, selectedFromList]);
+
+  useEffect(() => {
+    if (deletedOpportunityIdRef.current && query.selected !== deletedOpportunityIdRef.current) {
+      deletedOpportunityIdRef.current = null;
+    }
+  }, [query.selected]);
 
   useEffect(() => {
     if (!selected || !accessToken) {
@@ -968,7 +1244,7 @@ export function OpportunityWorkspaceClient({
         if (!response.ok || payload?.success !== true) {
           throw new Error(getBackendErrorMessage(payload));
         }
-        setQuotePreview(payload.data);
+        setQuotePreview(await hydrateQuotePreviewCi(payload.data, accessToken, abortController.signal));
       } catch (error) {
         if (abortController.signal.aborted) {
           return;
@@ -1001,7 +1277,7 @@ export function OpportunityWorkspaceClient({
     setOwnerLookupError(null);
     void loadOwnerLookup('');
   };
-  const openEditEditor = (item: CrmOpportunity) => {
+  const openEditEditor = useCallback((item: CrmOpportunity) => {
     if (opportunityAccess?.opportunityId !== item.id || !opportunityAccess.features.canEditOpportunity) {
       setWorkflowError('CRM 영업기회 수정 권한이 없습니다.');
       return;
@@ -1020,7 +1296,7 @@ export function OpportunityWorkspaceClient({
     }] : []);
     setOwnerLookupError(null);
     void loadOwnerLookup(item.ownerName);
-  };
+  }, [loadOwnerLookup, opportunityAccess]);
   const closeEditor = () => {
     setDraft(null);
     setEditorMode(null);
@@ -1029,6 +1305,40 @@ export function OpportunityWorkspaceClient({
     setOwnerLookupItems([]);
     setOwnerLookupError(null);
   };
+  useEffect(() => {
+    if (!query.create || editorMode || !globalAccess) {
+      return;
+    }
+    if (!globalAccess.features.canCreateOpportunity) {
+      setWorkflowError('CRM 영업기회 등록 권한이 없습니다.');
+      return;
+    }
+    setDraft(createEmptyDraft());
+    setEditorMode('create');
+    setSaveError(null);
+    setWorkflowError(null);
+    setVersionError(null);
+    setHistoryError(null);
+    setOwnerLookupSearch('');
+    setOwnerLookupItems([]);
+    setOwnerLookupError(null);
+    void loadOwnerLookup('');
+  }, [editorMode, globalAccess, loadOwnerLookup, query.create]);
+  useEffect(() => {
+    if (
+      query.sourceSurface !== 'form'
+      || query.create
+      || editorMode
+      || !selected
+      || selected.confirmed
+      || !selected.isLatest
+      || opportunityAccess?.opportunityId !== selected.id
+      || !opportunityAccess.features.canEditOpportunity
+    ) {
+      return;
+    }
+    openEditEditor(selected);
+  }, [editorMode, openEditEditor, opportunityAccess, query.create, query.sourceSurface, selected]);
   const updateDraftTextField = (field: OpportunityDraftTextField, value: string) => {
     setDraft((current) => current ? { ...current, [field]: value } : current);
   };
@@ -1122,14 +1432,31 @@ export function OpportunityWorkspaceClient({
       closeEditor();
       await loadOpportunities();
       void loadDashboard();
-      router.push(buildHref(query, { selected: payload.data.id }));
+      router.push(buildHref(query, {
+        selected: payload.data.id,
+        create: '',
+        sourceSurface: query.sourceSurface === 'form' ? 'form' : query.sourceSurface,
+      }));
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'CRM 영업기회 저장 중 오류가 발생했습니다.');
     } finally {
       setIsSaving(false);
     }
   };
-  const runWorkflowAction = async (item: CrmOpportunity, action: 'confirm' | 'reopen') => {
+  const runWorkflowAction = async (item: CrmOpportunity, action: 'confirm' | 'reopen' | 'revoke-contract') => {
+    if (action === 'reopen' && !window.confirm(
+      item.contractCreated
+        ? `연결 계약 ${item.contractCode ?? ''}을 회수하고 영업기회 확정을 해제하시겠습니까?\n계약 데이터는 비활성화되고 영업기회는 수정 가능 상태로 복원됩니다.`
+        : '이 영업기회의 확정을 해제하고 수정 가능 상태로 복원하시겠습니까?',
+    )) {
+      return;
+    }
+    if (action === 'revoke-contract' && !window.confirm(
+      `연결 계약 ${item.contractCode ?? ''}을 회수하시겠습니까?\n영업기회는 확정 상태로 유지되며 차수 추가와 계약 재전환이 다시 가능해집니다.`,
+    )) {
+      return;
+    }
+
     setIsWorkflowSaving(true);
     setWorkflowError(null);
     try {
@@ -1207,6 +1534,40 @@ export function OpportunityWorkspaceClient({
       setIsWorkflowSaving(false);
     }
   };
+  const deleteOpportunity = async (item: CrmOpportunity) => {
+    if (!window.confirm('이 영업기회를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    setIsWorkflowSaving(true);
+    setWorkflowError(null);
+    try {
+      const response = await fetch(`/api/crm/opportunities/${encodeURIComponent(item.id)}`, {
+        method: 'DELETE',
+        cache: 'no-store',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      });
+      const payload = await response.json().catch(() => null) as BackendSuccessResponse<CrmOpportunityDeleteResult> | BackendErrorResponse | null;
+      if (!response.ok || payload?.success !== true) {
+        throw new Error(getBackendErrorMessage(payload));
+      }
+
+      closeEditor();
+      deletedOpportunityIdRef.current = item.id;
+      setSelectedDetail(null);
+      const refreshed = await loadOpportunities();
+      void loadDashboard();
+      const nextSelectedId = payload.data.nextOpportunityId
+        && refreshed?.items.some((candidate) => candidate.id === payload.data.nextOpportunityId)
+        ? payload.data.nextOpportunityId
+        : refreshed?.items[0]?.id ?? '';
+      router.push(buildHref(query, { selected: nextSelectedId }));
+    } catch (error) {
+      setWorkflowError(error instanceof Error ? error.message : 'CRM 영업기회 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setIsWorkflowSaving(false);
+    }
+  };
   const saveQuoteWorkflow = async (item: CrmOpportunity, request: CrmQuoteWorkflowUpdateRequest) => {
     setIsQuoteWorkflowSaving(true);
     setQuotePreviewError(null);
@@ -1235,7 +1596,7 @@ export function OpportunityWorkspaceClient({
     }
   };
 
-  const createQuoteDmsDraft = async (item: CrmOpportunity) => {
+  const createQuoteDmsDraft = async (item: CrmOpportunity, templateKey: string) => {
     setIsQuoteDmsDraftSaving(true);
     setQuotePreviewError(null);
     try {
@@ -1246,7 +1607,10 @@ export function OpportunityWorkspaceClient({
           'Content-Type': 'application/json',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
-        body: JSON.stringify({ memo: 'CRM 견적 후보 기반 DMS markdown 초안 저장' }),
+        body: JSON.stringify({
+          templateKey,
+          memo: 'CRM 견적 후보 기반 DMS markdown 초안 저장',
+        }),
       });
       const payload = await response.json().catch(() => null) as BackendSuccessResponse<CrmQuoteDmsDocumentDraft> | BackendErrorResponse | null;
       if (!response.ok || payload?.success !== true) {
@@ -1307,8 +1671,165 @@ export function OpportunityWorkspaceClient({
     }
   };
 
+  if (query.sourceSurface === 'dashboard') {
+    return (
+      <div className="flex min-h-full flex-col gap-4" data-source-surface="dashboard">
+        <Breadcrumb items={['CRM', '대시보드']} />
+        {dashboardError ? (
+          <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{dashboardError}</div>
+        ) : null}
+        <DashboardOverview
+          data={dashboardData}
+          sourceOpportunities={sourceItems}
+          isLoading={isDashboardLoading}
+          onRefresh={() => void loadDashboard()}
+          sourceOnly
+        />
+      </div>
+    );
+  }
+
+  if (query.sourceSurface === 'list') {
+    const sourceListQuery: OpportunityWorkspaceQuery = { ...query, sourceSurface: 'form', create: false };
+    return (
+      <div className="flex min-h-full flex-col gap-4 [&>*]:shrink-0" data-source-surface="list">
+        <Breadcrumb items={['CRM', '영업기회 현황']} />
+        {loadError ? <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{loadError}</div> : null}
+        {workflowError ? <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{workflowError}</div> : null}
+        {accessError ? <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{accessError}</div> : null}
+        <SourceOpportunityListSummary
+          items={sourceItems}
+          action={(
+            <Button
+              type="button"
+              disabled={globalAccess?.features.canCreateOpportunity !== true || isGlobalAccessLoading}
+              onClick={() => router.push('/?sourceSurface=form&create=opportunity')}
+            >
+              + 영업기회 등록
+            </Button>
+          )}
+        />
+        <SourceOpportunityListFilters query={query} />
+        <section className="flex-none overflow-hidden rounded-lg border border-border bg-card">
+          <div className="min-w-0 overflow-x-auto">
+            <OpportunityTable
+              items={sourcePagedItems}
+              pageSize={pageSize}
+              selectedId={query.selected || null}
+              query={sourceListQuery}
+              isLoading={isInitialLedgerLoading}
+              sourceCompatible
+            />
+          </div>
+        </section>
+        <p className="text-sm text-muted-foreground">{sourceItems.length}건 표시 중</p>
+      </div>
+    );
+  }
+
+  if (query.sourceSurface === 'form') {
+    const sourceDraft = editorMode && draft
+      ? draft
+      : selected
+        ? createDraftFromOpportunity(selected)
+        : null;
+    const sourceMode: OpportunityEditorMode = editorMode ?? 'edit';
+    const sourceReadOnly = !editorMode;
+    return (
+      <div className="flex min-h-full flex-col gap-4" data-source-surface="form">
+        <Breadcrumb items={['CRM', query.create ? '영업기회 등록' : sourceReadOnly ? '영업기회 조회' : '영업기회 수정']} />
+        {loadError ? <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{loadError}</div> : null}
+        {workflowError ? <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{workflowError}</div> : null}
+        {selectedDetailError ? <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{selectedDetailError}</div> : null}
+        {accessError ? <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{accessError}</div> : null}
+        {sourceDraft ? (
+          <section className="overflow-hidden rounded-lg border border-border bg-card">
+            <OpportunityEditor
+              mode={sourceMode}
+              draft={sourceDraft}
+              readOnly={sourceReadOnly}
+              sourceCompatible
+              saveError={saveError}
+              isSaving={isSaving}
+              ownerLookupItems={ownerLookupItems}
+              ownerLookupSearch={ownerLookupSearch || sourceDraft.ownerName}
+              ownerLookupError={ownerLookupError}
+              isOwnerLookupLoading={isOwnerLookupLoading}
+              onCancel={() => {
+                closeEditor();
+                router.push('/?sourceSurface=list');
+              }}
+              onSave={saveDraft}
+              onTextFieldChange={updateDraftTextField}
+              onSelectFieldChange={updateDraftSelectField}
+              onOwnerUserIdChange={updateDraftOwnerUserId}
+              onOwnerLookupSearchChange={setOwnerLookupSearch}
+              onOwnerLookupReload={() => void loadOwnerLookup(ownerLookupSearch)}
+              onLineChange={updateDraftLine}
+              onAddLine={addDraftLine}
+              onRemoveLine={removeDraftLine}
+              onQuote={() => {
+                if (quotePreview) setSourceQuotePreviewOpen(true);
+              }}
+              onReopen={() => {
+                if (selected) void runWorkflowAction(selected, 'reopen');
+              }}
+              canQuote={Boolean(quotePreview && quotePreview.summary.quoteTotal > 0)}
+              canReopen={Boolean(
+                selected
+                && opportunityAccess?.opportunityId === selected.id
+                && opportunityAccess.features.canConfirmOpportunity
+                && selected.confirmed
+                && selected.isLatest
+              )}
+            />
+          </section>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border bg-card px-4 py-16 text-center text-sm text-muted-foreground">
+            {isInitialLedgerLoading || isGlobalAccessLoading ? '영업기회 양식을 준비하는 중입니다.' : '조회할 영업기회가 없습니다.'}
+          </div>
+        )}
+        <SourceQuotePreviewDialog
+          open={sourceQuotePreviewOpen}
+          preview={quotePreview}
+          onOpenChange={setSourceQuotePreviewOpen}
+        />
+      </div>
+    );
+  }
+
+  if (query.sourceSurface === 'contract-document') {
+    const confirmedItems = sourceItems.filter((item) => item.confirmed && item.isLatest);
+    const documentItem = confirmedItems.find((item) => item.id === query.selected) ?? confirmedItems[0] ?? null;
+    return (
+      <div className="flex min-h-full flex-col gap-4" data-source-surface="contract-document">
+        <Breadcrumb items={['CRM', '계약서 생성']} />
+        <header>
+          <h2 className="text-base font-semibold text-foreground">계약서 생성</h2>
+          <p className="mt-1 text-xs text-muted-foreground">영업기회 정보를 기반으로 계약서 Word 파일을 생성합니다.</p>
+        </header>
+        {loadError ? <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{loadError}</div> : null}
+        {documentItem ? (
+          <OpportunityContractDocumentCard
+            key={documentItem.id}
+            opportunityId={documentItem.id}
+            canGenerate={Boolean(
+              opportunityAccess?.opportunityId === documentItem.id
+              && opportunityAccess.features.canConfirmOpportunity
+            )}
+            variant="source"
+            opportunities={confirmedItems}
+            onOpportunitySelect={(opportunityId) => router.replace(buildHref(query, { selected: opportunityId }))}
+          />
+        ) : (
+          <div className="rounded-md border border-dashed border-border bg-card px-4 py-12 text-center text-sm text-muted-foreground">계약서를 생성할 수 있는 확정 영업기회가 없습니다.</div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex min-h-full flex-col gap-4 [&>*]:shrink-0">
       <Breadcrumb items={['CRM', '영업기회 목록']} />
       {loadError ? (
         <div className="rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">{loadError}</div>
@@ -1342,17 +1863,28 @@ export function OpportunityWorkspaceClient({
         isLoading={isDashboardLoading}
         onRefresh={() => void loadDashboard()}
       />
+      <SourceOpportunityListSummary items={currentData.items} />
       <PageHeader
         query={query}
         isOpen={filtersOpen}
         canCreate={globalAccess?.features.canCreateOpportunity === true}
-        isAccessLoading={isGlobalAccessLoading}
+        selected={selected}
+        canDelete={Boolean(
+          selected
+          && opportunityAccess?.opportunityId === selected.id
+          && opportunityAccess.features.canEditOpportunity
+          && !selected.confirmed
+          && selected.isLatest
+        )}
+        isAccessLoading={isGlobalAccessLoading || isAccessLoading}
+        isWorkflowSaving={isWorkflowSaving}
         onOpenChange={setFiltersOpen}
         onCreate={openCreateEditor}
+        onDelete={deleteOpportunity}
       />
 
-      <section className="flex-1 min-h-0 bg-card border border-border rounded-lg overflow-hidden">
-        <div className="grid h-full min-h-[560px] grid-rows-[1fr_52px] xl:grid-cols-[1fr_420px] xl:grid-rows-[1fr_52px]">
+      <section className="min-h-[560px] flex-none overflow-hidden rounded-lg border border-border bg-card">
+        <div className="grid grid-rows-[560px_560px_52px] xl:h-full xl:min-h-[560px] xl:grid-cols-[1fr_420px] xl:grid-rows-[1fr_52px]">
           <div className="min-w-0 overflow-hidden border-b border-ssoo-content-border xl:border-b-0 xl:border-r">
             <OpportunityTable
               items={pagedItems}
@@ -1402,6 +1934,7 @@ export function OpportunityWorkspaceClient({
               onEdit={openEditEditor}
               onConfirm={(item) => runWorkflowAction(item, 'confirm')}
               onReopen={(item) => runWorkflowAction(item, 'reopen')}
+              onRevokeContract={(item) => runWorkflowAction(item, 'revoke-contract')}
               onConvertToContract={convertToContract}
               onAddVersion={addVersion}
               onSaveQuoteWorkflow={saveQuoteWorkflow}
@@ -1439,24 +1972,63 @@ function Breadcrumb({ items }: { items: string[] }) {
 
 function DashboardOverview({
   data,
+  sourceOpportunities = [],
   isLoading,
   onRefresh,
+  sourceOnly = false,
 }: {
   data: CrmDashboardResponse;
+  sourceOpportunities?: CrmOpportunity[];
   isLoading: boolean;
   onRefresh: () => void;
+  sourceOnly?: boolean;
 }) {
   const activePipeline = data.pipeline.filter((stage) => stage.status !== 'lost' && stage.status !== 'hold');
   const topActions = data.nextActions.slice(0, 4);
+  const source = data.sourceCompatibility;
+  const sourceConfirmed = sourceOpportunities.filter((item) => item.confirmed && item.isLatest);
+  const sourceRevenueTotal = sourceConfirmed.reduce((sum, item) => sum + getSourceOpportunityRevenue(item), 0);
+  const sourceCostTotal = sourceConfirmed.reduce((sum, item) => sum + getSourceOpportunityCost(item), 0);
+  const sourceMarginTotal = sourceRevenueTotal - sourceCostTotal;
+  const sourceSummary = sourceOnly ? {
+    totalGroupCount: sourceOpportunities.length,
+    confirmedLatestCount: sourceConfirmed.length,
+    revenueTotal: sourceRevenueTotal,
+    costTotal: sourceCostTotal,
+    marginTotal: sourceMarginTotal,
+    marginRate: sourceRevenueTotal > 0 ? Math.round(sourceMarginTotal / sourceRevenueTotal * 100) : 0,
+  } : source.confirmedSummary;
+  const sourceStatusDistribution = sourceOnly ? sourceStatusLabels.map((status) => {
+    const count = sourceOpportunities.filter((item) => toSourceOpportunityStatus(item.status) === status).length;
+    return {
+      status,
+      count,
+      percentage: sourceOpportunities.length > 0 ? Math.round(count / sourceOpportunities.length * 100) : 0,
+    };
+  }) : source.statusDistribution;
+  const sourceRecentOpportunities = sourceOnly
+    ? [...sourceOpportunities]
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      .slice(0, 5)
+      .map((item) => ({
+        id: item.id,
+        customerName: item.customerName,
+        opportunityName: item.opportunityName,
+        ownerName: item.ownerName,
+        status: toSourceOpportunityStatus(item.status),
+        updatedAt: item.updatedAt,
+        href: `/?sourceSurface=form&selected=${encodeURIComponent(item.id)}`,
+      }))
+    : source.recentOpportunities;
 
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex min-h-[52px] flex-wrap items-center justify-between gap-3 border-b border-border bg-muted px-4 py-2">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">영업관리 홈</h2>
-          <p className="mt-1 text-xs text-muted-foreground">{data.boundaryNotice}</p>
+          <h2 className="text-base font-semibold text-foreground">대시보드</h2>
+          <p className="mt-1 text-xs text-muted-foreground">영업기회 전체 현황을 한눈에 확인하세요.</p>
         </div>
-        <div className="flex items-center gap-2">
+        {!sourceOnly ? <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
             {isLoading ? '조회 중' : data.generatedAt ? `기준 ${formatDateTime(data.generatedAt)}` : '요약 대기'}
           </span>
@@ -1464,10 +2036,60 @@ function DashboardOverview({
             <RefreshCw className="h-4 w-4" />
             갱신
           </Button>
-        </div>
+        </div> : null}
       </div>
 
-      <div className="grid gap-0 divide-y divide-border xl:grid-cols-[minmax(0,1fr)_360px] xl:divide-x xl:divide-y-0">
+      <div className="space-y-4 p-4" data-source-compatibility="dashboard">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <DashboardMetric label="전체 건수" value={`${sourceSummary.totalGroupCount}건`} sub={`확정 ${sourceSummary.confirmedLatestCount}건`} semanticLabel />
+          <DashboardMetric label="확정 매출액" value={formatSourceEok(sourceSummary.revenueTotal)} sub={formatWon(sourceSummary.revenueTotal)} semanticLabel />
+          <DashboardMetric label="확정 이익" value={formatSourceEok(sourceSummary.marginTotal)} sub={formatWon(sourceSummary.marginTotal)} semanticLabel />
+          <DashboardMetric label="확정 이익률" value={`${sourceSummary.marginRate}%`} sub="확정 기준" semanticLabel />
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <h3 className="text-sm font-semibold text-foreground">상태별 현황</h3>
+            <div className="mt-4 space-y-3">
+              {sourceStatusDistribution.map((item) => (
+                <div key={item.status} className="flex items-center gap-3 text-sm">
+                  <span className="w-16 shrink-0 text-muted-foreground">{item.status}</span>
+                  <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+                    <div className={`h-full rounded-full ${getSourceStatusBarClass(item.status)}`} style={{ width: `${item.percentage}%` }} />
+                  </div>
+                  <span className="w-9 shrink-0 text-right font-medium text-foreground">{item.count}건</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border bg-card p-4">
+            <h3 className="text-sm font-semibold text-foreground">최근 영업기회</h3>
+            <div className="mt-3 divide-y divide-border">
+              {sourceRecentOpportunities.map((item) => (
+                <Link key={item.id} href={sourceOnly ? `/?sourceSurface=form&selected=${encodeURIComponent(item.id)}` : item.href} className="flex items-center justify-between gap-3 py-2 transition-colors hover:bg-ssoo-content-bg">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-foreground">{item.opportunityName}</div>
+                    <div className="mt-0.5 truncate text-xs text-muted-foreground">{item.customerName} · {item.ownerName}</div>
+                  </div>
+                  <span className={`shrink-0 rounded px-2 py-1 text-xs font-medium ${getSourceStatusClass(item.status)}`}>{item.status}</span>
+                </Link>
+              ))}
+              {sourceRecentOpportunities.length === 0 ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">최근 영업기회가 없습니다.</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+        {!sourceOnly ? <p className="text-xs text-muted-foreground">{source.calculationNotice}</p> : null}
+      </div>
+
+      {!sourceOnly ? <div className="border-t border-border bg-muted px-4 py-2">
+        <div className="text-xs font-semibold text-foreground">SSOO 운영 지표</div>
+        <div className="mt-0.5 text-xs text-muted-foreground">{data.boundaryNotice}</div>
+      </div> : null}
+
+      {!sourceOnly ? <div className="grid gap-0 divide-y divide-border xl:grid-cols-[minmax(0,1fr)_360px] xl:divide-x xl:divide-y-0">
         <div className="space-y-4 p-4">
           <div className="grid gap-3 md:grid-cols-4">
             <DashboardMetric label="영업기회" value={`${data.opportunitySummary.totalCount}건`} sub={formatWon(data.opportunitySummary.totalRevenue)} />
@@ -1538,19 +2160,111 @@ function DashboardOverview({
             ) : null}
           </div>
         </div>
+      </div> : null}
+    </section>
+  );
+}
+
+function DashboardMetric({ label, value, sub, semanticLabel = false }: { label: string; value: string; sub: string; semanticLabel?: boolean }) {
+  return (
+    <div className="rounded-md border border-border px-3 py-2">
+      {semanticLabel
+        ? <label className="text-xs font-medium text-muted-foreground">{label}</label>
+        : <div className="text-xs font-medium text-muted-foreground">{label}</div>}
+      <div className="mt-1 text-base font-semibold text-foreground">{value}</div>
+      <div className="mt-1 truncate text-xs text-muted-foreground">{sub}</div>
+    </div>
+  );
+}
+
+function SourceOpportunityListSummary({ items, action }: { items: CrmOpportunity[]; action?: ReactNode }) {
+  const revenueTotal = items.reduce((sum, item) => sum + getSourceOpportunityRevenue(item), 0);
+  const costTotal = items.reduce((sum, item) => sum + getSourceOpportunityCost(item), 0);
+  const marginTotal = revenueTotal - costTotal;
+  const marginRate = revenueTotal > 0 ? Math.round((marginTotal / revenueTotal) * 100) : 0;
+
+  return (
+    <section className="space-y-3" data-source-compatibility="opportunity-list-summary">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">영업기회 현황</h2>
+          <p className="mt-1 text-xs text-muted-foreground">등록된 영업기회를 조회하고 관리합니다.</p>
+        </div>
+        {action}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <DashboardMetric label="전체 건수" value={`${items.length}건`} sub="영업기회 그룹 기준" semanticLabel />
+        <DashboardMetric label="예상매출액" value={formatSourceEok(revenueTotal)} sub={formatWon(revenueTotal)} semanticLabel />
+        <DashboardMetric label="예상이익" value={formatSourceEok(marginTotal)} sub={formatWon(marginTotal)} semanticLabel />
+        <DashboardMetric label="평균 이익률" value={`${marginRate}%`} sub="최신차수 기준" semanticLabel />
       </div>
     </section>
   );
 }
 
-function DashboardMetric({ label, value, sub }: { label: string; value: string; sub: string }) {
+function SourceOpportunityListFilters({ query }: { query: OpportunityWorkspaceQuery }) {
+  const router = useRouter();
+  const update = (patch: Partial<Record<'search' | 'sourceStatus' | 'sort', string>>) => {
+    router.replace(buildHref(query, { ...patch, selected: '', sourceSurface: 'list', create: '' }));
+  };
+
   return (
-    <div className="rounded-md border border-border px-3 py-2">
-      <div className="text-xs font-medium text-muted-foreground">{label}</div>
-      <div className="mt-1 text-base font-semibold text-foreground">{value}</div>
-      <div className="mt-1 truncate text-xs text-muted-foreground">{sub}</div>
+    <div className="flex flex-wrap gap-3 rounded-lg border border-border bg-card p-3" data-source-compatibility="opportunity-list-filters">
+      <SsooSearchInput
+        id="list-search"
+        name="crm-opportunity-live-filter-query"
+        ariaLabel="고객명, 영업기회명, 담당자 검색"
+        intent="data-filter"
+        key={`source-search-${query.search}`}
+        defaultValue={query.search}
+        placeholder="고객명, 영업기회명, 담당자 검색"
+        className="min-w-[260px] flex-1"
+        onChange={(event) => update({ search: event.currentTarget.value })}
+      />
+      <NativeSelect
+        id="list-status"
+        value={query.sourceStatus}
+        aria-label="영업기회 상태"
+        className="w-[150px]"
+        onChange={(event) => update({ sourceStatus: event.currentTarget.value })}
+      >
+        <option value="all">전체 상태</option>
+        {sourceStatusLabels.map((status) => <option key={status} value={status}>{status}</option>)}
+      </NativeSelect>
+      <NativeSelect
+        id="list-sort"
+        value={query.sort}
+        aria-label="영업기회 정렬"
+        className="w-[150px]"
+        onChange={(event) => update({ sort: event.currentTarget.value })}
+      >
+        <option value="customer-asc">고객명순</option>
+        <option value="revenue-desc">매출액순</option>
+        <option value="profit-desc">이익순</option>
+      </NativeSelect>
     </div>
   );
+}
+
+function getSourceStatusClass(status: CrmSourceOpportunityStatus) {
+  if (status === '진행중') return 'bg-ssoo-success-bg text-ssoo-success';
+  if (status === '계약완료') return 'bg-ssoo-info-bg text-ssoo-info';
+  if (status === '실패') return 'bg-ssoo-danger-bg text-ssoo-danger';
+  return 'bg-ssoo-warning-bg text-ssoo-warning';
+}
+
+function getSourceStatusBarClass(status: CrmSourceOpportunityStatus) {
+  if (status === '진행중') return 'bg-ssoo-success';
+  if (status === '계약완료') return 'bg-ssoo-info';
+  if (status === '실패') return 'bg-ssoo-danger';
+  return 'bg-ssoo-warning';
+}
+
+function toSourceOpportunityStatus(status: CrmOpportunityStatus): CrmSourceOpportunityStatus {
+  if (status === 'proposal') return '진행중';
+  if (status === 'won') return '계약완료';
+  if (status === 'lost') return '실패';
+  return '검토중';
 }
 
 function getPipelineStatusClass(status: CrmOpportunityStatus) {
@@ -1581,16 +2295,24 @@ function PageHeader({
   query,
   isOpen,
   canCreate,
+  selected,
+  canDelete,
   isAccessLoading,
+  isWorkflowSaving,
   onOpenChange,
   onCreate,
+  onDelete,
 }: {
   query: OpportunityWorkspaceQuery;
   isOpen: boolean;
   canCreate: boolean;
+  selected: CrmOpportunity | null;
+  canDelete: boolean;
   isAccessLoading: boolean;
+  isWorkflowSaving: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onCreate: () => void;
+  onDelete: (item: CrmOpportunity) => void;
 }) {
   return (
     <section className="bg-card border border-border rounded-lg overflow-hidden">
@@ -1607,11 +2329,19 @@ function PageHeader({
           <Button
             variant="destructive"
             type="button"
-            disabled
-            className="cursor-not-allowed opacity-70"
-            title="삭제 API 연결 후 활성화됩니다."
+            disabled={!selected || !canDelete || isAccessLoading || isWorkflowSaving}
+            title={canDelete
+              ? '선택한 최신 미확정 영업기회 삭제'
+              : !selected
+                ? '삭제할 영업기회를 선택하세요.'
+                : selected.confirmed
+                  ? '확정된 영업기회는 삭제할 수 없습니다.'
+                  : !selected.isLatest
+                    ? '이전 차수 영업기회는 삭제할 수 없습니다.'
+                    : 'CRM 영업기회 삭제 권한이 없습니다.'}
+            onClick={() => selected && onDelete(selected)}
           >
-            <Trash2 className="h-4 w-4" /> 삭제 준비 중
+            <Trash2 className="h-4 w-4" /> 삭제
           </Button>
         </div>
         <Button variant="plain" size="plain"
@@ -1627,16 +2357,16 @@ function PageHeader({
       {isOpen && (
         <form className="flex min-h-[52px] items-center gap-3 bg-muted px-4 py-2" method="get">
           <div className="w-[200px]">
-            <Input name="search" defaultValue={query.search} placeholder="고객사, 건명, 담당자" />
+            <SsooSearchInput id="crm-opportunity-search-input" name="search" ariaLabel="영업기회 검색" intent="data-filter" key={`search-${query.search}`} defaultValue={query.search} placeholder="고객사, 건명, 담당자" />
           </div>
           <div className="w-[150px]">
-            <NativeSelect name="status" defaultValue={query.status}>
-              <option value="all">전체</option>
-              {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            <NativeSelect key={`source-status-${query.sourceStatus}`} name="sourceStatus" defaultValue={query.sourceStatus}>
+              <option value="all">전체 상태</option>
+              {sourceStatusLabels.map((status) => <option key={status} value={status}>{status}</option>)}
             </NativeSelect>
           </div>
           <div className="w-[150px]">
-            <NativeSelect name="sort" defaultValue={query.sort}>
+            <NativeSelect key={`sort-${query.sort}`} name="sort" defaultValue={query.sort}>
               {Object.entries(sortLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </NativeSelect>
           </div>
@@ -1660,47 +2390,128 @@ function OpportunityTable({
   selectedId,
   query,
   isLoading,
+  sourceCompatible = false,
 }: {
   items: CrmOpportunity[];
   pageSize: number;
   selectedId: string | null;
   query: OpportunityWorkspaceQuery;
   isLoading: boolean;
+  sourceCompatible?: boolean;
 }) {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [versionsByGroup, setVersionsByGroup] = useState<Record<string, CrmOpportunityVersionSummary[]>>({});
+  const [loadingGroups, setLoadingGroups] = useState<Record<string, boolean>>({});
+  const [versionErrors, setVersionErrors] = useState<Record<string, string>>({});
   const reservedStateRows = isLoading || items.length === 0 ? 1 : 0;
-  const fillerRows = Math.max(0, pageSize - items.length - reservedStateRows);
+  const fillerRows = sourceCompatible ? 0 : Math.max(0, pageSize - items.length - reservedStateRows);
+
+  const togglePreviousVersions = async (item: CrmOpportunity) => {
+    if (expandedGroups[item.groupId]) {
+      setExpandedGroups((current) => ({ ...current, [item.groupId]: false }));
+      return;
+    }
+
+    setExpandedGroups((current) => ({ ...current, [item.groupId]: true }));
+    if (versionsByGroup[item.groupId] || loadingGroups[item.groupId]) {
+      return;
+    }
+
+    setLoadingGroups((current) => ({ ...current, [item.groupId]: true }));
+    setVersionErrors((current) => ({ ...current, [item.groupId]: '' }));
+    try {
+      const response = await fetch(`/api/crm/opportunities/${encodeURIComponent(item.id)}/versions`, {
+        cache: 'no-store',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      });
+      const payload = await response.json().catch(() => null) as BackendSuccessResponse<CrmOpportunityVersionListResponse> | BackendErrorResponse | null;
+      if (!response.ok || payload?.success !== true) {
+        throw new Error(getBackendErrorMessage(payload));
+      }
+      setVersionsByGroup((current) => ({
+        ...current,
+        [item.groupId]: payload.data.versions
+          .filter((version) => !version.isLatest)
+          .sort((left, right) => right.version - left.version),
+      }));
+    } catch (error) {
+      setVersionErrors((current) => ({
+        ...current,
+        [item.groupId]: error instanceof Error ? error.message : '이전 차수 조회에 실패했습니다.',
+      }));
+    } finally {
+      setLoadingGroups((current) => ({ ...current, [item.groupId]: false }));
+    }
+  };
 
   return (
     <div className="flex h-full flex-col rounded-md border">
       <div className="min-h-0 flex-1 overflow-auto">
-        <Table className="w-full min-w-[1180px] caption-bottom text-sm">
+        <Table className="w-full min-w-[1440px] caption-bottom text-sm" data-source-compatibility="opportunity-list">
           <TableHeader className="sticky top-0 z-10 bg-ssoo-content-bg text-left text-sm font-medium text-muted-foreground shadow-sm [&_tr]:border-b">
             <TableRow className="h-9">
-              <TableHead className="w-[120px] px-2 py-2">기회번호</TableHead>
+              <TableHead className="w-[150px] px-2 py-2">고객명</TableHead>
               <TableHead className="w-[260px] px-2 py-2">영업기회명</TableHead>
-              <TableHead className="w-[180px] px-2 py-2">고객사</TableHead>
+              <TableHead className="w-[130px] px-2 py-2">영업담당자</TableHead>
+              <TableHead className="w-[130px] px-2 py-2 text-right">예상매출액</TableHead>
+              <TableHead className="w-[130px] px-2 py-2 text-right">예상원가</TableHead>
+              <TableHead className="w-[120px] px-2 py-2 text-right">예상이익</TableHead>
+              <TableHead className="w-[90px] px-2 py-2 text-right">이익률</TableHead>
+              <TableHead className="w-[180px] px-2 py-2">계약기간</TableHead>
               <TableHead className="w-[100px] px-2 py-2">상태</TableHead>
-              <TableHead className="w-[90px] px-2 py-2">차수</TableHead>
-              <TableHead className="w-[90px] px-2 py-2">우선순위</TableHead>
-              <TableHead className="w-[120px] px-2 py-2 text-right">최종 매출</TableHead>
-              <TableHead className="w-[120px] px-2 py-2 text-right">원가</TableHead>
-              <TableHead className="w-[100px] px-2 py-2 text-right">손익률</TableHead>
-              <TableHead className="w-[120px] px-2 py-2">수정일</TableHead>
+              <TableHead className="w-[100px] px-2 py-2">확정</TableHead>
+              <TableHead className="w-[100px] px-2 py-2">차수</TableHead>
+              <TableHead className="w-[56px] px-2 py-2 text-center">{sourceCompatible ? null : <span className="sr-only">상세</span>}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-border">
-            {items.map((item) => <OpportunityRow key={item.id} item={item} selected={item.id === selectedId} href={buildHref(query, { selected: item.id })} />)}
+            {items.map((item) => {
+              const isExpanded = expandedGroups[item.groupId] === true;
+              const previousVersions = versionsByGroup[item.groupId] ?? [];
+              return (
+                <Fragment key={item.id}>
+                  <OpportunityRow
+                    item={item}
+                    selected={item.id === selectedId}
+                    href={buildHref(query, { selected: item.id })}
+                    isExpanded={isExpanded}
+                    isVersionLoading={loadingGroups[item.groupId] === true}
+                    onTogglePreviousVersions={() => void togglePreviousVersions(item)}
+                    sourceCompatible={sourceCompatible}
+                  />
+                  {isExpanded && loadingGroups[item.groupId] ? (
+                    <TableRow className="bg-muted">
+                      <TableCell className="h-9 px-4 py-2 text-sm text-ssoo-info" colSpan={12}>이전 차수를 조회하는 중입니다.</TableCell>
+                    </TableRow>
+                  ) : null}
+                  {isExpanded && versionErrors[item.groupId] ? (
+                    <TableRow className="bg-ssoo-danger-bg">
+                      <TableCell className="h-9 px-4 py-2 text-sm text-ssoo-danger" colSpan={12}>{versionErrors[item.groupId]}</TableCell>
+                    </TableRow>
+                  ) : null}
+                  {isExpanded ? previousVersions.map((version) => (
+                    <PreviousOpportunityVersionRow
+                      key={version.id}
+                      version={version}
+                      selected={version.id === selectedId}
+                      href={buildHref(query, { selected: version.id })}
+                    />
+                  )) : null}
+                </Fragment>
+              );
+            })}
             {isLoading ? (
               <TableRow>
-                <TableCell className="h-9 px-2 py-2 text-center text-ssoo-info" colSpan={10}>
+                <TableCell className="h-9 px-2 py-2 text-center text-ssoo-info" colSpan={12}>
                   인증된 CRM 원장 데이터를 조회하는 중입니다.
                 </TableCell>
               </TableRow>
             ) : null}
-            {!isLoading && items.length === 0 ? <TableRow><TableCell className="h-9 px-2 py-2 text-center text-muted-foreground" colSpan={10}>조회된 영업기회가 없습니다.</TableCell></TableRow> : null}
+            {!isLoading && items.length === 0 ? <TableRow><TableCell className="h-9 px-2 py-2 text-center text-muted-foreground" colSpan={12}>검색 결과가 없습니다.</TableCell></TableRow> : null}
             {Array.from({ length: fillerRows }).map((_, index) => (
               <TableRow key={`empty-${index}`} className="h-9 border-b bg-card" aria-hidden="true">
-                <TableCell colSpan={10}>&nbsp;</TableCell>
+                <TableCell colSpan={12}>&nbsp;</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -1710,13 +2521,42 @@ function OpportunityTable({
   );
 }
 
-function OpportunityRow({ item, selected, href }: { item: CrmOpportunity; selected: boolean; href: string }) {
+function OpportunityRow({
+  item,
+  selected,
+  href,
+  isExpanded,
+  isVersionLoading,
+  onTogglePreviousVersions,
+  sourceCompatible,
+}: {
+  item: CrmOpportunity;
+  selected: boolean;
+  href: string;
+  isExpanded: boolean;
+  isVersionLoading: boolean;
+  onTogglePreviousVersions: () => void;
+  sourceCompatible: boolean;
+}) {
   const router = useRouter();
   const openRow = () => router.push(href);
   const linkClass = 'block h-full w-full px-2 py-2 text-inherit no-underline';
+  const sourceStatus = toSourceOpportunityStatus(item.status);
+  const confirmationLabel = item.contractCreated ? '계약확정' : item.confirmed ? '확정' : '작성중';
+  const revenueTotal = sourceCompatible ? getSourceOpportunityRevenue(item) : item.revenueTotal;
+  const costTotal = sourceCompatible ? getSourceOpportunityCost(item) : item.costTotal;
+  const marginTotal = revenueTotal - costTotal;
+  const marginRate = revenueTotal > 0
+    ? sourceCompatible ? Math.round(marginTotal / revenueTotal * 100) : item.marginRate
+    : 0;
+  const ownerInitial = item.ownerName.trim().slice(0, 2);
+  const cellContent = (children: ReactNode, ariaLabel?: string) => sourceCompatible
+    ? children
+    : <Link className={linkClass} href={href} aria-label={ariaLabel}>{children}</Link>;
 
   return (
     <TableRow
+      role={sourceCompatible ? 'button' : undefined}
       tabIndex={0}
       onClick={openRow}
       onKeyDown={(event) => {
@@ -1728,22 +2568,72 @@ function OpportunityRow({ item, selected, href }: { item: CrmOpportunity; select
       data-active={selected ? 'true' : undefined}
       className={selected ? 'h-9 cursor-pointer border-b bg-ssoo-content-border transition-colors' : 'h-9 cursor-pointer border-b bg-card transition-colors hover:bg-ssoo-sitemap-bg'}
     >
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2 text-muted-foreground' : 'whitespace-nowrap p-0 text-muted-foreground'}>{cellContent(item.customerName)}</TableCell>
       <TableCell className="whitespace-nowrap p-0">
-        <Link className={`${linkClass} font-medium text-ssoo-primary hover:underline`} href={href}>OPP-{item.id}</Link>
+        {cellContent(<span className="block max-w-[244px] truncate px-2 py-2 font-medium text-foreground">{item.opportunityName}</span>)}
       </TableCell>
-      <TableCell className="whitespace-nowrap p-0">
-        <Link className={linkClass} href={href}><span className="block max-w-[244px] truncate font-medium text-foreground">{item.opportunityName}</span></Link>
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2 text-muted-foreground' : 'whitespace-nowrap p-0 text-muted-foreground'}>
+                  {/* design/source-fidelity-override:start ref=CRM-REF-01 evidence=BT-27 */}
+                  {cellContent(sourceCompatible ? <><span className="mr-1 inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-ssoo-success-bg text-[9px] text-ssoo-success">{ownerInitial}</span>{' '}{item.ownerName || '-'}</> : item.ownerName || '-')}
+                  {/* design/source-fidelity-override:end */}
       </TableCell>
-      <TableCell className="whitespace-nowrap p-0 text-muted-foreground"><Link className={linkClass} href={href}>{item.customerName}</Link></TableCell>
-      <TableCell className="whitespace-nowrap p-0"><Link className={linkClass} href={href}><span className={`rounded px-2 py-1 text-xs font-medium ${statusTone[item.status]}`}>{statusLabels[item.status]}</span></Link></TableCell>
-      <TableCell className="whitespace-nowrap p-0 text-muted-foreground"><Link className={linkClass} href={href}>{item.versionCount > 1 ? `${item.version}차/${item.versionCount}` : `${item.version}차`}</Link></TableCell>
-      <TableCell className="whitespace-nowrap p-0 text-muted-foreground"><Link className={linkClass} href={href}>{priorityLabels[item.priority]}</Link></TableCell>
-      <TableCell className="whitespace-nowrap p-0 text-right font-medium text-foreground"><Link className={linkClass} href={href}>{formatCurrency(item.revenueTotal)}</Link></TableCell>
-      <TableCell className="whitespace-nowrap p-0 text-right text-muted-foreground"><Link className={linkClass} href={href}>{formatCurrency(item.costTotal)}</Link></TableCell>
-      <TableCell className="whitespace-nowrap p-0 text-right font-medium text-ssoo-secondary"><Link className={linkClass} href={href}>{item.marginRate}%</Link></TableCell>
-      <TableCell className="whitespace-nowrap p-0 text-muted-foreground"><Link className={linkClass} href={href}>{formatDate(item.updatedAt)}</Link></TableCell>
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2 text-right font-medium text-foreground' : 'whitespace-nowrap p-0 text-right font-medium text-foreground'}>{cellContent(formatSourceAmount(revenueTotal))}</TableCell>
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2 text-right text-muted-foreground' : 'whitespace-nowrap p-0 text-right text-muted-foreground'}>{cellContent(formatSourceAmount(costTotal))}</TableCell>
+      <TableCell className={`whitespace-nowrap ${sourceCompatible ? 'px-2 py-2' : 'p-0'} text-right font-medium ${marginTotal >= 0 ? 'text-ssoo-info' : 'text-ssoo-danger'}`}>{cellContent(formatSourceAmount(marginTotal))}</TableCell>
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2 text-right font-medium text-ssoo-secondary' : 'whitespace-nowrap p-0 text-right font-medium text-ssoo-secondary'}>{cellContent(`${marginRate}%`)}</TableCell>
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2 text-muted-foreground' : 'whitespace-nowrap p-0 text-muted-foreground'}>{cellContent(formatSourceDateRange(item.expectedStartDate, item.expectedEndDate))}</TableCell>
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2' : 'whitespace-nowrap p-0'}>{cellContent(<span className={`rounded px-2 py-1 text-xs font-medium ${getSourceStatusClass(sourceStatus)}`}>{sourceStatus}</span>)}</TableCell>
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2' : 'whitespace-nowrap p-0'}>{cellContent(<span className={`rounded px-2 py-1 text-xs font-medium ${item.confirmed ? 'bg-ssoo-info-bg text-ssoo-info' : 'bg-muted text-muted-foreground'}`}>{confirmationLabel}</span>)}</TableCell>
+      <TableCell className="whitespace-nowrap px-2 py-1 text-muted-foreground">
+        {item.versionCount > 1 ? (
+          <Button variant="outline" size="sm" type="button" disabled={isVersionLoading} aria-expanded={isExpanded} onClick={(event) => { event.stopPropagation(); onTogglePreviousVersions(); }}>
+            {isExpanded ? '▲' : '▼'} {item.versionCount}차
+          </Button>
+        ) : `${item.version}차`}
+      </TableCell>
+      <TableCell className={sourceCompatible ? 'whitespace-nowrap px-2 py-2 text-center text-muted-foreground' : 'whitespace-nowrap p-0 text-center text-muted-foreground'}>{cellContent('→', `${item.opportunityName} 상세 조회`)}</TableCell>
     </TableRow>
   );
+}
+
+function PreviousOpportunityVersionRow({ version, selected, href }: { version: CrmOpportunityVersionSummary; selected: boolean; href: string }) {
+  const sourceStatus = toSourceOpportunityStatus(version.status);
+  const linkClass = 'block h-full w-full px-2 py-2 text-inherit no-underline';
+  const confirmationLabel = version.contractCreated ? '계약확정' : version.confirmed ? '확정' : '작성중';
+
+  return (
+    <TableRow className={selected ? 'h-9 border-b bg-ssoo-content-border' : 'h-9 border-b bg-muted'}>
+      <TableCell className="whitespace-nowrap p-0 pl-3 text-xs text-muted-foreground"><Link className={linkClass} href={href}>↳ {version.customerName}</Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0 text-xs text-muted-foreground"><Link className={linkClass} href={href}>{version.opportunityName}</Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0 text-xs text-muted-foreground"><Link className={linkClass} href={href}>{version.ownerName || '-'}</Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0 text-right text-xs text-muted-foreground"><Link className={linkClass} href={href}>{formatSourceAmount(version.revenueTotal)}</Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0 text-right text-xs text-muted-foreground"><Link className={linkClass} href={href}>{formatSourceAmount(version.costTotal)}</Link></TableCell>
+      <TableCell className={`whitespace-nowrap p-0 text-right text-xs ${version.marginTotal >= 0 ? 'text-ssoo-info' : 'text-ssoo-danger'}`}><Link className={linkClass} href={href}>{formatSourceAmount(version.marginTotal)}</Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0 text-right text-xs text-muted-foreground"><Link className={linkClass} href={href}>{version.marginRate}%</Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0 text-xs text-muted-foreground"><Link className={linkClass} href={href}>{formatSourceDateRange(version.expectedStartDate, version.expectedEndDate)}</Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0"><Link className={linkClass} href={href}><span className={`rounded px-2 py-1 text-xs font-medium ${getSourceStatusClass(sourceStatus)}`}>{sourceStatus}</span></Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0"><Link className={linkClass} href={href}><span className="rounded bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">{confirmationLabel}</span></Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0 text-xs text-muted-foreground"><Link className={linkClass} href={href}>{version.version}차 (이전)</Link></TableCell>
+      <TableCell className="whitespace-nowrap p-0 text-center text-xs text-ssoo-info"><Link className={linkClass} href={href}>조회 →</Link></TableCell>
+    </TableRow>
+  );
+}
+
+function formatSourceAmount(value: number) {
+  const absolute = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  if (absolute >= 100000000) return `${sign}${(absolute / 100000000).toFixed(1)}억`;
+  if (absolute >= 10000) return `${sign}${Math.round(absolute / 10000).toLocaleString('ko-KR')}만`;
+  return `${Math.round(value).toLocaleString('ko-KR')}원`;
+}
+
+function formatSourceDateRange(start: string, end: string) {
+  const short = (value: string) => {
+    if (!value) return '-';
+    const [year = '', month = '', day = ''] = value.split('-');
+    return year && month && day ? `${year.slice(-2)}.${month}.${day}` : '-';
+  };
+  return `${short(start)}~${short(end)}`;
 }
 
 function OpportunityDetail({
@@ -1764,6 +2654,7 @@ function OpportunityDetail({
   onEdit,
   onConfirm,
   onReopen,
+  onRevokeContract,
   onConvertToContract,
   onAddVersion,
   onSaveQuoteWorkflow,
@@ -1787,15 +2678,17 @@ function OpportunityDetail({
   onEdit: (item: CrmOpportunity) => void;
   onConfirm: (item: CrmOpportunity) => void;
   onReopen: (item: CrmOpportunity) => void;
+  onRevokeContract: (item: CrmOpportunity) => void;
   onConvertToContract: (item: CrmOpportunity) => void;
   onAddVersion: (item: CrmOpportunity) => void;
   onSaveQuoteWorkflow: (item: CrmOpportunity, request: CrmQuoteWorkflowUpdateRequest) => void;
-  onCreateQuoteDmsDraft: (item: CrmOpportunity) => void;
+  onCreateQuoteDmsDraft: (item: CrmOpportunity, templateKey: string) => void;
   onExecuteQuoteDmsLifecycle: (item: CrmOpportunity) => void;
 }) {
   const accessFeatures = item && opportunityAccess?.opportunityId === item.id ? opportunityAccess.features : null;
   const canConfirm = item ? Boolean(accessFeatures?.canConfirmOpportunity) && item.isLatest && !item.confirmed && item.status !== 'lost' && item.status !== 'hold' && item.revenueTotal > 0 : false;
-  const canReopen = item ? Boolean(accessFeatures?.canConfirmOpportunity) && item.isLatest && item.confirmed && !item.contractCreated : false;
+  const canReopen = item ? Boolean(accessFeatures?.canConfirmOpportunity) && item.isLatest && item.confirmed : false;
+  const canRevokeContract = item ? Boolean(accessFeatures?.canConfirmOpportunity) && item.isLatest && item.confirmed && item.contractCreated && Boolean(item.contractCode) : false;
   const canConvertToContract = item ? Boolean(accessFeatures?.canConfirmOpportunity) && item.isLatest && item.confirmed && !item.contractCreated && item.revenueTotal > 0 : false;
   const canAddVersion = item ? Boolean(accessFeatures?.canAddVersion) && item.isLatest && item.confirmed && !item.contractCreated : false;
   const canEdit = item ? Boolean(accessFeatures?.canEditOpportunity) && !item.confirmed && item.isLatest : false;
@@ -1815,7 +2708,7 @@ function OpportunityDetail({
                 type="button"
                 disabled={isWorkflowSaving || !canReopen}
                 className="inline-flex h-7 items-center justify-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:bg-card disabled:cursor-not-allowed disabled:opacity-50"
-                title={canReopen ? '확정 해제' : !accessFeatures?.canConfirmOpportunity ? accessPendingTitle : item.contractCreated ? '계약으로 전환된 영업기회는 확정 해제할 수 없습니다.' : '이전 차수는 확정 해제할 수 없습니다.'}
+                title={canReopen ? item.contractCreated ? '연결 계약을 회수하고 영업기회 확정 해제' : '확정 해제' : !accessFeatures?.canConfirmOpportunity ? accessPendingTitle : '이전 차수는 확정 해제할 수 없습니다.'}
                 onClick={() => onReopen(item)}
               >
                 <UnlockKeyhole className="h-3.5 w-3.5" /> 확정 해제
@@ -1844,6 +2737,19 @@ function OpportunityDetail({
                 onClick={() => onConvertToContract(item)}
               >
                 <FileCheck2 className="h-3.5 w-3.5" /> 계약 전환
+              </Button>
+            ) : null}
+            {item.contractCreated ? (
+              <Button
+                variant="plain"
+                size="plain"
+                type="button"
+                disabled={isWorkflowSaving || !canRevokeContract}
+                className="inline-flex h-7 items-center justify-center gap-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:bg-card disabled:cursor-not-allowed disabled:opacity-50"
+                title={canRevokeContract ? '계약 회수 후 영업기회 확정 상태 유지' : !accessFeatures?.canConfirmOpportunity ? accessPendingTitle : !item.contractCode ? '연결 계약 코드를 확인할 수 없습니다.' : '최신 확정 차수의 연결 계약만 회수할 수 있습니다.'}
+                onClick={() => onRevokeContract(item)}
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> 계약 회수
               </Button>
             ) : null}
             <Button
@@ -1927,8 +2833,15 @@ function OpportunityDetail({
               isDmsDraftSaving={isQuoteDmsDraftSaving}
               isDmsLifecycleExecuting={isQuoteDmsLifecycleExecuting}
               onSave={(request) => onSaveQuoteWorkflow(item, request)}
-              onCreateDmsDraft={() => onCreateQuoteDmsDraft(item)}
+              onCreateDmsDraft={(templateKey) => onCreateQuoteDmsDraft(item, templateKey)}
               onExecuteDmsLifecycle={() => onExecuteQuoteDmsLifecycle(item)}
+            />
+          </DetailSection>
+
+          <DetailSection title="계약서 생성">
+            <OpportunityContractDocumentCard
+              opportunityId={item.id}
+              canGenerate={Boolean(accessFeatures?.canConfirmOpportunity)}
             />
           </DetailSection>
 
@@ -2032,7 +2945,7 @@ function QuotePreviewSection({
   isDmsDraftSaving: boolean;
   isDmsLifecycleExecuting: boolean;
   onSave: (request: CrmQuoteWorkflowUpdateRequest) => void;
-  onCreateDmsDraft: () => void;
+  onCreateDmsDraft: (templateKey: string) => void;
   onExecuteDmsLifecycle: () => void;
 }) {
   const [workflowStatus, setWorkflowStatus] = useState<CrmQuoteWorkflowStatus>('draft');
@@ -2040,6 +2953,7 @@ function QuotePreviewSection({
   const [issuedAt, setIssuedAt] = useState('');
   const [validUntil, setValidUntil] = useState('');
   const [quoteMemo, setQuoteMemo] = useState('');
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState('');
 
   useEffect(() => {
     if (!preview) {
@@ -2048,6 +2962,7 @@ function QuotePreviewSection({
       setIssuedAt('');
       setValidUntil('');
       setQuoteMemo('');
+      setSelectedTemplateKey('');
       return;
     }
 
@@ -2056,6 +2971,7 @@ function QuotePreviewSection({
     setIssuedAt(preview.workflow.issuedAt.slice(0, 10));
     setValidUntil(preview.workflow.validUntil);
     setQuoteMemo(preview.workflow.quoteMemo ?? '');
+    setSelectedTemplateKey(preview.dmsDocument.templateKey);
   }, [preview]);
 
   if (isLoading) {
@@ -2081,13 +2997,18 @@ function QuotePreviewSection({
     || validUntil !== preview.workflow.validUntil
     || quoteMemo.trim() !== (preview.workflow.quoteMemo ?? '');
   const dmsDocument = preview.dmsDocument;
-  const dmsDraftDisabled = !canEdit || isDmsDraftSaving || dmsDocument.readiness !== 'ready';
+  const selectedTemplate = dmsDocument.templateOptions.find((option) => option.templateKey === selectedTemplateKey);
+  const dmsDraftDisabled = !canEdit
+    || isDmsDraftSaving
+    || dmsDocument.readiness !== 'ready'
+    || !selectedTemplate?.selectable;
   const dmsLifecycleBlockedReason = dmsDocument.lifecycle.find((step) => step.owner === 'dms' && step.status === 'blocked')?.blockingReasons?.[0];
   const dmsLifecycleDisabled = !canEdit
     || isDmsLifecycleExecuting
     || isDmsDraftSaving
     || !dmsDocument.latestHandoff
     || Boolean(dmsLifecycleBlockedReason);
+  const canPrintQuote = preview.workflow.previewStatus === 'candidate' && preview.summary.quoteTotal > 0;
 
   return (
     <div className="space-y-3">
@@ -2235,6 +3156,19 @@ function QuotePreviewSection({
         <BoundaryRow label="견적 금액" value={`${formatWon(preview.summary.quoteTotal)} (${preview.summary.vatNotice})`} />
       </div>
 
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={!canPrintQuote}
+          title={canPrintQuote ? '인쇄용 견적서를 열어 인쇄하거나 PDF로 저장합니다.' : '매출이 있는 활성 영업기회만 견적서를 인쇄할 수 있습니다.'}
+          onClick={() => openQuotePrintPreview(preview)}
+        >
+          <Printer className="h-3.5 w-3.5" /> 인쇄 / PDF 저장
+        </Button>
+      </div>
+
       <div className="space-y-3 rounded-md border border-border px-3 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -2246,6 +3180,25 @@ function QuotePreviewSection({
           </span>
         </div>
         <div className="space-y-2 text-xs text-muted-foreground">
+          <label className="block space-y-1">
+            <span className="font-medium text-foreground">DOCX 템플릿 선택</span>
+            <NativeSelect
+              value={selectedTemplateKey}
+              disabled={!canEdit || isDmsDraftSaving || dmsDocument.templateOptions.length === 0}
+              onChange={(event) => setSelectedTemplateKey(event.target.value)}
+            >
+              {dmsDocument.templateOptions.map((option) => (
+                <option key={option.templateKey} value={option.templateKey} disabled={!option.selectable}>
+                  {option.templateName}{option.selectable ? '' : ` · ${option.unavailableReason ?? '사용 불가'}`}
+                </option>
+              ))}
+            </NativeSelect>
+            {selectedTemplate ? (
+              <span className="block text-caption-2xs text-muted-foreground">
+                {selectedTemplate.docxFileName ?? 'DOCX binary 없음'} · {selectedTemplate.docxOrigin === 'uploaded' ? '업로드 템플릿' : '자동 생성 템플릿'} · {selectedTemplate.reviewStatus === 'confirmed' ? '검토 확정' : '검토 대기'}
+              </span>
+            ) : null}
+          </label>
           <BoundaryRow label="템플릿" value={formatQuoteTemplateEvidence(dmsDocument.templateEvidence)} />
           <BoundaryRow label="템플릿 경로" value={dmsDocument.templateEvidence.sourcePath ?? dmsDocument.templateEvidence.reason ?? 'DMS registry 확인 필요'} />
           <BoundaryRow label="문서 제목" value={dmsDocument.documentTitle} />
@@ -2264,6 +3217,15 @@ function QuotePreviewSection({
                 <div className="min-w-0 text-muted-foreground">
                   <div className="truncate">{step.evidencePath ?? step.evidenceLabel}</div>
                   <div className="mt-0.5 text-caption-2xs">{step.note}</div>
+                  {(step.key === 'word-export' || step.key === 'pdf-export') && step.status === 'completed' ? (
+                    <a
+                      href={`/api/crm/opportunities/${encodeURIComponent(dmsDocument.opportunityId)}/quote-dms-artifacts/${step.key}`}
+                      download
+                      className="mt-1 inline-flex items-center gap-1 font-medium text-ssoo-accent hover:underline"
+                    >
+                      <Download className="h-3 w-3" /> {step.key === 'word-export' ? 'DOCX 다운로드' : 'PDF 다운로드'}
+                    </a>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -2282,7 +3244,7 @@ function QuotePreviewSection({
             size="sm"
             disabled={dmsDraftDisabled}
             title={dmsDraftDisabled ? dmsDocument.blockedReasons[0] ?? '견적 DMS 초안 저장 권한 또는 준비 상태를 확인하세요.' : '견적 markdown 초안 저장'}
-            onClick={onCreateDmsDraft}
+            onClick={() => onCreateDmsDraft(selectedTemplateKey)}
           >
             <FileCheck2 className="h-3.5 w-3.5" /> {isDmsDraftSaving ? '저장 중' : dmsDocument.latestHandoff ? 'DMS 초안 갱신' : 'DMS 초안 저장'}
           </Button>
@@ -2383,6 +3345,8 @@ function QuotePreviewLineTable({
 function OpportunityEditor({
   mode,
   draft,
+  readOnly = false,
+  sourceCompatible = false,
   saveError,
   isSaving,
   ownerLookupItems,
@@ -2399,9 +3363,15 @@ function OpportunityEditor({
   onLineChange,
   onAddLine,
   onRemoveLine,
+  onQuote,
+  onReopen,
+  canQuote = false,
+  canReopen = false,
 }: {
   mode: OpportunityEditorMode;
   draft: OpportunityDraft;
+  readOnly?: boolean;
+  sourceCompatible?: boolean;
   saveError: string | null;
   isSaving: boolean;
   ownerLookupItems: CrmOpportunityOwnerLookupItem[];
@@ -2422,7 +3392,21 @@ function OpportunityEditor({
   ) => void;
   onAddLine: (kind: OpportunityDraftLineKind, category?: CrmOpportunityLineCategory) => void;
   onRemoveLine: (kind: OpportunityDraftLineKind, index: number) => void;
+  onQuote?: () => void;
+  onReopen?: () => void;
+  canQuote?: boolean;
+  canReopen?: boolean;
 }) {
+  const commonCodes = useCrmCommonCodeOptions(['biz_type', 'group_type', 'payment_term']);
+  const businessTypeOptions = withCurrentCodeOption(commonCodes.options.biz_type ?? [], draft.businessType);
+  const groupTypeOptions = withCurrentCodeOption(commonCodes.options.group_type ?? [], draft.industryLine);
+  const paymentOptions = withCurrentCodeOption(
+    commonCodes.options.payment_term?.length
+      ? commonCodes.options.payment_term
+      : Object.entries(paymentTermLabels).map(([value, label]) => ({ value, label })),
+    draft.paymentTermCode,
+    formatPaymentTerm(draft.paymentTermCode),
+  );
   const revenueSubtotal = sumDraftLines(draft.revenueLines);
   const specialDiscountAmount = getDraftDiscountAmount(
     revenueSubtotal,
@@ -2438,28 +3422,193 @@ function OpportunityEditor({
     ? '조회 중'
     : `${ownerLookupItems.length.toLocaleString('ko-KR')}명`;
 
+  if (sourceCompatible) {
+    return (
+      <aside className="min-h-0 bg-card">
+        <form
+          className="flex min-h-full flex-col"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!readOnly) void onSave();
+          }}
+        >
+          <div className="border-b border-border bg-ssoo-content-bg px-4 py-3">
+            <Button variant="plain" size="plain" type="button" className="text-xs text-muted-foreground hover:text-foreground" onClick={onCancel}>← 영업기회 현황으로 돌아가기</Button>
+            <h2 className="mt-4 flex flex-wrap items-center gap-2 text-xl font-semibold text-foreground">
+              {mode === 'create' ? '영업기회 등록' : readOnly ? '영업기회 조회' : '영업기회 수정'}
+              {readOnly ? <>{' '}<span className="rounded bg-ssoo-success-bg px-2 py-1 text-xs font-medium text-ssoo-success">확정됨</span></> : null}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {readOnly ? '계약확정 상태입니다. [계약취소] 버튼으로 계약을 회수하고 확정 상태로 되돌릴 수 있습니다.' : '영업기회의 기본 정보와 매출·원가를 입력하세요.'}
+            </p>
+          </div>
+
+          <fieldset disabled={readOnly} className="space-y-5 p-5 disabled:opacity-100">
+            {saveError ? (
+              <div className="flex items-start gap-2 rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{saveError}</span>
+              </div>
+            ) : null}
+
+            <section className="space-y-4 rounded-lg border border-border bg-card p-5">
+              <SourceEditorField label="고객명 *" htmlFor="f-customer">
+                <Input id="f-customer" required placeholder="고객사명 입력" value={draft.customerName} onChange={(event) => onTextFieldChange('customerName', event.target.value)} />
+              </SourceEditorField>
+              <SourceEditorField label="고객사 담당자" htmlFor="f-client-contact">
+                <Input id="f-client-contact" placeholder="고객사 담당자명 입력" value={draft.clientContactName} onChange={(event) => onTextFieldChange('clientContactName', event.target.value)} />
+              </SourceEditorField>
+              <SourceEditorField label="영업기회명 *" htmlFor="f-opp">
+                <Input id="f-opp" required placeholder="영업기회 제목 입력" value={draft.opportunityName} onChange={(event) => onTextFieldChange('opportunityName', event.target.value)} />
+              </SourceEditorField>
+              <SourceEditorField label="영업담당자 *">
+                {readOnly ? (
+                  <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                    <div className="flex min-h-10 items-center justify-between gap-2 rounded-md border border-border bg-muted px-3 text-sm text-foreground">
+                      <span>{draft.ownerName || '-'}</span>
+                      <Button variant="plain" size="plain" type="button" disabled className="text-xs text-muted-foreground" aria-label="영업담당자 제거">✕</Button>
+                    </div>
+                    <Button variant="outline" type="button" disabled><Search className="h-3.5 w-3.5" /> 도움창</Button>
+                  </div>
+                ) : (
+                  <Fragment>
+                    <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                      <SsooSearchInput id="crm-source-opportunity-owner-lookup-input" name="crm-source-opportunity-owner-lookup-query" ariaLabel="원본 영업기회 담당 사용자 검색" intent="entity-lookup" value={ownerLookupSearch} placeholder="이름, 계정, 이메일" onChange={(event) => onOwnerLookupSearchChange(event.target.value)} />
+                      <Button variant="outline" type="button" disabled={isOwnerLookupLoading} onClick={onOwnerLookupReload}><Search className="h-3.5 w-3.5" /> 도움창</Button>
+                    </div>
+                    <NativeSelect
+                      className="mt-2"
+                      value={draft.ownerUserId || OWNER_LOOKUP_EMPTY_VALUE}
+                      onChange={(event) => onOwnerUserIdChange(event.target.value === OWNER_LOOKUP_EMPTY_VALUE ? '' : event.target.value)}
+                    >
+                      <option value={OWNER_LOOKUP_EMPTY_VALUE}>선택 안함</option>
+                      {draft.ownerUserId && !selectedOwnerInLookup ? <option value={draft.ownerUserId}>{draft.ownerName} · #{draft.ownerUserId}</option> : null}
+                      {ownerLookupItems.map((item) => <option key={item.userId} value={item.userId}>{formatOwnerLookupLabel(item)}</option>)}
+                    </NativeSelect>
+                    <p className={`mt-1 text-xs ${ownerLookupError ? 'text-ssoo-danger' : 'text-muted-foreground'}`}>{ownerLookupError ?? ownerLookupStateText}</p>
+                  </Fragment>
+                )}
+              </SourceEditorField>
+              <SourceEditorField label="상태" htmlFor="f-status">
+                <NativeSelect id="f-status" value={draft.status} onChange={(event) => onSelectFieldChange('status', event.target.value)}>
+                  {Object.keys(statusLabels).map((value) => <option key={value} value={value}>{toSourceOpportunityStatus(value as CrmOpportunityStatus)}</option>)}
+                </NativeSelect>
+              </SourceEditorField>
+              <SourceEditorField label="수금조건" htmlFor="f-payment">
+                <NativeSelect id="f-payment" value={draft.paymentTermCode} onChange={(event) => onSelectFieldChange('paymentTermCode', event.target.value)}>
+                  <option value="">선택</option>
+                  {paymentOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </NativeSelect>
+              </SourceEditorField>
+              <SourceEditorField label="사업구분 *" htmlFor="f-biz-type">
+                <NativeSelect id="f-biz-type" required value={draft.businessType} onChange={(event) => onTextFieldChange('businessType', event.target.value)}>
+                  <option value="">선택</option>
+                  {businessTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </NativeSelect>
+              </SourceEditorField>
+              <SourceEditorField label="계열구분" htmlFor="f-group-type">
+                <NativeSelect id="f-group-type" value={draft.industryLine} onChange={(event) => onTextFieldChange('industryLine', event.target.value)}>
+                  <option value="">선택</option>
+                  {groupTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </NativeSelect>
+              </SourceEditorField>
+              <SourceEditorField label="국내/해외" htmlFor="f-domestic">
+                <NativeSelect id="f-domestic" value={draft.region} onChange={(event) => onSelectFieldChange('region', event.target.value)}>
+                  {Object.entries(regionLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </NativeSelect>
+              </SourceEditorField>
+            </section>
+
+            <EditorSection title="예상계약기간" semanticLabel>
+              <div className="grid items-center gap-2 sm:grid-cols-[1fr_auto_1fr]">
+                <Input id="f-start" type="date" value={draft.expectedStartDate} onChange={(event) => onTextFieldChange('expectedStartDate', event.target.value)} />
+                <span className="text-center text-muted-foreground">~</span>
+                <Input id="f-end" type="date" value={draft.expectedEndDate} onChange={(event) => onTextFieldChange('expectedEndDate', event.target.value)} />
+              </div>
+            </EditorSection>
+
+            <LineEditorGroups
+              title="예상매출액 *"
+              kind="revenueLines"
+              lines={draft.revenueLines}
+              groups={[{ category: 'product', label: '상품매출' }, { category: 'service', label: '용역매출' }]}
+              onAddLine={onAddLine}
+              onLineChange={onLineChange}
+              onRemoveLine={onRemoveLine}
+              sourceCompatible
+            />
+            <LineEditorGroups
+              title="예상원가"
+              kind="costLines"
+              lines={draft.costLines}
+              groups={[
+                { category: 'product', label: '상품원가' },
+                { category: 'internal-cost', label: '내부용역원가' },
+                { category: 'external-cost', label: '외부용역원가' },
+              ]}
+              onAddLine={onAddLine}
+              onLineChange={onLineChange}
+              onRemoveLine={onRemoveLine}
+              sourceCompatible
+            />
+
+            <EditorSection title="Special DC 및 예상 손익">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <span className="mb-1 block text-xs font-medium text-muted-foreground">Special DC 방식</span>
+                  <NativeSelect id="dc-type" value={draft.specialDiscountType} onChange={(event) => onSelectFieldChange('specialDiscountType', event.target.value)}>
+                    {Object.entries(discountTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  </NativeSelect>
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-medium text-muted-foreground">{draft.specialDiscountType === 'rate' ? 'Special DC (%)' : 'Special DC (원)'}</span>
+                  <Input id="dc-value" type="number" min="0" value={draft.specialDiscountValue} onChange={(event) => onTextFieldChange('specialDiscountValue', event.target.value)} />
+                </div>
+              </div>
+              <dl className="mt-4 grid gap-2 sm:grid-cols-3">
+                <Field label="예상매출" value={formatWon(revenueTotal)} />
+                <Field label="예상원가" value={formatWon(costTotal)} />
+                <Field label="예상이익" value={`${formatWon(marginTotal)} · ${marginRate}%`} strong />
+              </dl>
+            </EditorSection>
+          </fieldset>
+
+          <div className="flex flex-wrap justify-end gap-2 border-t border-border bg-muted px-5 py-4">
+            <Button variant="outline" type="button" onClick={onCancel}>{readOnly ? '취소' : '목록'}</Button>
+            {readOnly ? (
+              <Fragment>
+                <Button variant="outline" type="button" disabled={!canQuote} onClick={onQuote}>견적서</Button>
+                <Button type="button" disabled={!canReopen} onClick={onReopen}>계약취소</Button>
+              </Fragment>
+            ) : <Button type="submit" disabled={isSaving}><Save className="h-4 w-4" /> {isSaving ? '저장 중' : '저장'}</Button>}
+          </div>
+        </form>
+      </aside>
+    );
+  }
+
   return (
     <aside className="min-h-0 overflow-auto bg-card">
       <form
         className="flex min-h-full flex-col"
         onSubmit={(event) => {
           event.preventDefault();
-          void onSave();
+          if (!readOnly) void onSave();
         }}
       >
         <div className="flex h-9 items-center justify-between border-b border-ssoo-content-border bg-ssoo-content-bg px-2 shadow-sm">
-          <h2 className="text-sm font-medium text-muted-foreground">{mode === 'create' ? '영업기회 등록' : '영업기회 수정'}</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">{mode === 'create' ? '영업기회 등록' : readOnly ? '영업기회 조회' : '영업기회 수정'}</h2>
           <div className="flex items-center gap-1">
             <Button variant="plain" size="plain" type="button" className="h-7 px-2 text-xs" onClick={onCancel}>
-              <X className="h-3.5 w-3.5" /> 취소
+              <X className="h-3.5 w-3.5" /> {readOnly ? '목록' : '취소'}
             </Button>
-            <Button size="sm" type="submit" disabled={isSaving}>
+            {!readOnly ? <Button size="sm" type="submit" disabled={isSaving}>
               <Save className="h-3.5 w-3.5" /> {isSaving ? '저장 중' : '저장'}
-            </Button>
+            </Button> : null}
           </div>
         </div>
 
-        <div className="space-y-4 p-4">
+        <fieldset disabled={readOnly} className="space-y-4 p-4 disabled:opacity-100">
           {saveError ? (
             <div className="flex items-start gap-2 rounded-md border border-ssoo-danger-border bg-ssoo-danger-bg px-3 py-2 text-sm text-ssoo-danger">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -2481,7 +3630,11 @@ function OpportunityEditor({
               <div className="col-span-2">
                 <span className="mb-1 block text-xs font-medium text-muted-foreground">담당 사용자</span>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
-                  <Input
+                  <SsooSearchInput
+                    id="crm-opportunity-owner-lookup-input"
+                    name="crm-opportunity-owner-lookup-query"
+                    ariaLabel="영업기회 담당 사용자 검색"
+                    intent="entity-lookup"
                     value={ownerLookupSearch}
                     placeholder="이름, 계정, 이메일"
                     onChange={(event) => onOwnerLookupSearchChange(event.target.value)}
@@ -2513,10 +3666,20 @@ function OpportunityEditor({
                 <Input required value={draft.opportunityName} onChange={(event) => onTextFieldChange('opportunityName', event.target.value)} />
               </EditorField>
               <EditorField label="사업구분">
-                <Input required value={draft.businessType} onChange={(event) => onTextFieldChange('businessType', event.target.value)} />
+                {businessTypeOptions.length ? (
+                  <NativeSelect required value={draft.businessType} onChange={(event) => onTextFieldChange('businessType', event.target.value)} data-testid="opportunity-business-type-code">
+                    <option value="">선택</option>
+                    {businessTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </NativeSelect>
+                ) : <Input required value={draft.businessType} onChange={(event) => onTextFieldChange('businessType', event.target.value)} />}
               </EditorField>
               <EditorField label="계열/산업">
-                <Input required value={draft.industryLine} onChange={(event) => onTextFieldChange('industryLine', event.target.value)} />
+                {groupTypeOptions.length ? (
+                  <NativeSelect required value={draft.industryLine} onChange={(event) => onTextFieldChange('industryLine', event.target.value)} data-testid="opportunity-group-type-code">
+                    <option value="">선택</option>
+                    {groupTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </NativeSelect>
+                ) : <Input required value={draft.industryLine} onChange={(event) => onTextFieldChange('industryLine', event.target.value)} />}
               </EditorField>
               <EditorField label="지역">
                 <NativeSelect value={draft.region} onChange={(event) => onSelectFieldChange('region', event.target.value)}>
@@ -2536,9 +3699,10 @@ function OpportunityEditor({
               <EditorField label="수금조건">
                 <NativeSelect value={draft.paymentTermCode} onChange={(event) => onSelectFieldChange('paymentTermCode', event.target.value)}>
                   <option value="">선택</option>
-                  {Object.entries(paymentTermLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  {paymentOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </NativeSelect>
               </EditorField>
+              {commonCodes.error ? <p className="col-span-2 text-xs text-ssoo-warning">{commonCodes.error} 기존 입력 방식을 유지합니다.</p> : null}
               <EditorField label="Special DC 방식">
                 <NativeSelect value={draft.specialDiscountType} onChange={(event) => onSelectFieldChange('specialDiscountType', event.target.value)}>
                   {Object.entries(discountTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -2603,17 +3767,17 @@ function OpportunityEditor({
             <Field label="손익" value={formatWon(marginTotal)} strong />
             <Field label="손익률" value={`${marginRate}%`} strong />
           </div>
-        </div>
+        </fieldset>
       </form>
     </aside>
   );
 }
 
-function EditorSection({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+function EditorSection({ title, action, children, semanticLabel = false }: { title: string; action?: React.ReactNode; children: React.ReactNode; semanticLabel?: boolean }) {
   return (
     <section className="rounded-md border border-border bg-card">
       <div className="flex min-h-10 items-center justify-between border-b border-border bg-muted px-3 py-2">
-        <h3 className="text-xs font-semibold text-muted-foreground">{title}</h3>
+        <h3 className="text-xs font-semibold text-muted-foreground">{semanticLabel ? <label>{title}</label> : title}</h3>
         {action}
       </div>
       <div className="p-3">{children}</div>
@@ -2630,6 +3794,23 @@ function EditorField({ label, className, children }: { label: string; className?
   );
 }
 
+function SourceEditorField({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium text-muted-foreground" htmlFor={htmlFor}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
 function LineEditorGroups({
   title,
   kind,
@@ -2638,6 +3819,7 @@ function LineEditorGroups({
   onAddLine,
   onLineChange,
   onRemoveLine,
+  sourceCompatible = false,
 }: {
   title: string;
   kind: OpportunityDraftLineKind;
@@ -2650,9 +3832,10 @@ function LineEditorGroups({
     patch: Partial<Pick<OpportunityDraftLine, OpportunityDraftLineField>>,
   ) => void;
   onRemoveLine: (kind: OpportunityDraftLineKind, index: number) => void;
+  sourceCompatible?: boolean;
 }) {
   return (
-    <EditorSection title={title}>
+    <EditorSection title={title} semanticLabel={sourceCompatible}>
       <div className="space-y-3">
         {groups.map((group) => (
           <LineEditorGroup
@@ -2664,6 +3847,7 @@ function LineEditorGroups({
             onAddLine={onAddLine}
             onLineChange={onLineChange}
             onRemoveLine={onRemoveLine}
+            sourceCompatible={sourceCompatible}
           />
         ))}
       </div>
@@ -2679,6 +3863,7 @@ function LineEditorGroup({
   onAddLine,
   onLineChange,
   onRemoveLine,
+  sourceCompatible,
 }: {
   kind: OpportunityDraftLineKind;
   category: CrmOpportunityLineCategory;
@@ -2691,6 +3876,7 @@ function LineEditorGroup({
     patch: Partial<Pick<OpportunityDraftLine, OpportunityDraftLineField>>,
   ) => void;
   onRemoveLine: (kind: OpportunityDraftLineKind, index: number) => void;
+  sourceCompatible: boolean;
 }) {
   const indexedLines = lines
     .map((line, index) => ({ line, index }))
@@ -2698,13 +3884,18 @@ function LineEditorGroup({
   const isServiceLike = category !== 'product';
   const isCost = kind === 'costLines';
   const emptyColSpan = isServiceLike ? isCost ? 12 : 11 : isCost ? 8 : 7;
+  const groupAmount = indexedLines.reduce((sum, { line }) => sum + getDraftLineAmount(line), 0);
 
   return (
     <div className="overflow-hidden rounded-md border border-border">
       <div className="flex min-h-9 items-center justify-between border-b border-border bg-ssoo-content-bg px-2">
-        <div className="text-xs font-semibold text-muted-foreground">{label}</div>
+        {sourceCompatible ? (
+          <Button variant="plain" size="plain" type="button" className="text-xs font-semibold text-muted-foreground">
+            {label} {indexedLines.length}{groupAmount > 0 ? ` · ${formatSourceAmount(groupAmount)}` : ''}
+          </Button>
+        ) : <div className="text-xs font-semibold text-muted-foreground">{label}</div>}
         <Button variant="outline" size="sm" type="button" onClick={() => onAddLine(kind, category)}>
-          <Plus className="h-3.5 w-3.5" /> 추가
+          <Plus className="h-3.5 w-3.5" /> {sourceCompatible ? '행 추가' : '추가'}
         </Button>
       </div>
       <div className="overflow-x-auto">
@@ -2765,7 +3956,7 @@ function LineEditorGroup({
                 </TableCell>
                 {kind === 'revenueLines' ? (
                   <TableCell className="px-2 py-2">
-                    <Input disabled={Boolean(line.linkedCostLineId)} type="number" value={line.marginRate} className="text-right" placeholder="-" onChange={(event) => onLineChange(kind, index, { marginRate: event.target.value })} />
+                    <Input disabled={Boolean(line.linkedCostLineId)} type="number" value={line.marginRate} className="text-right" placeholder="—" onChange={(event) => onLineChange(kind, index, { marginRate: event.target.value })} />
                   </TableCell>
                 ) : null}
                 {isCost ? (

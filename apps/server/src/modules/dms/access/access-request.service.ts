@@ -296,6 +296,26 @@ export class AccessRequestService {
     query: DmsDocumentAccessRequestListQuery = {},
   ): Promise<DmsDocumentAccessRequestSummary[]> {
     await this.ensureRepoControlPlaneSynced();
+    return this.listManageableReadRequestsFromControlPlane(user, query);
+  }
+
+  /**
+   * 이미 동기화된 control-plane만 읽는다.
+   *
+   * 홈 요약처럼 조회 자체가 문서 updatedAt을 바꾸면 안 되는 표면에서 사용한다.
+   * 명시적인 관리 화면은 위의 동기화 포함 메서드를 계속 사용한다.
+   */
+  async listManageableReadRequestsSnapshot(
+    user: TokenPayload,
+    query: DmsDocumentAccessRequestListQuery = {},
+  ): Promise<DmsDocumentAccessRequestSummary[]> {
+    return this.listManageableReadRequestsFromControlPlane(user, query);
+  }
+
+  private async listManageableReadRequestsFromControlPlane(
+    user: TokenPayload,
+    query: DmsDocumentAccessRequestListQuery,
+  ): Promise<DmsDocumentAccessRequestSummary[]> {
     const requests = await this.db.client.dmsDocumentAccessRequest.findMany({
       where: {
         isActive: true,
@@ -1428,7 +1448,7 @@ export class AccessRequestService {
         latestGitCommitHash: existing.latestGitCommitHash,
         metadataJson,
         lastScannedAt: new Date(),
-        lastSyncedAt: existing.lastSyncedAt ?? new Date(),
+        lastSyncedAt: new Date(),
         lastReconciledAt: new Date(),
         updatedBy: owner.userId,
         lastSource: ACTIVE_REQUEST_SOURCE,

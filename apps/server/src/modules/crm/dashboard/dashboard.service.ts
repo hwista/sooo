@@ -7,6 +7,7 @@ import type {
   CrmDashboardQueueState,
   CrmDashboardResponse,
   CrmOpportunity,
+  CrmSourceOpportunityStatus,
   CrmOpportunityStatus,
   CrmQuotePreviewSellerInfoStatus,
   CrmQuoteSellerProfile,
@@ -25,6 +26,9 @@ const OPPORTUNITY_STATUS_LABELS: Record<CrmOpportunityStatus, string> = {
   lost: '실주',
   hold: '보류',
 };
+
+const SOURCE_STATUS_ORDER: CrmSourceOpportunityStatus[] = ['진행중', '검토중', '계약완료', '실패'];
+const SOURCE_CALCULATION_NOTICE = '원천 화면의 최신차수·확정 분모를 유지하되, 금액은 DC·절사를 반영한 SSOO 정본 합계를 사용합니다.';
 
 @Injectable()
 export class DashboardService {
@@ -54,11 +58,56 @@ export class DashboardService {
       pipeline: this.buildPipeline(opportunities),
       queues,
       nextActions: this.buildNextActions(opportunities, contracts),
+      sourceCompatibility: this.buildSourceCompatibility(opportunities),
       unimplementedIntegrations: this.mergeUnique([
         ...opportunityResponse.summary.unimplementedIntegrations,
         ...contractResponse.summary.unimplementedIntegrations,
       ]),
     };
+  }
+
+  private buildSourceCompatibility(opportunities: CrmOpportunity[]): CrmDashboardResponse['sourceCompatibility'] {
+    const confirmedLatest = opportunities.filter((item) => item.confirmed);
+    const revenueTotal = confirmedLatest.reduce((sum, item) => sum + item.revenueTotal, 0);
+    const costTotal = confirmedLatest.reduce((sum, item) => sum + item.costTotal, 0);
+    const marginTotal = revenueTotal - costTotal;
+
+    return {
+      calculationBasis: 'latest-version-canonical-total',
+      calculationNotice: SOURCE_CALCULATION_NOTICE,
+      confirmedSummary: {
+        totalGroupCount: opportunities.length,
+        confirmedLatestCount: confirmedLatest.length,
+        revenueTotal,
+        costTotal,
+        marginTotal,
+        marginRate: revenueTotal > 0 ? Math.round((marginTotal / revenueTotal) * 100) : 0,
+      },
+      statusDistribution: SOURCE_STATUS_ORDER.map((status) => {
+        const count = opportunities.filter((item) => this.toSourceStatus(item.status) === status).length;
+        return {
+          status,
+          count,
+          percentage: opportunities.length > 0 ? Math.round((count / opportunities.length) * 100) : 0,
+        };
+      }),
+      recentOpportunities: opportunities.slice(0, 5).map((item) => ({
+        id: item.id,
+        customerName: item.customerName,
+        opportunityName: item.opportunityName,
+        ownerName: item.ownerName,
+        status: this.toSourceStatus(item.status),
+        updatedAt: item.updatedAt,
+        href: `/?selected=${encodeURIComponent(item.id)}`,
+      })),
+    };
+  }
+
+  private toSourceStatus(status: CrmOpportunityStatus): CrmSourceOpportunityStatus {
+    if (status === 'proposal') return '진행중';
+    if (status === 'won') return '계약완료';
+    if (status === 'lost') return '실패';
+    return '검토중';
   }
 
   private buildPipeline(opportunities: CrmOpportunity[]): CrmDashboardPipelineStage[] {

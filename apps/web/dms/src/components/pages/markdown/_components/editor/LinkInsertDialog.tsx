@@ -5,7 +5,7 @@ import { Link2 } from 'lucide-react';
 import { EditorDialog } from '@/components/common/editor-dialog';
 import { PickerTree } from '@/components/common/picker-tree';
 import { useAuthStore, useFileStore } from '@/stores';
-import { Input } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 
 export interface LinkInsertDialogProps {
   open: boolean;
@@ -69,9 +69,11 @@ export function LinkInsertDialog({ open, currentFilePath, onConfirm, onCancel }:
         <label className="text-label-md text-ssoo-primary" htmlFor="link-url-input">
           링크 URL
         </label>
-        <Input
+        <SsooSearchInput
           id="link-url-input"
-          type="text"
+          name="dms-link-url-or-document-query"
+          ariaLabel="링크 URL 또는 문서 검색"
+          intent="hybrid-input"
           value={inputValue}
           onChange={(e) => {
             setInputValue(e.target.value);

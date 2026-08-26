@@ -126,9 +126,18 @@ export function useEditorPersistence({
 
   const handleSave = React.useCallback(async (options: EditorSaveOptions = {}) => {
     // blob URL 등 변환이 필요한 경우 적용
-    const finalContent = deps.transformBeforeSave
-      ? await deps.transformBeforeSave(state.editorContent)
-      : state.editorContent;
+    let finalContent = state.editorContent;
+    if (deps.transformBeforeSave) {
+      try {
+        finalContent = await deps.transformBeforeSave(state.editorContent);
+      } catch (error) {
+        const message = error instanceof Error && error.message.trim()
+          ? error.message
+          : '저장 전 파일 업로드에 실패했습니다.';
+        deps.showError('저장 실패', message);
+        return false;
+      }
+    }
 
     if (state.isCreateMode) {
       // AI 추천 경로에서 디렉토리/제목 분해

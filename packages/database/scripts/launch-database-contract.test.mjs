@@ -20,6 +20,13 @@ const repoRoot = path.resolve(packageRoot, '..', '..');
 const expectedMigrations = [
   { name: '0_launch_baseline', checksum: 'baseline-checksum' },
   { name: '20260720010000_add_launch_native_constraints', checksum: 'native-checksum' },
+  { name: '20260722090000_remove_sharepoint_storage_provider', checksum: 'storage-checksum' },
+  { name: '20260813090000_add_crm_launch_operations', checksum: 'crm-operations-checksum' },
+  { name: '20260813100000_add_crm_business_plan_source_parity', checksum: 'crm-business-plan-parity-checksum' },
+  { name: '20260813110000_add_crm_internal_cost_source_grid', checksum: 'crm-internal-cost-source-checksum' },
+  { name: '20260813120000_add_crm_ams_source_workspace', checksum: 'crm-ams-source-checksum' },
+  { name: '20260814090000_add_crm_contract_party_identity', checksum: 'crm-contract-party-checksum' },
+  { name: '20260814100000_add_crm_opportunity_contract_document', checksum: 'crm-opportunity-contract-document-checksum' },
 ];
 const validHistory = expectedMigrations.map((migration) => ({
   migration_name: migration.name,
@@ -43,7 +50,7 @@ test('TC-DB-02: rejects missing, unexpected, incomplete, and changed migrations'
         rolled_back_at: null,
       },
     ]),
-    /missing=.*native_constraints; unexpected=unexpected; incomplete=unexpected; checksum-mismatch=0_launch_baseline/u,
+    /missing=.*native_constraints,.*remove_sharepoint_storage_provider,.*crm_launch_operations,.*crm_business_plan_source_parity,.*crm_internal_cost_source_grid,.*crm_ams_source_workspace,.*crm_contract_party_identity,.*crm_opportunity_contract_document; unexpected=unexpected; incomplete=unexpected; checksum-mismatch=0_launch_baseline/u,
   );
 });
 
@@ -103,10 +110,24 @@ test('TC-DB-06: repository launch migrations and triggers form the expected cont
   const triggers = readTriggerContract(packageRoot, migrations);
   assert.deepEqual(
     migrations.map((migration) => migration.name),
-    ['0_launch_baseline', '20260720010000_add_launch_native_constraints'],
+    [
+      '0_launch_baseline',
+      '20260720010000_add_launch_native_constraints',
+      '20260722090000_remove_sharepoint_storage_provider',
+      '20260813090000_add_crm_launch_operations',
+      '20260813100000_add_crm_business_plan_source_parity',
+      '20260813110000_add_crm_internal_cost_source_grid',
+      '20260813120000_add_crm_ams_source_workspace',
+      '20260814090000_add_crm_contract_party_identity',
+      '20260814100000_add_crm_opportunity_contract_document',
+      '20260820090000_add_dms_home_hub',
+    ],
   );
-  assert.equal(triggers.length, 79);
+  assert.equal(triggers.length, 82);
   assert.ok(triggers.some((trigger) => trigger.name === 'trg_crm_contract_m_h_record'));
+  assert.ok(triggers.some((trigger) => trigger.name === 'trg_crm_config_m_h_record'));
+  assert.ok(triggers.some((trigger) => trigger.name === 'trg_crm_operation_attempt_m_h_record'));
+  assert.ok(triggers.some((trigger) => trigger.name === 'trg_dm_user_document_activity_h'));
 });
 
 test('TC-DB-07: runtime verification is wired into managed init, production, and CI', () => {

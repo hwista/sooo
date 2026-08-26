@@ -3,7 +3,6 @@
 import { spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import {
   formatSummary as formatInputInspectionSummary,
@@ -64,21 +63,16 @@ if (config.help) {
 }
 
 const startedAt = new Date();
-const auditArtifactDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ssoo-crm-completion-'));
-const crmLocalVerificationReportPath = path.join(auditArtifactDir, 'crm-local-verification-report.json');
+const crmCurrentDemoReportPath = config.reportPath
+  ? path.join(path.dirname(path.resolve(config.reportPath)), 'crm-current-demo-parity-report.json')
+  : path.join(process.cwd(), 'output', 'crm-current-demo', 'current-demo-parity-report.json');
 const commandChecks = [
   {
-    id: 'crm-launch-static-readiness',
-    script: 'verify:crm-launch',
-    command: ['node', 'scripts/verify-crm-launch-readiness.mjs'],
-    requirement: 'CRM demo source migration static readiness passes: CRM source, server, web, database, PMS/DMS boundary, and docs scope checks.',
-  },
-  {
-    id: 'crm-local-build-and-unit-tests',
-    script: 'verify:crm-local',
-    command: ['node', 'scripts/verify-crm-local-evidence.mjs', `--report-path=${crmLocalVerificationReportPath}`],
-    reportPath: crmLocalVerificationReportPath,
-    requirement: 'CRM demo source migration local verification passes: static readiness, CRM-related server Jest suites, DMS/PMS CRM boundary tests, and web-crm production build.',
+    id: 'crm-current-demo-strict-parity',
+    script: 'verify:crm-current-demo',
+    command: ['node', 'scripts/verify-crm-current-demo-parity.mjs', `--report-path=${crmCurrentDemoReportPath}`],
+    reportPath: crmCurrentDemoReportPath,
+    requirement: 'Current-revision CRM demo parity passes with exact SRC 28/28, UX 17/17 and 83/83 states, isolated DB/API/browser evidence, one worktree identity, and zero scoped residue.',
   },
 ];
 
@@ -186,7 +180,7 @@ const demoScopePassed = commandResults.every((check) => check.status === 'passed
 const extensionScopePassed = extensionReadinessChecks.every((check) => check.status === 'passed');
 const report = {
   schemaVersion: 1,
-  scope: 'crm-demo-source-migration',
+  scope: 'crm-demo-source-migration-current-revision',
   status: demoScopePassed && (!config.requireExtensions || extensionScopePassed) ? 'passed' : 'failed',
   requireExtensions: config.requireExtensions,
   startedAt: startedAt.toISOString(),

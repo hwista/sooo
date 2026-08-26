@@ -23,8 +23,11 @@ const GLOBAL_SEARCH_CONTENT_PAGE_ADAPTER_NAME = SSOO_CONTENT_PAGE_ADAPTER_NAMES.
 const DashboardPage = lazy(() => import('@/components/pages/dashboard/DashboardPage'));
 const UsersPage = lazy(() => import('@/components/pages/users/UserManagementPage').then((mod) => ({ default: mod.UserManagementPage })));
 const OrganizationsPage = lazy(() => import('@/components/pages/organizations/OrgManagementPage').then((mod) => ({ default: mod.OrgManagementPage })));
+const CodesPage = lazy(() => import('@/components/pages/codes/CodeManagementPage').then((mod) => ({ default: mod.CodeManagementPage })));
+const BusinessYearsPage = lazy(() => import('@/components/pages/business-years/BusinessYearManagementPage').then((mod) => ({ default: mod.BusinessYearManagementPage })));
 const RolesPage = lazy(() => import('@/components/pages/roles/AccessManagementPage').then((mod) => ({ default: mod.AccessManagementPage })));
 const AuthPage = lazy(() => import('@/components/pages/auth/AuthPolicyPage').then((mod) => ({ default: mod.AuthPolicyPage })));
+const AiOperationsPage = lazy(() => import('@/components/pages/ai/AiOperationsPage').then((mod) => ({ default: mod.AiOperationsPage })));
 const AdminGlobalSearchPage = lazy(() => import('@/components/pages/search/GlobalSearchPage').then((mod) => ({ default: mod.AdminGlobalSearchPage })));
 
 function LoadingFallback() {
@@ -43,8 +46,11 @@ function renderAdminPage(tab: AdminTabItem) {
   if (pathname === '/') return <DashboardPage />;
   if (pathname === '/users') return <UsersPage path={tab.path} />;
   if (pathname === '/organizations') return <OrganizationsPage />;
+  if (pathname === '/codes') return <CodesPage path={tab.path} />;
+  if (pathname === '/business-years') return <BusinessYearsPage path={tab.path} />;
   if (pathname === '/roles') return <RolesPage />;
   if (pathname === '/auth') return <AuthPage />;
+  if (pathname === '/ai-operations') return <AiOperationsPage />;
   if (pathname === SSOO_GLOBAL_SEARCH_APP_PATH) return <AdminGlobalSearchPage path={tab.path} />;
 
   return <SsooContentAreaEmptyState>페이지 준비 중: {tab.path}</SsooContentAreaEmptyState>;

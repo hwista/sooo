@@ -1,0 +1,1404 @@
+{
+  "version": 1,
+  "kind": "partial-target-uiux-audit",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T02:08:46.860Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-audit",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false
+  },
+  "captures": [
+    {
+      "uxId": "UX-01",
+      "sourcePage": "dashboard",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=dashboard",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=dashboard",
+      "capturedAt": "2026-08-20T02:08:01.552Z",
+      "audit": {
+        "normalStateId": "seeded-summary",
+        "sourceScreenshot": "ux-01-dashboard.png",
+        "targetDesktopScreenshot": "ux-01-dashboard--audit-desktop.png",
+        "targetMobileScreenshot": "ux-01-dashboard--audit-mobile.png",
+        "differenceScreenshot": "ux-01-dashboard--audit-difference.png",
+        "targetDomManifest": "ux-01-dashboard--audit.dom.json",
+        "missingStateIds": [
+          "no-confirmed-opportunity",
+          "recent-opportunity-drilldown"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [
+            "SCM 플랫폼 고도화 현대자동차 · 이서연 진행중",
+            "ERP 시스템 구축 프로젝트 삼성전자 · 김민준 계약완료"
+          ],
+          "missingLabels": [
+            "전체 건수",
+            "확정 매출액",
+            "확정 이익",
+            "확정 이익률"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "6e5a4f5b22abedd3bb9f8de1e43a70b5f2722a2b11068f5524dcf62faf59ecae",
+          "targetDesktop": "69a788cc046f6cde2ed8f3ee58008c3c74f69b49772113c7d398e3eb07dc79d6",
+          "targetMobile": "b3bd45c18d18228d7ef7d4a4756f7b439bd3c7177b0c6a488a405d72185b5814",
+          "difference": "5e8427f832c0d6ba5f4cd43d628f98a94991a2106c0ce7e752b361843895eb89",
+          "targetDom": "44ed2bbb156902ca8048451e12f174a5b968b715c4995d1c913ea7e25e5e2897"
+        }
+      }
+    },
+    {
+      "uxId": "UX-02",
+      "sourcePage": "list",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=list",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=list",
+      "capturedAt": "2026-08-20T02:08:04.101Z",
+      "audit": {
+        "normalStateId": "seeded-list",
+        "sourceScreenshot": "ux-02-list.png",
+        "targetDesktopScreenshot": "ux-02-list--audit-desktop.png",
+        "targetMobileScreenshot": "ux-02-list--audit-mobile.png",
+        "differenceScreenshot": "ux-02-list--audit-difference.png",
+        "targetDomManifest": "ux-02-list--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "previous-version-expanded",
+          "row-drilldown"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [
+            "list-status",
+            "list-sort"
+          ],
+          "missingColumns": [],
+          "missingActions": [
+            "+ 영업기회 등록",
+            "삼성전자 ERP 시스템 구축 프로젝트 김민 김민준 1.6억 1.1억 4,770만 29% 26.01.01~26.12.31 계약완료 계약확정 1차 →",
+            "현대자동차 SCM 플랫폼 고도화 이서 이서연 9,500만 6,650만 2,850만 30% 26.04.01~27.03.31 진행중 확정 1차 →"
+          ],
+          "missingLabels": [
+            "전체 건수",
+            "예상매출액",
+            "예상이익",
+            "평균 이익률"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "dcf9996346430206e1cec713d5bd4d916b55b8ac06b485e6e54c5c9514ccc53f",
+          "targetDesktop": "4bf54be7965f6f5759b0d81ee4703ce7afd0918ac55ed527fdc1707f25aa2854",
+          "targetMobile": "49e815c1a5d3c64ab82614efe6b51aae91fd323a84d23c5714c9b6224fdf625d",
+          "difference": "b668e3ef27236bcb9f0bc8557fa9fd96bbd55f25c807508bd94dca59948d8480",
+          "targetDom": "7b501a1ef9b6fe1540df8e0262dd49e8300e3ac0b3abe0a34b4f784ae0b33199"
+        }
+      }
+    },
+    {
+      "uxId": "UX-03",
+      "sourcePage": "form",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=form",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=form",
+      "capturedAt": "2026-08-20T02:08:06.550Z",
+      "audit": {
+        "normalStateId": "edit-seeded",
+        "sourceScreenshot": "ux-03-form.png",
+        "targetDesktopScreenshot": "ux-03-form--audit-desktop.png",
+        "targetMobileScreenshot": "ux-03-form--audit-mobile.png",
+        "differenceScreenshot": "ux-03-form--audit-difference.png",
+        "targetDomManifest": "ux-03-form--audit.dom.json",
+        "missingStateIds": [
+          "new-empty",
+          "required-validation",
+          "confirmed-locked",
+          "confirm-revoke-delete"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "영업기회 조회 확정됨",
+            "예상계약기간",
+            "예상매출액 *",
+            "예상원가"
+          ],
+          "missingFields": [
+            "고객명 *",
+            "고객사 담당자",
+            "영업기회명 *",
+            "상태",
+            "수금조건",
+            "사업구분 *",
+            "계열구분",
+            "국내/해외",
+            "f-start",
+            "f-end",
+            "—",
+            "dc-type"
+          ],
+          "missingColumns": [],
+          "missingActions": [
+            "← 영업기회 현황으로 돌아가기",
+            "✕",
+            "도움창",
+            "상품매출 1 · 9,000만",
+            "용역매출 1 · 7,200만",
+            "행 추가",
+            "상품원가 1 · 6,750만",
+            "내부용역원가 1 · 4,680만",
+            "외부용역원가 0",
+            "견적서",
+            "계약취소"
+          ],
+          "missingLabels": [
+            "고객명 *",
+            "고객사 담당자",
+            "영업기회명 *",
+            "영업담당자 *",
+            "상태",
+            "수금조건",
+            "사업구분 *",
+            "계열구분",
+            "국내/해외",
+            "예상계약기간",
+            "예상매출액 *",
+            "예상원가"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "16bc04d73299497205e0c4886dbd74fdd4f7c6792edc9a7379c8e4db3b43eec6",
+          "targetDesktop": "7c20a7e0ffb23caf26ca9b7448188a4979859a56f9d39d1094ee703a3ec08f2f",
+          "targetMobile": "591fc2f892ae321984ef0500d7d92ee1af00393157fc61a41e5683204df3e521",
+          "difference": "44f01d326ba41b034f1b270b84c4cbcc5bb382cc70cc7c9bf95a673bf821c0e9",
+          "targetDom": "46cd3de5bceba0dc1dc81127a63e7c23c26037ca4db01020229a9993c266f1c9"
+        }
+      }
+    },
+    {
+      "uxId": "UX-04",
+      "sourcePage": "contract-gen",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=contract-document + DMS",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=contract-document",
+      "capturedAt": "2026-08-20T02:08:10.745Z",
+      "audit": {
+        "normalStateId": "no-template",
+        "sourceScreenshot": "ux-04-contract-gen.png",
+        "targetDesktopScreenshot": "ux-04-contract-gen--audit-desktop.png",
+        "targetMobileScreenshot": "ux-04-contract-gen--audit-mobile.png",
+        "differenceScreenshot": "ux-04-contract-gen--audit-difference.png",
+        "targetDomManifest": "ux-04-contract-gen--audit.dom.json",
+        "missingStateIds": [
+          "template-ready",
+          "opportunity-selected",
+          "preview-ready",
+          "generation-download-success",
+          "generation-error"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [
+            "고객사 또는 건명 검색",
+            "cg-template-select"
+          ],
+          "missingColumns": [
+            "고객사",
+            "건명",
+            "사업구분",
+            "매출",
+            "계약기간",
+            "담당자"
+          ],
+          "missingActions": [
+            "샘플 템플릿 다운로드",
+            "+ 템플릿 추가",
+            "삼성전자 ERP 시스템 구축 프로젝트 SI 162,000,000원 2026.01.01 ~ 2026.12.31",
+            "현대자동차 SCM 플랫폼 고도화 SM 95,000,000원 2026.04.01 ~ 2027.03.31",
+            "계약서 생성 (.docx)"
+          ],
+          "missingLabels": [
+            "템플릿 선택"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "ecdaa7fb7187cb184b7c3ac227f63ba8c523de1e7682cf4a74d10fafb2667bf2",
+          "targetDesktop": "e71d7fb91221cf6de80717e696604d375ce327d2ea287d3f06547369f21af0d1",
+          "targetMobile": "7317b0cbf72483b1571b0de0f00bfca6aa6f2fa23e23954e395db04bede2144f",
+          "difference": "7d7f9097cc990be94488c8e7eca8fcad9c25f03cd7bec23e0810f928df71eb2b",
+          "targetDom": "7b75d8841547f0ff9d4c5a2e5b9bd369548e6f117e3b1e04ddb56b8eab5578b7"
+        }
+      }
+    },
+    {
+      "uxId": "UX-05",
+      "sourcePage": "contract-list",
+      "status": "partial",
+      "ownerSurface": "CRM /contracts",
+      "targetUrl": "http://127.0.0.1:3105/contracts",
+      "capturedAt": "2026-08-20T02:08:13.425Z",
+      "audit": {
+        "normalStateId": "seeded-list",
+        "sourceScreenshot": "ux-05-contract-list.png",
+        "targetDesktopScreenshot": "ux-05-contract-list--audit-desktop.png",
+        "targetMobileScreenshot": "ux-05-contract-list--audit-mobile.png",
+        "differenceScreenshot": "ux-05-contract-list--audit-difference.png",
+        "targetDomManifest": "ux-05-contract-list--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "row-drilldown"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "계약현황"
+          ],
+          "missingFields": [
+            "고객사, 계약명, 담당자 검색",
+            "ct-list-status",
+            "ct-list-sort"
+          ],
+          "missingColumns": [
+            "매출액",
+            "이익",
+            "이익률"
+          ],
+          "missingActions": [
+            "+ 계약등록",
+            "삼성전자 ERP 시스템 구축 계약 김민 김민준 1.6억 1.1억 4,770만 29% 26.01.01~26.12.31 계약중 →"
+          ],
+          "missingLabels": [
+            "전체 건수",
+            "매출액",
+            "이익",
+            "평균 이익률"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "c3140e49d62b42eac86c94af036395a170b0cc87b64ad66400f36fe39c74a974",
+          "targetDesktop": "5a13df407de3a64955faea12ee01b8cd6bde22d422704d2c3ab6d86a65c843b6",
+          "targetMobile": "efd295fd80969081efc5c5249a77b0a9d2db57085b38ede300adfef4c55da73e",
+          "difference": "8e27005abce2b7b394a1169f556b7ba05204586219df9e9b6e2aa93faa47e3c5",
+          "targetDom": "3c4e75ad381c4fc950ad34fe72e78536ac1e1aa3588c3fde550283945786ec33"
+        }
+      }
+    },
+    {
+      "uxId": "UX-06",
+      "sourcePage": "contract-form",
+      "status": "partial",
+      "ownerSurface": "CRM /contracts",
+      "targetUrl": "http://127.0.0.1:3105/contracts",
+      "capturedAt": "2026-08-20T02:08:16.108Z",
+      "audit": {
+        "normalStateId": "edit-seeded",
+        "sourceScreenshot": "ux-06-contract-form.png",
+        "targetDesktopScreenshot": "ux-06-contract-form--audit-desktop.png",
+        "targetMobileScreenshot": "ux-06-contract-form--audit-mobile.png",
+        "differenceScreenshot": "ux-06-contract-form--audit-difference.png",
+        "targetDomManifest": "ux-06-contract-form--audit.dom.json",
+        "missingStateIds": [
+          "new-empty",
+          "required-validation",
+          "confirmed-locked",
+          "confirm-unconfirm-delete"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "계약 조회",
+            "계약기간",
+            "매출액 *",
+            "원가",
+            "청구계획 (매출액·외부원가 합계가 계약금액과 일치해야 저장됩니다)"
+          ],
+          "missingFields": [
+            "고객명 *",
+            "고객사 담당자",
+            "계약명 *",
+            "상태",
+            "수금조건",
+            "WBS 코드",
+            "사업구분 *",
+            "계열구분",
+            "국내/해외",
+            "ct-start",
+            "ct-end",
+            "상품명",
+            "0",
+            "매출단가",
+            "ct-dc-type",
+            "YYYY/MM"
+          ],
+          "missingColumns": [],
+          "missingActions": [
+            "← 계약현황으로 돌아가기",
+            "도움창",
+            "상품매출 1 · 9,000만",
+            "용역매출 1 · 7,200만",
+            "상품원가 1 · 6,750만",
+            "내부용역원가 1 · 4,680만",
+            "외부용역원가 0",
+            "자동스플릿",
+            "취소",
+            "✕ 확정취소"
+          ],
+          "missingLabels": [
+            "고객명 *",
+            "고객사 담당자",
+            "계약명 *",
+            "영업담당자 *",
+            "상태",
+            "수금조건",
+            "WBS 코드",
+            "사업구분 *",
+            "계열구분",
+            "국내/해외",
+            "계약기간",
+            "매출액 *",
+            "원가",
+            "청구계획 (매출액·외부원가 합계가 계약금액과 일치해야 저장됩니다)"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "545cf46e078f336be8f810420a523eb4e8fa858c36c9af748a9de0c2fa98e211",
+          "targetDesktop": "5a13df407de3a64955faea12ee01b8cd6bde22d422704d2c3ab6d86a65c843b6",
+          "targetMobile": "efd295fd80969081efc5c5249a77b0a9d2db57085b38ede300adfef4c55da73e",
+          "difference": "58307a469b24e86d4496b9a968102b9cfdbdb5fbabbbadfcaeba82301d10de45",
+          "targetDom": "3c4e75ad381c4fc950ad34fe72e78536ac1e1aa3588c3fde550283945786ec33"
+        }
+      }
+    },
+    {
+      "uxId": "UX-07",
+      "sourcePage": "billing-actual",
+      "status": "partial",
+      "ownerSurface": "CRM /contracts",
+      "targetUrl": "http://127.0.0.1:3105/contracts",
+      "capturedAt": "2026-08-20T02:08:18.830Z",
+      "audit": {
+        "normalStateId": "actual-seeded",
+        "sourceScreenshot": "ux-07-billing-actual.png",
+        "targetDesktopScreenshot": "ux-07-billing-actual--audit-desktop.png",
+        "targetMobileScreenshot": "ux-07-billing-actual--audit-mobile.png",
+        "differenceScreenshot": "ux-07-billing-actual--audit-difference.png",
+        "targetDomManifest": "ux-07-billing-actual--audit.dom.json",
+        "missingStateIds": [
+          "confirmed-contract-list",
+          "contract-selected",
+          "actual-empty",
+          "save-validation"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "계약청구실적 입력",
+            "청구실적 + 행 추가"
+          ],
+          "missingFields": [
+            "YYYY/MM",
+            "0"
+          ],
+          "missingColumns": [],
+          "missingActions": [
+            "← 계약청구실적 목록으로 돌아가기",
+            "+ 행 추가"
+          ],
+          "missingLabels": [
+            "계획 매출액",
+            "실적 매출액",
+            "계획 외부원가",
+            "실적 외부원가",
+            "청구계획",
+            "청구실적 + 행 추가"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "4f469c7f672b66504faff35a6605478d39263990d2f04c6564c82c31492e3a05",
+          "targetDesktop": "5a13df407de3a64955faea12ee01b8cd6bde22d422704d2c3ab6d86a65c843b6",
+          "targetMobile": "efd295fd80969081efc5c5249a77b0a9d2db57085b38ede300adfef4c55da73e",
+          "difference": "ee7ac207b1b516df1063f63f3862880dbaef3ef52121ca7d86006ddf8488e2be",
+          "targetDom": "3c4e75ad381c4fc950ad34fe72e78536ac1e1aa3588c3fde550283945786ec33"
+        }
+      }
+    },
+    {
+      "uxId": "UX-08",
+      "sourcePage": "biz-report",
+      "status": "partial",
+      "ownerSurface": "CRM /contract-performance",
+      "targetUrl": "http://127.0.0.1:3105/contract-performance",
+      "capturedAt": "2026-08-20T02:08:21.205Z",
+      "audit": {
+        "normalStateId": "seeded-plan-actual",
+        "sourceScreenshot": "ux-08-biz-report.png",
+        "targetDesktopScreenshot": "ux-08-biz-report--audit-desktop.png",
+        "targetMobileScreenshot": "ux-08-biz-report--audit-mobile.png",
+        "differenceScreenshot": "ux-08-biz-report--audit-difference.png",
+        "targetDomManifest": "ux-08-biz-report--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "filter-combination"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "계약대비실적 (월별)"
+          ],
+          "missingFields": [
+            "rpt-year",
+            "rpt-biz-type",
+            "rpt-group-type",
+            "rpt-domestic",
+            "계약명 검색"
+          ],
+          "missingColumns": [
+            "사업구분",
+            "계열구분",
+            "국내/해외",
+            "사업명",
+            "WBS코드"
+          ],
+          "missingActions": [],
+          "missingLabels": [
+            "사업년도 *",
+            "사업구분",
+            "계열구분",
+            "국내/해외",
+            "사업명"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "2c8a83ed6e42ab27a12b9e57af39bfbf782570344776b30f4f077d094ff3875c",
+          "targetDesktop": "70e70ad84ade792c50a647d256081e9dab9108571f120aeb3ab9d42c64aee33c",
+          "targetMobile": "923ce6538b83c5e49f4bc07fd671b6d515db668250a7ec17359d6eff72359a65",
+          "difference": "8bc2409f873133d7ab5812a9c1416d9846f6c37840adf0de463f5c5d9c485ffd",
+          "targetDom": "421f135e38aaad2495f8e80778e95d0c6526b18e474d6e21f5496bbf587ce480"
+        }
+      }
+    },
+    {
+      "uxId": "UX-09",
+      "sourcePage": "biz-plan",
+      "status": "partial",
+      "ownerSurface": "CRM /business-plan",
+      "targetUrl": "http://127.0.0.1:3105/business-plan",
+      "capturedAt": "2026-08-20T02:08:24.018Z",
+      "audit": {
+        "normalStateId": "seeded-plan",
+        "sourceScreenshot": "ux-09-biz-plan.png",
+        "targetDesktopScreenshot": "ux-09-biz-plan--audit-desktop.png",
+        "targetMobileScreenshot": "ux-09-biz-plan--audit-mobile.png",
+        "differenceScreenshot": "ux-09-biz-plan--audit-difference.png",
+        "targetDomManifest": "ux-09-biz-plan--audit.dom.json",
+        "missingStateIds": [
+          "empty-plan",
+          "paste",
+          "version-add-delete",
+          "confirm-unconfirm",
+          "carry-forward",
+          "confirmed-locked"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "사업계획 등록"
+          ],
+          "missingFields": [
+            "bp-year",
+            "bp-version",
+            "WBS코드",
+            "0.00"
+          ],
+          "missingColumns": [
+            "계열구분",
+            "국내/해외",
+            "사업명",
+            "WBS코드",
+            "2026년 (월별)",
+            "2026년 합계",
+            "2027년 (연간)",
+            "2028년 (연간)",
+            "2027년 합계",
+            "2028년 합계",
+            "손익"
+          ],
+          "missingActions": [
+            "↩ 전년이월실적 불러오기",
+            "+ 차수 추가",
+            "확정해제"
+          ],
+          "missingLabels": [
+            "사업년도 *",
+            "차수"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "78c8f1e5185c80e6107f25319c12d46600cdcb51b73560b3348177ed530ae292",
+          "targetDesktop": "57dc421b463aaada13b7d6d09d42fd38e909a810652321f3f6d36d4c1441e564",
+          "targetMobile": "d87debb1f88bc259755d0c4aaf4f3b563013a0a7a12cb5a7f51e16bf1a1781b3",
+          "difference": "a19916459d9f5e790ff0f4bc067b1ee9a03e8cdf33616eb2cadadeedf0c1acec",
+          "targetDom": "558258483c9f91244aa778b95806cee7c2008c1a1e939db765f7c1f895ad0cf2"
+        }
+      }
+    },
+    {
+      "uxId": "UX-10",
+      "sourcePage": "bp-rpt",
+      "status": "partial",
+      "ownerSurface": "CRM /business-plan-performance",
+      "targetUrl": "http://127.0.0.1:3105/business-plan-performance?mode=source-compatible",
+      "capturedAt": "2026-08-20T02:08:26.658Z",
+      "audit": {
+        "normalStateId": "seeded-plan-contract-comparison",
+        "sourceScreenshot": "ux-10-bp-rpt.png",
+        "targetDesktopScreenshot": "ux-10-bp-rpt--audit-desktop.png",
+        "targetMobileScreenshot": "ux-10-bp-rpt--audit-mobile.png",
+        "differenceScreenshot": "ux-10-bp-rpt--audit-difference.png",
+        "targetDomManifest": "ux-10-bp-rpt--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "filter-combination"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "사업계획대비실적 (월별)"
+          ],
+          "missingFields": [
+            "bpr-year",
+            "bpr-biz-type",
+            "bpr-group-type",
+            "bpr-domestic"
+          ],
+          "missingColumns": [
+            "계열구분",
+            "국내/해외",
+            "사업명",
+            "WBS코드"
+          ],
+          "missingActions": [],
+          "missingLabels": [
+            "사업년도 *",
+            "사업구분",
+            "계열구분",
+            "국내/해외"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "c1cc331a22555b6cc8e07e9a6fe6dfdd41535301c5410683fc03754044d8f617",
+          "targetDesktop": "6098a39d48c8c9cfc219e0eb3299d3f6417076124684b4e6a1fdab5c48e9559e",
+          "targetMobile": "ab9741fae30dcfb91b31b07dcd336b84101e5450e459c467f619ca7c98316554",
+          "difference": "5d9523e5540b041014ac125c01f5b64bd58bcad55c6b1a412d11b6e51bd269ae",
+          "targetDom": "38abff0a9a52bf842246c09b8158e090e107e329dc2b9eaf0b2e7989e069d733"
+        }
+      }
+    },
+    {
+      "uxId": "UX-11",
+      "sourcePage": "internal-cost",
+      "status": "partial",
+      "ownerSurface": "CRM /cost-plan",
+      "targetUrl": "http://127.0.0.1:3105/cost-plan",
+      "capturedAt": "2026-08-20T02:08:29.382Z",
+      "audit": {
+        "normalStateId": "seeded-grid",
+        "sourceScreenshot": "ux-11-internal-cost.png",
+        "targetDesktopScreenshot": "ux-11-internal-cost--audit-desktop.png",
+        "targetMobileScreenshot": "ux-11-internal-cost--audit-mobile.png",
+        "differenceScreenshot": "ux-11-internal-cost--audit-difference.png",
+        "targetDomManifest": "ux-11-internal-cost--audit.dom.json",
+        "missingStateIds": [
+          "paste",
+          "save-success",
+          "invalid-paste"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "내부원가 등록"
+          ],
+          "missingFields": [
+            "ic-year"
+          ],
+          "missingColumns": [
+            "단위: 원"
+          ],
+          "missingActions": [
+            "저장"
+          ],
+          "missingLabels": [
+            "년도 *"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "c5ac231fda3d283f92c696a4773d239ed6fb3cd0ae0e5050aa13717610ba5432",
+          "targetDesktop": "07f150a5c14a57cd91e385ce667f995283d5a55f0deb34a38d3fa5e532f9d57c",
+          "targetMobile": "e12bb3163a5361dafb3aefd73d612d3b79a988682d8a79374aa9f724c8fc0d2b",
+          "difference": "f2892fbd61ccd00fa6626230fadf4cbf4e18b4415534f4becd170986d1f872a0",
+          "targetDom": "953a9fdf87b4272efb1270d460b5d1b6d66f059196bb5c4c0c6d9e811365e54d"
+        }
+      }
+    },
+    {
+      "uxId": "UX-12",
+      "sourcePage": "biz-year",
+      "status": "partial",
+      "ownerSurface": "Admin /business-years",
+      "targetUrl": "http://127.0.0.1:3100/business-years",
+      "capturedAt": "2026-08-20T02:08:42.774Z",
+      "audit": {
+        "normalStateId": "seeded-years",
+        "sourceScreenshot": "ux-12-biz-year.png",
+        "targetDesktopScreenshot": "ux-12-biz-year--audit-desktop.png",
+        "targetMobileScreenshot": "ux-12-biz-year--audit-mobile.png",
+        "differenceScreenshot": "ux-12-biz-year--audit-difference.png",
+        "targetDomManifest": "ux-12-biz-year--audit.dom.json",
+        "missingStateIds": [
+          "empty-years",
+          "create-validation",
+          "activate-deactivate",
+          "delete-confirmation"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "사업년도 관리"
+          ],
+          "missingFields": [],
+          "missingColumns": [
+            "년도",
+            "순서",
+            "작업"
+          ],
+          "missingActions": [
+            "+ 년도 추가",
+            "활성화"
+          ],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "48e6203c9b8f193d41fdb5a989970ecaa5074388a35e335ae18baee6ca86a1c6",
+          "targetDesktop": "5288e3195a1df564c7c76f5b3c5fbe19e9eb78476bb1b2016b42e0441e8cc336",
+          "targetMobile": "0b1fa7e0fa4a513d5ffa6fca26c00a3d594d7031b2f0c82d7035de11688f1da3",
+          "difference": "1ce317ad618081d02ad32a4c0155006a6999bdfc181a0b8d237d16fad4a90b51",
+          "targetDom": "303afbcca99c85784138dab6803e9f086dfbed059febde256d5ea5f7528927ce"
+        }
+      }
+    },
+    {
+      "uxId": "UX-13",
+      "sourcePage": "ams-vendor",
+      "status": "partial",
+      "ownerSurface": "CRM /cost-plan",
+      "targetUrl": "http://127.0.0.1:3105/cost-plan",
+      "capturedAt": "2026-08-20T02:08:32.175Z",
+      "audit": {
+        "normalStateId": "seeded-vendor-wbs",
+        "sourceScreenshot": "ux-13-ams-vendor.png",
+        "targetDesktopScreenshot": "ux-13-ams-vendor--audit-desktop.png",
+        "targetMobileScreenshot": "ux-13-ams-vendor--audit-mobile.png",
+        "differenceScreenshot": "ux-13-ams-vendor--audit-difference.png",
+        "targetDomManifest": "ux-13-ams-vendor--audit.dom.json",
+        "missingStateIds": [
+          "empty-vendors",
+          "create-validation",
+          "multi-wbs-mapping",
+          "delete-confirmation"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "공급업체 관리"
+          ],
+          "missingFields": [
+            "av-year"
+          ],
+          "missingColumns": [],
+          "missingActions": [
+            "+ 업체 추가",
+            "삭제"
+          ],
+          "missingLabels": [
+            "사업년도 *"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "58a9caf3abe4b2f237b6f82ab4380aa21e6173bce7da8437c8b71e665fc16fe2",
+          "targetDesktop": "07f150a5c14a57cd91e385ce667f995283d5a55f0deb34a38d3fa5e532f9d57c",
+          "targetMobile": "e12bb3163a5361dafb3aefd73d612d3b79a988682d8a79374aa9f724c8fc0d2b",
+          "difference": "8e6804feb94ca8889eac95210962dcdd1653e1c1b2d3b84a37e5a32cde2130d8",
+          "targetDom": "953a9fdf87b4272efb1270d460b5d1b6d66f059196bb5c4c0c6d9e811365e54d"
+        }
+      }
+    },
+    {
+      "uxId": "UX-14",
+      "sourcePage": "ams-cost",
+      "status": "partial",
+      "ownerSurface": "CRM /cost-plan",
+      "targetUrl": "http://127.0.0.1:3105/cost-plan",
+      "capturedAt": "2026-08-20T02:08:35.365Z",
+      "audit": {
+        "normalStateId": "seeded-vendor-wbs-grid",
+        "sourceScreenshot": "ux-14-ams-cost.png",
+        "targetDesktopScreenshot": "ux-14-ams-cost--audit-desktop.png",
+        "targetMobileScreenshot": "ux-14-ams-cost--audit-mobile.png",
+        "differenceScreenshot": "ux-14-ams-cost--audit-difference.png",
+        "targetDomManifest": "ux-14-ams-cost--audit.dom.json",
+        "missingStateIds": [
+          "empty-vendors",
+          "paste",
+          "save-success",
+          "invalid-paste"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "연간 외부원가"
+          ],
+          "missingFields": [
+            "ac-year"
+          ],
+          "missingColumns": [
+            "공급업체",
+            "WBS코드"
+          ],
+          "missingActions": [
+            "저장"
+          ],
+          "missingLabels": [
+            "사업년도 *"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "db6d9b5f1c55a2370b36f2e83f6d6761c0532ffa058fe3daff8e1d55436737d9",
+          "targetDesktop": "07f150a5c14a57cd91e385ce667f995283d5a55f0deb34a38d3fa5e532f9d57c",
+          "targetMobile": "e12bb3163a5361dafb3aefd73d612d3b79a988682d8a79374aa9f724c8fc0d2b",
+          "difference": "7e6a65eede088215f65907b4b5e6fa263bf90e04e2c71c56cce8a553e9484e82",
+          "targetDom": "953a9fdf87b4272efb1270d460b5d1b6d66f059196bb5c4c0c6d9e811365e54d"
+        }
+      }
+    },
+    {
+      "uxId": "UX-15",
+      "sourcePage": "codes",
+      "status": "partial",
+      "ownerSurface": "Admin /codes",
+      "targetUrl": "http://127.0.0.1:3100/codes",
+      "capturedAt": "2026-08-20T02:08:44.845Z",
+      "audit": {
+        "normalStateId": "seeded-codes",
+        "sourceScreenshot": "ux-15-codes.png",
+        "targetDesktopScreenshot": "ux-15-codes--audit-desktop.png",
+        "targetMobileScreenshot": "ux-15-codes--audit-mobile.png",
+        "differenceScreenshot": "ux-15-codes--audit-difference.png",
+        "targetDomManifest": "ux-15-codes--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "create-edit-validation",
+          "activate-deactivate",
+          "delete-confirmation"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "코드 관리"
+          ],
+          "missingFields": [
+            "code-filter-type",
+            "code-filter-status"
+          ],
+          "missingColumns": [
+            "코드유형",
+            "순서",
+            "작업"
+          ],
+          "missingActions": [
+            "+ 코드 추가",
+            "활성화"
+          ],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "e656d63fe3a142315a62593caaec34bc7209398cfdba1083999f81eff7ea4930",
+          "targetDesktop": "c9e490eba5e037e0966754f6c394c039e85e47b6215d6ddbedc897ca69068291",
+          "targetMobile": "b8e9900f2141c55d0554d4384e6f8acd1a649cd1a8497d7a93a2e7c788271d14",
+          "difference": "1090f95204fd3abc4baeb1323e9dbf6a836122b4db9e8f4c8b54c9e7b5e8bee2",
+          "targetDom": "610c3eb48ca442b11ad4eaed0f8365e535b22a50099e06d7d2b2c6c82a791266"
+        }
+      }
+    },
+    {
+      "uxId": "UX-16",
+      "sourcePage": "company",
+      "status": "partial",
+      "ownerSurface": "CRM /quote-settings",
+      "targetUrl": "http://127.0.0.1:3105/quote-settings",
+      "capturedAt": "2026-08-20T02:08:37.815Z",
+      "audit": {
+        "normalStateId": "loaded-company",
+        "sourceScreenshot": "ux-16-company.png",
+        "targetDesktopScreenshot": "ux-16-company--audit-desktop.png",
+        "targetMobileScreenshot": "ux-16-company--audit-mobile.png",
+        "differenceScreenshot": "ux-16-company--audit-difference.png",
+        "targetDomManifest": "ux-16-company--audit.dom.json",
+        "missingStateIds": [
+          "empty-company",
+          "ci-reference",
+          "save-success",
+          "save-error"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "회사 정보"
+          ],
+          "missingFields": [
+            "회사명 *",
+            "CI 이미지 경로"
+          ],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [
+            "회사명 *",
+            "CI 이미지 경로"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "06cec651f33d6d5c93b26343acde393046721446b84274fd018258abfb53cce4",
+          "targetDesktop": "25abc7e1b92eb5ee02aaa4a77b81e44b8e1adcd3903ca277d8601fd500558666",
+          "targetMobile": "098d3cfdda248d71bc97d29bf7af8d3eae429238a73bac5a8e3c2749f57518a8",
+          "difference": "54e33a9d0725df30c142d88dc5e1bd230047f85fab7bc31a7dff56be2f9ea885",
+          "targetDom": "72d9e34ef681b2e0c87e403eb7604438af0f530125dbbc4b30e5a1e4a17ecb02"
+        }
+      }
+    },
+    {
+      "uxId": "UX-17",
+      "sourcePage": "admin",
+      "status": "partial",
+      "ownerSurface": "Admin /users + shared profile/auth",
+      "targetUrl": "http://127.0.0.1:3100/users",
+      "capturedAt": "2026-08-20T02:08:46.860Z",
+      "audit": {
+        "normalStateId": "seeded-admin-list",
+        "sourceScreenshot": "ux-17-admin.png",
+        "targetDesktopScreenshot": "ux-17-admin--audit-desktop.png",
+        "targetMobileScreenshot": "ux-17-admin--audit-mobile.png",
+        "differenceScreenshot": "ux-17-admin--audit-difference.png",
+        "targetDomManifest": "ux-17-admin--audit.dom.json",
+        "missingStateIds": [
+          "logged-out-login",
+          "login-validation",
+          "login-error",
+          "filtered-empty",
+          "create-edit-validation",
+          "deactivate-reset-confirmation",
+          "profile-password"
+        ],
+        "structureDiff": {
+          "missingSections": [
+            "계정 관리"
+          ],
+          "missingFields": [
+            "아이디, 이름, 부서 검색",
+            "admin-filter-dept",
+            "admin-filter-status"
+          ],
+          "missingColumns": [
+            "아이디",
+            "최근 로그인",
+            "연락처",
+            "계정 유형"
+          ],
+          "missingActions": [
+            "+ 신규 계정 등록",
+            "비밀번호 초기화"
+          ],
+          "missingLabels": [
+            "전체 계정",
+            "활성 계정",
+            "비활성 계정",
+            "관리자 계정"
+          ],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "fc574be305c7ce56417d52e2c25c0f8518069fda6f7b8bacba00b93b0cf886f4",
+          "targetDesktop": "56994888193781289aedfeff7705edc8bc30547c0e876a40cd024a182b895274",
+          "targetMobile": "c30ee41c3965c4741ece6d6b26167d598547489ef0947463cd3f8d1c1fe791a3",
+          "difference": "798bc9ca706d90e88bc0c4286f95c66e14beb94bac6da3f0ac533011caf63f5d",
+          "targetDom": "cea3ac8e55072c9670e7eb5192a0f4da378e6d14fdbed0ef902b29c07bcd37c4"
+        }
+      }
+    }
+  ]
+}

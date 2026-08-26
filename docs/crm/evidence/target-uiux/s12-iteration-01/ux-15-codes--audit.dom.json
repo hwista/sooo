@@ -1,0 +1,52 @@
+{
+  "title": "공통코드 관리",
+  "sections": [
+    "공통코드 관리"
+  ],
+  "fields": [
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": "코드 유형수금조건사업구분계열구분biz_yearISSUE_PRIORITYISSUE_STATUSISSUE_TYPEMILESTONE_STATUSPROJECT_CLOSE_CONDITION_ITEMPROJECT_DELIVERABLE_SUBMISSION_STATUSPROJECT_DONE_RESULTPROJECT_HANDOFF_STAGEPROJECT_HANDOFF_TYPEPROJECT_MEMBER_ROLEPROJECT_STAGEPROJECT_STATUSTASK_PRIORITYTASK_STATUSTASK_TYPEUNITUSER_DEPARTMENTUSER_POSITIONUSER_ROLEUSER_STATUSUSER_TYPE",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": "상태전체활성비활성",
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "columns": [
+    "유형",
+    "코드값",
+    "코드명",
+    "정렬",
+    "상태",
+    "관리"
+  ],
+  "actions": [
+    "새로고침",
+    "코드 추가",
+    "수정",
+    "비활성화",
+    "삭제",
+    "수정",
+    "비활성화",
+    "삭제",
+    "수정",
+    "비활성화",
+    "삭제",
+    "수정",
+    "비활성화",
+    "삭제"
+  ],
+  "labels": [
+    "코드 유형수금조건사업구분계열구분biz_yearISSUE_PRIORITYISSUE_STATUSISSUE_TYPEMILESTONE_STATUSPROJECT_CLOSE_CONDITION_ITEMPROJECT_DELIVERABLE_SUBMISSION_STATUSPROJECT_DONE_RESULTPROJECT_HANDOFF_STAGEPROJECT_HANDOFF_TYPEPROJECT_MEMBER_ROLEPROJECT_STAGEPROJECT_STATUSTASK_PRIORITYTASK_STATUSTASK_TYPEUNITUSER_DEPARTMENTUSER_POSITIONUSER_ROLEUSER_STATUSUSER_TYPE",
+    "상태전체활성비활성"
+  ]
+}

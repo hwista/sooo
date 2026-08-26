@@ -1,0 +1,195 @@
+{
+  "states": [
+    {
+      "name": "new-empty",
+      "captured": true,
+      "screenshot": "ux-03-form--new-empty.png",
+      "screenshotSha256": "7bad9c7787a848e0b77845d5e838832f2a66601f82dde7f9bbf2ae4415bfb232",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.form.js"
+    },
+    {
+      "name": "edit-seeded",
+      "captured": true,
+      "screenshot": "ux-03-form.png",
+      "screenshotSha256": "16bc04d73299497205e0c4886dbd74fdd4f7c6792edc9a7379c8e4db3b43eec6",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.form.js"
+    },
+    {
+      "name": "required-validation",
+      "captured": true,
+      "screenshot": "ux-03-form--required-validation.png",
+      "screenshotSha256": "e879fd81369caf77cfbc5898c89caaf8c6c64780a26d6ff9785db69cb7bf61ae",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.form.js"
+    },
+    {
+      "name": "confirmed-locked",
+      "captured": true,
+      "screenshot": "ux-03-form--confirmed-locked.png",
+      "screenshotSha256": "16bc04d73299497205e0c4886dbd74fdd4f7c6792edc9a7379c8e4db3b43eec6",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.form.js"
+    },
+    {
+      "name": "quote-preview",
+      "captured": true,
+      "screenshot": "ux-03-form--quote-preview.png",
+      "screenshotSha256": "1c679ec7282edc43247ba813ed6579e2f1b5e3ef25d0e2367b71f6def0494c76",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.quote.js"
+    },
+    {
+      "name": "quote-print",
+      "captured": true,
+      "screenshot": "ux-03-form--quote-print.png",
+      "screenshotSha256": "033a621c4e67ae1c3516c0c044a04196b473c4dca90c70bd3febf56d455b5149",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.quote.js"
+    },
+    {
+      "name": "confirm-revoke-delete",
+      "captured": true,
+      "screenshot": "ux-03-form--confirm-revoke-delete.png",
+      "screenshotSha256": "77012b3006acfc185901204c0cb5b7dafaa1c7890d76932d47f97b91fd33a75d",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.form.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "new-empty",
+      "behavior": "new empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.form.js"
+      ]
+    },
+    {
+      "id": "edit-seeded",
+      "behavior": "edit seeded",
+      "sourceAnchors": [
+        "index.html",
+        "app.form.js"
+      ]
+    },
+    {
+      "id": "required-validation",
+      "behavior": "required validation",
+      "sourceAnchors": [
+        "index.html",
+        "app.form.js"
+      ]
+    },
+    {
+      "id": "confirmed-locked",
+      "behavior": "confirmed locked",
+      "sourceAnchors": [
+        "index.html",
+        "app.form.js"
+      ]
+    },
+    {
+      "id": "quote-preview",
+      "behavior": "quote preview",
+      "sourceAnchors": [
+        "index.html",
+        "app.quote.js"
+      ]
+    },
+    {
+      "id": "quote-print",
+      "behavior": "quote print",
+      "sourceAnchors": [
+        "index.html",
+        "app.quote.js"
+      ]
+    },
+    {
+      "id": "confirm-revoke-delete",
+      "behavior": "confirm revoke delete",
+      "sourceAnchors": [
+        "index.html",
+        "app.form.js"
+      ]
+    }
+  ]
+}

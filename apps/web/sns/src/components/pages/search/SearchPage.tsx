@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Search, Users } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/StateDisplay';
 import { useAccessStore } from '@/stores';
@@ -29,9 +29,13 @@ export function SearchPage() {
       <h1 className="text-xl font-bold mb-4">전문가 검색</h1>
 
       {/* Search Input */}
-      <div className="relative mb-6">
+      <div role="search" aria-label="SNS 전문가 검색" className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
+        <SsooSearchInput
+          id="sns-expert-search-input"
+          name="sns-expert-search-query"
+          ariaLabel="SNS 전문가 검색"
+          intent="entity-lookup"
           placeholder="이름, 스킬, 기술 키워드로 검색..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}

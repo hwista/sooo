@@ -19,25 +19,25 @@ export function getCommonSearchSourceLabel(sourceApp: CommonSearchSourceApp): st
   return sourceApp.toUpperCase();
 }
 
-function readPublicEnv(name: string): string | null {
-  const env = typeof process !== 'undefined' ? process.env : undefined;
-  const value = env?.[name]?.trim();
-  return value && value.length > 0 ? value : null;
+function normalizePublicEnv(value: string | undefined): string | null {
+  const normalized = value?.trim();
+  return normalized && normalized.length > 0 ? normalized : null;
 }
 
 export function getCommonSearchApiBaseUrl(apiBaseUrl?: string | null): string {
   const explicit = apiBaseUrl?.trim();
   if (explicit) return explicit;
-  return readPublicEnv('NEXT_PUBLIC_API_URL') ?? DEFAULT_SSOO_SEARCH_API_BASE_URL;
+  // NEXT_PUBLIC values must use static property access so Next.js can inline them in client bundles.
+  return normalizePublicEnv(process.env.NEXT_PUBLIC_API_URL) ?? DEFAULT_SSOO_SEARCH_API_BASE_URL;
 }
 
 export function getCommonSearchAppUrlsFromPublicEnv(): SsooSearchAppUrls {
   return {
-    admin: readPublicEnv('NEXT_PUBLIC_ADMIN_APP_URL'),
-    crm: readPublicEnv('NEXT_PUBLIC_CRM_APP_URL'),
-    pms: readPublicEnv('NEXT_PUBLIC_PMS_APP_URL'),
-    dms: readPublicEnv('NEXT_PUBLIC_DMS_APP_URL'),
-    sns: readPublicEnv('NEXT_PUBLIC_SNS_APP_URL'),
+    admin: normalizePublicEnv(process.env.NEXT_PUBLIC_ADMIN_APP_URL),
+    crm: normalizePublicEnv(process.env.NEXT_PUBLIC_CRM_APP_URL),
+    pms: normalizePublicEnv(process.env.NEXT_PUBLIC_PMS_APP_URL),
+    dms: normalizePublicEnv(process.env.NEXT_PUBLIC_DMS_APP_URL),
+    sns: normalizePublicEnv(process.env.NEXT_PUBLIC_SNS_APP_URL),
   };
 }
 

@@ -16,9 +16,11 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import type { TokenPayload } from '../auth/interfaces/auth.interface.js';
 import { AiConversationService } from './ai-conversation.service.js';
+import { AiEmbeddingProviderService } from './ai-embedding-provider.service.js';
 import { AiIndexSchedulerService } from './ai-index-scheduler.service.js';
 import { AiIndexingService } from './ai-indexing.service.js';
 import { AiIndexWorkerService } from './ai-index-worker.service.js';
+import { AiModelGatewayService } from './ai-model-gateway.service.js';
 import { AiRetrievalService } from './ai-retrieval.service.js';
 
 const AI_INDEX_SOURCE_APPS = new Set<AiIndexSourceApp>(['admin', 'crm', 'pms', 'dms', 'sns']);
@@ -38,6 +40,8 @@ export class AiIndexController {
     private readonly aiIndexingService: AiIndexingService,
     private readonly aiIndexSchedulerService: AiIndexSchedulerService,
     private readonly aiIndexWorkerService: AiIndexWorkerService,
+    private readonly aiEmbeddingProviderService: AiEmbeddingProviderService,
+    private readonly aiModelGatewayService: AiModelGatewayService,
     private readonly aiRetrievalService: AiRetrievalService,
     private readonly aiConversationService: AiConversationService,
   ) {}
@@ -84,6 +88,29 @@ export class AiIndexController {
   async getSchedulerStatus() {
     const data = this.aiIndexSchedulerService.getStatus();
     return success(data);
+  }
+
+  @Get('operations/readiness')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: '공용 AI provider와 scheduler 운영 준비 상태 조회' })
+  @ApiOkResponse({ description: '비밀값을 제외한 AI provider와 worker 준비 상태 반환' })
+  async getOperationsReadiness() {
+    const embedding = this.aiEmbeddingProviderService.getStatus();
+    const chat = this.aiModelGatewayService.getStatus();
+    const scheduler = this.aiIndexSchedulerService.getStatus();
+    return success({
+      checkedAt: new Date().toISOString(),
+      ready: embedding.ready && chat.ready,
+      embedding,
+      chat,
+      scheduler,
+      configurationBoundary: {
+        mode: 'deployment-secret',
+        mutableInAdmin: false,
+        message: 'Provider endpoint, deployment, credential은 배포 환경/secret에서 관리합니다.',
+      },
+    });
   }
 
   @Post('jobs/run')

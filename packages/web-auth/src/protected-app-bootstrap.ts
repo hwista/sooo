@@ -41,7 +41,7 @@ export function useProtectedAppBootstrap(
     lifecycleCheckDebounceMs = 1000,
   } = options;
 
-  const initCalled = useRef(false);
+  const initialAuthCheckRef = useRef<Promise<void> | null>(null);
   const lastLifecycleCheckAt = useRef(0);
   const [initialAuthCheckCompleted, setInitialAuthCheckCompleted] = useState(false);
 
@@ -54,13 +54,20 @@ export function useProtectedAppBootstrap(
   };
 
   useEffect(() => {
-    if (!hasHydrated || initCalled.current) {
+    if (!hasHydrated || initialAuthCheckCompleted) {
       return;
     }
 
-    initCalled.current = true;
+    if (!initialAuthCheckRef.current) {
+      initialAuthCheckRef.current = checkAuth({ mode: 'blocking' }).then(
+        () => undefined,
+        () => undefined,
+      );
+    }
+
+    const initialAuthCheck = initialAuthCheckRef.current;
     let cancelled = false;
-    void checkAuth({ mode: 'blocking' }).finally(() => {
+    void initialAuthCheck.then(() => {
       if (!cancelled) {
         setInitialAuthCheckCompleted(true);
       }
@@ -69,7 +76,7 @@ export function useProtectedAppBootstrap(
     return () => {
       cancelled = true;
     };
-  }, [checkAuth, hasHydrated]);
+  }, [checkAuth, hasHydrated, initialAuthCheckCompleted]);
 
   useEffect(() => {
     if (!hasHydrated || !initialAuthCheckCompleted || authIsLoading || !isAuthenticated) {

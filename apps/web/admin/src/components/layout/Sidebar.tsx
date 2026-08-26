@@ -49,6 +49,9 @@ export function AdminSidebar({
       toggleLabel={toggleLabel}
       brandTitle={ADMIN_APP_IDENTITY.brandTitle}
       search={{
+        inputId: 'ssoo-admin-navigation-search-input',
+        inputName: 'ssoo-admin-navigation-search-query',
+        ariaLabel: 'Admin 메뉴 검색',
         value: searchQuery,
         onChange: setSearchQuery,
         railIcon: Search,

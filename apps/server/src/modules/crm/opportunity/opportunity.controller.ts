@@ -1,15 +1,20 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import type { CrmOpportunityListQuery, CrmOpportunityOwnerLookupQuery } from '@ssoo/types/crm';
+import type { Response as ExpressResponse } from 'express';
 import { success } from '../../../common/index.js';
+import { ApiOkObjectResponse } from '../../../common/swagger/api-response.decorator.js';
 import { CurrentUser } from '../../common/auth/decorators/current-user.decorator.js';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
+import { formatContentDisposition } from '../../dms/file/file.constants.js';
 import { CrmAccessService } from '../access/access.service.js';
 import { CrmOpportunityFeatureGuard } from '../access/crm-opportunity-feature.guard.js';
 import { RequireCrmOpportunityFeature } from '../access/require-crm-opportunity-feature.decorator.js';
 import {
   CrmOpportunityContractConversionDto,
+  CrmOpportunityContractDocumentDraftDto,
+  CrmOpportunityContractDocumentLifecycleExecutionDto,
   CrmOpportunityQuoteWorkflowDto,
   CrmOpportunityUpsertDto,
   CrmQuoteDmsDocumentDraftDto,
@@ -31,7 +36,7 @@ export class OpportunityController {
   @Get()
   @RequireCrmOpportunityFeature('canViewOpportunity')
   @ApiOperation({ summary: 'CRM 영업기회 현황 데모 목록' })
-  @ApiOkResponse({ description: 'CRM 영업기회 목록과 요약' })
+  @ApiOkObjectResponse({ description: 'CRM 영업기회 목록과 요약' })
   @ApiUnauthorizedResponse({ description: '인증 필요' })
   @ApiForbiddenResponse({ description: 'CRM 영업기회 조회 권한 없음' })
   async list(@Query() query: CrmOpportunityListQuery) {
@@ -71,6 +76,75 @@ export class OpportunityController {
     return success(await this.opportunityService.getQuotePreview(id, currentUser));
   }
 
+  @Get(':id/contract-document-preview')
+  @RequireCrmOpportunityFeature('canViewOpportunity', { opportunityIdParam: 'id' })
+  @ApiOperation({ summary: '확정 영업기회 원천 22개 변수 계약서 미리보기' })
+  @ApiOkResponse({ description: '원천 데모 호환 계약서 변수·DMS 템플릿·lifecycle 준비 상태' })
+  async contractDocumentPreview(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
+    return success(await this.opportunityService.getOpportunityContractDocumentPreview(id, currentUser));
+  }
+
+  @Get(':id/contract-document-sample')
+  @RequireCrmOpportunityFeature('canViewOpportunity', { opportunityIdParam: 'id' })
+  @ApiOperation({ summary: 'CRM 영업기회 계약서 샘플 DOCX 템플릿 다운로드' })
+  async downloadContractDocumentSample(@Res() response: ExpressResponse) {
+    const artifact = await this.opportunityService.readOpportunityContractDocumentSample();
+    response.setHeader('Content-Type', artifact.contentType);
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Content-Length', String(artifact.buffer.length));
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader('Content-Disposition', formatContentDisposition('attachment', artifact.fileName));
+    response.status(200).send(artifact.buffer);
+  }
+
+  @Post(':id/contract-document-draft')
+  @RequireCrmOpportunityFeature('canConfirmOpportunity', { opportunityIdParam: 'id' })
+  @ApiOperation({ summary: '확정 영업기회 원천 22개 변수 DMS 초안 저장' })
+  @ApiBody({ type: CrmOpportunityContractDocumentDraftDto })
+  @ApiOkResponse({ description: 'CRM 영업기회 계약서 DMS draft handoff snapshot' })
+  async createContractDocumentDraft(
+    @Param('id') id: string,
+    @Body() body: CrmOpportunityContractDocumentDraftDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    return success(await this.opportunityService.createOpportunityContractDocumentDraft(id, body, currentUser));
+  }
+
+  @Post(':id/contract-document-lifecycle-execution')
+  @RequireCrmOpportunityFeature('canConfirmOpportunity', { opportunityIdParam: 'id' })
+  @ApiOperation({ summary: 'DMS 영업기회 계약서 DOCX lifecycle 실행' })
+  @ApiBody({ type: CrmOpportunityContractDocumentLifecycleExecutionDto })
+  @ApiOkResponse({ description: 'DMS DOCX 산출과 CRM artifact evidence handoff 결과' })
+  async executeContractDocumentLifecycle(
+    @Param('id') id: string,
+    @Body() body: CrmOpportunityContractDocumentLifecycleExecutionDto,
+    @CurrentUser() currentUser: TokenPayload,
+    @Headers('x-idempotency-key') idempotencyKey?: string,
+  ) {
+    return success(await this.opportunityService.executeOpportunityContractDocumentLifecycle(
+      id,
+      body,
+      currentUser,
+      { idempotencyKey },
+    ));
+  }
+
+  @Get(':id/contract-document-artifact')
+  @RequireCrmOpportunityFeature('canViewOpportunity', { opportunityIdParam: 'id' })
+  @ApiOperation({ summary: '완료된 CRM 영업기회 계약서 DOCX 다운로드' })
+  async downloadContractDocumentArtifact(
+    @Param('id') id: string,
+    @Res() response: ExpressResponse,
+  ) {
+    const artifact = await this.opportunityService.readOpportunityContractDocumentArtifact(id);
+    response.setHeader('Content-Type', artifact.contentType);
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Content-Length', String(artifact.buffer.length));
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader('Content-Disposition', formatContentDisposition('attachment', artifact.fileName));
+    response.status(200).send(artifact.buffer);
+  }
+
   @Post(':id/quote-dms-document-draft')
   @RequireCrmOpportunityFeature('canEditOpportunity', { opportunityIdParam: 'id' })
   @ApiOperation({ summary: 'CRM 영업기회 견적 DMS markdown 초안 저장' })
@@ -106,8 +180,31 @@ export class OpportunityController {
     @Param('id') id: string,
     @Body() body: CrmQuoteDmsDocumentLifecycleExecutionDto,
     @CurrentUser() currentUser: TokenPayload,
+    @Headers('x-idempotency-key') idempotencyKey?: string,
   ) {
-    return success(await this.opportunityService.executeQuoteDmsDocumentLifecycle(id, body, currentUser));
+    return success(await this.opportunityService.executeQuoteDmsDocumentLifecycle(
+      id,
+      body,
+      currentUser,
+      { idempotencyKey },
+    ));
+  }
+
+  @Get(':id/quote-dms-artifacts/:kind')
+  @RequireCrmOpportunityFeature('canViewOpportunity', { opportunityIdParam: 'id' })
+  @ApiOperation({ summary: '완료된 CRM 견적 DMS DOCX/PDF 산출물 다운로드' })
+  async downloadQuoteDmsArtifact(
+    @Param('id') id: string,
+    @Param('kind') kind: string,
+    @Res() response: ExpressResponse,
+  ) {
+    const artifact = await this.opportunityService.readQuoteDmsArtifact(id, kind);
+    response.setHeader('Content-Type', artifact.contentType);
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Content-Length', String(artifact.buffer.length));
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader('Content-Disposition', formatContentDisposition('attachment', artifact.fileName));
+    response.status(200).send(artifact.buffer);
   }
 
   @Put(':id/quote-workflow')
@@ -149,6 +246,14 @@ export class OpportunityController {
     return success(await this.opportunityService.updateOpportunity(id, body));
   }
 
+  @Delete(':id')
+  @RequireCrmOpportunityFeature('canEditOpportunity', { opportunityIdParam: 'id' })
+  @ApiOperation({ summary: 'CRM 최신 미확정 영업기회 삭제' })
+  @ApiOkResponse({ description: '삭제된 영업기회와 삭제 후 선택 가능한 이전 차수' })
+  async delete(@Param('id') id: string) {
+    return success(await this.opportunityService.deleteOpportunity(id));
+  }
+
   @Post(':id/confirm')
   @RequireCrmOpportunityFeature('canConfirmOpportunity', { opportunityIdParam: 'id' })
   @ApiOperation({ summary: 'CRM 영업기회 확정' })
@@ -159,10 +264,18 @@ export class OpportunityController {
 
   @Post(':id/reopen')
   @RequireCrmOpportunityFeature('canConfirmOpportunity', { opportunityIdParam: 'id' })
-  @ApiOperation({ summary: 'CRM 영업기회 확정 해제' })
+  @ApiOperation({ summary: 'CRM 영업기회 확정 해제(연결 계약이 있으면 함께 회수)' })
   @ApiOkResponse({ description: '확정 해제된 CRM 영업기회' })
-  async reopen(@Param('id') id: string) {
-    return success(await this.opportunityService.reopenOpportunity(id));
+  async reopen(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
+    return success(await this.opportunityService.reopenOpportunity(id, BigInt(currentUser.userId)));
+  }
+
+  @Post(':id/revoke-contract')
+  @RequireCrmOpportunityFeature('canConfirmOpportunity', { opportunityIdParam: 'id' })
+  @ApiOperation({ summary: 'CRM 영업기회 연결 계약 회수 후 확정 상태 복원' })
+  @ApiOkResponse({ description: '연결 계약이 회수되고 확정 상태로 복원된 CRM 영업기회' })
+  async revokeContract(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
+    return success(await this.opportunityService.revokeOpportunityContract(id, BigInt(currentUser.userId)));
   }
 
   @Post(':id/convert-contract')

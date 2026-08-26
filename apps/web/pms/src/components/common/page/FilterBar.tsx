@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import {
   Select,
   SelectContent,
@@ -14,20 +15,34 @@ import {
 /**
  * 필터 필드 정의
  */
-export interface FilterField {
+interface FilterFieldBase {
   /** 필드 키 */
   key: string;
-  /** 필드 타입 */
-  type: 'text' | 'select' | 'date' | 'dateRange';
   /** 라벨 (옵션) */
   label?: string;
   /** Placeholder */
   placeholder?: string;
-  /** 옵션 (select 타입) */
-  options?: { label: string; value: string }[];
   /** 너비 */
   width?: string;
 }
+
+export interface TextFilterField extends FilterFieldBase {
+  type: 'text';
+  id: string;
+  name: string;
+  ariaLabel: string;
+}
+
+export interface SelectFilterField extends FilterFieldBase {
+  type: 'select';
+  options?: { label: string; value: string }[];
+}
+
+export interface DateFilterField extends FilterFieldBase {
+  type: 'date' | 'dateRange';
+}
+
+export type FilterField = TextFilterField | SelectFilterField | DateFilterField;
 
 /**
  * 필터 값 타입 (문자열 기반)
@@ -82,7 +97,11 @@ export function FilterBar({
                     {field.label}
                   </label>
                 )}
-                <Input
+                <SsooSearchInput
+                  id={field.id}
+                  name={field.name}
+                  ariaLabel={field.ariaLabel}
+                  intent="data-filter"
                   placeholder={field.placeholder}
                   value={value}
                   onChange={(e) => onChange(field.key, e.target.value)}

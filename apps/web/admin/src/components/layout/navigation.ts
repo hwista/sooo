@@ -4,6 +4,9 @@ import {
   LayoutDashboard,
   Shield,
   Search,
+  Bot,
+  CalendarRange,
+  Code2,
   Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -18,8 +21,11 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: '/', label: '대시보드', icon: LayoutDashboard },
   { href: '/users', label: '사용자 관리', icon: Users },
   { href: '/organizations', label: '조직 관리', icon: Building2 },
+  { href: '/codes', label: '공통코드 관리', icon: Code2 },
+  { href: '/business-years', label: '사업연도 관리', icon: CalendarRange },
   { href: '/roles', label: '역할 & 권한', icon: Shield },
   { href: '/auth', label: '인증 정책', icon: KeyRound },
+  { href: '/ai-operations', label: 'AI 운영', icon: Bot },
 ];
 
 const ADMIN_SYSTEM_NAV_ITEMS: AdminNavItem[] = [

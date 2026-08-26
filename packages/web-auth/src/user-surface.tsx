@@ -7,6 +7,7 @@ import {
   Briefcase,
   Globe,
   Heart,
+  KeyRound,
   Linkedin,
   Loader2,
   Mail,
@@ -19,7 +20,11 @@ import {
 } from 'lucide-react';
 import type { ApiResponse } from '@ssoo/types/common';
 import type { FeedItem, UpdateProfileDto, UserProfileSurface } from '@ssoo/types/sns';
-import { applySharedAuthHeaders } from './storage';
+import {
+  applySharedAuthHeaders,
+  readSharedAuthSnapshot,
+  writeSharedAuthSnapshot,
+} from './storage';
 import { restoreSharedAuthSession } from './session-bootstrap';
 import { useCommonNotificationEventStream } from './notifications';
 import {
@@ -70,6 +75,43 @@ interface SsooUserSurfaceApi {
   removeReaction: (postId: string) => Promise<void>;
   addBookmark: (postId: string) => Promise<void>;
   removeBookmark: (postId: string) => Promise<void>;
+  getAccountProfile: () => Promise<AccountProfile>;
+  updateAccountProfile: (data: AccountProfileUpdate) => Promise<AccountProfile>;
+  changePassword: (data: { currentPassword: string; newPassword: string }) => Promise<void>;
+}
+
+interface AccountProfile {
+  id: string;
+  loginId: string;
+  userName: string;
+  displayName?: string | null;
+  email: string;
+  phone?: string | null;
+  departmentCode?: string | null;
+  positionCode?: string | null;
+  roleCode: string;
+}
+
+interface AccountProfileUpdate {
+  userName: string;
+  email: string;
+  phone: string;
+  departmentCode: string;
+  positionCode: string;
+}
+
+interface AccountFormState {
+  userName: string;
+  email: string;
+  phone: string;
+  departmentCode: string;
+  positionCode: string;
+}
+
+interface PasswordFormState {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 interface ProfileFormState {
@@ -255,6 +297,30 @@ function createSsooUserSurfaceApi(apiBaseUrl?: string): SsooUserSurfaceApi {
         method: 'DELETE',
       });
     },
+    async getAccountProfile() {
+      return unwrapApiResponse(
+        await requestJson<ApiResponse<AccountProfile>>(`${baseUrl}/users/profile`),
+        '계정 프로필을 불러오지 못했습니다.',
+      );
+    },
+    async updateAccountProfile(data) {
+      return unwrapApiResponse(
+        await requestJson<ApiResponse<AccountProfile>>(`${baseUrl}/users/profile`, {
+          method: 'PUT',
+          body: data,
+        }),
+        '계정 프로필을 저장하지 못했습니다.',
+      );
+    },
+    async changePassword(data) {
+      unwrapApiResponse(
+        await requestJson<ApiResponse<{ changed: boolean }>>(`${baseUrl}/auth/change-password`, {
+          method: 'POST',
+          body: data,
+        }),
+        '비밀번호를 변경하지 못했습니다.',
+      );
+    },
   };
 }
 
@@ -279,6 +345,32 @@ function toProfilePayload(form: ProfileFormState): UpdateProfileDto {
     websiteUrl: form.websiteUrl,
   };
 }
+
+function toAccountForm(profile: AccountProfile): AccountFormState {
+  return {
+    userName: profile.userName ?? '',
+    email: profile.email ?? '',
+    phone: profile.phone ?? '',
+    departmentCode: profile.departmentCode ?? '',
+    positionCode: profile.positionCode ?? '',
+  };
+}
+
+function toAccountPayload(form: AccountFormState): AccountProfileUpdate {
+  return {
+    userName: form.userName.trim(),
+    email: form.email.trim(),
+    phone: form.phone.trim(),
+    departmentCode: form.departmentCode.trim(),
+    positionCode: form.positionCode.trim(),
+  };
+}
+
+const EMPTY_PASSWORD_FORM: PasswordFormState = {
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+};
 
 function getInitials(value: string): string {
   return value.trim().slice(0, 2) || '?';
@@ -321,6 +413,11 @@ export function SsooUserSurfacePage({
   const [profile, setProfile] = useState<UserProfileSurface | null>(null);
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [form, setForm] = useState<ProfileFormState | null>(null);
+  const [accountProfile, setAccountProfile] = useState<AccountProfile | null>(null);
+  const [accountForm, setAccountForm] = useState<AccountFormState | null>(null);
+  const [passwordForm, setPasswordForm] = useState<PasswordFormState>(EMPTY_PASSWORD_FORM);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordNotice, setPasswordNotice] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(surface === 'personal-settings');
   const [activePanel, setActivePanel] = useState<'posts' | 'about'>('posts');
   const [isLoading, setIsLoading] = useState(true);
@@ -348,9 +445,16 @@ export function SsooUserSurfacePage({
     setIsLoading((current) => current || !profileRef.current);
 
     try {
-      const nextProfile = await api.getProfile(targetUserId);
+      const [nextProfile, nextAccountProfile] = await Promise.all([
+        api.getProfile(targetUserId),
+        surface === 'personal-settings' ? api.getAccountProfile() : Promise.resolve(null),
+      ]);
       setProfile(nextProfile);
       setForm((current) => current ?? toProfileForm(nextProfile));
+      if (nextAccountProfile) {
+        setAccountProfile(nextAccountProfile);
+        setAccountForm((current) => current ?? toAccountForm(nextAccountProfile));
+      }
       if (surface !== 'personal-settings') {
         const feed = await api.getProfileFeed(nextProfile.user.id);
         setFeedItems(feed.items);
@@ -388,6 +492,10 @@ export function SsooUserSurfacePage({
     setProfile(null);
     setFeedItems([]);
     setForm(null);
+    setAccountProfile(null);
+    setAccountForm(null);
+    setPasswordForm(EMPTY_PASSWORD_FORM);
+    setPasswordNotice(null);
     setIsEditing(surface === 'personal-settings');
     setIsLoading(true);
     if (refreshTimerRef.current !== null) {
@@ -441,16 +549,41 @@ export function SsooUserSurfacePage({
   });
 
   const saveProfile = useCallback(async () => {
-    if (!form) {
+    if (!form || (surface === 'personal-settings' && !accountForm)) {
+      return;
+    }
+
+    if (surface === 'personal-settings' && !accountForm?.userName.trim()) {
+      setError('이름은 필수입니다.');
+      return;
+    }
+    if (surface === 'personal-settings' && !/^\S+@\S+\.\S+$/.test(accountForm?.email.trim() ?? '')) {
+      setError('올바른 이메일 형식을 입력하세요.');
       return;
     }
 
     setIsSaving(true);
     setError(null);
     try {
-      const nextProfile = await api.updateProfile(toProfilePayload(form));
+      const [nextProfile, nextAccountProfile] = await Promise.all([
+        api.updateProfile(toProfilePayload(form)),
+        surface === 'personal-settings' && accountForm
+          ? api.updateAccountProfile(toAccountPayload(accountForm))
+          : Promise.resolve(null),
+      ]);
       setProfile(nextProfile);
       setForm(toProfileForm(nextProfile));
+      if (nextAccountProfile) {
+        setAccountProfile(nextAccountProfile);
+        setAccountForm(toAccountForm(nextAccountProfile));
+        const snapshot = readSharedAuthSnapshot();
+        if (snapshot && snapshot.user && typeof snapshot.user === 'object') {
+          writeSharedAuthSnapshot({
+            ...snapshot,
+            user: { ...snapshot.user, userName: nextAccountProfile.userName },
+          });
+        }
+      }
       setIsEditing(surface === 'personal-settings');
       dispatchSsooUserSurfaceChanged({
         type: surface === 'personal-settings' ? 'user.settings.updated' : 'user.profile.updated',
@@ -461,7 +594,41 @@ export function SsooUserSurfacePage({
     } finally {
       setIsSaving(false);
     }
-  }, [api, form, surface]);
+  }, [accountForm, api, form, surface]);
+
+  const changePassword = useCallback(async () => {
+    if (!passwordForm.currentPassword) {
+      setError('현재 비밀번호를 입력하세요.');
+      return;
+    }
+    if (passwordForm.newPassword.length < 8
+      || !/[A-Za-z]/.test(passwordForm.newPassword)
+      || !/\d/.test(passwordForm.newPassword)
+      || !/[!@#$%^&*]/.test(passwordForm.newPassword)) {
+      setError('새 비밀번호는 8자 이상이며 영문, 숫자, 특수문자를 각각 포함해야 합니다.');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setError('새 비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    setPasswordNotice(null);
+    setError(null);
+    try {
+      await api.changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      setPasswordForm(EMPTY_PASSWORD_FORM);
+      setPasswordNotice('비밀번호가 변경되었습니다. 다른 기기의 세션은 회수되었습니다.');
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : '비밀번호를 변경하지 못했습니다.');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  }, [api, passwordForm]);
 
   const toggleFollow = useCallback(async () => {
     if (!profile) {
@@ -561,9 +728,9 @@ export function SsooUserSurfacePage({
     if (surface === 'personal-settings') {
       return {
         mode: 'editor',
-        onSave: form ? saveProfile : undefined,
+        onSave: form && accountForm ? saveProfile : undefined,
         saving: isSaving,
-        saveDisabled: !form,
+        saveDisabled: !form || !accountForm,
         iconSlots: headerIconSlots,
       };
     }
@@ -590,6 +757,7 @@ export function SsooUserSurfacePage({
     };
   }, [
     cancelProfileEditing,
+    accountForm,
     form,
     headerIconSlots,
     isEditing,
@@ -612,7 +780,7 @@ export function SsooUserSurfacePage({
     );
   }
 
-  if (!profile || !form) {
+  if (!profile || !form || (surface === 'personal-settings' && (!accountProfile || !accountForm))) {
     return (
       <div className="rounded-lg border border-ssoo-content-border bg-card p-8 text-center">
         <p className="text-body-sm text-muted-foreground">{error ?? '프로필을 찾을 수 없습니다.'}</p>
@@ -632,8 +800,16 @@ export function SsooUserSurfacePage({
     return (
       <UserSettingsSurface
         form={form}
+        accountProfile={accountProfile!}
+        accountForm={accountForm!}
+        passwordForm={passwordForm}
+        passwordNotice={passwordNotice}
+        isChangingPassword={isChangingPassword}
         error={error}
         onChange={setForm}
+        onAccountChange={setAccountForm}
+        onPasswordChange={setPasswordForm}
+        onChangePassword={() => void changePassword()}
       />
     );
   }
@@ -659,12 +835,28 @@ export function SsooUserSurfacePage({
 
 function UserSettingsSurface({
   form,
+  accountProfile,
+  accountForm,
+  passwordForm,
+  passwordNotice,
+  isChangingPassword,
   error,
   onChange,
+  onAccountChange,
+  onPasswordChange,
+  onChangePassword,
 }: {
   form: ProfileFormState;
+  accountProfile: AccountProfile;
+  accountForm: AccountFormState;
+  passwordForm: PasswordFormState;
+  passwordNotice: string | null;
+  isChangingPassword: boolean;
   error: string | null;
   onChange: (next: ProfileFormState) => void;
+  onAccountChange: (next: AccountFormState) => void;
+  onPasswordChange: (next: PasswordFormState) => void;
+  onChangePassword: () => void;
 }) {
   return (
     <div className="space-y-4">
@@ -673,6 +865,20 @@ function UserSettingsSurface({
       </div>
 
       {error ? <SurfaceError message={error} /> : null}
+
+      <div className="rounded-lg border border-ssoo-content-border bg-card p-4" data-testid="account-profile-settings">
+        <h2 className="text-body-md font-semibold text-ssoo-content-strong">계정 프로필</h2>
+        <p className="mt-1 text-caption text-muted-foreground">로그인 ID {accountProfile.loginId} · 시스템 역할 {accountProfile.roleCode}</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <TextField label="이름" value={accountForm.userName} onChange={(value) => onAccountChange({ ...accountForm, userName: value })} />
+          <TextField label="부서" value={accountForm.departmentCode} onChange={(value) => onAccountChange({ ...accountForm, departmentCode: value })} />
+          <TextField label="직책" value={accountForm.positionCode} onChange={(value) => onAccountChange({ ...accountForm, positionCode: value })} />
+          <TextField label="전화번호" value={accountForm.phone} onChange={(value) => onAccountChange({ ...accountForm, phone: value })} />
+          <div className="md:col-span-2">
+            <TextField label="이메일" value={accountForm.email} onChange={(value) => onAccountChange({ ...accountForm, email: value })} />
+          </div>
+        </div>
+      </div>
 
       <div className="rounded-lg border border-ssoo-content-border bg-card p-4">
         <div id="ssoo-user-settings-basic" className="scroll-mt-4" />
@@ -695,6 +901,26 @@ function UserSettingsSurface({
           className="mt-3 min-h-28 w-full rounded-md border border-ssoo-content-border px-3 py-2 text-body-sm outline-none transition focus:border-transparent focus:ring-2 focus:ring-ssoo-primary"
         />
       </div>
+
+      <section aria-label="비밀번호 변경" data-ssoo-credential-region="password-change" className="rounded-lg border border-ssoo-content-border bg-card p-4" data-testid="change-password-settings">
+        <div className="flex items-center gap-2">
+          <KeyRound className="h-4 w-4 text-ssoo-primary" />
+          <h2 className="text-body-md font-semibold text-ssoo-content-strong">비밀번호 변경</h2>
+        </div>
+        <p className="mt-1 text-caption text-muted-foreground">현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <label className="block" htmlFor="account-current-password"><span className="text-caption font-medium text-muted-foreground">현재 비밀번호</span><Input id="account-current-password" name="current-password" type="password" autoComplete="current-password" data-ssoo-input-intent="credential-current-password" value={passwordForm.currentPassword} onChange={(event) => onPasswordChange({ ...passwordForm, currentPassword: event.target.value })} data-testid="current-password" className="mt-1" /></label>
+          <label className="block" htmlFor="account-new-password"><span className="text-caption font-medium text-muted-foreground">새 비밀번호</span><Input id="account-new-password" name="new-password" type="password" autoComplete="new-password" data-ssoo-input-intent="credential-new-password" value={passwordForm.newPassword} onChange={(event) => onPasswordChange({ ...passwordForm, newPassword: event.target.value })} data-testid="new-password" className="mt-1" /></label>
+          <label className="block" htmlFor="account-confirm-password"><span className="text-caption font-medium text-muted-foreground">새 비밀번호 확인</span><Input id="account-confirm-password" name="confirm-new-password" type="password" autoComplete="new-password" data-ssoo-input-intent="credential-confirm-password" value={passwordForm.confirmPassword} onChange={(event) => onPasswordChange({ ...passwordForm, confirmPassword: event.target.value })} data-testid="confirm-password" className="mt-1" /></label>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          {passwordNotice ? <p className="text-body-sm text-ssoo-success">{passwordNotice}</p> : <span />}
+          <Button type="button" onClick={onChangePassword} disabled={isChangingPassword} data-testid="change-password-submit">
+            {isChangingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+            비밀번호 변경
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }

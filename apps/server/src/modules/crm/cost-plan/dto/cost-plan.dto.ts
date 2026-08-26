@@ -10,12 +10,20 @@ import type {
   CrmCostPlanAccountingPaymentHandoffRequest,
   CrmCostPlanAmsExternalMonthlyInputRequest,
   CrmCostPlanAmsVendorWbsMappingRequest,
+  CrmCostPlanAmsSourceExternalCostRequest,
+  CrmCostPlanAmsSourceExternalCostRowInput,
+  CrmCostPlanAmsSourceVendorCreateRequest,
+  CrmCostPlanAmsSourceVendorWbsRequest,
   CrmCostPlanInternalMonthlyInputRequest,
+  CrmCostPlanInternalSourceGridRequest,
+  CrmCostPlanInternalSourceItemCode,
+  CrmCostPlanInternalSourceItemInput,
   CrmCostPlanPreviewQuery,
   CrmCostPlanPreviewRegion,
 } from '@ssoo/types/crm';
 
 const CRM_COST_PLAN_PREVIEW_REGIONS = ['all', 'domestic', 'overseas'] as const;
+const CRM_COST_PLAN_INTERNAL_SOURCE_ITEM_CODES = ['labor', 'other', 'dept_adj', 'svc', 'dept_common'] as const;
 const CRM_COST_PLAN_ACCOUNTING_PAYMENT_EXECUTION_STEP_KEYS = [
   'accounting-voucher',
   'payment-request',
@@ -178,6 +186,113 @@ export class CrmCostPlanInternalMonthlyInputDto implements CrmCostPlanInternalMo
   @MaxLength(300)
   @IsOptional()
   memo?: string;
+}
+
+export class CrmCostPlanInternalSourceItemInputDto implements CrmCostPlanInternalSourceItemInput {
+  @ApiProperty({ description: '원본 내부원가 고정 항목 코드', enum: CRM_COST_PLAN_INTERNAL_SOURCE_ITEM_CODES })
+  @IsString()
+  @IsIn(CRM_COST_PLAN_INTERNAL_SOURCE_ITEM_CODES)
+  itemCode!: CrmCostPlanInternalSourceItemCode;
+
+  @ApiProperty({ description: '12개월 내부원가 항목 계획 금액(음수 허용)', type: [Number], minItems: 12, maxItems: 12 })
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  @Type(() => Number)
+  @IsNumber({}, { each: true })
+  monthlyPlanAmounts!: number[];
+
+  @ApiProperty({ description: '12개월 내부원가 항목 실적 금액(음수 허용)', type: [Number], minItems: 12, maxItems: 12 })
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  @Type(() => Number)
+  @IsNumber({}, { each: true })
+  monthlyActualAmounts!: number[];
+}
+
+export class CrmCostPlanInternalSourceGridDto implements CrmCostPlanInternalSourceGridRequest {
+  @ApiProperty({ description: '입력 대상 사업년도', minimum: 2000 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(2000)
+  targetYear!: number;
+
+  @ApiProperty({ description: '원본 고정 순서의 내부원가 5개 항목', type: [CrmCostPlanInternalSourceItemInputDto], minItems: 5, maxItems: 5 })
+  @IsArray()
+  @ArrayMinSize(5)
+  @ArrayMaxSize(5)
+  @ValidateNested({ each: true })
+  @Type(() => CrmCostPlanInternalSourceItemInputDto)
+  items!: CrmCostPlanInternalSourceItemInputDto[];
+}
+
+export class CrmCostPlanAmsSourceVendorCreateDto implements CrmCostPlanAmsSourceVendorCreateRequest {
+  @ApiProperty({ description: '공급업체 대상 사업년도', minimum: 2000 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(2000)
+  targetYear!: number;
+
+  @ApiProperty({ description: '공급업체명', maxLength: 200 })
+  @IsString()
+  @MaxLength(200)
+  vendorName!: string;
+}
+
+export class CrmCostPlanAmsSourceVendorWbsDto implements CrmCostPlanAmsSourceVendorWbsRequest {
+  @ApiProperty({ description: '공급업체 대상 사업년도', minimum: 2000 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(2000)
+  targetYear!: number;
+
+  @ApiProperty({ description: '확정 AMS 계약 WBS 코드 목록', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(80, { each: true })
+  wbsCodes!: string[];
+}
+
+export class CrmCostPlanAmsSourceExternalCostRowDto implements CrmCostPlanAmsSourceExternalCostRowInput {
+  @ApiProperty({ description: 'AMS 공급업체 ID' })
+  @IsString()
+  vendorId!: string;
+
+  @ApiProperty({ description: 'WBS 코드', maxLength: 80 })
+  @IsString()
+  @MaxLength(80)
+  wbsCode!: string;
+
+  @ApiProperty({ description: '12개월 계획 금액(음수 허용)', type: [Number], minItems: 12, maxItems: 12 })
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  @Type(() => Number)
+  @IsNumber({}, { each: true })
+  monthlyPlanAmounts!: number[];
+
+  @ApiProperty({ description: '12개월 실적 금액(음수 허용)', type: [Number], minItems: 12, maxItems: 12 })
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  @Type(() => Number)
+  @IsNumber({}, { each: true })
+  monthlyActualAmounts!: number[];
+}
+
+export class CrmCostPlanAmsSourceExternalCostDto implements CrmCostPlanAmsSourceExternalCostRequest {
+  @ApiProperty({ description: '외부원가 대상 사업년도', minimum: 2000 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(2000)
+  targetYear!: number;
+
+  @ApiProperty({ description: '현재 업체-WBS 매핑 전체의 외부원가 행', type: [CrmCostPlanAmsSourceExternalCostRowDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CrmCostPlanAmsSourceExternalCostRowDto)
+  rows!: CrmCostPlanAmsSourceExternalCostRowDto[];
 }
 
 export class CrmCostPlanAmsVendorWbsMappingDto implements CrmCostPlanAmsVendorWbsMappingRequest {

@@ -26,7 +26,10 @@ import { TokenPayload } from './interfaces/auth.interface.js';
 import { AuthPolicyService } from './auth-policy.service.js';
 import { AuthRegistrationService } from './auth-registration.service.js';
 import { UpdateAuthProviderSettingsDto } from './dto/auth-policy.dto.js';
+import { RevokeUserSessionsDto } from './dto/auth-admin-operations.dto.js';
 import { DecideRegistrationRequestDto } from './dto/registration-request.dto.js';
+import { AuthAdminOperationsService } from './auth-admin-operations.service.js';
+import { AuthEmailOutboxWorkerService } from './auth-email-outbox-worker.service.js';
 
 @ApiTags('auth-admin')
 @ApiBearerAuth()
@@ -36,7 +39,55 @@ export class AuthAdminController {
   constructor(
     private readonly authPolicyService: AuthPolicyService,
     private readonly authRegistrationService: AuthRegistrationService,
+    private readonly authAdminOperationsService: AuthAdminOperationsService,
+    private readonly authEmailOutboxWorkerService: AuthEmailOutboxWorkerService,
   ) {}
+
+  @Get('users/:id/account')
+  @Roles('admin')
+  @ApiOperation({ summary: '사용자 인증 계정/세션 운영 상태 조회' })
+  @ApiParam({ name: 'id', description: '사용자 ID' })
+  async getUserAccount(@Param('id') id: string) {
+    return success(await this.authAdminOperationsService.getAccountSnapshot(BigInt(id)));
+  }
+
+  @Post('users/:id/sessions/revoke')
+  @Roles('admin')
+  @ApiOperation({ summary: '사용자 활성 세션 전체 회수' })
+  @ApiParam({ name: 'id', description: '사용자 ID' })
+  async revokeUserSessions(
+    @Param('id') id: string,
+    @Body() dto: RevokeUserSessionsDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    return success(await this.authAdminOperationsService.revokeSessions(
+      BigInt(id),
+      BigInt(currentUser.userId),
+      dto.reason,
+    ));
+  }
+
+  @Post('users/:id/unlock')
+  @Roles('admin')
+  @ApiOperation({ summary: '사용자 로그인 잠금 해제' })
+  @ApiParam({ name: 'id', description: '사용자 ID' })
+  async unlockUser(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    return success(await this.authAdminOperationsService.unlockAccount(
+      BigInt(id),
+      BigInt(currentUser.userId),
+    ));
+  }
+
+  @Post('users/:id/password-reset')
+  @Roles('admin')
+  @ApiOperation({ summary: '사용자 비밀번호 재설정 메일 요청' })
+  @ApiParam({ name: 'id', description: '사용자 ID' })
+  async requestUserPasswordReset(@Param('id') id: string) {
+    return success(await this.authAdminOperationsService.requestPasswordReset(BigInt(id)));
+  }
 
   @Get('settings')
   @Roles('admin')
@@ -58,6 +109,28 @@ export class AuthAdminController {
   ) {
     const settings = await this.authPolicyService.updateSettings(dto, BigInt(currentUser.userId));
     return success(settings, '인증 설정 저장 성공');
+  }
+
+  @Get('email-delivery/status')
+  @Roles('admin')
+  @ApiOperation({ summary: '인증 메일 outbox worker와 SMTP 전달 상태 조회' })
+  async getEmailDeliveryStatus() {
+    return success(await this.authEmailOutboxWorkerService.getStatus(), '인증 메일 전달 상태 조회 성공');
+  }
+
+  @Post('email-delivery/run')
+  @Roles('admin')
+  @ApiOperation({ summary: '대기 중인 인증 메일 즉시 전달' })
+  async runEmailDelivery() {
+    return success(await this.authEmailOutboxWorkerService.runOnce('admin-manual'), '인증 메일 전달 실행 완료');
+  }
+
+  @Post('email-delivery/:messageId/retry')
+  @Roles('admin')
+  @ApiOperation({ summary: '실패한 인증 메일 재시도' })
+  @ApiParam({ name: 'messageId', description: '인증 메일 outbox message ID' })
+  async retryEmailDelivery(@Param('messageId') messageId: string) {
+    return success(await this.authEmailOutboxWorkerService.retry(messageId), '인증 메일 재시도 완료');
   }
 
   @Get('registration-requests')

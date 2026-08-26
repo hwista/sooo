@@ -31,6 +31,9 @@ node .github/scripts/verify-ui-consumption.js
 echo "[push-guard] running: node .github/scripts/verify-ui-style-boundary.js"
 node .github/scripts/verify-ui-style-boundary.js
 
+echo "[push-guard] running: pnpm run verify:input-intent"
+pnpm run verify:input-intent
+
 echo "[push-guard] running: pnpm run verify:ssoo-frame -- --skip-runtime"
 pnpm run verify:ssoo-frame -- --skip-runtime
 
@@ -64,6 +67,7 @@ NEED_AI_RAG=0
 NEED_PRODUCTION_COMPOSE=0
 NEED_DATABASE_CONTRACT=0
 NEED_SUPPLY_CHAIN_RUNTIME=0
+NEED_DMS_LAUNCH_CONTRACT=0
 
 # Shared/core changes that can affect all targets.
 if changed_matches '^package.json$|^pnpm-lock.yaml$|^pnpm-workspace.yaml$|^turbo.json$|^tsconfig\.base\.json$'; then
@@ -113,6 +117,10 @@ fi
 
 if changed_matches '^pnpm-lock\.yaml$|^pnpm-workspace\.yaml$|^package\.json$|^apps/web/(admin|crm|pms|dms|sns)/package\.json$|^scripts/verify-sharp-runtime\.mjs$'; then
   NEED_SUPPLY_CHAIN_RUNTIME=1
+fi
+
+if changed_matches '^apps/web/(admin|dms)/|^automation/(playwright\.config\.ts|scripts/playwright/start-dms-e2e-stack\.sh|tests/e2e/)|^scripts/(dms-go-live-contract|run-dms-go-live-gate|verify-dms-launch-contract|verify-prisma-deepmerge-security)\.mjs$|^docs/dms/(planning/(2026-08-14-operational-launch-ralph-plan|backlog|roadmap)\.md|guides/deployment\.md)$|^\.github/instructions/(dms|testing)\.instructions\.md$|^\.codex/instructions/(dms|testing)\.instructions\.md$|^pnpm-(lock|workspace)\.yaml$|^package\.json$'; then
+  NEED_DMS_LAUNCH_CONTRACT=1
 fi
 
 # PMS and its shared dependencies.
@@ -179,6 +187,15 @@ fi
 if [ "$NEED_SUPPLY_CHAIN_RUNTIME" -eq 1 ]; then
   echo "[push-guard] running: pnpm run security:sharp-runtime"
   pnpm run security:sharp-runtime
+fi
+
+if [ "$NEED_DMS_LAUNCH_CONTRACT" -eq 1 ]; then
+  echo "[push-guard] running: pnpm run verify:dms-launch-contract"
+  pnpm run verify:dms-launch-contract
+  echo "[push-guard] running: pnpm run verify:dms-launch-types"
+  pnpm run verify:dms-launch-types
+  echo "[push-guard] running: pnpm run verify:prisma-deepmerge-security"
+  pnpm run verify:prisma-deepmerge-security
 fi
 
 if [ "$NEED_WEB_ADMIN" -eq 1 ]; then

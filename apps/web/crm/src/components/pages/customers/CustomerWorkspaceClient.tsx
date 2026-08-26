@@ -41,6 +41,7 @@ import {
   TableRow,
   Textarea,
 } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { useAuthStore } from '@/stores/auth.store';
 
 export interface CustomerWorkspaceQuery {
@@ -550,7 +551,7 @@ export function CustomerWorkspaceClient({ data, query }: { data: CrmCustomerList
           <form action="/customers" className="flex flex-wrap items-end gap-3 border-b px-4 py-3">
             <label className="min-w-[240px] flex-1 text-xs font-medium text-muted-foreground">
               검색
-              <Input name="search" defaultValue={query.search} placeholder="고객명, 산업, 담당자, 활동 요약" className="mt-1" />
+              <SsooSearchInput id="crm-customer-search-input" name="search" ariaLabel="고객과 활동 검색" intent="data-filter" defaultValue={query.search} placeholder="고객명, 산업, 담당자, 활동 요약" className="mt-1" />
             </label>
             <label className="w-40 text-xs font-medium text-muted-foreground">
               유형

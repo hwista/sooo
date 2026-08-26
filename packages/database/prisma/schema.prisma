@@ -388,8 +388,10 @@ model User {
   organizationRelations       UserOrganizationRelation[]
   permissionExceptions        UserPermissionException[]
   ownedDmsDocuments           DmsDocument[]                @relation("DmsDocumentOwner")
+  dmsDocumentActivities       DmsUserDocumentActivity[]
   dmsSearchQueries            DmsSearchQuery[]
   dmsChatSessions             DmsChatSession[]             @relation("DmsChatSessionOwner")
+  ownedCrmContracts           CrmContract[]                @relation("CrmContractOwnerUser")
 
   // Relations - as project owner
   ownedProjects Project[] @relation("ProjectOwner")
@@ -407,7 +409,7 @@ model User {
   assignedIssues            Issue[]           @relation("IssueAssignee")
   reportedProjectIssues     ProjectIssue[]    @relation("ProjectIssueReporter")
   ownedProjectIssues        ProjectIssue[]    @relation("ProjectIssueOwner")
-  taskEffortLogs            TaskEffortLog[]    @relation("TaskEffortLogUser")
+  taskEffortLogs            TaskEffortLog[]   @relation("TaskEffortLogUser")
 
   // Relations - menu permissions
   userMenus UserMenu[]
@@ -1614,8 +1616,8 @@ model Project {
   transactionId String?  @map("transaction_id") @db.Uuid
 
   // Relations
-  currentOwner           User?                    @relation("ProjectOwner", fields: [currentOwnerUserId], references: [id], onDelete: SetNull)
-  ownerOrganization      Organization?            @relation("ProjectOwnerOrganization", fields: [ownerOrganizationId], references: [orgId], onDelete: SetNull)
+  currentOwner           User?                         @relation("ProjectOwner", fields: [currentOwnerUserId], references: [id], onDelete: SetNull)
+  ownerOrganization      Organization?                 @relation("ProjectOwnerOrganization", fields: [ownerOrganizationId], references: [orgId], onDelete: SetNull)
   requestDetail          ProjectRequestDetail?
   proposalDetail         ProjectProposalDetail?
   executionDetail        ProjectExecutionDetail?
@@ -1628,8 +1630,8 @@ model Project {
   closeoutApprovalSteps  ProjectCloseoutApprovalStep[]
   projectMembers         ProjectMember[]
   projectOrgs            ProjectOrg[]
-  sourceRelations        ProjectRelation[]        @relation("ProjectRelationSource")
-  targetRelations        ProjectRelation[]        @relation("ProjectRelationTarget")
+  sourceRelations        ProjectRelation[]             @relation("ProjectRelationSource")
+  targetRelations        ProjectRelation[]             @relation("ProjectRelationTarget")
   objectives             Objective[]
   wbsItems               Wbs[]
   tasks                  Task[]
@@ -1988,10 +1990,10 @@ model Deliverable {
 model DeliverableGroup {
   id BigInt @id @default(autoincrement()) @map("deliverable_group_id")
 
-  groupCode   String  @unique @map("group_code")
-  groupName   String  @map("group_name")
-  description String?
-  sortOrder   Int     @default(0) @map("sort_order")
+  groupCode          String    @unique @map("group_code")
+  groupName          String    @map("group_name")
+  description        String?
+  sortOrder          Int       @default(0) @map("sort_order")
   approvalStatusCode String    @default("draft") @map("approval_status_code")
   versionNo          Int       @default(1) @map("version_no")
   approvedBy         BigInt?   @map("approved_by")
@@ -2056,10 +2058,10 @@ model DeliverableGroupItem {
 model CloseConditionGroup {
   id BigInt @id @default(autoincrement()) @map("close_condition_group_id")
 
-  groupCode   String  @unique @map("group_code")
-  groupName   String  @map("group_name")
-  description String?
-  sortOrder   Int     @default(0) @map("sort_order")
+  groupCode          String    @unique @map("group_code")
+  groupName          String    @map("group_name")
+  description        String?
+  sortOrder          Int       @default(0) @map("sort_order")
   approvalStatusCode String    @default("draft") @map("approval_status_code")
   versionNo          Int       @default(1) @map("version_no")
   approvedBy         BigInt?   @map("approved_by")
@@ -2220,11 +2222,11 @@ model ProjectCloseoutApprovalStep {
   targetCode     String @map("target_code")
   sequenceNo     Int    @map("sequence_no")
 
-  approverUserId     BigInt  @map("approver_user_id")
-  approvalStatusCode String  @default("pending") @map("approval_status_code") @db.VarChar(40)
-  requestedAt        DateTime @default(now()) @map("requested_at")
+  approverUserId     BigInt    @map("approver_user_id")
+  approvalStatusCode String    @default("pending") @map("approval_status_code") @db.VarChar(40)
+  requestedAt        DateTime  @default(now()) @map("requested_at")
   decidedAt          DateTime? @map("decided_at")
-  decidedBy          BigInt? @map("decided_by")
+  decidedBy          BigInt?   @map("decided_by")
 
   // Common columns
   isActive      Boolean  @default(true) @map("is_active")
@@ -2519,11 +2521,11 @@ model Task {
   transactionId String?  @map("transaction_id") @db.Uuid
 
   // Relations
-  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  wbs        Wbs?    @relation(fields: [wbsId], references: [id], onDelete: SetNull)
-  parentTask Task?   @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: SetNull)
-  childTasks Task[]  @relation("TaskHierarchy")
-  assignee   User?   @relation("TaskAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
+  project    Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  wbs        Wbs?            @relation(fields: [wbsId], references: [id], onDelete: SetNull)
+  parentTask Task?           @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: SetNull)
+  childTasks Task[]          @relation("TaskHierarchy")
+  assignee   User?           @relation("TaskAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
   effortLogs TaskEffortLog[]
 
   @@unique([projectId, taskCode], name: "uq_pr_task_m_project_code")
@@ -2542,8 +2544,8 @@ model Task {
 model TaskEffortLog {
   effortLogId BigInt @id @default(autoincrement()) @map("effort_log_id")
 
-  projectId BigInt @map("project_id")
-  taskId    BigInt @map("task_id")
+  projectId BigInt  @map("project_id")
+  taskId    BigInt  @map("task_id")
   userId    BigInt? @map("user_id")
 
   workDate     DateTime @map("work_date") @db.Date
@@ -3801,10 +3803,10 @@ model DeliverableGroupHistory {
   eventType String   @map("event_type") @db.Char(1)
   eventAt   DateTime @map("event_at")
 
-  groupCode   String  @map("group_code")
-  groupName   String  @map("group_name")
-  description String?
-  sortOrder   Int     @map("sort_order")
+  groupCode          String    @map("group_code")
+  groupName          String    @map("group_name")
+  description        String?
+  sortOrder          Int       @map("sort_order")
   approvalStatusCode String    @map("approval_status_code")
   versionNo          Int       @map("version_no")
   approvedBy         BigInt?   @map("approved_by")
@@ -3867,10 +3869,10 @@ model CloseConditionGroupHistory {
   eventType String   @map("event_type") @db.Char(1)
   eventAt   DateTime @map("event_at")
 
-  groupCode   String  @map("group_code")
-  groupName   String  @map("group_name")
-  description String?
-  sortOrder   Int     @map("sort_order")
+  groupCode          String    @map("group_code")
+  groupName          String    @map("group_name")
+  description        String?
+  sortOrder          Int       @map("sort_order")
   approvalStatusCode String    @map("approval_status_code")
   versionNo          Int       @map("version_no")
   approvedBy         BigInt?   @map("approved_by")
@@ -4771,14 +4773,14 @@ model PlantSiteHistory {
 // System Catalog (시스템 카탈로그) - pr_system_catalog_m
 // ============================================
 model SystemCatalog {
-  systemCatalogId       BigInt @id @default(autoincrement()) @map("system_catalog_id")
+  systemCatalogId       BigInt  @id @default(autoincrement()) @map("system_catalog_id")
   parentSystemCatalogId BigInt? @map("parent_system_catalog_id")
 
-  catalogCode String  @unique @map("catalog_code") @db.VarChar(80)
-  catalogName String  @map("catalog_name") @db.VarChar(200)
+  catalogCode  String  @unique @map("catalog_code") @db.VarChar(80)
+  catalogName  String  @map("catalog_name") @db.VarChar(200)
   categoryCode String? @map("category_code") @db.VarChar(40)
-  vendorName  String? @map("vendor_name") @db.VarChar(120)
-  description String?
+  vendorName   String? @map("vendor_name") @db.VarChar(120)
+  description  String?
 
   // Common columns
   isActive      Boolean  @default(true) @map("is_active")
@@ -4981,9 +4983,9 @@ model SystemIntegrationHistory {
 model PmsMasterImportProfile {
   profileId BigInt @id @default(autoincrement()) @map("profile_id")
 
-  entityType    String @map("entity_type") @db.VarChar(40)
-  profileName   String @map("profile_name") @db.VarChar(160)
-  columnMapping Json   @map("column_mapping") @db.JsonB
+  entityType    String  @map("entity_type") @db.VarChar(40)
+  profileName   String  @map("profile_name") @db.VarChar(160)
+  columnMapping Json    @map("column_mapping") @db.JsonB
   isDefault     Boolean @default(false) @map("is_default")
 
   // Common columns
@@ -5015,9 +5017,9 @@ model PmsMasterImportProfileHistory {
   eventType String   @map("event_type") @db.Char(1)
   eventAt   DateTime @map("event_at")
 
-  entityType    String @map("entity_type") @db.VarChar(40)
-  profileName   String @map("profile_name") @db.VarChar(160)
-  columnMapping Json   @map("column_mapping") @db.JsonB
+  entityType    String  @map("entity_type") @db.VarChar(40)
+  profileName   String  @map("profile_name") @db.VarChar(160)
+  columnMapping Json    @map("column_mapping") @db.JsonB
   isDefault     Boolean @map("is_default")
 
   isActive      Boolean  @map("is_active")
@@ -5116,22 +5118,22 @@ model CustomerHistory {
 model CrmOpportunity {
   id BigInt @id @default(autoincrement()) @map("opportunity_id")
 
-  opportunityCode      String  @unique @map("opportunity_code") @db.VarChar(80)
-  opportunityGroupCode String  @map("opportunity_group_code") @db.VarChar(80)
-  customerName         String  @map("customer_name") @db.VarChar(200)
-  opportunityName      String  @map("opportunity_name") @db.VarChar(300)
-  ownerName            String  @map("owner_name") @db.VarChar(100)
-  ownerUserId          BigInt? @map("owner_user_id")
-  businessType         String  @map("business_type") @db.VarChar(120)
-  industryLine         String  @map("industry_line") @db.VarChar(120)
-  regionCode           String  @default("domestic") @map("region_code") @db.VarChar(30)
-  statusCode           String  @default("draft") @map("status_code") @db.VarChar(40)
-  priorityCode         String  @default("medium") @map("priority_code") @db.VarChar(40)
-  versionNo            Int     @default(1) @map("version_no")
-  confirmed            Boolean @default(false)
-  contractCreated      Boolean @default(false) @map("contract_created")
+  opportunityCode      String    @unique @map("opportunity_code") @db.VarChar(80)
+  opportunityGroupCode String    @map("opportunity_group_code") @db.VarChar(80)
+  customerName         String    @map("customer_name") @db.VarChar(200)
+  opportunityName      String    @map("opportunity_name") @db.VarChar(300)
+  ownerName            String    @map("owner_name") @db.VarChar(100)
+  ownerUserId          BigInt?   @map("owner_user_id")
+  businessType         String    @map("business_type") @db.VarChar(120)
+  industryLine         String    @map("industry_line") @db.VarChar(120)
+  regionCode           String    @default("domestic") @map("region_code") @db.VarChar(30)
+  statusCode           String    @default("draft") @map("status_code") @db.VarChar(40)
+  priorityCode         String    @default("medium") @map("priority_code") @db.VarChar(40)
+  versionNo            Int       @default(1) @map("version_no")
+  confirmed            Boolean   @default(false)
+  contractCreated      Boolean   @default(false) @map("contract_created")
   contractCreatedAt    DateTime? @map("contract_created_at")
-  contractCode         String? @map("contract_code") @db.VarChar(80)
+  contractCode         String?   @map("contract_code") @db.VarChar(80)
 
   expectedStartDate       DateTime? @map("expected_start_date") @db.Date
   expectedEndDate         DateTime? @map("expected_end_date") @db.Date
@@ -5164,11 +5166,12 @@ model CrmOpportunity {
   lastActivity  String?  @map("last_activity")
   transactionId String?  @map("transaction_id") @db.Uuid
 
-  lines              CrmOpportunityLine[]
-  contracts          CrmContract[]
-  quoteDmsHandoffs   CrmQuoteDmsHandoff[]
-  customerSources    CrmCustomer[]         @relation("CrmCustomerSourceOpportunity")
-  customerActivities CrmCustomerActivity[] @relation("CrmCustomerActivitySourceOpportunity")
+  lines                    CrmOpportunityLine[]
+  contracts                CrmContract[]
+  quoteDmsHandoffs         CrmQuoteDmsHandoff[]
+  contractDocumentHandoffs CrmOpportunityContractDmsHandoff[]
+  customerSources          CrmCustomer[]                      @relation("CrmCustomerSourceOpportunity")
+  customerActivities       CrmCustomerActivity[]              @relation("CrmCustomerActivitySourceOpportunity")
 
   @@unique([opportunityGroupCode, versionNo], name: "ux_crm_opportunity_m_group_version")
   @@index([opportunityGroupCode, versionNo], name: "ix_crm_opportunity_m_group_version")
@@ -5188,18 +5191,18 @@ model CrmOpportunity {
 model CrmQuoteDmsHandoff {
   id BigInt @id @default(autoincrement()) @map("quote_dms_handoff_id")
 
-  opportunityId    BigInt @map("opportunity_id")
-  opportunityCode  String @map("opportunity_code") @db.VarChar(80)
-  quoteNumber      String @map("quote_number") @db.VarChar(120)
-  documentTypeCode String @default("quote") @map("document_type_code") @db.VarChar(40)
-  documentTitle    String @map("document_title") @db.VarChar(300)
-  templateKey      String @map("template_key") @db.VarChar(120)
-  folderHint       String @map("folder_hint") @db.VarChar(500)
-  fileNameHint     String @map("file_name_hint") @db.VarChar(300)
-  draftPath        String @map("draft_path") @db.VarChar(800)
-  statusCode       String @default("draft-created") @map("status_code") @db.VarChar(40)
-  documentSnapshot Json   @map("document_snapshot") @db.JsonB
-  variablesSnapshot Json  @map("variables_snapshot") @db.JsonB
+  opportunityId     BigInt @map("opportunity_id")
+  opportunityCode   String @map("opportunity_code") @db.VarChar(80)
+  quoteNumber       String @map("quote_number") @db.VarChar(120)
+  documentTypeCode  String @default("quote") @map("document_type_code") @db.VarChar(40)
+  documentTitle     String @map("document_title") @db.VarChar(300)
+  templateKey       String @map("template_key") @db.VarChar(120)
+  folderHint        String @map("folder_hint") @db.VarChar(500)
+  fileNameHint      String @map("file_name_hint") @db.VarChar(300)
+  draftPath         String @map("draft_path") @db.VarChar(800)
+  statusCode        String @default("draft-created") @map("status_code") @db.VarChar(40)
+  documentSnapshot  Json   @map("document_snapshot") @db.JsonB
+  variablesSnapshot Json   @map("variables_snapshot") @db.JsonB
 
   memo          String?
   isActive      Boolean  @default(true) @map("is_active")
@@ -5221,6 +5224,43 @@ model CrmQuoteDmsHandoff {
 }
 
 // ============================================
+// CRM Opportunity Contract DMS Handoff Snapshot
+// ============================================
+model CrmOpportunityContractDmsHandoff {
+  id BigInt @id @default(autoincrement()) @map("opportunity_contract_dms_handoff_id")
+
+  opportunityId     BigInt @map("opportunity_id")
+  opportunityCode   String @map("opportunity_code") @db.VarChar(80)
+  documentTitle     String @map("document_title") @db.VarChar(300)
+  templateKey       String @map("template_key") @db.VarChar(120)
+  folderHint        String @map("folder_hint") @db.VarChar(500)
+  fileNameHint      String @map("file_name_hint") @db.VarChar(300)
+  draftPath         String @map("draft_path") @db.VarChar(800)
+  statusCode        String @default("draft-created") @map("status_code") @db.VarChar(40)
+  documentSnapshot  Json   @map("document_snapshot") @db.JsonB
+  variablesSnapshot Json   @map("variables_snapshot") @db.JsonB
+  artifactSnapshot  Json?  @map("artifact_snapshot") @db.JsonB
+
+  memo          String?
+  isActive      Boolean  @default(true) @map("is_active")
+  savedBy       BigInt?  @map("saved_by")
+  savedAt       DateTime @default(now()) @map("saved_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  lastSource    String?  @map("last_source")
+  lastActivity  String?  @map("last_activity")
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  opportunity CrmOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([opportunityId, templateKey], name: "ix_crm_opportunity_contract_dms_handoff_m_opportunity_template")
+  @@index([opportunityCode, isActive, savedAt], name: "ix_crm_opportunity_contract_dms_handoff_m_opportunity_code")
+  @@index([savedAt], name: "ix_crm_opportunity_contract_dms_handoff_m_saved_at")
+  @@map("crm_opportunity_contract_dms_handoff_m")
+  @@schema("crm")
+}
+
+// ============================================
 // CRM Opportunity History - crm_opportunity_h
 // ============================================
 model CrmOpportunityHistory {
@@ -5231,22 +5271,22 @@ model CrmOpportunityHistory {
   eventAt   DateTime @default(now()) @map("event_at")
   eventBy   BigInt?  @map("event_by")
 
-  opportunityCode      String  @map("opportunity_code") @db.VarChar(80)
-  opportunityGroupCode String  @map("opportunity_group_code") @db.VarChar(80)
-  customerName         String  @map("customer_name") @db.VarChar(200)
-  opportunityName      String  @map("opportunity_name") @db.VarChar(300)
-  ownerName            String  @map("owner_name") @db.VarChar(100)
-  ownerUserId          BigInt? @map("owner_user_id")
-  businessType         String  @map("business_type") @db.VarChar(120)
-  industryLine         String  @map("industry_line") @db.VarChar(120)
-  regionCode           String  @map("region_code") @db.VarChar(30)
-  statusCode           String  @map("status_code") @db.VarChar(40)
-  priorityCode         String  @map("priority_code") @db.VarChar(40)
-  versionNo            Int     @map("version_no")
+  opportunityCode      String    @map("opportunity_code") @db.VarChar(80)
+  opportunityGroupCode String    @map("opportunity_group_code") @db.VarChar(80)
+  customerName         String    @map("customer_name") @db.VarChar(200)
+  opportunityName      String    @map("opportunity_name") @db.VarChar(300)
+  ownerName            String    @map("owner_name") @db.VarChar(100)
+  ownerUserId          BigInt?   @map("owner_user_id")
+  businessType         String    @map("business_type") @db.VarChar(120)
+  industryLine         String    @map("industry_line") @db.VarChar(120)
+  regionCode           String    @map("region_code") @db.VarChar(30)
+  statusCode           String    @map("status_code") @db.VarChar(40)
+  priorityCode         String    @map("priority_code") @db.VarChar(40)
+  versionNo            Int       @map("version_no")
   confirmed            Boolean
-  contractCreated      Boolean @map("contract_created")
+  contractCreated      Boolean   @map("contract_created")
   contractCreatedAt    DateTime? @map("contract_created_at")
-  contractCode         String? @map("contract_code") @db.VarChar(80)
+  contractCode         String?   @map("contract_code") @db.VarChar(80)
 
   expectedStartDate       DateTime? @map("expected_start_date") @db.Date
   expectedEndDate         DateTime? @map("expected_end_date") @db.Date
@@ -5382,22 +5422,22 @@ model CrmOpportunityLineHistory {
 model CrmCustomer {
   id BigInt @id @default(autoincrement()) @map("customer_id")
 
-  customerCode          String    @unique(map: "ux_crm_customer_m_code") @map("customer_code") @db.VarChar(80)
-  customerName          String    @map("customer_name") @db.VarChar(200)
-  customerTypeCode      String    @default("prospect") @map("customer_type_code") @db.VarChar(40)
-  industryLine          String    @map("industry_line") @db.VarChar(120)
-  regionCode            String    @default("domestic") @map("region_code") @db.VarChar(30)
-  ownerName             String    @map("owner_name") @db.VarChar(100)
-  ownerUserId           BigInt?   @map("owner_user_id")
-  contactName           String?   @map("contact_name") @db.VarChar(120)
-  contactEmail          String?   @map("contact_email") @db.VarChar(200)
-  contactPhone          String?   @map("contact_phone") @db.VarChar(80)
-  sourceOpportunityId   BigInt?   @map("source_opportunity_id")
-  latestOpportunityCode String?   @map("latest_opportunity_code") @db.VarChar(80)
-  latestActivityAt      DateTime? @map("latest_activity_at")
-  lastInteractionSummary String?  @map("last_interaction_summary") @db.VarChar(1000)
-  nextAction            String    @map("next_action") @db.VarChar(1000)
-  adminBoundaryCode     String    @default("shared-admin") @map("admin_boundary_code") @db.VarChar(40)
+  customerCode           String    @unique(map: "ux_crm_customer_m_code") @map("customer_code") @db.VarChar(80)
+  customerName           String    @map("customer_name") @db.VarChar(200)
+  customerTypeCode       String    @default("prospect") @map("customer_type_code") @db.VarChar(40)
+  industryLine           String    @map("industry_line") @db.VarChar(120)
+  regionCode             String    @default("domestic") @map("region_code") @db.VarChar(30)
+  ownerName              String    @map("owner_name") @db.VarChar(100)
+  ownerUserId            BigInt?   @map("owner_user_id")
+  contactName            String?   @map("contact_name") @db.VarChar(120)
+  contactEmail           String?   @map("contact_email") @db.VarChar(200)
+  contactPhone           String?   @map("contact_phone") @db.VarChar(80)
+  sourceOpportunityId    BigInt?   @map("source_opportunity_id")
+  latestOpportunityCode  String?   @map("latest_opportunity_code") @db.VarChar(80)
+  latestActivityAt       DateTime? @map("latest_activity_at")
+  lastInteractionSummary String?   @map("last_interaction_summary") @db.VarChar(1000)
+  nextAction             String    @map("next_action") @db.VarChar(1000)
+  adminBoundaryCode      String    @default("shared-admin") @map("admin_boundary_code") @db.VarChar(40)
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -5432,22 +5472,22 @@ model CrmCustomerHistory {
   eventAt   DateTime @default(now()) @map("event_at")
   eventBy   BigInt?  @map("event_by")
 
-  customerCode          String    @map("customer_code") @db.VarChar(80)
-  customerName          String    @map("customer_name") @db.VarChar(200)
-  customerTypeCode      String    @map("customer_type_code") @db.VarChar(40)
-  industryLine          String    @map("industry_line") @db.VarChar(120)
-  regionCode            String    @map("region_code") @db.VarChar(30)
-  ownerName             String    @map("owner_name") @db.VarChar(100)
-  ownerUserId           BigInt?   @map("owner_user_id")
-  contactName           String?   @map("contact_name") @db.VarChar(120)
-  contactEmail          String?   @map("contact_email") @db.VarChar(200)
-  contactPhone          String?   @map("contact_phone") @db.VarChar(80)
-  sourceOpportunityId   BigInt?   @map("source_opportunity_id")
-  latestOpportunityCode String?   @map("latest_opportunity_code") @db.VarChar(80)
-  latestActivityAt      DateTime? @map("latest_activity_at")
-  lastInteractionSummary String?  @map("last_interaction_summary") @db.VarChar(1000)
-  nextAction            String    @map("next_action") @db.VarChar(1000)
-  adminBoundaryCode     String    @map("admin_boundary_code") @db.VarChar(40)
+  customerCode           String    @map("customer_code") @db.VarChar(80)
+  customerName           String    @map("customer_name") @db.VarChar(200)
+  customerTypeCode       String    @map("customer_type_code") @db.VarChar(40)
+  industryLine           String    @map("industry_line") @db.VarChar(120)
+  regionCode             String    @map("region_code") @db.VarChar(30)
+  ownerName              String    @map("owner_name") @db.VarChar(100)
+  ownerUserId            BigInt?   @map("owner_user_id")
+  contactName            String?   @map("contact_name") @db.VarChar(120)
+  contactEmail           String?   @map("contact_email") @db.VarChar(200)
+  contactPhone           String?   @map("contact_phone") @db.VarChar(80)
+  sourceOpportunityId    BigInt?   @map("source_opportunity_id")
+  latestOpportunityCode  String?   @map("latest_opportunity_code") @db.VarChar(80)
+  latestActivityAt       DateTime? @map("latest_activity_at")
+  lastInteractionSummary String?   @map("last_interaction_summary") @db.VarChar(1000)
+  nextAction             String    @map("next_action") @db.VarChar(1000)
+  adminBoundaryCode      String    @map("admin_boundary_code") @db.VarChar(40)
 
   isActive      Boolean  @map("is_active")
   memo          String?
@@ -5472,19 +5512,19 @@ model CrmCustomerHistory {
 model CrmCustomerActivity {
   id BigInt @id @default(autoincrement()) @map("activity_id")
 
-  activityCode         String    @unique(map: "ux_crm_customer_activity_d_code") @map("activity_code") @db.VarChar(80)
-  customerId           BigInt    @map("customer_id")
-  sourceOpportunityId  BigInt?   @map("source_opportunity_id")
-  sourceOpportunityCode String?  @map("source_opportunity_code") @db.VarChar(80)
-  activityTypeCode     String    @default("meeting") @map("activity_type_code") @db.VarChar(40)
-  activityStatusCode   String    @default("done") @map("activity_status_code") @db.VarChar(40)
-  subject              String    @db.VarChar(300)
-  occurredAt           DateTime  @default(now()) @map("occurred_at")
-  dueAt                DateTime? @map("due_at")
-  ownerName            String    @map("owner_name") @db.VarChar(100)
-  ownerUserId          BigInt?   @map("owner_user_id")
-  summary              String    @db.VarChar(1000)
-  nextAction           String?   @map("next_action") @db.VarChar(1000)
+  activityCode          String    @unique(map: "ux_crm_customer_activity_d_code") @map("activity_code") @db.VarChar(80)
+  customerId            BigInt    @map("customer_id")
+  sourceOpportunityId   BigInt?   @map("source_opportunity_id")
+  sourceOpportunityCode String?   @map("source_opportunity_code") @db.VarChar(80)
+  activityTypeCode      String    @default("meeting") @map("activity_type_code") @db.VarChar(40)
+  activityStatusCode    String    @default("done") @map("activity_status_code") @db.VarChar(40)
+  subject               String    @db.VarChar(300)
+  occurredAt            DateTime  @default(now()) @map("occurred_at")
+  dueAt                 DateTime? @map("due_at")
+  ownerName             String    @map("owner_name") @db.VarChar(100)
+  ownerUserId           BigInt?   @map("owner_user_id")
+  summary               String    @db.VarChar(1000)
+  nextAction            String?   @map("next_action") @db.VarChar(1000)
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -5518,19 +5558,19 @@ model CrmCustomerActivityHistory {
   eventAt   DateTime @default(now()) @map("event_at")
   eventBy   BigInt?  @map("event_by")
 
-  activityCode         String    @map("activity_code") @db.VarChar(80)
-  customerId           BigInt    @map("customer_id")
-  sourceOpportunityId  BigInt?   @map("source_opportunity_id")
-  sourceOpportunityCode String?  @map("source_opportunity_code") @db.VarChar(80)
-  activityTypeCode     String    @map("activity_type_code") @db.VarChar(40)
-  activityStatusCode   String    @map("activity_status_code") @db.VarChar(40)
-  subject              String    @db.VarChar(300)
-  occurredAt           DateTime  @map("occurred_at")
-  dueAt                DateTime? @map("due_at")
-  ownerName            String    @map("owner_name") @db.VarChar(100)
-  ownerUserId          BigInt?   @map("owner_user_id")
-  summary              String    @db.VarChar(1000)
-  nextAction           String?   @map("next_action") @db.VarChar(1000)
+  activityCode          String    @map("activity_code") @db.VarChar(80)
+  customerId            BigInt    @map("customer_id")
+  sourceOpportunityId   BigInt?   @map("source_opportunity_id")
+  sourceOpportunityCode String?   @map("source_opportunity_code") @db.VarChar(80)
+  activityTypeCode      String    @map("activity_type_code") @db.VarChar(40)
+  activityStatusCode    String    @map("activity_status_code") @db.VarChar(40)
+  subject               String    @db.VarChar(300)
+  occurredAt            DateTime  @map("occurred_at")
+  dueAt                 DateTime? @map("due_at")
+  ownerName             String    @map("owner_name") @db.VarChar(100)
+  ownerUserId           BigInt?   @map("owner_user_id")
+  summary               String    @db.VarChar(1000)
+  nextAction            String?   @map("next_action") @db.VarChar(1000)
 
   isActive      Boolean  @map("is_active")
   memo          String?
@@ -5628,32 +5668,34 @@ model CrmQuoteSellerProfileHistory {
 model CrmContract {
   id BigInt @id @default(autoincrement()) @map("contract_id")
 
-  contractCode         String  @unique(map: "ux_crm_contract_m_code") @map("contract_code") @db.VarChar(80)
-  sourceOpportunityId  BigInt? @map("source_opportunity_id")
-  sourceOpportunityCode String? @map("source_opportunity_code") @db.VarChar(80)
-  customerName         String  @map("customer_name") @db.VarChar(200)
-  contractName         String  @map("contract_name") @db.VarChar(300)
-  ownerName            String  @map("owner_name") @db.VarChar(100)
-  businessType         String  @map("business_type") @db.VarChar(120)
-  industryLine         String  @map("industry_line") @db.VarChar(120)
-  regionCode           String  @default("domestic") @map("region_code") @db.VarChar(30)
-  statusCode           String  @default("review") @map("status_code") @db.VarChar(40)
-  confirmed            Boolean @default(false)
-  contractStartDate    DateTime @map("contract_start_date") @db.Date
-  contractEndDate      DateTime @map("contract_end_date") @db.Date
-  wbsCode              String? @map("wbs_code") @db.VarChar(80)
-  paymentTermCode      String? @map("payment_term_code") @db.VarChar(80)
-  revenueSubtotal      BigInt  @default(0) @map("revenue_subtotal")
-  specialDiscountTypeCode String @default("amount") @map("special_discount_type_code") @db.VarChar(30)
-  specialDiscountValue Decimal? @map("special_discount_value") @db.Decimal(12, 2)
-  specialDiscountAmount BigInt @default(0) @map("special_discount_amount")
-  revenueTotal         BigInt  @default(0) @map("revenue_total")
-  costTotal            BigInt  @default(0) @map("cost_total")
-  externalCostTotal    BigInt  @default(0) @map("external_cost_total")
-  pmsHandoffStatusCode String  @default("planned") @map("pms_handoff_status_code") @db.VarChar(40)
-  dmsLinkStatusCode    String  @default("planned") @map("dms_link_status_code") @db.VarChar(40)
-  adminBoundaryCode    String  @default("shared-admin") @map("admin_boundary_code") @db.VarChar(40)
-  nextAction           String  @map("next_action") @db.VarChar(1000)
+  contractCode            String   @unique(map: "ux_crm_contract_m_code") @map("contract_code") @db.VarChar(80)
+  sourceOpportunityId     BigInt?  @map("source_opportunity_id")
+  sourceOpportunityCode   String?  @map("source_opportunity_code") @db.VarChar(80)
+  customerName            String   @map("customer_name") @db.VarChar(200)
+  contractName            String   @map("contract_name") @db.VarChar(300)
+  ownerName               String   @map("owner_name") @db.VarChar(100)
+  clientContact           String?  @map("client_contact") @db.VarChar(120)
+  ownerUserId             BigInt?  @map("owner_user_id")
+  businessType            String   @map("business_type") @db.VarChar(120)
+  industryLine            String   @map("industry_line") @db.VarChar(120)
+  regionCode              String   @default("domestic") @map("region_code") @db.VarChar(30)
+  statusCode              String   @default("review") @map("status_code") @db.VarChar(40)
+  confirmed               Boolean  @default(false)
+  contractStartDate       DateTime @map("contract_start_date") @db.Date
+  contractEndDate         DateTime @map("contract_end_date") @db.Date
+  wbsCode                 String?  @map("wbs_code") @db.VarChar(80)
+  paymentTermCode         String?  @map("payment_term_code") @db.VarChar(80)
+  revenueSubtotal         BigInt   @default(0) @map("revenue_subtotal")
+  specialDiscountTypeCode String   @default("amount") @map("special_discount_type_code") @db.VarChar(30)
+  specialDiscountValue    Decimal? @map("special_discount_value") @db.Decimal(12, 2)
+  specialDiscountAmount   BigInt   @default(0) @map("special_discount_amount")
+  revenueTotal            BigInt   @default(0) @map("revenue_total")
+  costTotal               BigInt   @default(0) @map("cost_total")
+  externalCostTotal       BigInt   @default(0) @map("external_cost_total")
+  pmsHandoffStatusCode    String   @default("planned") @map("pms_handoff_status_code") @db.VarChar(40)
+  dmsLinkStatusCode       String   @default("planned") @map("dms_link_status_code") @db.VarChar(40)
+  adminBoundaryCode       String   @default("shared-admin") @map("admin_boundary_code") @db.VarChar(40)
+  nextAction              String   @map("next_action") @db.VarChar(1000)
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -5665,16 +5707,19 @@ model CrmContract {
   lastActivity  String?  @map("last_activity")
   transactionId String?  @map("transaction_id") @db.Uuid
 
-  sourceOpportunity CrmOpportunity? @relation(fields: [sourceOpportunityId], references: [id], onDelete: SetNull)
-  lines             CrmContractLine[]
-  billingPlans      CrmContractBillingPlan[]
-  billingActuals    CrmContractBillingActual[]
-  dmsHandoffs       CrmContractDmsHandoff[]
+  sourceOpportunity          CrmOpportunity?                 @relation(fields: [sourceOpportunityId], references: [id], onDelete: SetNull)
+  ownerUser                  User?                           @relation("CrmContractOwnerUser", fields: [ownerUserId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "fk_crm_contract_m_owner_user")
+  lines                      CrmContractLine[]
+  billingPlans               CrmContractBillingPlan[]
+  billingActuals             CrmContractBillingActual[]
+  dmsHandoffs                CrmContractDmsHandoff[]
+  amsSourceVendorWbsMappings CrmCostPlanAmsSourceVendorWbs[]
 
   @@index([statusCode, isActive], name: "ix_crm_contract_m_status_active")
   @@index([customerName], name: "ix_crm_contract_m_customer")
   @@index([updatedAt], name: "ix_crm_contract_m_updated")
   @@index([sourceOpportunityId], name: "ix_crm_contract_m_source_opportunity")
+  @@index([ownerUserId], name: "ix_crm_contract_m_owner_user")
   @@map("crm_contract_m")
   @@schema("crm")
 }
@@ -5728,32 +5773,34 @@ model CrmContractHistory {
   eventAt   DateTime @default(now()) @map("event_at")
   eventBy   BigInt?  @map("event_by")
 
-  contractCode         String  @map("contract_code") @db.VarChar(80)
-  sourceOpportunityId  BigInt? @map("source_opportunity_id")
-  sourceOpportunityCode String? @map("source_opportunity_code") @db.VarChar(80)
-  customerName         String  @map("customer_name") @db.VarChar(200)
-  contractName         String  @map("contract_name") @db.VarChar(300)
-  ownerName            String  @map("owner_name") @db.VarChar(100)
-  businessType         String  @map("business_type") @db.VarChar(120)
-  industryLine         String  @map("industry_line") @db.VarChar(120)
-  regionCode           String  @map("region_code") @db.VarChar(30)
-  statusCode           String  @map("status_code") @db.VarChar(40)
-  confirmed            Boolean
-  contractStartDate    DateTime @map("contract_start_date") @db.Date
-  contractEndDate      DateTime @map("contract_end_date") @db.Date
-  wbsCode              String? @map("wbs_code") @db.VarChar(80)
-  paymentTermCode      String? @map("payment_term_code") @db.VarChar(80)
-  revenueSubtotal      BigInt  @map("revenue_subtotal")
-  specialDiscountTypeCode String @map("special_discount_type_code") @db.VarChar(30)
-  specialDiscountValue Decimal? @map("special_discount_value") @db.Decimal(12, 2)
-  specialDiscountAmount BigInt @map("special_discount_amount")
-  revenueTotal         BigInt  @map("revenue_total")
-  costTotal            BigInt  @map("cost_total")
-  externalCostTotal    BigInt  @map("external_cost_total")
-  pmsHandoffStatusCode String  @map("pms_handoff_status_code") @db.VarChar(40)
-  dmsLinkStatusCode    String  @map("dms_link_status_code") @db.VarChar(40)
-  adminBoundaryCode    String  @map("admin_boundary_code") @db.VarChar(40)
-  nextAction           String  @map("next_action") @db.VarChar(1000)
+  contractCode            String   @map("contract_code") @db.VarChar(80)
+  sourceOpportunityId     BigInt?  @map("source_opportunity_id")
+  sourceOpportunityCode   String?  @map("source_opportunity_code") @db.VarChar(80)
+  customerName            String   @map("customer_name") @db.VarChar(200)
+  contractName            String   @map("contract_name") @db.VarChar(300)
+  ownerName               String   @map("owner_name") @db.VarChar(100)
+  clientContact           String?  @map("client_contact") @db.VarChar(120)
+  ownerUserId             BigInt?  @map("owner_user_id")
+  businessType            String   @map("business_type") @db.VarChar(120)
+  industryLine            String   @map("industry_line") @db.VarChar(120)
+  regionCode              String   @map("region_code") @db.VarChar(30)
+  statusCode              String   @map("status_code") @db.VarChar(40)
+  confirmed               Boolean
+  contractStartDate       DateTime @map("contract_start_date") @db.Date
+  contractEndDate         DateTime @map("contract_end_date") @db.Date
+  wbsCode                 String?  @map("wbs_code") @db.VarChar(80)
+  paymentTermCode         String?  @map("payment_term_code") @db.VarChar(80)
+  revenueSubtotal         BigInt   @map("revenue_subtotal")
+  specialDiscountTypeCode String   @map("special_discount_type_code") @db.VarChar(30)
+  specialDiscountValue    Decimal? @map("special_discount_value") @db.Decimal(12, 2)
+  specialDiscountAmount   BigInt   @map("special_discount_amount")
+  revenueTotal            BigInt   @map("revenue_total")
+  costTotal               BigInt   @map("cost_total")
+  externalCostTotal       BigInt   @map("external_cost_total")
+  pmsHandoffStatusCode    String   @map("pms_handoff_status_code") @db.VarChar(40)
+  dmsLinkStatusCode       String   @map("dms_link_status_code") @db.VarChar(40)
+  adminBoundaryCode       String   @map("admin_boundary_code") @db.VarChar(40)
+  nextAction              String   @map("next_action") @db.VarChar(1000)
 
   isActive      Boolean  @map("is_active")
   memo          String?
@@ -5881,23 +5928,23 @@ model CrmContractBillingActual {
 model CrmBusinessPlan {
   id BigInt @id @default(autoincrement()) @map("business_plan_id")
 
-  businessPlanCode         String    @unique(map: "ux_crm_business_plan_m_code") @map("business_plan_code") @db.VarChar(80)
-  planName                 String    @map("plan_name") @db.VarChar(200)
-  baseYear                 Int       @map("base_year")
-  versionNo                Int       @default(1) @map("version_no")
-  statusCode               String    @default("draft") @map("status_code") @db.VarChar(40)
-  confirmed                Boolean   @default(false)
-  confirmedAt              DateTime? @map("confirmed_at")
-  businessTypeFilter       String?   @map("business_type_filter") @db.VarChar(120)
-  industryLineFilter       String?   @map("industry_line_filter") @db.VarChar(120)
-  regionFilter             String    @default("all") @map("region_filter") @db.VarChar(30)
-  searchFilter             String?   @map("search_filter") @db.VarChar(200)
-  pipelineAmountTotal      BigInt    @default(0) @map("pipeline_amount_total")
-  contractPlanAmountTotal  BigInt    @default(0) @map("contract_plan_amount_total")
-  contractActualAmountTotal BigInt   @default(0) @map("contract_actual_amount_total")
-  planCandidateAmountTotal BigInt    @default(0) @map("plan_candidate_amount_total")
-  actualGapAmountTotal     BigInt    @default(0) @map("actual_gap_amount_total")
-  rowCount                 Int       @default(0) @map("row_count")
+  businessPlanCode          String    @unique(map: "ux_crm_business_plan_m_code") @map("business_plan_code") @db.VarChar(80)
+  planName                  String    @map("plan_name") @db.VarChar(200)
+  baseYear                  Int       @map("base_year")
+  versionNo                 Int       @default(1) @map("version_no")
+  statusCode                String    @default("draft") @map("status_code") @db.VarChar(40)
+  confirmed                 Boolean   @default(false)
+  confirmedAt               DateTime? @map("confirmed_at")
+  businessTypeFilter        String?   @map("business_type_filter") @db.VarChar(120)
+  industryLineFilter        String?   @map("industry_line_filter") @db.VarChar(120)
+  regionFilter              String    @default("all") @map("region_filter") @db.VarChar(30)
+  searchFilter              String?   @map("search_filter") @db.VarChar(200)
+  pipelineAmountTotal       BigInt    @default(0) @map("pipeline_amount_total")
+  contractPlanAmountTotal   BigInt    @default(0) @map("contract_plan_amount_total")
+  contractActualAmountTotal BigInt    @default(0) @map("contract_actual_amount_total")
+  planCandidateAmountTotal  BigInt    @default(0) @map("plan_candidate_amount_total")
+  actualGapAmountTotal      BigInt    @default(0) @map("actual_gap_amount_total")
+  rowCount                  Int       @default(0) @map("row_count")
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -5930,23 +5977,23 @@ model CrmBusinessPlanHistory {
   eventAt   DateTime @default(now()) @map("event_at")
   eventBy   BigInt?  @map("event_by")
 
-  businessPlanCode         String    @map("business_plan_code") @db.VarChar(80)
-  planName                 String    @map("plan_name") @db.VarChar(200)
-  baseYear                 Int       @map("base_year")
-  versionNo                Int       @map("version_no")
-  statusCode               String    @map("status_code") @db.VarChar(40)
-  confirmed                Boolean
-  confirmedAt              DateTime? @map("confirmed_at")
-  businessTypeFilter       String?   @map("business_type_filter") @db.VarChar(120)
-  industryLineFilter       String?   @map("industry_line_filter") @db.VarChar(120)
-  regionFilter             String    @map("region_filter") @db.VarChar(30)
-  searchFilter             String?   @map("search_filter") @db.VarChar(200)
-  pipelineAmountTotal      BigInt    @map("pipeline_amount_total")
-  contractPlanAmountTotal  BigInt    @map("contract_plan_amount_total")
-  contractActualAmountTotal BigInt   @map("contract_actual_amount_total")
-  planCandidateAmountTotal BigInt    @map("plan_candidate_amount_total")
-  actualGapAmountTotal     BigInt    @map("actual_gap_amount_total")
-  rowCount                 Int       @map("row_count")
+  businessPlanCode          String    @map("business_plan_code") @db.VarChar(80)
+  planName                  String    @map("plan_name") @db.VarChar(200)
+  baseYear                  Int       @map("base_year")
+  versionNo                 Int       @map("version_no")
+  statusCode                String    @map("status_code") @db.VarChar(40)
+  confirmed                 Boolean
+  confirmedAt               DateTime? @map("confirmed_at")
+  businessTypeFilter        String?   @map("business_type_filter") @db.VarChar(120)
+  industryLineFilter        String?   @map("industry_line_filter") @db.VarChar(120)
+  regionFilter              String    @map("region_filter") @db.VarChar(30)
+  searchFilter              String?   @map("search_filter") @db.VarChar(200)
+  pipelineAmountTotal       BigInt    @map("pipeline_amount_total")
+  contractPlanAmountTotal   BigInt    @map("contract_plan_amount_total")
+  contractActualAmountTotal BigInt    @map("contract_actual_amount_total")
+  planCandidateAmountTotal  BigInt    @map("plan_candidate_amount_total")
+  actualGapAmountTotal      BigInt    @map("actual_gap_amount_total")
+  rowCount                  Int       @map("row_count")
 
   isActive      Boolean  @map("is_active")
   memo          String?
@@ -5971,20 +6018,25 @@ model CrmBusinessPlanHistory {
 model CrmBusinessPlanLine {
   id BigInt @id @default(autoincrement()) @map("business_plan_line_id")
 
-  businessPlanId       BigInt  @map("business_plan_id")
-  lineCode             String  @map("line_code") @db.VarChar(80)
-  targetYear           Int     @map("target_year")
-  businessType         String  @map("business_type") @db.VarChar(120)
-  industryLine         String  @map("industry_line") @db.VarChar(120)
-  ownerName            String  @map("owner_name") @db.VarChar(100)
-  regionCode           String  @default("domestic") @map("region_code") @db.VarChar(30)
-  pipelineAmount       BigInt  @default(0) @map("pipeline_amount")
-  contractPlanAmount   BigInt  @default(0) @map("contract_plan_amount")
-  contractActualAmount BigInt  @default(0) @map("contract_actual_amount")
-  planCandidateAmount  BigInt  @default(0) @map("plan_candidate_amount")
-  planMonthlyRevenueAmounts Json? @map("plan_monthly_revenue_amounts") @db.JsonB
-  actualGapAmount      BigInt  @default(0) @map("actual_gap_amount")
-  sortOrder            Int     @default(0) @map("sort_order")
+  businessPlanId                 BigInt @map("business_plan_id")
+  lineCode                       String @map("line_code") @db.VarChar(80)
+  rowCode                        String @map("row_code") @db.VarChar(80)
+  targetYear                     Int    @map("target_year")
+  businessType                   String @map("business_type") @db.VarChar(120)
+  industryLine                   String @map("industry_line") @db.VarChar(120)
+  ownerName                      String @map("owner_name") @db.VarChar(100)
+  regionCode                     String @default("domestic") @map("region_code") @db.VarChar(30)
+  businessName                   String @default("") @map("business_name") @db.VarChar(200)
+  wbsCode                        String @default("") @map("wbs_code") @db.VarChar(120)
+  pipelineAmount                 BigInt @default(0) @map("pipeline_amount")
+  contractPlanAmount             BigInt @default(0) @map("contract_plan_amount")
+  contractActualAmount           BigInt @default(0) @map("contract_actual_amount")
+  planCandidateAmount            BigInt @default(0) @map("plan_candidate_amount")
+  planExternalCostAmount         BigInt @default(0) @map("plan_external_cost_amount")
+  planMonthlyRevenueAmounts      Json?  @map("plan_monthly_revenue_amounts") @db.JsonB
+  planMonthlyExternalCostAmounts Json?  @map("plan_monthly_external_cost_amounts") @db.JsonB
+  actualGapAmount                BigInt @default(0) @map("actual_gap_amount")
+  sortOrder                      Int    @default(0) @map("sort_order")
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -6000,6 +6052,7 @@ model CrmBusinessPlanLine {
 
   @@unique([businessPlanId, lineCode], name: "ux_crm_business_plan_line_d_plan_code")
   @@index([businessPlanId, targetYear], name: "ix_crm_business_plan_line_d_plan_year")
+  @@index([businessPlanId, rowCode], name: "ix_crm_business_plan_line_d_plan_row")
   @@index([targetYear], name: "ix_crm_business_plan_line_d_target_year")
   @@map("crm_business_plan_line_d")
   @@schema("crm")
@@ -6090,22 +6143,22 @@ model CrmReportConfirmation {
 model CrmCostPlanInternalMonthly {
   id BigInt @id @default(autoincrement()) @map("cost_plan_internal_monthly_id")
 
-  targetYear          Int    @map("target_year")
-  businessType        String @map("business_type") @db.VarChar(120)
-  industryLine        String @map("industry_line") @db.VarChar(120)
-  ownerName           String @map("owner_name") @db.VarChar(100)
-  regionCode          String @default("domestic") @map("region_code") @db.VarChar(30)
-  wbsCode             String @default("") @map("wbs_code") @db.VarChar(80)
-  monthlyPlanAmounts  Json   @map("monthly_plan_amounts") @db.JsonB
-  monthlyActualAmounts Json  @map("monthly_actual_amounts") @db.JsonB
-  planAmountTotal     BigInt @default(0) @map("plan_amount_total")
-  actualAmountTotal   BigInt @default(0) @map("actual_amount_total")
-  gapAmountTotal      BigInt @default(0) @map("gap_amount_total")
-  statusCode          String @default("draft") @map("status_code") @db.VarChar(30)
-  confirmed           Boolean @default(false)
-  confirmedAt         DateTime? @map("confirmed_at")
-  confirmedBy         BigInt? @map("confirmed_by")
-  sortOrder           Int    @default(0) @map("sort_order")
+  targetYear           Int       @map("target_year")
+  businessType         String    @map("business_type") @db.VarChar(120)
+  industryLine         String    @map("industry_line") @db.VarChar(120)
+  ownerName            String    @map("owner_name") @db.VarChar(100)
+  regionCode           String    @default("domestic") @map("region_code") @db.VarChar(30)
+  wbsCode              String    @default("") @map("wbs_code") @db.VarChar(80)
+  monthlyPlanAmounts   Json      @map("monthly_plan_amounts") @db.JsonB
+  monthlyActualAmounts Json      @map("monthly_actual_amounts") @db.JsonB
+  planAmountTotal      BigInt    @default(0) @map("plan_amount_total")
+  actualAmountTotal    BigInt    @default(0) @map("actual_amount_total")
+  gapAmountTotal       BigInt    @default(0) @map("gap_amount_total")
+  statusCode           String    @default("draft") @map("status_code") @db.VarChar(30)
+  confirmed            Boolean   @default(false)
+  confirmedAt          DateTime? @map("confirmed_at")
+  confirmedBy          BigInt?   @map("confirmed_by")
+  sortOrder            Int       @default(0) @map("sort_order")
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -6126,20 +6179,51 @@ model CrmCostPlanInternalMonthly {
 }
 
 // ============================================
+// CRM Cost Plan Internal Source Grid (원본 내부원가 5개 항목) - crm_cost_plan_internal_item_monthly_d
+// ============================================
+model CrmCostPlanInternalItemMonthly {
+  id BigInt @id @default(autoincrement()) @map("cost_plan_internal_item_monthly_id")
+
+  targetYear            Int    @map("target_year")
+  itemCode              String @map("item_code") @db.VarChar(30)
+  itemName              String @map("item_name") @db.VarChar(80)
+  monthlyPlanAmounts    Json   @map("monthly_plan_amounts") @db.JsonB
+  monthlyActualAmounts  Json   @map("monthly_actual_amounts") @db.JsonB
+  planAmountTotal       BigInt @default(0) @map("plan_amount_total")
+  actualAmountTotal     BigInt @default(0) @map("actual_amount_total")
+  differenceAmountTotal BigInt @default(0) @map("difference_amount_total")
+  sortOrder             Int    @default(0) @map("sort_order")
+
+  isActive      Boolean  @default(true) @map("is_active")
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  lastSource    String?  @map("last_source") @db.VarChar(100)
+  lastActivity  String?  @map("last_activity") @db.VarChar(100)
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  @@unique([targetYear, itemCode], name: "ux_crm_cost_plan_internal_item_monthly_d_year_item")
+  @@index([targetYear, isActive], name: "ix_crm_cost_plan_internal_item_monthly_d_year_active")
+  @@map("crm_cost_plan_internal_item_monthly_d")
+  @@schema("crm")
+}
+
+// ============================================
 // CRM Cost Plan AMS Vendor-WBS Mapping (AMS 업체-WBS 매핑) - crm_cost_plan_ams_vendor_wbs_r
 // ============================================
 model CrmCostPlanAmsVendorWbsMapping {
   id BigInt @id @default(autoincrement()) @map("cost_plan_ams_vendor_wbs_mapping_id")
 
-  targetYear       Int    @map("target_year")
-  businessType     String @map("business_type") @db.VarChar(120)
-  industryLine     String @map("industry_line") @db.VarChar(120)
-  ownerName        String @map("owner_name") @db.VarChar(100)
-  regionCode       String @default("domestic") @map("region_code") @db.VarChar(30)
-  wbsCode          String @map("wbs_code") @db.VarChar(80)
-  vendorName       String @map("vendor_name") @db.VarChar(200)
+  targetYear       Int     @map("target_year")
+  businessType     String  @map("business_type") @db.VarChar(120)
+  industryLine     String  @map("industry_line") @db.VarChar(120)
+  ownerName        String  @map("owner_name") @db.VarChar(100)
+  regionCode       String  @default("domestic") @map("region_code") @db.VarChar(30)
+  wbsCode          String  @map("wbs_code") @db.VarChar(80)
+  vendorName       String  @map("vendor_name") @db.VarChar(200)
   vendorContractNo String? @map("vendor_contract_no") @db.VarChar(120)
-  sortOrder        Int    @default(0) @map("sort_order")
+  sortOrder        Int     @default(0) @map("sort_order")
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -6159,29 +6243,108 @@ model CrmCostPlanAmsVendorWbsMapping {
 }
 
 // ============================================
+// CRM AMS Source Vendor Master - crm_cost_plan_ams_source_vendor_m
+// ============================================
+model CrmCostPlanAmsSourceVendor {
+  id BigInt @id @default(autoincrement()) @map("cost_plan_ams_source_vendor_id")
+
+  targetYear Int    @map("target_year")
+  vendorName String @map("vendor_name") @db.VarChar(200)
+  sortOrder  Int    @default(0) @map("sort_order")
+
+  isActive      Boolean  @default(true) @map("is_active")
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  lastSource    String?  @map("last_source") @db.VarChar(100)
+  lastActivity  String?  @map("last_activity") @db.VarChar(100)
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  wbsMappings     CrmCostPlanAmsSourceVendorWbs[]
+  externalMonthly CrmCostPlanAmsSourceExternalMonthly[]
+
+  @@index([targetYear, isActive], name: "ix_crm_cost_plan_ams_source_vendor_m_year_active")
+  @@map("crm_cost_plan_ams_source_vendor_m")
+  @@schema("crm")
+}
+
+model CrmCostPlanAmsSourceVendorWbs {
+  id BigInt @id @default(autoincrement()) @map("cost_plan_ams_source_vendor_wbs_id")
+
+  vendorId      BigInt   @map("vendor_id")
+  wbsCode       String   @map("wbs_code") @db.VarChar(80)
+  contractId    BigInt?  @map("contract_id")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  lastSource    String?  @map("last_source") @db.VarChar(100)
+  lastActivity  String?  @map("last_activity") @db.VarChar(100)
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  vendor   CrmCostPlanAmsSourceVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  contract CrmContract?               @relation(fields: [contractId], references: [id], onDelete: SetNull)
+
+  @@unique([vendorId, wbsCode], name: "ux_crm_cost_plan_ams_source_vendor_wbs_r_vendor_wbs")
+  @@index([wbsCode], name: "ix_crm_cost_plan_ams_source_vendor_wbs_r_wbs")
+  @@map("crm_cost_plan_ams_source_vendor_wbs_r")
+  @@schema("crm")
+}
+
+model CrmCostPlanAmsSourceExternalMonthly {
+  id BigInt @id @default(autoincrement()) @map("cost_plan_ams_source_external_monthly_id")
+
+  vendorId              BigInt   @map("vendor_id")
+  wbsCode               String   @map("wbs_code") @db.VarChar(80)
+  monthlyPlanAmounts    Json     @map("monthly_plan_amounts") @db.JsonB
+  monthlyActualAmounts  Json     @map("monthly_actual_amounts") @db.JsonB
+  planAmountTotal       BigInt   @default(0) @map("plan_amount_total")
+  actualAmountTotal     BigInt   @default(0) @map("actual_amount_total")
+  differenceAmountTotal BigInt   @default(0) @map("difference_amount_total")
+  sortOrder             Int      @default(0) @map("sort_order")
+  isActive              Boolean  @default(true) @map("is_active")
+  createdBy             BigInt?  @map("created_by")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedBy             BigInt?  @map("updated_by")
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
+  lastSource            String?  @map("last_source") @db.VarChar(100)
+  lastActivity          String?  @map("last_activity") @db.VarChar(100)
+  transactionId         String?  @map("transaction_id") @db.Uuid
+
+  vendor CrmCostPlanAmsSourceVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([vendorId, wbsCode], name: "ux_crm_cost_plan_ams_source_external_monthly_d_vendor_wbs")
+  @@index([wbsCode, isActive], name: "ix_crm_cost_plan_ams_source_external_monthly_d_wbs_active")
+  @@map("crm_cost_plan_ams_source_external_monthly_d")
+  @@schema("crm")
+}
+
+// ============================================
 // CRM Cost Plan AMS External Monthly Input (AMS 외부원가 월별 입력) - crm_cost_plan_ams_external_monthly_d
 // ============================================
 model CrmCostPlanAmsExternalMonthly {
   id BigInt @id @default(autoincrement()) @map("cost_plan_ams_external_monthly_id")
 
-  targetYear           Int    @map("target_year")
-  businessType         String @map("business_type") @db.VarChar(120)
-  industryLine         String @map("industry_line") @db.VarChar(120)
-  ownerName            String @map("owner_name") @db.VarChar(100)
-  regionCode           String @default("domestic") @map("region_code") @db.VarChar(30)
-  wbsCode              String @map("wbs_code") @db.VarChar(80)
-  vendorName           String @map("vendor_name") @db.VarChar(200)
-  vendorContractNo     String? @map("vendor_contract_no") @db.VarChar(120)
-  monthlyPlanAmounts   Json   @map("monthly_plan_amounts") @db.JsonB
-  monthlyActualAmounts Json   @map("monthly_actual_amounts") @db.JsonB
-  planAmountTotal      BigInt @default(0) @map("plan_amount_total")
-  actualAmountTotal    BigInt @default(0) @map("actual_amount_total")
-  gapAmountTotal       BigInt @default(0) @map("gap_amount_total")
-  statusCode           String @default("draft") @map("status_code") @db.VarChar(30)
-  confirmed            Boolean @default(false)
+  targetYear           Int       @map("target_year")
+  businessType         String    @map("business_type") @db.VarChar(120)
+  industryLine         String    @map("industry_line") @db.VarChar(120)
+  ownerName            String    @map("owner_name") @db.VarChar(100)
+  regionCode           String    @default("domestic") @map("region_code") @db.VarChar(30)
+  wbsCode              String    @map("wbs_code") @db.VarChar(80)
+  vendorName           String    @map("vendor_name") @db.VarChar(200)
+  vendorContractNo     String?   @map("vendor_contract_no") @db.VarChar(120)
+  monthlyPlanAmounts   Json      @map("monthly_plan_amounts") @db.JsonB
+  monthlyActualAmounts Json      @map("monthly_actual_amounts") @db.JsonB
+  planAmountTotal      BigInt    @default(0) @map("plan_amount_total")
+  actualAmountTotal    BigInt    @default(0) @map("actual_amount_total")
+  gapAmountTotal       BigInt    @default(0) @map("gap_amount_total")
+  statusCode           String    @default("draft") @map("status_code") @db.VarChar(30)
+  confirmed            Boolean   @default(false)
   confirmedAt          DateTime? @map("confirmed_at")
-  confirmedBy          BigInt? @map("confirmed_by")
-  sortOrder            Int    @default(0) @map("sort_order")
+  confirmedBy          BigInt?   @map("confirmed_by")
+  sortOrder            Int       @default(0) @map("sort_order")
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -6207,21 +6370,21 @@ model CrmCostPlanAmsExternalMonthly {
 model CrmCostPlanAccountingHandoff {
   id BigInt @id @default(autoincrement()) @map("cost_plan_accounting_handoff_id")
 
-  targetYear            Int    @map("target_year")
-  businessTypeFilter    String @default("") @map("business_type_filter") @db.VarChar(120)
-  industryLineFilter    String @default("") @map("industry_line_filter") @db.VarChar(120)
-  regionFilter          String @default("all") @map("region_filter") @db.VarChar(40)
-  searchFilter          String @default("") @map("search_filter") @db.VarChar(200)
-  statusCode            String @default("snapshot-created") @map("status_code") @db.VarChar(40)
-  lineCount             Int    @default(0) @map("line_count")
-  settlementAmountTotal BigInt @default(0) @map("settlement_amount_total")
-  previewSnapshot       Json   @default("{}") @map("preview_snapshot") @db.JsonB
-  linesSnapshot         Json   @default("[]") @map("lines_snapshot") @db.JsonB
-  executionEvidenceSnapshot Json @default("[]") @map("execution_evidence_snapshot") @db.JsonB
+  targetYear                 Int       @map("target_year")
+  businessTypeFilter         String    @default("") @map("business_type_filter") @db.VarChar(120)
+  industryLineFilter         String    @default("") @map("industry_line_filter") @db.VarChar(120)
+  regionFilter               String    @default("all") @map("region_filter") @db.VarChar(40)
+  searchFilter               String    @default("") @map("search_filter") @db.VarChar(200)
+  statusCode                 String    @default("snapshot-created") @map("status_code") @db.VarChar(40)
+  lineCount                  Int       @default(0) @map("line_count")
+  settlementAmountTotal      BigInt    @default(0) @map("settlement_amount_total")
+  previewSnapshot            Json      @default("{}") @map("preview_snapshot") @db.JsonB
+  linesSnapshot              Json      @default("[]") @map("lines_snapshot") @db.JsonB
+  executionEvidenceSnapshot  Json      @default("[]") @map("execution_evidence_snapshot") @db.JsonB
   executionEvidenceUpdatedAt DateTime? @map("execution_evidence_updated_at") @db.Timestamptz(6)
-  savedBy               BigInt? @map("saved_by")
-  savedAt               DateTime @default(now()) @map("saved_at")
-  sortOrder             Int    @default(0) @map("sort_order")
+  savedBy                    BigInt?   @map("saved_by")
+  savedAt                    DateTime  @default(now()) @map("saved_at")
+  sortOrder                  Int       @default(0) @map("sort_order")
 
   isActive      Boolean  @default(true) @map("is_active")
   memo          String?
@@ -6236,6 +6399,159 @@ model CrmCostPlanAccountingHandoff {
   @@index([targetYear, statusCode, isActive], name: "ix_crm_cost_plan_accounting_handoff_m_year_status")
   @@index([savedAt], name: "ix_crm_cost_plan_accounting_handoff_m_saved_at")
   @@map("crm_cost_plan_accounting_handoff_m")
+  @@schema("crm")
+}
+
+// ============================================
+// CRM Launch Operations Config - crm_config_m
+// 비밀값을 저장하지 않는 CRM 도메인 운영 설정 정본
+// ============================================
+model CrmConfig {
+  id BigInt @id @default(autoincrement()) @map("crm_config_id")
+
+  configCode                 String  @unique(map: "ux_crm_config_m_code") @map("config_code") @db.VarChar(80)
+  revision                   Int     @default(1)
+  quoteTemplateKey           String  @default("crm-quote-v1") @map("quote_template_key") @db.VarChar(120)
+  contractTemplateKey        String  @default("crm-contract-v1") @map("contract_template_key") @db.VarChar(120)
+  dmsHandoffEnabled          Boolean @default(true) @map("dms_handoff_enabled")
+  pmsHandoffEnabled          Boolean @default(false) @map("pms_handoff_enabled")
+  accountingHandoffEnabled   Boolean @default(false) @map("accounting_handoff_enabled")
+  accountingProviderModeCode String  @default("disabled") @map("accounting_provider_mode_code") @db.VarChar(40)
+  stalledAfterMinutes        Int     @default(30) @map("stalled_after_minutes")
+  attemptRetentionDays       Int     @default(90) @map("attempt_retention_days")
+
+  isActive      Boolean  @default(true) @map("is_active")
+  memo          String?
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  lastSource    String?  @map("last_source")
+  lastActivity  String?  @map("last_activity")
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  @@index([isActive], name: "ix_crm_config_m_active")
+  @@map("crm_config_m")
+  @@schema("crm")
+}
+
+model CrmConfigHistory {
+  crmConfigId BigInt @map("crm_config_id")
+  historySeq  BigInt @map("history_seq")
+
+  eventType String   @map("event_type") @db.Char(1)
+  eventAt   DateTime @default(now()) @map("event_at")
+  eventBy   BigInt?  @map("event_by")
+
+  configCode                 String  @map("config_code") @db.VarChar(80)
+  revision                   Int
+  quoteTemplateKey           String  @map("quote_template_key") @db.VarChar(120)
+  contractTemplateKey        String  @map("contract_template_key") @db.VarChar(120)
+  dmsHandoffEnabled          Boolean @map("dms_handoff_enabled")
+  pmsHandoffEnabled          Boolean @map("pms_handoff_enabled")
+  accountingHandoffEnabled   Boolean @map("accounting_handoff_enabled")
+  accountingProviderModeCode String  @map("accounting_provider_mode_code") @db.VarChar(40)
+  stalledAfterMinutes        Int     @map("stalled_after_minutes")
+  attemptRetentionDays       Int     @map("attempt_retention_days")
+
+  isActive      Boolean  @map("is_active")
+  memo          String?
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @map("created_at")
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @map("updated_at")
+  lastSource    String?  @map("last_source")
+  lastActivity  String?  @map("last_activity")
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  @@id([crmConfigId, historySeq], name: "pk_crm_config_h")
+  @@index([eventAt], name: "ix_crm_config_h_event_at")
+  @@index([transactionId], name: "ix_crm_config_h_tx")
+  @@map("crm_config_h")
+  @@schema("crm")
+}
+
+// ============================================
+// CRM Operation Attempt Ledger - crm_operation_attempt_m
+// 외부 경계 실행의 상태·오류·증거·retry chain 정본
+// ============================================
+model CrmOperationAttempt {
+  id BigInt @id @default(autoincrement()) @map("operation_attempt_id")
+
+  targetTypeCode     String    @map("target_type_code") @db.VarChar(40)
+  actionCode         String    @map("action_code") @db.VarChar(80)
+  sourceEntityType   String    @map("source_entity_type") @db.VarChar(80)
+  sourceEntityId     String    @map("source_entity_id") @db.VarChar(120)
+  statusCode         String    @default("queued") @map("status_code") @db.VarChar(40)
+  rootAttemptId      BigInt?   @map("root_attempt_id")
+  retryOfAttemptId   BigInt?   @map("retry_of_attempt_id")
+  attemptNumber      Int       @default(1) @map("attempt_number")
+  idempotencyKey     String    @unique(map: "ux_crm_operation_attempt_m_idempotency") @map("idempotency_key") @db.VarChar(160)
+  payloadFingerprint String    @map("payload_fingerprint") @db.VarChar(128)
+  errorCode          String?   @map("error_code") @db.VarChar(80)
+  errorMessage       String?   @map("error_message") @db.VarChar(1000)
+  evidenceJson       Json?     @map("evidence_jsonb") @db.JsonB
+  requestedBy        BigInt?   @map("requested_by")
+  startedAt          DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt         DateTime? @map("finished_at") @db.Timestamptz(6)
+
+  isActive      Boolean  @default(true) @map("is_active")
+  memo          String?
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastSource    String?  @map("last_source")
+  lastActivity  String?  @map("last_activity")
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  @@index([targetTypeCode, statusCode, updatedAt], name: "ix_crm_operation_attempt_m_target_status")
+  @@index([sourceEntityType, sourceEntityId, createdAt], name: "ix_crm_operation_attempt_m_source")
+  @@index([rootAttemptId, attemptNumber], name: "ix_crm_operation_attempt_m_root")
+  @@index([retryOfAttemptId], name: "ix_crm_operation_attempt_m_retry")
+  @@map("crm_operation_attempt_m")
+  @@schema("crm")
+}
+
+model CrmOperationAttemptHistory {
+  operationAttemptId BigInt @map("operation_attempt_id")
+  historySeq         BigInt @map("history_seq")
+
+  eventType String   @map("event_type") @db.Char(1)
+  eventAt   DateTime @default(now()) @map("event_at")
+  eventBy   BigInt?  @map("event_by")
+
+  targetTypeCode     String    @map("target_type_code") @db.VarChar(40)
+  actionCode         String    @map("action_code") @db.VarChar(80)
+  sourceEntityType   String    @map("source_entity_type") @db.VarChar(80)
+  sourceEntityId     String    @map("source_entity_id") @db.VarChar(120)
+  statusCode         String    @map("status_code") @db.VarChar(40)
+  rootAttemptId      BigInt?   @map("root_attempt_id")
+  retryOfAttemptId   BigInt?   @map("retry_of_attempt_id")
+  attemptNumber      Int       @map("attempt_number")
+  idempotencyKey     String    @map("idempotency_key") @db.VarChar(160)
+  payloadFingerprint String    @map("payload_fingerprint") @db.VarChar(128)
+  errorCode          String?   @map("error_code") @db.VarChar(80)
+  errorMessage       String?   @map("error_message") @db.VarChar(1000)
+  evidenceJson       Json?     @map("evidence_jsonb") @db.JsonB
+  requestedBy        BigInt?   @map("requested_by")
+  startedAt          DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt         DateTime? @map("finished_at") @db.Timestamptz(6)
+
+  isActive      Boolean  @map("is_active")
+  memo          String?
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @map("created_at") @db.Timestamptz(6)
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @map("updated_at") @db.Timestamptz(6)
+  lastSource    String?  @map("last_source")
+  lastActivity  String?  @map("last_activity")
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  @@id([operationAttemptId, historySeq], name: "pk_crm_operation_attempt_h")
+  @@index([eventAt], name: "ix_crm_operation_attempt_h_event_at")
+  @@index([transactionId], name: "ix_crm_operation_attempt_h_tx")
+  @@map("crm_operation_attempt_h")
   @@schema("crm")
 }
 
@@ -6289,6 +6605,7 @@ model DmsDocument {
   comments           DmsDocumentComment[]
   chunks             DmsDocumentChunk[]
   indexState         DmsDocumentIndexState?
+  userActivities     DmsUserDocumentActivity[]
 
   @@unique([relativePath], name: "ux_dm_document_m_relative_path")
   @@index([ownerUserId], name: "ix_dm_document_m_owner_user")
@@ -6297,6 +6614,72 @@ model DmsDocument {
   @@index([syncStatusCode], name: "ix_dm_document_m_sync_status")
   @@index([updatedAt], name: "ix_dm_document_m_updated_at")
   @@map("dm_document_m")
+  @@schema("dms")
+}
+
+// ============================================
+// User Document Activity - dm_user_document_activity_m
+// 사용자별 실제 문서 열람 이력. 홈의 "이어서 작업" 정본으로 사용한다.
+// ============================================
+model DmsUserDocumentActivity {
+  userDocumentActivityId BigInt @id @default(autoincrement()) @map("user_document_activity_id")
+  userId                 BigInt @map("user_id")
+  documentId             BigInt @map("document_id")
+
+  firstOpenedAt DateTime @default(now()) @map("first_opened_at") @db.Timestamptz(6)
+  lastOpenedAt  DateTime @default(now()) @map("last_opened_at") @db.Timestamptz(6)
+  openCount     Int      @default(1) @map("open_count")
+
+  isActive      Boolean  @default(true) @map("is_active")
+  memo          String?
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastSource    String?  @map("last_source")
+  lastActivity  String?  @map("last_activity")
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_dm_user_document_activity_m_user")
+  document DmsDocument @relation(fields: [documentId], references: [documentId], onDelete: Cascade, map: "fk_dm_user_document_activity_m_document")
+
+  @@unique([userId, documentId], name: "ux_dm_user_document_activity_m_user_document", map: "ux_dm_user_document_activity_m_user_document")
+  @@index([userId, lastOpenedAt(sort: Desc)], name: "ix_dm_user_document_activity_m_user_last_opened")
+  @@index([documentId], name: "ix_dm_user_document_activity_m_document")
+  @@map("dm_user_document_activity_m")
+  @@schema("dms")
+}
+
+// ============================================
+// User Document Activity History - dm_user_document_activity_h
+// ============================================
+model DmsUserDocumentActivityHistory {
+  userDocumentActivityId BigInt @map("user_document_activity_id")
+  historySeq             BigInt @map("history_seq")
+
+  eventType String   @map("event_type") @db.Char(1)
+  eventAt   DateTime @map("event_at") @db.Timestamptz(6)
+
+  userId        BigInt   @map("user_id")
+  documentId    BigInt   @map("document_id")
+  firstOpenedAt DateTime @map("first_opened_at") @db.Timestamptz(6)
+  lastOpenedAt  DateTime @map("last_opened_at") @db.Timestamptz(6)
+  openCount     Int      @map("open_count")
+
+  isActive      Boolean  @map("is_active")
+  memo          String?
+  createdBy     BigInt?  @map("created_by")
+  createdAt     DateTime @map("created_at") @db.Timestamptz(6)
+  updatedBy     BigInt?  @map("updated_by")
+  updatedAt     DateTime @map("updated_at") @db.Timestamptz(6)
+  lastSource    String?  @map("last_source")
+  lastActivity  String?  @map("last_activity")
+  transactionId String?  @map("transaction_id") @db.Uuid
+
+  @@id([userDocumentActivityId, historySeq], name: "pk_dm_user_document_activity_h", map: "pk_dm_user_document_activity_h")
+  @@index([eventAt], name: "ix_dm_user_document_activity_h_event_at")
+  @@index([transactionId], name: "ix_dm_user_document_activity_h_tx")
+  @@map("dm_user_document_activity_h")
   @@schema("dms")
 }
 

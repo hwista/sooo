@@ -173,8 +173,8 @@ export interface DocumentPanelProps {
   lockedPreview?: DocumentPanelLockedPreview | null;
 }
 
-function normalizeStorageProvider(provider?: string): 'local' | 'sharepoint' | 'nas' | undefined {
-  return provider === 'local' || provider === 'sharepoint' || provider === 'nas'
+function normalizeStorageProvider(provider?: string): 'local' | 'nas' | undefined {
+  return provider === 'local' || provider === 'nas'
     ? provider
     : undefined;
 }
@@ -302,7 +302,7 @@ export function DocumentPanel({
         type: reference.mimeType || 'text/markdown',
         size: reference.size || 0,
         origin: 'reference',
-        provider: reference.provider === 'sharepoint' || reference.provider === 'nas' ? reference.provider : 'local',
+        provider: reference.provider === 'nas' ? 'nas' : 'local',
       }))
       : []
   ), [isTemplatePanel, templateReferenceDocuments]);

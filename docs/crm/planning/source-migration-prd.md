@@ -1,11 +1,15 @@
 # CRM 원천 데모 마이그레이션 PRD
 
-> 작성: 2026-06-08
+> 작성: 2026-06-08 / 현재 상태 갱신: 2026-08-24
 > 범위: 사용자가 제공한 영업관리 시스템 데모를 SSOO 프레임워크와 디자인 문법에 맞게 이식하기 위한 현재 정본
 
 ## 1. 결론 요약
 
-현재 SSOO 저장소에는 CRM 웹 앱, 서버 API, 공유 타입, Docker 3001 포트 골격이 들어와 있고, 영업기회는 RDB 원장 기반 조회/생성/수정, ownerUserId 기반 담당자 매핑과 공용 사용자 lookup/select, 세부 매출/원가 line metadata, 원가-매출 연동 row sync, 수금조건, 특별할인, 현재 차수 확정/해제, 최신 확정 차수 기반 차수 추가, 이전 차수 조회, 변경 이력 조회, 공용 access 기반 권한 snapshot/guard 1차 흐름으로 전환됐다. 고객/활동, 견적, 계약, 보고, 사업계획, 원가/AMS, 운영 기준도 원천 데모의 실행 소스와 DB 스키마를 SSOO CRM 웹/API/DB 경계로 옮기는 방향으로 확장되어 있다. 기본 완료 기준은 이 데모 소스 이식 흐름이 정적 readiness와 로컬 build/test에서 재현되는지이며, 실환경 ERP/API provider 실행 결과, SSOO 공통 AI/RAG provider-ready runtime report, 보호 발표자료 reflection report는 별도 승인된 확장 readiness로 분리한다. PMS 신규 프로젝트 자동 생성, CRM 내부 계정/권한/법인 관리도 기본 데모 이식 범위가 아니라 경계 검토 대상이다.
+2026-08-18 재감사에서 이전의 원천 완료 결론을 철회하고 기능 28개와 UI/UX 17개 분모를 새로 고정했다. S1~S14 실행 뒤 폐쇄 원장에는 `SRC-01~28` 28/28, `UX-01~17` 17/17, strict demo 45/45(100%)가 기록됐다. 2026-08-24 감사에서는 그 증거가 현재 작업본의 실제 파일내용·current build identity와 결합되지 않은 freshness 공백을 확인했다. 따라서 현재 점수는 `verify:crm-current-demo`의 fresh 격리 DB/API와 17화면·83상태 browser 재실행이 끝날 때까지 미확정이다. 보호 발표자료는 선택 보조 자료이며 필수 분모가 아니다.
+
+기능별 판정과 최종 완료 게이트는 [CRM 원천 기능 패리티 매트릭스](./source-parity-matrix.md)를 따른다. 정적 readiness, Jest, production build는 회귀 증거일 뿐 원천 시나리오 완료 판정을 대신하지 않는다. AI/RAG, 외부 회계 provider, PMS 인계, DMS governance 확장은 원천 패리티 점수에서 제외한다.
+
+기존 `provider-gated 외부 회계·지급 API 실행 mode`와 관련 evidence verifier는 플랫폼 확장 진단으로 유지하되 원천 기능 완료로 계산하지 않는다.
 
 계약 DMS lifecycle artifact 범위에는 `export-policy.md`/`dmsExecution.governance.exportPolicy`와 DMS 설정의 `CRM 계약 산출 정책` 편집 UI가 포함된다. CRM은 이 산출 정책을 직접 소유하지 않고, `/contracts`에서 DMS 실행 결과의 조직 scope별 evidence 경로를 governance evidence로 표시한다.
 
@@ -33,7 +37,7 @@ CRM 계약 DMS lifecycle 실행 evidence는 `POST /api/crm/contracts/:id/dms-doc
 | 외부 데모 소스 | 확인 | 단일 HTML과 여러 JavaScript 파일로 구성된 Supabase 기반 프로토타입이다. |
 | DB 스키마 문서 | 확인 | 23개 테이블이 정의되어 있으며 영업, 계약, 청구, 사업계획, 원가, 시스템 관리를 포함한다. |
 | 영업관리시스템 소개 자료 | 확인 | 25개 슬라이드에서 화면 구성과 주요 기능을 설명한다. |
-| 사업부 사업관리 시스템 자료 | 제한 확인 | 파일이 암호화 또는 보호된 Office 문서 형식이라 WSL에서 본문 추출이 되지 않았다. 현재 PRD에는 반영 보류한다. |
+| 사업부 사업관리 시스템 자료 | 제한 확인·현재 범위 제외 | OLE/DRM 보호 Office 문서라 본문 추출이 되지 않았다. 사용자 지시에 따라 현재 완료 판정에서 제외하며 해제본 제공 시 증분 감사한다. |
 | 현재 SSOO 저장소 | 확인 | CRM 웹 앱·서버 API·공유 타입·문서·Docker 3001 포트 골격이 존재한다. 영업기회, 고객/활동, 견적, 계약, 보고, 사업계획, 원가/AMS, 운영 기준은 원천 데모 실행 소스와 DB 스키마를 SSOO CRM 웹/API/DB 경계로 옮기는 1차 흐름으로 전환됐다. 실환경 ERP/API provider 실행 결과와 운영 대조 증거, PMS 신규 프로젝트 자동 생성, provider-ready AI/RAG 운영 검증, CRM 내부 계정/권한/법인 관리는 기본 데모 이식 완료 조건이 아니라 별도 확장 readiness 또는 경계 검토 항목이다. |
 
 | DMS 계약 산출 정책 | 확인 | DMS 설정의 `CRM 계약 산출 정책`이 `system.crmContractExportPolicy`를 저장하고, DMS 계약 lifecycle 실행은 `export-policy.md`와 `dmsExecution.governance.exportPolicy`를 생성한다. `/contracts`는 산출 정책 key/version, 조직 scope, markdown evidence 경로, Word/PDF artifact 경로를 읽기 전용 governance evidence로 표시한다. |
@@ -44,42 +48,42 @@ CRM 계약 DMS lifecycle 실행 evidence는 `POST /api/crm/contracts/:id/dms-doc
 
 | 화면 | 원천 데모 기능 | SSOO 이식 판단 |
 |---|---|---|
-| 대시보드 | 전체 건수, 확정 매출, 확정 이익, 평균 이익률, 최근 영업기회 | 1차 진행: 별도 landing page가 아니라 영업기회 홈 상단 업무 요약 밴드로 재구성했다. pipeline, 계약 원장 요약, readiness queue, 다음 액션을 읽기 전용으로 표시한다. |
-| 영업기회 현황 | 검색, 상태 필터, 매출 정렬, 최신 차수 기준 조회, 이전 차수 펼침 | 1차 핵심. 차수/확정 모델을 반드시 포함한다. |
-| 영업기회 등록/수정 | 고객, 건명, 담당자, 기간, 사업구분, 계열, 국내/해외, 수금조건, 특별할인, 매출/원가 그리드 | 1차 핵심. 다만 표 단위 입력 UX는 SSOO 토큰 기반으로 재설계한다. |
-| 견적서 | 영업기회 데이터로 견적서 미리보기, 인쇄/PDF 저장 | 2차. 현재는 견적 후보/상태 저장/공급자 정보/담당 연락처, DMS markdown 초안 handoff, DMS quote lifecycle 실행기의 template-version/template-review record와 DOCX/PDF artifact evidence 수신, DMS 설정의 `crm-quote-v1` reviewConfirmation 검토 확정까지 허용한다. CRM 직접 인쇄/PDF/Word 생성은 하지 않는다. |
-| 계약서 생성 | Word 템플릿 업로드, 변수 치환, 문서 다운로드 | 3차. 현재는 CRM 계약 원장 기반 DMS 문서 입력 패킷 preview, DMS `crm-contract-v1` 시스템 템플릿 registry evidence, DMS markdown 초안 저장 요청, DMS 실행 evidence 수신, DMS 문서 lifecycle checklist handoff, DMS lifecycle artifact 실행 1차, export policy record, 템플릿 버전 snapshot, 템플릿 변경 검토, 템플릿 변경 요청 원장, 첨부 확정 원장, 승인 route policy, 공용 사용자/조직 directory snapshot, 결재선 원장 동기화 기록, 다자 승인 workflow evidence, DMS 설정의 CRM 계약 결재선 정책 편집 UI와 CRM 계약 산출 정책 편집 UI, CRM 화면 표시까지 허용한다. |
+| 대시보드 | 전체 건수, 확정 매출, 확정 이익, 평균 이익률, 최근 영업기회 | 구현·브라우저검증. 홈 요약 밴드에서 원천 6개 최신 그룹과 합계 2,156,150,000원을 대조했다. |
+| 영업기회 현황 | 검색, 상태 필터, 매출 정렬, 최신 차수 기준 조회, 이전 차수 펼침 | 구현·브라우저검증. 검색·복합필터·정렬·차수·확정·삭제 규칙을 확인했다. |
+| 영업기회 등록/수정 | 고객, 건명, 담당자, 기간, 사업구분, 계열, 국내/해외, 수금조건, 특별할인, 매출/원가 그리드 | 구현·브라우저검증. 모든 원천 필드와 매출/원가 5개 유형을 저장·재조회했다. |
+| 견적서 | 영업기회 데이터로 견적서 미리보기, 인쇄/PDF 저장 | 구현·브라우저검증. A4 인쇄/PDF, 견적 상태, 공급자/담당자, DMS template lifecycle을 확인했다. |
+| 계약서 생성 | Word 템플릿 업로드, 변수 치환, 문서 다운로드 | 구현·브라우저검증. DMS에 올리고 선택한 실제 DOCX binary의 OOXML 변수를 치환해 다운로드·재열기까지 확인했다. |
 
 ### 3.2 계약 화면
 
 | 화면 | 원천 데모 기능 | SSOO 이식 판단 |
 |---|---|---|
-| 계약 현황 | 확정 계약 목록, 매출/원가/기간/WBS/상태, 필터/정렬 | 2차 핵심. PMS와의 경계를 명확히 해야 한다. |
-| 계약 등록/수정 | 계약 기본정보, 매출/원가 항목, WBS, 청구계획 자동 분할 | 2차 핵심. 영업기회 확정 이후 전환 흐름으로 묶는다. |
-| 계약 확정/취소 | 계약 확정 잠금, 확정 취소, 계약 삭제 | 2차. 감사/이력/권한 기준 먼저 필요하다. |
-| 계약청구실적 | 계획 대비 실제 청구/외부원가 입력 | 1차 구현됨. 확정 계약만 저장하며 권한 guard와 변경 이력 고도화는 후속. |
-| 계약대비실적 | 월별 계획/실적 비교, 필터, 틀고정 그리드 | 1차 구현됨. 확정 계약 기준 월별 계획/실적/차이 read model과 `/contract-performance` 화면으로 분리했다. |
+| 계약 현황 | 확정 계약 목록, 매출/원가/기간/WBS/상태, 필터/정렬 | 구현·브라우저검증. 원천 5개 계약 seed와 검색·상세 수치를 대조했다. |
+| 계약 등록/수정 | 계약 기본정보, 매출/원가 항목, WBS, 청구계획 자동 분할 | 구현·브라우저검증. 영업기회 전환과 전 필드 저장, 7개월 자동분할 합계 오차 0을 확인했다. |
+| 계약 확정/취소 | 계약 확정 잠금, 확정 취소, 계약 삭제 | 구현·브라우저검증. 확정·해제·삭제와 역할 잠금을 확인했다. |
+| 계약청구실적 | 계획 대비 실제 청구/외부원가 입력 | 구현·브라우저검증. 확정 계약 저장·재조회와 해제 후 disabled 잠금을 확인했다. |
+| 계약대비실적 | 월별 계획/실적 비교, 필터, 틀고정 그리드 | 구현·브라우저검증. 계획·실적·차이와 필터를 실제 수치로 대조했다. |
 | 보고 Preview | 사업구분/담당자/WBS별 요약, 월별 trend, 확인 항목 | 1차 구현됨. `/reports`는 영업기회 pipeline과 확정 계약 월별 계약대비실적 read model을 집계하고, `POST /crm/reports/confirm`과 `/crm/reports/confirmations/:id/reopen`은 현재 Preview를 `crm.crm_report_confirmation_m` CRM 보고 snapshot 원장으로 확정/해제한다. 회계 전표 생성, PMS 수행 KPI 편집, DMS 문서 저장 확정은 후속이다. |
 
 ### 3.3 사업관리/원가 화면
 
 | 화면 | 원천 데모 기능 | SSOO 이식 판단 |
 |---|---|---|
-| 사업계획 등록 | 3개년 계획, 차수, 확정/해제, 전년 이월 | 진행중: 영업기회 pipeline과 확정 계약 청구계획/실적 기반 3개년 preview를 제공하고, 현재 preview 저장과 전년도 확정 차수 이월을 draft 사업계획 차수 원장으로 만들며, draft line 월별 계획 매출 입력과 기준년도별 확정/해제를 관리한다. 확정 원가는 회계·지급 handoff snapshot, CRM demo 실행 evidence, provider-gated 외부 API 실행 후보로 연결하며 실환경 ERP/API 반영 완료 증거는 후속이다. |
+| 사업계획 등록 | 3개년 계획, 차수, 확정/해제, 전년 이월 | 구현·브라우저검증. 3개년 source grid, 12개월 매출·외부원가, 미래연도 연간값, 행 CRUD, TSV 붙여넣기, 차수 생성·이월·확정·해제·삭제를 확인했다. |
 | 사업계획대비실적 | 확정 계획과 계약 청구계획 비교 | 1차 진행: `/business-plan-performance`에서 확정 사업계획 차수가 있으면 해당 원장 line의 월별 입력값을 우선 사용하고 미입력 line은 연간 계획 매출을 월 균등 배분해 확정 계약 월별 실적과 비교한다. 확정 차수가 없으면 pipeline 후보와 확정 계약 월별 청구계획/실적 fallback을 계획/실적/차이 구조로 표시하고, 확정 내부원가/AMS 원가는 별도 `confirmed-cost` source row로 합산한다. 같은 WBS에 정산 확정된 AMS 외부원가가 있으면 계약 성과 외부원가 계획/실적을 제외해 중복을 조정한다. `POST /crm/business-plan/performance-actual/monthly`와 직접 입력 패널은 별도 원장에 12개월 매출·원가 실적을 저장해 `manual-actual` source row로 합산한다. 확정 원가의 CRM 회계·지급 handoff snapshot, demo 실행 evidence, provider-gated 외부 API 실행 evidence는 원가/AMS 화면에서 관리하고 실환경 ERP/API 완료 판정은 provider 실행 결과와 운영 대조 증거가 필요하다. |
-| 내부원가 등록 | 인건비, 기타, 부서조정, 용역비, 부서공통의 계획/실적/차이 | 진행중: `/api/crm/cost-plan/preview`와 `/cost-plan`이 영업기회/계약 내부원가 라인 후보와 `crm.crm_cost_plan_internal_monthly_d`의 월별 계획·실적 입력/확정 상태를 함께 표시한다. `POST /crm/cost-plan/internal-cost/monthly`는 12개월 입력을 저장하고, `POST /crm/cost-plan/internal-cost/monthly/:id/confirm`과 `/reopen`은 확정/해제로 입력을 잠근다. 확정 입력은 사업계획대비실적의 확정원가 row와 회계·지급 handoff snapshot 후보에 반영한다. 엑셀 붙여넣기와 실환경 ERP/API provider 실행 증거는 후속이다. |
-| AMS 공급업체 관리 | 사업년도별 업체와 WBS 매핑 | 1차 완료: `crm.crm_cost_plan_ams_vendor_wbs_r`, `POST /crm/cost-plan/ams/vendor-wbs`, `/cost-plan` AMS 업체 매핑 패널이 확정 계약 WBS 기준 업체와 계약/발주 번호를 저장한다. 업체 마스터/계약 검증 고도화는 후속이다. |
-| AMS 연간외부원가 | 업체×WBS별 월간 계획/실적/차이 | 1차 완료: 확정 계약 외부원가 청구계획/실적 read model, 저장된 업체-WBS 매핑, `crm.crm_cost_plan_ams_external_monthly_d`의 업체-WBS별 12개월 계획·실적 입력/정산 확정을 `/cost-plan` preview와 저장/확정 패널에 병합한다. 확정 입력은 사업계획대비실적의 확정원가 row와 회계·지급 handoff snapshot 후보에 반영한다. `POST /crm/cost-plan/accounting-payment-handoff`는 확정 내부원가/AMS 정산 확정 row snapshot을 `crm.crm_cost_plan_accounting_handoff_m`에 저장한다. `POST /crm/cost-plan/accounting-payment-handoffs/:id/execute`는 기본 `demo` mode에서 CRM demo 전표/지급 실행 evidence package를 생성하고, `mode: external-api`와 provider 환경 설정이 있으면 외부 회계·지급 API 응답의 전표/지급/sync evidence를 active handoff snapshot에 기록한다. `POST /crm/cost-plan/accounting-payment-handoffs/:id/execution-evidence`는 외부 전표/지급 evidence path를 active handoff snapshot에 수신한다. 대량 그리드 검증과 실환경 ERP/API 실행 증거는 후속이다. |
+| 내부원가 등록 | 인건비, 기타, 부서조정, 용역비, 부서공통의 계획/실적/차이 | 구현·브라우저검증. 고정 5개 항목의 12개월 계획·실적·차이, TSV 붙여넣기와 확정 잠금을 확인했다. |
+| AMS 공급업체 관리 | 사업년도별 업체와 WBS 매핑 | 구현·브라우저검증. 업체 master CRUD, 다중 WBS와 업체×WBS mapping을 확인했다. |
+| AMS 연간외부원가 | 업체×WBS별 월간 계획/실적/차이 | 구현·브라우저검증. 12개월 계획·실적·차이, TSV 붙여넣기와 정산 잠금을 확인했다. 외부 회계 provider는 별도 extension readiness다. |
 
 ### 3.4 시스템 관리
 
 | 화면 | 원천 데모 기능 | SSOO 이식 판단 |
 |---|---|---|
-| 계정 관리 | 사용자 등록, 편집, 비활성화, 비밀번호 초기화 | SSOO 공용 사용자/권한에 흡수. `/operations`는 공용 Admin/Auth 대상 surface만 표시하고 CRM 안에 별도 계정 CRUD를 만들지 않는다. |
-| 코드 관리 | 사업구분, 계열구분, 수금조건 등 코드 | 1차는 CRM 원장 값과 고정 workflow 상태를 읽기 전용 코드 후보로 수집한다. 코드 마스터 저장/삭제/import는 공용 코드 정책 확정 후 후속으로 둔다. |
-| 회사 정보 | 견적서/계약서 공급자 정보 | CRM 견적 설정 1차와 계약서 문서 패킷 재사용 1차 완료. `/operations`는 공급자 표시값 readiness를 함께 보여주며, `/contracts` DMS 문서 패킷은 공급자 `ciStorageRef`를 DMS working tree 또는 storage adapter 참조로 검증해 첨부 `referenceStatus`를 표시한다. CI 파일 업로드와 템플릿 관리는 DMS 소유로 둔다. |
-| 사업년도 관리 | 계획/실적 조회 기준 연도 | 1차는 영업기회 시작일, 계약 시작일, 청구계획 월에서 사업년도 후보를 읽기 전용으로 파생한다. 회계연도 마스터 저장은 CRM 내부 복제가 아니라 공용 정책 확정 후 진행한다. |
-| 프로필 편집 | 사용자 정보/비밀번호 | 공용 프로필/Auth로 대체. CRM은 영업기회 담당자 공용 프로필을 견적 담당 연락처에 참조하고 비밀번호/개인정보 편집 UI를 복제하지 않는다. |
+| 계정 관리 | 사용자 등록, 편집, 비활성화, 비밀번호 초기화 | 공용 Admin/Auth로 치환·브라우저검증. 계정 CRUD, 상태, 역할, 초기화와 역할별 deny/allow를 확인했다. |
+| 코드 관리 | 사업구분, 계열구분, 수금조건 등 코드 | 공용 Admin 코드 master로 치환·브라우저검증. CRUD·비활성·CRM option 반영을 확인했다. |
+| 회사 정보 | 견적서/계약서 공급자 정보 | CRM 설정과 DMS storage 경계로 치환·브라우저검증. 공급자 CRUD, CI upload/download/remove와 견적·계약 소비를 확인했다. |
+| 사업년도 관리 | 계획/실적 조회 기준 연도 | 공용 Admin 사업년도 master로 치환·브라우저검증. CRUD·비활성·CRM 필터 반영을 확인했다. |
+| 프로필 편집 | 사용자 정보/비밀번호 | 공용 프로필/Auth로 치환·브라우저검증. 프로필·비밀번호 변경, 이전/신규 암호 로그인과 30분 idle 만료를 확인했다. |
 
 ## 4. 원천 DB 모델 요약
 
@@ -245,17 +249,32 @@ CRM은 PMS의 계약/수행 화면을 대체하거나 중복 구현하지 않는
 - AMS 공급업체/WBS 매핑
 - AMS 외부원가 계획/실적
 
-## 8. 현재 진척률
+## 8. 현재 패리티 상태
 
-| 기준 | 진척률 | 근거 |
-|---|---:|---|
-| 원천 데모 분석 | 80% | 소스, DB 스키마, 1개 발표자료는 확인. 보호된 발표자료 1개는 미반영. |
-| SSOO 내 CRM 구현 | 99% | CRM 웹 앱, 서버 모듈, 공유 타입, compose 3001 포트 골격, 영업기회/고객/활동/견적/계약/청구/보고/사업계획/원가/AMS/운영 기준의 핵심 원장 흐름, PMS 기존 프로젝트 스냅샷 반영, DMS markdown 초안과 lifecycle evidence 경계, CRM demo 회계·지급 실행 evidence, provider-gated 외부 회계·지급 API 실행 mode, `verify:crm-launch`, `verify:crm-local`, 기본 `verify:crm-migration-completion` 데모 이식 완료 감사 gate가 있다. 외부 ERP/API provider execution report, CRM AI/RAG provider-ready runtime report, 보호 발표자료 reflection report와 반영 marker 제거는 `--require-extensions` 확장 readiness로 별도 판단한다. |
-| CRM 문서 기준선 | 99% | 기능 범위와 단계 계획은 정리됐고 홈 업무 요약, 고객/활동 원장과 고객/활동 Workspace, 견적/계약/DMS/PMS 경계, 보고/사업계획/원가/AMS 흐름, 회계·지급 handoff snapshot/외부 evidence 수신/CRM demo 실행 evidence 생성/provider-gated 외부 API 실행 mode 1차, 운영 기준 preview 1차까지 반영됐다. 실환경 ERP/API provider 실행 결과와 운영 대조 증거는 기본 데모 이식 완료가 아니라 확장 readiness에서 별도 판단한다. |
-| 런칭 가능 CRM | 85% | 영업기회 저장/수정/확정/해제/차수추가/이전차수조회/변경이력조회, 고객/활동 원장과 고객/활동 Workspace, 견적/계약/청구/보고/사업계획/원가/AMS 주요 원장 흐름, PMS 기존 프로젝트 스냅샷 반영, DMS markdown 초안과 lifecycle evidence 경계, CRM demo 회계·지급 실행 evidence, provider-gated 외부 API 실행 mode, 운영 기준 preview가 있다. 현재 85%는 production/provider cutover가 아니라 데모 소스 이식 기준의 런칭 준비도이며, 실환경 ERP/API 운영 대조는 확장 readiness다. |
-| 1단계 영업기회 이식 준비 | 99% | 원천 업무 구조, RDB API, 목록/검색/필터/정렬, 선택 상세, 기본 등록/수정, 고객/활동 원장 backfill과 고객/활동 Workspace 및 projection source, 고객/활동 owner-aware AI projection ACL snapshot과 controlled backfill endpoint, 고객/활동 API access guard/snapshot 1차와 Workspace capability 연동, ownerUserId 기반 담당자 매핑과 공용 사용자 lookup/select, 매출 상품/용역 및 원가 상품/내부용역/외부용역 그룹 입력, 수량×단가 합계 저장, 원가-매출 연동 row sync, 현재 차수 확정/해제, 차수 추가/이전 차수 조회, 변경 이력 조회, 공용 access permission 기반 권한 snapshot/guard/UI capability 표시, 견적 상태 저장, 견적 담당 연락처 1차, 최신 확정 영업기회 계약 전환까지 반영됐다. |
+자체 추정 가중 백분율은 폐기한다. 2026-08-21 최종 회귀 기준 상태는 다음과 같다.
 
-## 9. 즉시 다음 작업
+| 판정 | 사실 |
+|---|---|
+| 원천 분석 | 제공된 prototype/DDL과 source-owned SQL로 REF-01 17개 화면·83개 state·hash 기준과 DDL 23개 table을 고정 |
+| 구현·자동검증 | S1~S12 구현, source fixed hash, goal-contract, UI/UX all, quote artifact, server test/build PASS |
+| 구현·브라우저검증 | UX-01~17의 83/83 source/desktop/mobile capture, 구조·interaction·content visual diff, E0 PASS |
+| 부분·미구현 | strict demo 분모의 부분·누락·치환 검증·원천 모순 0 |
+| 플랫폼 치환 검증 | 공용 Admin/Auth와 CRM/DMS owner surface를 원천 시나리오·UI/UX·권한 기준으로 재검증 완료 |
+| 런칭 증거 | `OPS-01~17`과 `BT-01~27` 완료. EXT-01~02는 실제 배포 입력으로 별도 대기 |
+
+상세 28개 요구사항은 `source-parity-matrix.md`를 정본으로 사용한다.
+
+## 9. 완료 후 유지 작업
+
+1. 원천 6개 영업기회와 5개 계약 seed를 idempotent하게 유지한다.
+2. CRM 기능 변경 시 패리티 매트릭스와 직접 테스트 가이드를 함께 갱신한다.
+3. 정적/Jest/build verifier와 desktop/mobile 브라우저 회귀를 함께 실행한다.
+4. AI/RAG, 외부 회계 provider, PMS 자동생성과 같은 원천 밖 기능은 별도 extension readiness로 관리한다.
+5. 보호 발표자료 해제본이 제공되면 알려진 hash를 확인하고 선택 보조 증거로 증분 감사한다. 현재 `SRC-28`은 오류/빈 상태/수동 복구/권한 fallback 항목이며 보호자료를 뜻하지 않는다.
+
+### 이전 계획 기록(실행 기준 아님)
+
+아래 목록은 2026-08-11 패리티 재감사 전 계획 기록이며, 현재 실행 순서는 위 목록과 패리티 매트릭스가 우선한다.
 
 다음 작업은 기능 확장보다 1단계 이식 준비를 닫는 것이다.
 
@@ -265,7 +284,8 @@ CRM은 PMS의 계약/수행 화면을 대체하거나 중복 구현하지 않는
 4. 영업기회 확정 이후 계약 전환과 계약 생성 후 opportunity 잠금, 확정 계약 청구실적 입력, 계약대비실적 월별 조회, 보고 Preview와 보고 snapshot 확정, 견적 상태 저장, 견적 DMS lifecycle artifact 실행/evidence 수신, 사업계획 preview snapshot 저장/확정/전년 이월, draft line 월별 계획 매출 입력, 확정 사업계획 기준 월별 대비실적 preview와 확정원가 row 반영, AMS WBS 계약 외부원가 중복 조정, 사업계획대비실적 직접 실적 입력, 원가/AMS preview의 내부원가 월별 계획·실적 입력/확정, AMS 업체-WBS 매핑과 AMS 외부원가 월별 입력/정산 확정, 확정 원가 회계·지급 handoff snapshot, 외부 실행 evidence 수신, CRM demo 실행 evidence 생성, provider-gated 외부 API 실행 mode, `verify:crm-accounting-payment-provider:ready-precheck` provider 환경 precheck, `verify:crm-accounting-payment-provider-report` provider 실행 report verifier, `verify:crm-ai-rag-runtime-report` provider-ready runtime report verifier, `verify:crm-protected-source-reflection-report` 보호자료 reflection report verifier, `verify:crm-local` 로컬 build/test gate, `verify:crm-migration-completion` 완료 감사 gate, PMS 기존 프로젝트 계약/대금/인계 스냅샷 반영, DMS markdown 초안 저장과 CRM handoff lifecycle snapshot 원장, DMS 계약 lifecycle artifact 실행 1차와 export policy record/템플릿 버전/템플릿 변경 검토/템플릿 변경 요청 원장/첨부 확정 원장/승인 route policy/공용 사용자·조직 directory snapshot/결재선 원장 동기화 기록/다자 승인 workflow evidence, DMS 설정의 CRM 계약 결재선 정책 편집 UI와 CRM 계약 산출 정책 편집 UI는 완료됐으므로, 다음 slice에서는 실환경 ERP/API provider 실행 결과와 운영 대조 증거를 별도 승인된 단계로 분리한다.
 5. CRM customer/activity 모델, projection source, 고객/활동 Workspace, owner-aware AI projection ACL snapshot, controlled AI backfill endpoint, 고객/활동 API access guard/snapshot 1차와 Workspace capability 연동, CRM 전용 runtime evidence gate와 `verify:crm-ai-rag-runtime-report` report verifier는 추가됐으므로, 다음 slice에서는 SSOO 공통 AI/RAG provider-backed runtime 품질 검증을 별도 확장 readiness로 수집한다.
 6. PMS에는 준비 완료 CRM 계약 preview만 기존 프로젝트 스냅샷으로 반영하고 신규 프로젝트 자동 생성은 하지 않는다는 경계를 화면 문구와 백로그에 계속 고정한다.
-7. `verify:crm-launch`는 CRM 웹 surface, Next API proxy, 서버 모듈/테스트 파일, CRM DB migration/seed/trigger, PMS/DMS 경계, 완료 판정 evidence 계약 문서화를 함께 점검하는 정적 readiness gate로 유지한다. `verify:crm-local`은 정적 gate에 더해 CRM 관련 server Jest suite, DMS/PMS CRM boundary test, `pnpm build:web-crm` production build를 실행한다. 기본 `verify:crm-migration-completion`은 사용자가 제공한 데모 실행 소스와 DB 스키마의 SSOO CRM 이식 범위에서 정적 readiness와 로컬 build/test gate만 blocking으로 판단한다. `verify:crm-accounting-payment-provider:ready-precheck`, `verify:crm-accounting-payment-provider-report`, `verify:crm-ai-rag-runtime-report`, `verify:crm-protected-source-reflection-report`, provider execution report, provider-ready runtime report, 보호 발표자료 reflection report와 반영 marker 제거는 `verify:crm-migration-completion:with-extensions` 또는 `verify:crm-migration-completion -- --require-extensions`에서만 blocking 확장 readiness로 사용한다. 확장 readiness report path는 `CRM_ACCOUNTING_PAYMENT_PROVIDER_EXECUTION_REPORT_PATH`, `CRM_AI_RAG_PROVIDER_READY_REPORT_PATH`, `CRM_PROTECTED_SOURCE_REFLECTION_REPORT_PATH`로 주입할 수 있다. `inspect:crm-migration-inputs`와 `prepare:crm-migration-evidence`는 현재 env, report path, `.runtime` Office 후보, DMS sidecar source metadata, `crm-migration-input-inspection`, `crm-migration-required-external-inputs`, `protectedSourceCandidateSummary`, `requiredExternalInputs`, `completionCheckId`, `verificationCommand`를 생성하지만 기본 completion의 대체 증거가 아니라 진단/요청 산출물이다. `prepare:crm-local-evidence-bundle`은 `verify:crm-local` report와 선택적 `--accounting-payment-report-path`, `--crm-ai-rag-report-path`, `--protected-source-reflection-report-path` 적용을 묶고, 남은 확장 report가 draft뿐이면 `local-ready-pending-external`로 기록한다. `verify:crm-migration-evidence-bundle`은 prepared bundle의 로컬 검증 report와 외부 evidence report 3종이 각 verifier를 통과하는지 확인하는 제출 전 파일 검증이며 기본 completion audit을 대체하지 않는다. `verify:crm-accounting-payment-provider-report:template`, `verify:crm-ai-rag-runtime-report:template`, `verify:crm-protected-source-reflection-report:template`와 bundle input inspection/request packet은 draft/diagnostic-only/request-only 산출물이고 실제 provider/protected-source 증거를 대체하지 않는다.
+7. `verify:crm-launch`는 CRM 웹 surface, Next API proxy, 서버 모듈/테스트 파일, CRM DB migration/seed/trigger, PMS/DMS 경계, 완료 판정 evidence 계약 문서화를 점검하는 정적 readiness gate로 유지한다. `verify:crm-local`은 정적 gate, 관련 Jest suite와 CRM production build를 실행하고 schema 2 worktree identity report를 runtime 시작 전에 남기지만 그 단독 PASS는 데모 완료가 아니다. 이후 `build:crm-ralph-runtime`이 격리 public API/WS URL로 server·CRM·Admin·DMS를 강제 build하고 compiled URL과 Next static/server 전체 artifact fingerprint를 기록한다. 기본 `verify:crm-migration-completion`은 `verify:crm-current-demo`에 위임해 source/DDL 계약, schema 2 local/UI evidence, current build fingerprint와 live PID의 시작·종료 재검증, fresh 격리 DB/API runtime, `SRC-01~28` executable mapping, `UX-01~17` 83상태를 모두 같은 worktree identity로 blocking 판단한다. 확장 provider와 보호자료는 계속 `--require-extensions`에서만 별도 readiness로 판단한다. `inspect:crm-migration-inputs`, evidence bundle/template/report 명령은 진단·전달 산출물이며 이 엄격 completion gate를 대체하지 않는다.
+   확장 자료 적용 옵션은 `--accounting-payment-report-path`, `--crm-ai-rag-report-path`, `--protected-source-reflection-report-path`이고 환경 변수는 각각 `CRM_ACCOUNTING_PAYMENT_PROVIDER_EXECUTION_REPORT_PATH`, `CRM_AI_RAG_PROVIDER_READY_REPORT_PATH`, `CRM_PROTECTED_SOURCE_REFLECTION_REPORT_PATH`다. `prepare:crm-migration-evidence`, `prepare:crm-local-evidence-bundle`, `verify:crm-migration-evidence-bundle`이 만드는 `crm-migration-input-inspection`, `crm-migration-required-external-inputs`, `protectedSourceCandidateSummary`, `requiredExternalInputs`, `completionCheckId`, `verificationCommand`, `local-ready-pending-external`은 diagnostic-only input inspection·요청 packet이다. synthetic/self-test evidence marker나 보호 발표자료 반영 marker 제거는 실제 provider/protected-source 증거가 아니다. provider 환경은 `verify:crm-accounting-payment-provider:ready-precheck`, 결과는 `verify:crm-accounting-payment-provider-report`, AI/RAG는 `verify:crm-ai-rag-runtime-report`, 보호자료는 `verify:crm-protected-source-reflection-report`로 별도 확인한다.
 8. 빌드, Docker 반영, 디스크 상태를 각 slice마다 함께 검증한다.
 
 ## 10. 미해결 질문
@@ -279,6 +299,8 @@ CRM은 PMS의 계약/수행 화면을 대체하거나 중복 구현하지 않는
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-24 | current v1 browser 재실행이 UX-12에서 Admin의 build-time `localhost:4000` API bundle을 검출했다. 격리 public URL 강제 build·compiled chunk 검사·Next 전체 runtime artifact fingerprint·strict 종료 재검증을 추가하고 local verifier는 live runtime 전에 report를 생성하도록 순서를 고정했다 |
+| 2026-08-24 | 기본 `verify:crm-migration-completion`을 정적·로컬 PASS 기반 완료 판정에서 `verify:crm-current-demo` strict gate 위임으로 교체했다. source/DDL, schema 2 local/UI evidence, current build/runtime provenance, 격리 DB/API executable SRC 28점과 UX 17점이 같은 worktree identity일 때만 현재 45/45를 허용한다 |
 | 2026-07-13 | CRM 데모 이식 완료 기준을 사용자 제공 데모 실행 소스와 DB 스키마의 SSOO CRM 이식/로컬 재현성으로 재정렬했다. 기본 `verify:crm-migration-completion`은 정적 readiness와 `verify:crm-local`만 blocking으로 보고, 외부 ERP/API provider execution report, CRM AI/RAG provider-ready runtime report, 보호 발표자료 reflection report와 반영 marker 제거는 `--require-extensions` 확장 readiness에서만 blocking으로 판단한다 |
 | 2026-07-10 | `inspect:crm-migration-inputs`를 추가해 completion env/report path, `.runtime` Office 후보, DMS sidecar source metadata를 진단한다. 진단 JSON은 `protectedSourceCandidateSummary`로 같은 SHA-256 후보를 중복 그룹화하고 `requiredExternalInputs`로 남은 외부 입력 요청을 구조화한다. RMS 보호 Office 후보는 경로 복원 단서일 뿐 완료 증거가 아니다 |
 | 2026-07-10 | `prepare:crm-migration-evidence`를 추가해 completion evidence report 3종, `crm-migration-input-inspection` JSON/Markdown, `crm-migration-required-external-inputs` JSON/Markdown request packet, env template, README, manifest를 한 번에 생성한다. bundle self-test는 draft report가 verifier를 통과하지 못하고 input inspection이 diagnostic-only, required inputs가 request-only로 남는지 확인한다 |

@@ -1,8 +1,10 @@
 import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
-import { KeyRound } from 'lucide-react';
+import { Eye, EyeOff, KeyRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { LoginRequest } from '@ssoo/types/common';
-import { Button, Input } from '@ssoo/web-ui';
+import { Button, Checkbox, Input } from '@ssoo/web-ui';
+
+const AUTH_REMEMBERED_LOGIN_ID_STORAGE_KEY = 'ssoo.auth.remembered-login-id';
 
 export interface LoginValidationErrors {
   loginId?: string;
@@ -32,6 +34,8 @@ export interface AuthLoginCardProps {
   passwordPlaceholder?: string;
   submitLabel?: string;
   loadingLabel?: string;
+  rememberLoginIdEnabled?: boolean;
+  passwordVisibilityEnabled?: boolean;
   onSubmit: (credentials: LoginRequest) => Promise<void>;
   validate?: (credentials: LoginRequest) => LoginValidationErrors;
 }
@@ -45,6 +49,8 @@ export interface AuthStandardLoginCardProps {
   passwordResetHref?: string;
   registrationLink?: AuthLoginActionLink;
   identityProviders?: AuthIdentityProviderAction[];
+  rememberLoginIdEnabled?: boolean;
+  passwordVisibilityEnabled?: boolean;
   onSubmit: (credentials: LoginRequest) => Promise<void>;
 }
 
@@ -162,11 +168,15 @@ export function AuthLoginCard({
   passwordPlaceholder = '비밀번호를 입력하세요',
   submitLabel = '로그인',
   loadingLabel = '로그인 중...',
+  rememberLoginIdEnabled = false,
+  passwordVisibilityEnabled = false,
   onSubmit,
   validate,
 }: AuthLoginCardProps) {
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberLoginId, setRememberLoginId] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<LoginValidationErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -182,6 +192,44 @@ export function AuthLoginCard({
 
     setFormError(null);
   }, [isLoading]);
+
+  useEffect(() => {
+    if (!rememberLoginIdEnabled || typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const rememberedLoginId = window.localStorage.getItem(AUTH_REMEMBERED_LOGIN_ID_STORAGE_KEY)?.trim() ?? '';
+      if (rememberedLoginId) {
+        setLoginId(rememberedLoginId);
+        setRememberLoginId(true);
+      }
+    } catch {
+      // Storage-denied environments keep the login form usable without persistence.
+    }
+  }, [rememberLoginIdEnabled]);
+
+  const removeRememberedLoginId = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      window.localStorage.removeItem(AUTH_REMEMBERED_LOGIN_ID_STORAGE_KEY);
+    } catch {
+      // Storage-denied environments keep the login form usable without persistence.
+    }
+  };
+
+  const persistRememberedLoginId = (value: string) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      window.localStorage.setItem(AUTH_REMEMBERED_LOGIN_ID_STORAGE_KEY, value);
+    } catch {
+      // Storage-denied environments keep the login form usable without persistence.
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -201,6 +249,13 @@ export function AuthLoginCard({
 
     try {
       await onSubmit(credentials);
+      if (rememberLoginIdEnabled) {
+        if (rememberLoginId) {
+          persistRememberedLoginId(credentials.loginId);
+        } else {
+          removeRememberedLoginId();
+        }
+      }
     } catch (error) {
       setFormError(error instanceof Error ? error.message : '로그인에 실패했습니다.');
     }
@@ -211,7 +266,7 @@ export function AuthLoginCard({
       <div className="mb-7">{header}</div>
 
       {passwordLoginEnabled ? (
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <form name="ssoo-login" autoComplete="on" className="space-y-5" onSubmit={handleSubmit}>
           {formError && (
             <div className="rounded-md border px-4 py-3 text-sm ssoo-tone-danger-surface">
               {formError}
@@ -224,8 +279,10 @@ export function AuthLoginCard({
             </label>
             <Input
               id="loginId"
+              name="username"
               type="text"
               autoComplete="username"
+              data-ssoo-input-intent="credential-username"
               value={loginId}
               onChange={(event) => setLoginId(event.target.value)}
               className="h-11"
@@ -241,7 +298,7 @@ export function AuthLoginCard({
               <label className="block text-sm font-medium text-foreground" htmlFor="password">
                 {passwordLabel}
               </label>
-              {passwordResetHref ? (
+              {passwordResetHref && !rememberLoginIdEnabled && !passwordVisibilityEnabled ? (
                 <a
                   href={passwordResetHref}
                   className="text-sm font-medium text-ssoo-primary underline-offset-4 transition-colors hover:text-ssoo-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ssoo-primary/20"
@@ -251,19 +308,68 @@ export function AuthLoginCard({
                 </a>
               ) : null}
             </div>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="h-11"
-              placeholder={passwordPlaceholder}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={passwordVisibilityEnabled && passwordVisible ? 'text' : 'password'}
+                autoComplete="current-password"
+                data-ssoo-input-intent="credential-current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className={passwordVisibilityEnabled ? 'h-11 pr-11' : 'h-11'}
+                placeholder={passwordPlaceholder}
+              />
+              {passwordVisibilityEnabled ? (
+                <Button
+                  type="button"
+                  variant="plain"
+                  size="authIcon"
+                  aria-label={passwordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
+                  aria-pressed={passwordVisible}
+                  disabled={isLoading}
+                  className="absolute inset-y-0 right-0 my-auto grid place-content-center rounded-l-none rounded-r-md text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ssoo-primary/20"
+                  onClick={() => setPasswordVisible((current) => !current)}
+                >
+                  {passwordVisible ? <EyeOff aria-hidden className="h-4 w-4" /> : <Eye aria-hidden className="h-4 w-4" />}
+                </Button>
+              ) : null}
+            </div>
             {fieldErrors.password && (
               <p className="text-sm ssoo-tone-danger">{fieldErrors.password}</p>
             )}
           </div>
+
+          {rememberLoginIdEnabled || passwordVisibilityEnabled ? (
+            <div className="flex min-h-10 items-center justify-between gap-3 text-sm sm:min-h-6">
+              {rememberLoginIdEnabled ? (
+                <label className="flex min-h-10 cursor-pointer items-center gap-2 text-foreground/80 sm:min-h-6" htmlFor="rememberLoginId">
+                  <Checkbox
+                    id="rememberLoginId"
+                    checked={rememberLoginId}
+                    disabled={isLoading}
+                    onCheckedChange={(checked) => {
+                      const nextChecked = checked === true;
+                      setRememberLoginId(nextChecked);
+                      if (!nextChecked) {
+                        removeRememberedLoginId();
+                      }
+                    }}
+                  />
+                  아이디 저장
+                </label>
+              ) : <span />}
+              {passwordResetHref ? (
+                <a
+                  href={passwordResetHref}
+                  className="font-medium text-ssoo-primary underline-offset-4 transition-colors hover:text-ssoo-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ssoo-primary/20"
+                  {...actionLinkProps({ href: passwordResetHref, label: '비밀번호 찾기' })}
+                >
+                  비밀번호 찾기
+                </a>
+              ) : null}
+            </div>
+          ) : null}
 
           <Button
             type="submit"
@@ -332,6 +438,8 @@ export function AuthStandardLoginCard({
   passwordResetHref,
   registrationLink,
   identityProviders,
+  rememberLoginIdEnabled = false,
+  passwordVisibilityEnabled = false,
   onSubmit,
 }: AuthStandardLoginCardProps) {
   return (
@@ -347,6 +455,8 @@ export function AuthStandardLoginCard({
       passwordResetHref={passwordResetHref}
       registrationLink={registrationLink}
       identityProviders={identityProviders}
+      rememberLoginIdEnabled={rememberLoginIdEnabled}
+      passwordVisibilityEnabled={passwordVisibilityEnabled}
       onSubmit={onSubmit}
       validate={validateStandardLogin}
     />

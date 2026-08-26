@@ -1,6 +1,6 @@
 # DMS 로드맵
 
-> 최종 업데이트: 2026-07-02 (공용 AI/RAG runtime smoke 선행 조건 반영)
+> 최종 업데이트: 2026-08-18 (운영 제어를 포함한 다섯 트랙과 중단 재진입 증거 반영)
 
 ---
 
@@ -32,6 +32,16 @@
 - 잠금 해제 요청 처리 안정화: 보유자 거절 후 처리 다이얼로그가 다시 열리지 않도록 막고, 보유자 승인 시 미저장 초안은 먼저 저장한 뒤 요청자가 최신 본문을 다시 읽고 편집 잠금을 이전받도록 보정
 - 잠금 세션 안정화: 편집 중 10초 주기 전용 lock renew, 사용자+세션 기준 soft lock 소유 판정, 비소유 편집 권한자의 본문 저장/메타데이터 플러시 분리, 저장/메타데이터 변경 시 현재 lock 세션 fencing, 접속 중 사용자 기준 유령 잠금 제거, stale 편집 presence 만료, 만료된 해제 요청 응답 시 기존 보유자 잠금 유지, 요청자 만료 처리 후 최신 협업 스냅샷 재조회, 미저장 초안 승인 확인창 단일화, 다른 사용자 저장 시 활성 문서만 토스트 표시 및 안전한 최신 본문 자동 반영을 적용
 - 검증 문서 publish 격리: Docker 기본값에서 `launch-smoke/`, `codex-lock-ui/`, `codex-lock-probe/`, `verify-access/` prefix 를 DMS Git publish 대상에서 제외하고, 생성 직후 삭제된 미추적 markdown 경로는 Git pathspec 실패 알림 대신 no-op 처리
+- 런칭 운영 readiness 완결: DB/settings persistence/Git parity/control-plane/markdown·ingest·storage·template path를 aggregate readiness로 집계하고, DMS 운영 UI에서 현재 runtime path와 각 probe 사유를 확인할 수 있도록 고정
+- 수집 큐 운영 완결: atomic/corrupt-file fail-closed queue, 동시 처리, confirm/retry/cancel/retention cleanup과 Git commit→publish→path parity 이후 완료 계약을 적용하고 commit/branch를 운영 이력에 보존. document root의 DOCX/PDF는 Git discard 대상에서 제외
+- 공통 Admin 운영 제어 완결: 계정 상태·세션 회수, 조직 hierarchy, role permission grant, 감사 이벤트, AI provider/source/queue/scheduler 상태를 실제 API와 연결하고 마지막 활성 admin 및 조직 관계 안전장치를 회귀 테스트로 고정
+- 2026-08-12 격리 Ralph 검증: 실제 Firefox에서 DMS 설정 영속성, 9개 readiness probe, ingest 정상 게시·Git 장애 재시도·취소와 Admin 계정·세션·조직·권한·감사·AI 운영 경로를 확인하고 최종 console error/warning 0건을 기록
+- 프로덕션 인프라 gate: production env의 backup policy·AI disposition·release SHA를 fail-closed 검증하고 server/DMS/Admin 이미지와 공개 endpoint의 baked SHA 일치를 확인하는 verifier를 추가
+- 백업·복구 gate: PostgreSQL custom dump와 Markdown Git/ingest/storage snapshot을 mode `0600` archive로 생성하고 격리 DB·디렉터리에 복원해 manifest/hash와 canonical DB contract를 검증하는 운영 profile을 추가. 실제 PostgreSQL 16 드릴에서 launch migration 7개, application trigger 81개, schema drift 0을 확인
+- Git/릴리즈 gate: clean/non-detached worktree와 local HEAD, GitHub `main`, GitLab `development`, last-published SHA의 완전 일치를 요구하고 dirty workspace publish를 차단
+- 통합 Ralph gate: 릴리즈 아티팩트, 프로덕션 endpoint, 복구 증명, 격리 Admin/DMS 운영 제어, 배포 브라우저의 다섯 트랙을 `verify:dms-go-live` 하나로 묶고 AI 외부 provider 예외가 다른 실패를 가리지 못하도록 고정
+- 중단 재진입과 증거 무결성: release SHA/run ID 전용 bundle, step 전후 atomic checkpoint, 동일 HEAD/worktree/plan hash만 허용하는 resume, Playwright desktop/mobile artifact와 SHA-256 manifest를 blocking 계약으로 고정
+- 2026-08-18 로컬 launch acceptance: `stage2-isolated-final` 단일 격리 런에서 Admin 운영·DMS smoke/설정·모바일·WS 회귀 17/17을 통과하고, 별도 Playwright CLI에서 DMS desktop/mobile과 Admin mobile 사용자 관리·console/network를 재확인. 실제 GO는 사용자 테스트와 clean release/원격·production·복구·공개 endpoint 증거 뒤에만 판정
 - 현재 검증 기준선 통과: locked preview 서버 테스트, collaboration soft lock 서버 테스트 29개, Git stage 경로 필터 테스트 4개, soft lock 양방향 즉시 차단 브라우저 회귀, 잠금 해제 요청 거절 중복/승인 전 저장/요청자 최신 본문 보존 브라우저 회귀, 비소유 편집 권한자 본문 저장 브라우저 회귀, 활성 문서 저장 자동 반영/비활성 열린 문서 토스트 억제 브라우저 회귀, server/web-dms build, DMS access verification, Codex preflight, Docker server/dms rebuild, health/browser 확인
 - 최신 재진입 핸드오프: `2026-06-02-launch-collaboration-realtime-handoff.md` 에 런칭 직전 협업/권한/알림/저장 반영 기준선과 남은 freeze 항목을 정리
 
@@ -39,18 +49,18 @@
 
 **런칭 스모크 / 운영 freeze**:
 
-1. 공용 AI/RAG runtime smoke runbook: Docker Postgres에서 compat/trigger apply, DMS 저장 지점 common projection, common retrieval, DMS Ask JSON, retrieval log header/item, conversation/run audit 절차는 `docs/common/guides/ai-rag-runtime-runbook.md`로 고정. AI/RAG 정적 guard, provider-ready env precheck, provider-ready run-source audit coverage, provider-ready legacy/common comparison assertion, runtime smoke JSON report, `verify:ai-rag-runtime-report` 검증, Markdown evidence summary, artifact upload, provider mode-separated `.github/workflows/ai-rag-runtime.yml` 수동 CI/운영 gate, legacy `dms_document_embeddings` 전환 기준은 완료. 남은 항목은 실제 Azure embedding deployment로 provider-ready workflow를 통과시키고 검증된 summary artifact 결과를 기록하는 것
-2. DMS vector/RAG runtime proof: provider 미설정 또는 placeholder deployment 환경은 unavailable/stale/fallback 통과 완료. provider 설정 환경은 `cm_ai_embedding_m` vector retrieval, Ask context assembly, legacy/common retrieval 비교 assertion을 실제 Azure 환경에서 green으로 증명
-3. AI 요약 새 문서 저장과 첨부 확인: 외부 모델/API 설정이 준비된 런칭 환경에서 수동 또는 별도 isolated smoke 로 확인
-4. 런칭 체크리스트 freeze 및 운영 데이터/계정 seed 상태 확인
-5. 원격 push 상태와 배포 대상 브랜치 확인: GitHub `main`, GitLab `development`
+1. 릴리즈 아티팩트 freeze: 의도한 변경을 clean commit으로 확정하고 모노레포 static/security/DB/build/DMS/push gate를 모두 통과
+2. Git 배포 정합성: GitLab 선행 변경을 재통합한 뒤 local HEAD = GitHub `main` = GitLab `development` = last-published SHA를 증명
+3. 프로덕션 인프라·복구 증거: 실제 secret/HTTPS endpoint/runtime root/분리 backup root를 주입하고 동일 SHA 이미지를 배포한 뒤 endpoint와 backup→isolated restore gate를 통과
+4. 최종 Ralph: 공개 DMS/Admin에서 readiness 9/9, ingest 운영, AI 예외 경계를 확인하고 console warning/error, page error, HTTP 5xx 0건을 증명한 뒤 `verify:dms-go-live` report를 보존
+5. AI/RAG provider-ready runtime과 AI 요약 첨부 freeze는 `DMS_AI_RAG_LAUNCH_MODE=exempted_external_provider`의 명시적 post-launch acceptance로 유지. 실제 Azure provider가 준비되면 기존 runbook의 vector/RAG workflow와 첨부 smoke를 다시 blocking으로 승격
 6. **DMS-QA-02** hard refresh client-side error 브라우저 재현 케이스 확보: 현재 CLI/HTTP/build 기준 문제 없음, 재현 시 console 첫 오류 기준으로 regression 추가
 
 **기타 P1**:
 
-7. 저장소 어댑터 3종(Local/SharePoint/NAS) 라우팅 관통 적용
+7. Local 기본/NAS 선택형 저장소 라우팅 및 startup 접근성 검증 관통 적용
 8. 정본/첨부 Open/Copy/Resync UX 고도화 (에러 표준화 — Phase C)
-9. 자동 수집 채널 연동 + 컨펌 후 게시 운영화
+9. Teams/네트워크 드라이브 자동 수집 adapter 연동 (`DMS-ING-01-A`)
 10. Ask/Search 화면의 citations/confidence UI 완결
 
 ## 3. 중기 우선순위 (P2)
@@ -72,11 +82,16 @@
 - `docs/dms/planning/storage-and-second-brain-architecture.md`
 - `docs/common/explanation/architecture/ai-rag-platform-roadmap.md`
 - `docs/common/explanation/architecture/ai-rag-platform-handoff.md`
+- `docs/dms/planning/2026-08-13-production-go-live-ralph-plan.md`
 
 ## Changelog
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-18 | 격리 브라우저 17/17과 Playwright CLI desktop/mobile 증거로 로컬 launch acceptance 완료, 사용자 테스트·clean release·실제 production/복구/공개 endpoint를 최종 GO 잔여 조건으로 분리 |
+| 2026-08-18 | 격리 운영 제어를 포함한 다섯 트랙과 release SHA/run ID atomic checkpoint/resume·browser evidence 계약을 현행 기준으로 반영 |
+| 2026-08-13 | 프로덕션 인프라·백업/복구·Git/릴리즈 정합성·브라우저 Ralph 네 트랙과 명시적 AI/RAG 외부 provider 런칭 예외를 단기 P1 기준으로 고정 |
+| 2026-08-12 | DMS 런칭 readiness, Git 원자 ingest 게시, 공통 Admin 운영 제어와 격리 Ralph 브라우저 검증 완료 상태 반영 |
 | 2026-07-02 | runtime smoke Markdown evidence summary artifact 기준을 DMS P1 운영 증거에 반영 |
 | 2026-07-02 | runtime smoke report verifier 기준을 DMS P1 운영 증거에 반영 |
 | 2026-07-02 | runtime smoke JSON report와 workflow artifact upload 기준을 DMS P1 운영 증거에 반영 |

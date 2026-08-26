@@ -3,6 +3,7 @@ import type {
   CrmOpportunityListQuery,
   CrmOpportunityListResponse,
   CrmOpportunitySort,
+  CrmSourceOpportunityStatus,
   CrmOpportunityStatus,
 } from '@ssoo/types/crm';
 import { OpportunityWorkspaceClient, type OpportunityWorkspaceQuery } from './OpportunityWorkspaceClient';
@@ -34,12 +35,19 @@ function normalizeQuery(query: Record<string, string | string[] | undefined> = {
     return Array.isArray(raw) ? raw[0] ?? '' : raw ?? '';
   };
   const status = value('status') as CrmOpportunityStatus | 'all';
+  const sourceStatus = value('sourceStatus') as CrmSourceOpportunityStatus | 'all';
   const sort = value('sort') as CrmOpportunitySort;
+  const sourceSurface = value('sourceSurface');
   return {
     search: value('search').trim(),
     status: ['draft', 'qualified', 'proposal', 'won', 'lost', 'hold'].includes(status) ? status : 'all',
-    sort: ['revenue-desc', 'margin-desc'].includes(sort) ? sort : 'updated-desc',
+    sourceStatus: ['진행중', '검토중', '계약완료', '실패'].includes(sourceStatus) ? sourceStatus : 'all',
+    sort: ['customer-asc', 'updated-desc', 'revenue-desc', 'profit-desc', 'margin-desc'].includes(sort) ? sort : 'customer-asc',
     selected: value('selected'),
+    sourceSurface: ['dashboard', 'list', 'form', 'contract-document'].includes(sourceSurface)
+      ? sourceSurface as OpportunityWorkspaceQuery['sourceSurface']
+      : 'workspace',
+    create: value('create') === 'opportunity',
   };
 }
 
@@ -48,7 +56,8 @@ async function loadOpportunities(query: Required<CrmOpportunityListQuery>): Prom
     const params = new URLSearchParams();
     if (query.search) params.set('search', query.search);
     if (query.status !== 'all') params.set('status', query.status);
-    if (query.sort !== 'updated-desc') params.set('sort', query.sort);
+    if (query.sourceStatus !== 'all') params.set('sourceStatus', query.sourceStatus);
+    if (query.sort !== 'customer-asc') params.set('sort', query.sort);
     const suffix = params.toString() ? `?${params.toString()}` : '';
     const response = await fetch(`${API_BASE_URL}/crm/opportunities${suffix}`, { cache: 'no-store' });
     if (!response.ok) return fallback;

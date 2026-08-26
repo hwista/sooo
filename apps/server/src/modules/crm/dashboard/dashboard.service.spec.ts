@@ -199,6 +199,26 @@ describe('DashboardService', () => {
       kind: 'contract',
       title: 'PMS/DMS readiness 검증 계약',
     });
+    expect(result.sourceCompatibility).toMatchObject({
+      calculationBasis: 'latest-version-canonical-total',
+      confirmedSummary: {
+        totalGroupCount: 1,
+        confirmedLatestCount: 1,
+        revenueTotal: 820000000,
+        costTotal: 560000000,
+        marginTotal: 260000000,
+        marginRate: 32,
+      },
+      recentOpportunities: [
+        expect.objectContaining({ id: 'crm-opp-001', status: '계약완료', href: '/?selected=crm-opp-001' }),
+      ],
+    });
+    expect(result.sourceCompatibility.statusDistribution).toEqual([
+      { status: '진행중', count: 0, percentage: 0 },
+      { status: '검토중', count: 0, percentage: 0 },
+      { status: '계약완료', count: 1, percentage: 100 },
+      { status: '실패', count: 0, percentage: 0 },
+    ]);
     expect(result.unimplementedIntegrations).toEqual(['견적 생성', 'DMS 연결', 'DMS 계약서 저장', 'PMS 프로젝트 생성']);
   });
 

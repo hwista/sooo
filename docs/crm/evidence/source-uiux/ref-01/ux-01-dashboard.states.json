@@ -1,0 +1,87 @@
+{
+  "states": [
+    {
+      "name": "seeded-summary",
+      "captured": true,
+      "screenshot": "ux-01-dashboard.png",
+      "screenshotSha256": "6e5a4f5b22abedd3bb9f8de1e43a70b5f2722a2b11068f5524dcf62faf59ecae",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.list.js"
+    },
+    {
+      "name": "no-confirmed-opportunity",
+      "captured": true,
+      "screenshot": "ux-01-dashboard--no-confirmed-opportunity.png",
+      "screenshotSha256": "ef87e9d523260dfcf9e0fa6bdd528d93e30a8d641578b401828936a10fde106c",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.list.js"
+    },
+    {
+      "name": "recent-opportunity-drilldown",
+      "captured": true,
+      "screenshot": "ux-01-dashboard--recent-opportunity-drilldown.png",
+      "screenshotSha256": "789b6046841aa6399a3eb096bbf7780f56afc8b22256f6540e6b6614f388c0e8",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.list.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-summary",
+      "behavior": "seeded summary",
+      "sourceAnchors": [
+        "index.html",
+        "app.list.js"
+      ]
+    },
+    {
+      "id": "no-confirmed-opportunity",
+      "behavior": "no confirmed opportunity",
+      "sourceAnchors": [
+        "index.html",
+        "app.list.js"
+      ]
+    },
+    {
+      "id": "recent-opportunity-drilldown",
+      "behavior": "recent opportunity drilldown",
+      "sourceAnchors": [
+        "index.html",
+        "app.list.js"
+      ]
+    }
+  ]
+}

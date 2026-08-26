@@ -7,16 +7,14 @@ import type {
   CrmOperationsBusinessYear,
   CrmOperationsCodeGroup,
   CrmOperationsPreviewOwner,
-  CrmOperationsPreviewQuery,
   CrmOperationsPreviewReadiness,
   CrmOperationsPreviewResponse,
 } from '@ssoo/types/crm';
 import { Badge, Button, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
 import { useAuthStore } from '@/stores/auth.store';
-
-export interface OperationsPreviewWorkspaceQuery {
-  year: number;
-}
+import { useCrmBusinessYearOptions } from '@/lib/crmCommonCodeOptions';
+import { LaunchOperationsSurface } from './LaunchOperationsSurface';
+import type { OperationsPreviewWorkspaceQuery } from './operationsPreviewQuery';
 
 interface BackendSuccessResponse<T> {
   success: true;
@@ -78,7 +76,8 @@ export function OperationsPreviewWorkspaceClient({
   const [isReloading, setIsReloading] = useState(data.codeGroups.length === 0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const apiHref = useMemo(() => buildApiHref(query), [query]);
-  const yearOptions = useMemo(() => getYearOptions(query.year, currentData.businessYears), [currentData.businessYears, query.year]);
+  const businessYears = useCrmBusinessYearOptions(query.year, getYearOptions(query.year, currentData.businessYears));
+  const yearOptions = businessYears.years;
 
   useEffect(() => {
     setCurrentData(data);
@@ -130,8 +129,8 @@ export function OperationsPreviewWorkspaceClient({
       <header className="border-b bg-card px-5 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase text-muted-foreground">CRM Operations Boundary</p>
-            <h1 className="mt-1 text-xl font-semibold text-foreground">운영 기준 Preview</h1>
+            <p className="text-xs font-medium uppercase text-muted-foreground">CRM Launch Operations</p>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">운영 기준·제어</h1>
           </div>
           <Button variant="outline" size="sm" type="button" onClick={() => void loadPreview()} disabled={isReloading}>
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -147,7 +146,16 @@ export function OperationsPreviewWorkspaceClient({
       </header>
 
       <main className="min-h-0 flex-1 overflow-auto p-5">
-        <section className="grid gap-3 md:grid-cols-5">
+        <LaunchOperationsSurface accessToken={accessToken} />
+
+        <section className="mt-4 rounded-md border border-dashed bg-muted/30 px-4 py-3">
+          <h2 className="text-sm font-semibold text-foreground">원천 데모 운영 항목 Preview</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            아래 영역은 100% 이식 범위와 소유 경계를 보존한 참고 화면입니다. 런칭 차단 여부는 위 Live 런칭 운영 상태만 판정합니다.
+          </p>
+        </section>
+
+        <section className="mt-4 grid gap-3 md:grid-cols-5">
           <Metric label="코드 그룹" value={`${currentData.summary.codeGroupCount}개`} sub={`${currentData.summary.codeOptionCount}개 후보`} />
           <Metric label="사업년도" value={`${currentData.summary.businessYearCount}개`} sub={`${currentData.summary.selectedYear}년 선택`} />
           <Metric label="CRM 소유" value={`${currentData.summary.crmOwnedCount}개`} sub="원장/표시 설정" />
@@ -343,28 +351,4 @@ function AdminBoundaryTable({ items, isLoading }: { items: CrmOperationsAdminBou
       </Table>
     </section>
   );
-}
-
-export function normalizeOperationsPreviewQuery(path: string): OperationsPreviewWorkspaceQuery {
-  const [, queryString = ''] = path.split('?');
-  const searchParams = new URLSearchParams(queryString);
-  const year = Number(searchParams.get('year') ?? new Date().getFullYear());
-  return {
-    year: Number.isFinite(year) && year >= 2000 ? Math.trunc(year) : new Date().getFullYear(),
-  };
-}
-
-export function toRequiredOperationsPreviewQuery(query: OperationsPreviewWorkspaceQuery): Required<CrmOperationsPreviewQuery> {
-  return { year: query.year };
-}
-
-export function normalizeOperationsPreviewQueryRecord(
-  query: Record<string, string | string[] | undefined> = {},
-): OperationsPreviewWorkspaceQuery {
-  const raw = query.year;
-  const value = Array.isArray(raw) ? raw[0] ?? '' : raw ?? '';
-  const year = Number(value || new Date().getFullYear());
-  return {
-    year: Number.isFinite(year) && year >= 2000 ? Math.trunc(year) : new Date().getFullYear(),
-  };
 }

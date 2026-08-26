@@ -1,6 +1,6 @@
 # DMS GitLab 문서 자동 싱크 운영 가이드
 
-> 최종 업데이트: 2026-06-04
+> 최종 업데이트: 2026-08-19
 > 범위: DMS 서버가 runtime markdown root를 어떤 문서 GitLab 저장소에 연결하는지 운영/개발/테스트 역할별로 고정하는 절차.
 
 이 문서는 코드 구현이 아니라 운영 handoff 문서입니다. 현재 DMS 서버는 시작 시 이미 `gitService.initialize()` 를 호출하며, 운영자는 `.env` 와 배포 runtime 역할만 올바르게 고정하면 됩니다.
@@ -14,7 +14,8 @@
 - `apps/server/src/modules/dms/dms.module.ts`
   - `onModuleInit()` 에서 DB 설정 초기화 후 `configService.assertGitBootstrapContract()` 와 `gitService.initialize()` 호출
   - `DMS_INSTANCE_ENV` 누락/오류 또는 역할-설정 mismatch 는 startup-fatal 로 중단
-  - 기존 repo의 실제 `origin` 이 기대 remote 와 다르면 서버는 기동을 계속하되 Git mutation/auto-sync 는 차단
+  - 기존 repo의 실제 `origin` 이 기대 remote 와 다르거나 Git 초기화가 실패하면 서버 기동을 중단
+  - 최초 document control-plane 동기화 실패도 startup-fatal로 처리
 - `apps/server/src/modules/dms/runtime/dms-config.service.ts`
   - `DMS_INSTANCE_ENV=prod|dev|local-test` 역할 계약을 해석
   - 역할별 canonical remote / branch / explicit-empty override 를 계산
@@ -22,7 +23,7 @@
   - empty dir clone, 기존 repo fast-forward, wrong-remote blocking 을 수행
   - 기존 repo의 `origin` 을 자동으로 덮어쓰지 않고 mismatch 를 진단 상태로 남김
 
-따라서 다음 단계는 "코드 구현"이 아니라 역할별 `.env` / compose / SSH 운영 기준을 고정하는 것입니다.
+따라서 역할별 overlay / `.env.production` / SSH 운영 기준과 readiness가 모두 맞아야 서버가 healthy로 승격됩니다.
 
 ---
 
@@ -49,7 +50,7 @@
 
 ## 3. 운영자가 관리해야 할 `.env` 값
 
-`compose.yaml` 의 server service 는 아래 변수를 컨테이너 환경변수로 전달합니다. 실제 운영에서는 compose 파일을 직접 수정하지 않고 `.env.production`에 값을 둔 뒤 `compose.production.yaml`과 함께 사용합니다. 로컬 `.env`/`compose.local.yaml`은 운영 역할의 입력으로 사용하지 않습니다.
+공통 `compose.yaml`은 `DMS_INSTANCE_ENV`와 `DMS_GIT_BOOTSTRAP_REMOTE_URL`을 빈 값으로 두어 단독 실행을 fail-closed합니다. 로컬은 `compose.local.yaml`이 literal `dev`, Docker 격리 테스트는 마지막 `compose.local-test.yaml`이 literal `local-test`와 remote-empty를 강제합니다. 실제 운영에서는 `.env.production`에 값을 둔 뒤 `compose.production.yaml`과 함께 사용하며 로컬 `.env`는 운영 역할의 입력으로 사용하지 않습니다.
 
 ```dotenv
 # 필수 역할 선택
@@ -85,7 +86,7 @@ DMS_GIT_BOOTSTRAP_REMOTE_URL=
 |---|---|---|---|
 | empty dir | `prod`/`dev` | role-bound remote 로 `git clone` | 빈 runtime document root 를 역할별 정본 repo 로 채움 |
 | existing `.git` + expected remote | `prod`/`dev` | fetch + fast-forward only auto-pull | 현재 repo binding 을 유지하면서 안전하게 최신화 |
-| existing `.git` + wrong remote | `prod`/`dev` | remote rewrite 금지, mutation 차단 | 운영자가 새 root cutover 또는 수동 정리 필요 |
+| existing `.git` + wrong remote | `prod`/`dev` | remote rewrite 금지, startup-fatal | 운영자가 새 root cutover 또는 수동 정리 후 재기동 |
 | non-empty dir, `.git` 없음 | `prod`/`dev` | reconcile-needed / bootstrap flow | 기존 파일과 remote 기준을 운영자가 점검해야 함 |
 | any existing remote | `local-test` | remote 사용 금지, binding 차단 | 테스트 profile 이 운영/개발 repo 를 오염시키지 않음 |
 
@@ -93,8 +94,8 @@ DMS_GIT_BOOTSTRAP_REMOTE_URL=
 
 - `DMS_INSTANCE_ENV` 누락 또는 invalid 값은 startup-fatal 입니다.
 - `DMS_INSTANCE_ENV=prod|dev` 이 기대하는 canonical remote 와 `DMS_GIT_BOOTSTRAP_REMOTE_URL` / persisted config 가 다르면 startup-fatal 입니다.
-- 이미 존재하는 working tree 의 실제 `origin` 이 기대 remote 와 다르면 서버는 자동으로 `origin` 을 바꾸지 않습니다.
-- wrong remote existing repo 는 settings/runtime 에 blocking reason 이 표시되고, fetch/pull/publish 같은 mutation path 가 차단됩니다.
+- 이미 존재하는 working tree 의 실제 `origin` 이 기대 remote 와 다르면 서버는 자동으로 `origin` 을 바꾸지 않고 기동을 실패시킵니다.
+- 기동 후 runtime path/Git parity/control-plane이 준비되지 않으면 `/api/health/readiness`가 `503`을 반환하고 Compose는 server를 healthy로 승격하지 않습니다.
 
 ---
 
@@ -105,12 +106,22 @@ DMS_GIT_BOOTSTRAP_REMOTE_URL=
 - local-dev (`DMS_INSTANCE_ENV=dev`)
   - ordinary local run 이 따르는 기본 profile
   - 문서 Git remote 는 `LSWIKI_DOC_DEV.git`
-  - `.env` 또는 `.env.local` 에서 역할을 dev 로 둡니다
+  - direct-run은 `.env` 또는 `.env.local`에서 역할을 dev로 두고, local Compose는 `compose.local.yaml`이 literal `dev`로 고정합니다
 - local-test (`DMS_INSTANCE_ENV=local-test`)
   - `pnpm run dms:local-test:start`
+  - `pnpm run docker:local-test:up`
+  - `compose.local-test.yaml`의 PostgreSQL·문서 runtime 전용 named volume
   - `.codex/scripts/dms-local-test-start.sh`
   - Playwright bootstrap (`automation/scripts/playwright/start-dms-e2e-stack.sh`)
   - remote-empty isolated profile 이어야 하며 `DMS_GIT_BOOTSTRAP_REMOTE_URL` 은 비워 둡니다
+
+사용자 인계 경계:
+
+- `local-test`는 자동 회귀·실패주입 전용이며 사용자 인수 테스트 환경이 아닙니다.
+- 실제 로컬 Docker 배포 후보는 production build 이미지에 `DMS_INSTANCE_ENV=dev`, dev DB, dev working tree를 연결한 상태입니다.
+- local-test 실행 뒤에는 `pnpm docker:up`으로 dev를 복구하고 active profile=`dev`, aggregate readiness=`200`, 기존 dev 파일 트리를 확인한 뒤 인계합니다.
+- 역할과 다른 remote를 가진 기존 working tree는 origin을 제자리에서 변경하지 않고 보존합니다. 역할에 맞는 별도 working tree를 준비해 `DMS_MARKDOWN_HOST_PATH`로 선택합니다.
+- HTTPS dev remote가 필요한 경우 `pnpm run dms:git-http-auth:prepare`로 mode `0600` Docker secret을 만들고 `DMS_GIT_HTTP_AUTH_SCOPE`를 단일 origin으로 제한합니다. credential은 URL, Compose environment, working tree `.git/config`에 저장하지 않습니다.
 
 수동 workspace 동기화 명령과의 경계:
 
@@ -123,17 +134,24 @@ DMS_GIT_BOOTSTRAP_REMOTE_URL=
 ## 6. 빠른 검증 체크리스트
 
 ```bash
-# 역할/remote 변수가 compose 에 반영되는지 shape 만 확인한다.
-docker compose config | grep -E 'DMS_INSTANCE_ENV|DMS_GIT_(PROD_REMOTE_URL|DEV_REMOTE_URL|BOOTSTRAP_BRANCH|BOOTSTRAP_REMOTE_URL)'
+# 환경별 역할/remote 정적 계약과 오염 실패주입
+pnpm run verify:dms-runtime-profile-contract:self-test
+
+# local / local-test 최종 Compose shape 확인
+pnpm run docker:local:config
+pnpm run docker:local-test:config
 
 # local/dev/ops env shape 확인
 grep -E 'DMS_INSTANCE_ENV|DMS_GIT_(PROD_REMOTE_URL|DEV_REMOTE_URL|BOOTSTRAP_BRANCH|BOOTSTRAP_REMOTE_URL)' .env
 
-# server/dms 재기동
-docker compose up -d --build server dms
+# 격리 server/dms 재기동
+pnpm run docker:local-test:up
 
 # 서버 로그에서 역할 확인
-docker compose logs --tail 200 server | grep -E 'DMS Git role contract|Git 초기화 완료|Git 초기화 실패'
+docker compose -f compose.yaml -f compose.local.yaml -f compose.local-test.yaml logs --tail 200 server | grep -E 'DMS Git role contract|Git 초기화 완료|Git 초기화 실패|control-plane'
+
+# DB + DMS runtime readiness
+curl --fail http://localhost:4000/api/health/readiness
 
 # DMS runtime API 검증
 pnpm run verify:access-dms:raw
@@ -141,7 +159,7 @@ pnpm run verify:access-dms:raw
 
 성공 기준:
 
-- `compose.yaml` 과 `.env` 에서 `DMS_INSTANCE_ENV` 가 의도한 역할로 고정됨
+- 공통 `compose.yaml`은 역할을 선택하지 않고 환경별 overlay만 `DMS_INSTANCE_ENV`를 고정함
 - `prod` 는 `LSWIKI_DOC.git`, `dev` 는 `LSWIKI_DOC_DEV.git`, `local-test` 는 remote-empty 를 가리킴
 - wrong-remote existing repo 인 경우 자동 rewrite 가 아니라 blocking reason 이 노출됨
 - local-test 는 운영/개발 remote 를 건드리지 않음
@@ -163,6 +181,8 @@ pnpm run verify:access-dms:raw
 
 | 날짜 | 변경 내용 |
 |---|---|
+| 2026-08-19 | local-test 이후 dev 인계 게이트, 역할별 별도 working tree 보존, mode `0600` HTTPS Docker secret과 origin-scoped credential helper 계약을 추가 |
+| 2026-08-19 | 공통 Compose fail-closed, dev/local-test/prod overlay 역할 격리, Git/control-plane startup-fatal, 통합 readiness와 오염 실패주입 검증 반영 |
 | 2026-06-04 | 역할 매핑 검증 문장을 명시해 docs verify 의 prod/dev canonical remote 점검 기준을 보강 |
 | 2026-06-01 | `DMS_INSTANCE_ENV` 기준 prod/dev/local-test 문서 repo 분리 계약, wrong-remote blocking, local-test 격리 규칙을 반영 |
 | 2026-05-08 | 사이드바 변경사항 표시를 실패/차단 publish 복구 전용 UI로 조정 |

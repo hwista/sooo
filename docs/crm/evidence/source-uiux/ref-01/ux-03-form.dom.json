@@ -1,0 +1,231 @@
+{
+  "title": "영업기회 조회 확정됨",
+  "sections": [
+    "영업기회 조회 확정됨",
+    "예상계약기간",
+    "예상매출액 *",
+    "예상원가"
+  ],
+  "fields": [
+    {
+      "id": "f-customer",
+      "name": null,
+      "type": "text",
+      "label": "고객명 *",
+      "placeholder": "고객사명 입력",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "f-client-contact",
+      "name": null,
+      "type": "text",
+      "label": "고객사 담당자",
+      "placeholder": "고객사 담당자명 입력",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "f-opp",
+      "name": null,
+      "type": "text",
+      "label": "영업기회명 *",
+      "placeholder": "영업기회 제목 입력",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "f-status",
+      "name": null,
+      "type": "select",
+      "label": "상태",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "f-payment",
+      "name": null,
+      "type": "select",
+      "label": "수금조건",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "f-biz-type",
+      "name": null,
+      "type": "select",
+      "label": "사업구분 *",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "f-group-type",
+      "name": null,
+      "type": "select",
+      "label": "계열구분",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "f-domestic",
+      "name": null,
+      "type": "select",
+      "label": "국내/해외",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "f-start",
+      "name": null,
+      "type": "date",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "f-end",
+      "name": null,
+      "type": "date",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "rev-price-rp1",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "rev-margin-rp1",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "—",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "checkbox",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "—",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "dc-type",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "dc-value",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "← 영업기회 현황으로 돌아가기",
+    "✕",
+    "도움창",
+    "상품매출 1 · 9,000만",
+    "용역매출 1 · 7,200만",
+    "행 추가",
+    "상품원가 1 · 6,750만",
+    "내부용역원가 1 · 4,680만",
+    "외부용역원가 0",
+    "취소",
+    "견적서",
+    "계약취소"
+  ],
+  "labels": [
+    "고객명 *",
+    "고객사 담당자",
+    "영업기회명 *",
+    "영업담당자 *",
+    "상태",
+    "수금조건",
+    "사업구분 *",
+    "계열구분",
+    "국내/해외",
+    "예상계약기간",
+    "예상매출액 *",
+    "예상원가"
+  ]
+}

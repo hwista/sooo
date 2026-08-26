@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "sourceSystem": "Sales Management System -proto",
+  "policy": {
+    "sourceAccountCount": 6,
+    "centralBaselineAccountCount": 8,
+    "createsProductionAccounts": false,
+    "identityEquivalenceClaimed": false,
+    "description": "원천 로그인 계정을 중앙 계정과 동일인으로 간주하지 않는다. 아래 연결은 원천 업무 표본의 담당자 FK와 역할 시나리오를 재현하기 위한 functional alias이며, owner_name 원문 snapshot을 함께 보존한다."
+  },
+  "centralBaselineLoginIds": [
+    "admin",
+    "pm.kim",
+    "dev.lee",
+    "am.park",
+    "sm.choi",
+    "con.jung",
+    "dev.park",
+    "viewer.han"
+  ],
+  "mappings": [
+    {
+      "sourceLoginId": "admin",
+      "sourceName": "관리자",
+      "sourceDepartment": "경영관리팀",
+      "sourceRole": "시스템 관리자",
+      "centralLoginId": "admin",
+      "mappingType": "functional-alias",
+      "usage": "원천 계약 표본 created_by/assignee와 관리자 시나리오"
+    },
+    {
+      "sourceLoginId": "kim.sales",
+      "sourceName": "김민준",
+      "sourceDepartment": "영업1팀",
+      "sourceRole": "팀장",
+      "centralLoginId": "am.park",
+      "mappingType": "functional-alias",
+      "usage": "영업기회 owner_user_id; owner_name은 김민준으로 보존"
+    },
+    {
+      "sourceLoginId": "lee.sales",
+      "sourceName": "이서연",
+      "sourceDepartment": "영업1팀",
+      "sourceRole": "영업사원",
+      "centralLoginId": "am.park",
+      "mappingType": "functional-alias",
+      "usage": "영업기회 owner_user_id; owner_name은 이서연으로 보존"
+    },
+    {
+      "sourceLoginId": "park.sales",
+      "sourceName": "박지호",
+      "sourceDepartment": "영업2팀",
+      "sourceRole": "팀장",
+      "centralLoginId": "pm.kim",
+      "mappingType": "functional-alias",
+      "usage": "영업기회 owner_user_id; owner_name은 박지호로 보존"
+    },
+    {
+      "sourceLoginId": "choi.sales",
+      "sourceName": "최수아",
+      "sourceDepartment": "영업2팀",
+      "sourceRole": "영업사원",
+      "centralLoginId": "con.jung",
+      "mappingType": "functional-alias",
+      "usage": "영업기회 owner_user_id; owner_name은 최수아로 보존"
+    },
+    {
+      "sourceLoginId": "han.sales",
+      "sourceName": "한도현",
+      "sourceDepartment": "영업3팀",
+      "sourceRole": "팀장",
+      "centralLoginId": "sm.choi",
+      "mappingType": "functional-alias",
+      "usage": "영업기회 owner_user_id; owner_name은 한도현으로 보존"
+    }
+  ]
+}

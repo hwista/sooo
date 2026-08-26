@@ -1,0 +1,87 @@
+{
+  "states": [
+    {
+      "name": "seeded-plan-actual",
+      "captured": true,
+      "screenshot": "ux-08-biz-report.png",
+      "screenshotSha256": "2c8a83ed6e42ab27a12b9e57af39bfbf782570344776b30f4f077d094ff3875c",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.report.js"
+    },
+    {
+      "name": "filtered-empty",
+      "captured": true,
+      "screenshot": "ux-08-biz-report--filtered-empty.png",
+      "screenshotSha256": "dd612b741780e39eac3cced49c27171d3aae76626f1b760573f6fb51f786ae49",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.report.js"
+    },
+    {
+      "name": "filter-combination",
+      "captured": true,
+      "screenshot": "ux-08-biz-report--filter-combination.png",
+      "screenshotSha256": "7faa65f11fffb211bdb54a358d5c75330e4de056bb90b61bc0ef8057ab9be195",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.report.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-plan-actual",
+      "behavior": "seeded plan actual",
+      "sourceAnchors": [
+        "index.html",
+        "app.report.js"
+      ]
+    },
+    {
+      "id": "filtered-empty",
+      "behavior": "filtered empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.report.js"
+      ]
+    },
+    {
+      "id": "filter-combination",
+      "behavior": "filter combination",
+      "sourceAnchors": [
+        "index.html",
+        "app.report.js"
+      ]
+    }
+  ]
+}

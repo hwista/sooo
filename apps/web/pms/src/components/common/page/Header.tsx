@@ -62,7 +62,7 @@ export type { FilterField, FilterValues };
  *     { label: '삭제', variant: 'destructive', onClick: handleDelete },
  *   ]}
  *   filters={[
- *     { key: 'name', type: 'text', placeholder: '검색어' },
+ *     { key: 'name', type: 'text', id: 'example-search-input', name: 'example-search-query', ariaLabel: '예시 검색', placeholder: '검색어' },
  *     { key: 'status', type: 'select', options: statusOptions },
  *   ]}
  *   onSearch={handleSearch}

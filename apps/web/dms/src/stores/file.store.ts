@@ -31,6 +31,23 @@ const buildFileMap = (nodes: FileNode[]): Map<string, FileNode> => {
 
 const FORCE_SYNC_EMPTY_RETRY_COUNT = 2;
 const FORCE_SYNC_EMPTY_RETRY_DELAY_MS = 700;
+let isPageLifecycleTransition = false;
+
+export function isDmsPageLifecycleTransition(): boolean {
+  return isPageLifecycleTransition;
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    isPageLifecycleTransition = true;
+  });
+  window.addEventListener('pagehide', () => {
+    isPageLifecycleTransition = true;
+  });
+  window.addEventListener('pageshow', () => {
+    isPageLifecycleTransition = false;
+  });
+}
 
 type FileTreeLoadResult = { success: boolean; error?: string };
 
@@ -232,6 +249,10 @@ export const useFileStore = create<FileStore>()(
             timer.end({ success: true });
             return { success: true };
           } else {
+            if (isPageLifecycleTransition) {
+              timer.end({ success: false, discarded: true, reason: 'page-lifecycle-transition' });
+              return { success: false, error: '페이지 이동으로 파일 트리 요청이 중단되었습니다.' };
+            }
             if (!isCurrentFileTreeRequest(requestScope)) {
               timer.end({ success: false, discarded: true });
               return { success: false, error: '사용자 전환으로 파일 트리 응답을 폐기했습니다.' };
@@ -242,6 +263,10 @@ export const useFileStore = create<FileStore>()(
             return { success: false, error: typeof errorMsg === 'string' ? errorMsg : '파일 트리 로드 실패' };
           }
         } catch (error) {
+          if (isPageLifecycleTransition) {
+            timer.end({ success: false, discarded: true, reason: 'page-lifecycle-transition' });
+            return { success: false, error: '페이지 이동으로 파일 트리 요청이 중단되었습니다.' };
+          }
           if (!isCurrentFileTreeRequest(requestScope)) {
             timer.end({ success: false, discarded: true });
             return { success: false, error: '사용자 전환으로 파일 트리 응답을 폐기했습니다.' };
@@ -294,6 +319,10 @@ export const useFileStore = create<FileStore>()(
             timer.end({ success: true });
             return { success: true };
           } else {
+            if (isPageLifecycleTransition) {
+              timer.end({ success: false, discarded: true, reason: 'page-lifecycle-transition' });
+              return { success: false, error: '페이지 이동으로 파일 트리 요청이 중단되었습니다.' };
+            }
             if (!isCurrentFileTreeRequest(requestScope)) {
               timer.end({ success: false, discarded: true });
               return { success: false, error: '사용자 전환으로 파일 트리 응답을 폐기했습니다.' };
@@ -305,6 +334,10 @@ export const useFileStore = create<FileStore>()(
             return { success: false, error: typeof errorMsg === 'string' ? errorMsg : '파일 트리 새로고침 실패' };
           }
         } catch (error) {
+          if (isPageLifecycleTransition) {
+            timer.end({ success: false, discarded: true, reason: 'page-lifecycle-transition' });
+            return { success: false, error: '페이지 이동으로 파일 트리 요청이 중단되었습니다.' };
+          }
           if (!isCurrentFileTreeRequest(requestScope)) {
             timer.end({ success: false, discarded: true });
             return { success: false, error: '사용자 전환으로 파일 트리 응답을 폐기했습니다.' };

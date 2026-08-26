@@ -14,6 +14,7 @@ interface TemplateDraft {
   content: string;
   scope: TemplateScope;
   kind: TemplateKind;
+  usage: 'general' | 'crm-quote-document' | 'crm-contract-document' | 'crm-opportunity-contract-document';
 }
 
 type SettingsCustomSlotKey =
@@ -30,8 +31,10 @@ interface SettingsCustomSlotProps {
   setTemplateDraft: Dispatch<SetStateAction<TemplateDraft>>;
   onSave: () => void;
   onDelete: (template: TemplateItem) => void;
+  onUploadDocx?: (template: TemplateItem, file: File) => void;
   onConfirmReview?: (template: TemplateItem) => void;
   reviewConfirmingTemplateId?: string | null;
+  uploadingDocxTemplateId?: string | null;
   config?: DmsSettingsConfigClient | null;
   isSavingSettings?: boolean;
   onUpdateSettings?: (partial: DeepPartialClient<DmsSettingsConfigClient>) => Promise<boolean>;
@@ -45,8 +48,10 @@ function AdminTemplatesSurface({
   setTemplateDraft,
   onSave,
   onDelete,
+  onUploadDocx,
   onConfirmReview,
   reviewConfirmingTemplateId,
+  uploadingDocxTemplateId,
   anchorIds = {},
 }: Omit<SettingsCustomSlotProps, 'slotKey'>) {
   return (
@@ -74,8 +79,10 @@ function AdminTemplatesSurface({
         setTemplateDraft={setTemplateDraft}
         onSave={onSave}
         onDelete={onDelete}
+        onUploadDocx={onUploadDocx}
         onConfirmReview={onConfirmReview}
         reviewConfirmingTemplateId={reviewConfirmingTemplateId}
+        uploadingDocxTemplateId={uploadingDocxTemplateId}
         anchorIds={anchorIds}
       />
     </div>
@@ -90,8 +97,10 @@ export function SettingsCustomSlot({
   setTemplateDraft,
   onSave,
   onDelete,
+  onUploadDocx,
   onConfirmReview,
   reviewConfirmingTemplateId,
+  uploadingDocxTemplateId,
   config,
   isSavingSettings,
   onUpdateSettings,
@@ -131,8 +140,10 @@ export function SettingsCustomSlot({
       setTemplateDraft={setTemplateDraft}
       onSave={onSave}
       onDelete={onDelete}
+      onUploadDocx={onUploadDocx}
       onConfirmReview={onConfirmReview}
       reviewConfirmingTemplateId={reviewConfirmingTemplateId}
+      uploadingDocxTemplateId={uploadingDocxTemplateId}
       anchorIds={anchorIds}
     />
   );

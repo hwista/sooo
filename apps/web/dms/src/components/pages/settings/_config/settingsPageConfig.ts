@@ -93,7 +93,6 @@ const getSearchScore = (query: string, ...values: Array<string | undefined>) => 
 
 export const STORAGE_PROVIDER_OPTIONS = [
   { label: 'System default', value: 'system-default' },
-  { label: 'SharePoint', value: 'sharepoint' },
   { label: 'Local', value: 'local' },
   { label: 'NAS', value: 'nas' },
 ] as const;
@@ -329,29 +328,6 @@ export const SETTING_SECTIONS: SettingSection[] = [
         placeholder: 'http://localhost:3003/storage/local',
       },
       {
-        key: 'system.storage.sharepoint.basePath',
-        label: 'SharePoint 경로',
-        helpKey: 'system.storage.sharepoint.basePath',
-        description: 'SharePoint provider 가 사용할 library/mount 기준 경로입니다.',
-        type: 'text',
-        placeholder: '/sites/documents/shared-documents',
-      },
-      {
-        key: 'system.storage.sharepoint.enabled',
-        label: 'SharePoint 저장소 활성화',
-        helpKey: 'system.storage.sharepoint.enabled',
-        description: 'SharePoint provider를 업로드/열기 대상 후보로 허용합니다.',
-        type: 'checkbox',
-      },
-      {
-        key: 'system.storage.sharepoint.webBaseUrl',
-        label: 'SharePoint 웹 기본 URL',
-        helpKey: 'system.storage.sharepoint.webBaseUrl',
-        description: '저장된 파일의 browser open URL을 조합할 기본 URL입니다.',
-        type: 'text',
-        placeholder: 'https://sharepoint.local',
-      },
-      {
         key: 'system.storage.nas.basePath',
         label: 'NAS 경로',
         helpKey: 'system.storage.nas.basePath',
@@ -431,6 +407,16 @@ export const SETTING_SECTIONS: SettingSection[] = [
           if (!Number.isFinite(num) || num < 1) return '1 이상의 숫자를 입력하세요.';
           return null;
         },
+      },
+      {
+        key: 'system.ingest.retentionDays',
+        label: '완료 작업 보존 기간',
+        helpKey: 'system.ingest.retentionDays',
+        description: '게시·취소 완료된 큐 이력을 보존할 일수입니다. 정리는 운영 화면에서 명시적으로 실행합니다.',
+        type: 'text',
+        placeholder: '30',
+        coerce: toInteger,
+        validate: (value) => validatePositiveInteger(value, 1, '1일 이상의 정수를 입력하세요.'),
       },
     ],
   },
@@ -783,6 +769,29 @@ export const SETTING_SECTIONS: SettingSection[] = [
           if (!text) return '작성자 이메일은 필수입니다.';
           return EMAIL_REGEX.test(text) ? null : '이메일 형식이 올바르지 않습니다.';
         },
+      },
+    ],
+  },
+  {
+    id: 'storage-preference',
+    scope: 'personal',
+    group: 'personal',
+    surface: 'personal-settings',
+    settingKind: 'persisted-setting',
+    audience: 'user',
+    persistence: 'db',
+    jsonPath: 'personal.workspace',
+    label: 'Storage',
+    icon: HardDrive,
+    description: '직접 추가하는 첨부·참조·이미지의 기본 저장소를 선택합니다. 파일을 추가할 때 항목별로 다시 선택할 수 있습니다.',
+    items: [
+      {
+        key: 'personal.workspace.preferredStorageProvider',
+        label: '내 기본 저장소',
+        helpKey: 'personal.workspace.preferredStorageProvider',
+        description: 'System default는 문서 시스템 설정을 따릅니다. NAS는 운영자가 활성화한 경우에만 업로드됩니다.',
+        type: 'select',
+        options: [...STORAGE_PROVIDER_OPTIONS],
       },
     ],
   },

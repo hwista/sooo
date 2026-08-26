@@ -12,7 +12,6 @@ import {
 import type { ProjectOrgItem, ProjectOrgRoleCode } from '@/lib/api/endpoints/projects';
 import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -21,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useConfirmStore } from '@/stores/confirm.store';
+import { SsooSearchInput } from '@ssoo/web-shell';
 
 const PROJECT_ORG_COMPAT_SOURCE = 'pms-project-org-compat';
 
@@ -182,7 +182,11 @@ export function OrganizationsSection({ projectId }: OrganizationsSectionProps) {
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground">조직 검색</label>
-              <Input
+              <SsooSearchInput
+                id="pms-project-organization-lookup-input"
+                name="pms-project-organization-lookup-query"
+                ariaLabel="프로젝트 연결 조직 검색"
+                intent="entity-lookup"
                 placeholder="조직명 또는 코드"
                 value={organizationSearch}
                 onChange={(event) => setOrganizationSearch(event.target.value)}

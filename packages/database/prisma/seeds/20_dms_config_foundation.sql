@@ -36,19 +36,17 @@ VALUES (
       "autoInit": true
     },
     "storage": {
-      "defaultProvider": "sharepoint",
+      "defaultProvider": "local",
       "local": { "enabled": true, "basePath": "../../../.runtime/document-storage/local" },
-      "sharepoint": { "enabled": true, "basePath": "/sites/documents/shared-documents", "webBaseUrl": "https://sharepoint.local" },
-      "nas": { "enabled": true, "basePath": "/mnt/nas/documents", "webBaseUrl": "file:///mnt/nas/documents" }
+      "nas": { "enabled": false, "basePath": "/mnt/nas/documents", "webBaseUrl": "file:///mnt/nas/documents" }
     },
-    "ingest": { "queuePath": "../../../.runtime/document-ingest", "autoPublish": false, "maxConcurrentJobs": 2 },
+    "ingest": { "queuePath": "../../../.runtime/document-ingest", "autoPublish": false, "maxConcurrentJobs": 2, "retentionDays": 30 },
     "templates": {},
     "extraction": { "maxTextLength": 12000, "maxImages": 5, "maxImageSizeMb": 1, "pdfMaxRenderPages": 3, "pdfRenderScale": 1.0 },
     "uploads": { "attachmentMaxSizeMb": 20, "imageMaxSizeMb": 10 },
     "search": { "maxResults": 100, "semanticThreshold": 0.5, "chunkSize": 1000, "chunkOverlap": 200, "summaryConcurrency": 3 },
     "docAssist": { "maxCurrentContentChars": 6000, "maxTemplateChars": 1500, "maxSummaryFileCount": 2, "maxSummaryFileChars": 2000, "maxImagesPerRequest": 5 },
     "m365": {
-      "sharepoint": { "tenantDomain": "", "sitePath": "/sites/documents", "defaultLibrary": "shared-documents" },
       "teams": { "enabled": false, "ingestEnabled": false, "defaultTeam": "", "defaultChannel": "", "defaultDropPath": "" },
       "auth": { "mode": "anonymous-first", "allowedTenantIds": [], "allowedDomains": [], "identityMapping": "mail" }
     }

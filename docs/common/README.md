@@ -1,7 +1,7 @@
 ````mdc
 # 공용 문서 (Common)
 
-> 최종 업데이트: 2026-06-23
+> 최종 업데이트: 2026-08-20
 
 PMS와 DMS 모두에 공통 적용되는 개발 표준, 가이드, 아키텍처 문서입니다.
 
@@ -47,6 +47,7 @@ PMS와 DMS 모두에 공통 적용되는 개발 표준, 가이드, 아키텍처 
 | [auth-profile-boundary.md](explanation/architecture/auth-profile-boundary.md) | Account/Auth + Admin + SNS Profile 책임 경계와 앱별 로그인 wrapper 기준 |
 | [user-lifecycle-commonization.md](explanation/architecture/user-lifecycle-commonization.md) | SSOO 5앱 공용 사용자 생명주기 완료 기준과 logout/session-revoke acceptance gate |
 | [user-lifecycle-commonization-plan.md](explanation/architecture/user-lifecycle-commonization-plan.md) | 공용 사용자 생명주기 적용을 위한 단계별 구현 계획 |
+| [search-input-autofill-integrity-ralph-plan.md](explanation/architecture/search-input-autofill-integrity-ralph-plan.md) | SSOO 5앱 검색·필터·자격증명 입력 의미 분리와 이중 autofill 방어 Ralph 계획 |
 | [settings-admin-control-plane.md](explanation/architecture/settings-admin-control-plane.md) | SSOO 설정/Admin/Auth/Profile/AI/DMS 책임 경계와 Admin 후속 구현 체크리스트 |
 | [ai-rag-platform-roadmap.md](explanation/architecture/ai-rag-platform-roadmap.md) | 공용 AI/RAG data plane, retrieval, conversation/run, model gateway, domain adapter 확장 로드맵과 진척도 |
 | [ai-rag-platform-handoff.md](explanation/architecture/ai-rag-platform-handoff.md) | AI/RAG 공용화 현재 구현 상태, 검증 증거, Docker rebuild workaround, 원격 publish/다음 smoke 작업 핸드오프 |

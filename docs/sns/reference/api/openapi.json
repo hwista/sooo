@@ -1,0 +1,3634 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/sns/access/me": {
+      "get": {
+        "operationId": "SnsAccessController_getMyAccess",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "SNS domain access snapshot 반환",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ],
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "SNS 접근 권한 snapshot 조회",
+        "tags": [
+          "sns-access"
+        ]
+      }
+    },
+    "/api/sns/posts": {
+      "get": {
+        "operationId": "PostController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "페이지 번호",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "페이지 크기",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "boardId",
+            "required": false,
+            "in": "query",
+            "description": "게시판 ID 필터",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorUserId",
+            "required": false,
+            "in": "query",
+            "description": "작성자 사용자 ID 필터",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "검색어 (제목, 내용)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ],
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PostDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiPaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 목록",
+        "tags": [
+          "sns-posts"
+        ]
+      },
+      "post": {
+        "operationId": "PostController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccess"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "success",
+                        "data"
+                      ],
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ],
+                          "example": true
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/PostDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 생성",
+        "tags": [
+          "sns-posts"
+        ]
+      }
+    },
+    "/api/sns/posts/{id}": {
+      "get": {
+        "operationId": "PostController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccess"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "success",
+                        "data"
+                      ],
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ],
+                          "example": true
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/PostDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 상세",
+        "tags": [
+          "sns-posts"
+        ]
+      },
+      "put": {
+        "operationId": "PostController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccess"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "success",
+                        "data"
+                      ],
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ],
+                          "example": true
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/PostDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 수정",
+        "tags": [
+          "sns-posts"
+        ]
+      },
+      "delete": {
+        "operationId": "PostController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "게시물 삭제 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 삭제 (soft delete)",
+        "tags": [
+          "sns-posts"
+        ]
+      }
+    },
+    "/api/sns/posts/{postId}/comments": {
+      "get": {
+        "operationId": "CommentController_findByPost",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommentDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 댓글 목록",
+        "tags": [
+          "sns-comments"
+        ]
+      },
+      "post": {
+        "operationId": "CommentController_create",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "댓글 작성",
+        "tags": [
+          "sns-comments"
+        ]
+      }
+    },
+    "/api/sns/comments/{id}": {
+      "put": {
+        "operationId": "CommentController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "댓글 수정",
+        "tags": [
+          "sns-comments"
+        ]
+      },
+      "delete": {
+        "operationId": "CommentController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "댓글 삭제 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "댓글 삭제 (soft delete)",
+        "tags": [
+          "sns-comments"
+        ]
+      }
+    },
+    "/api/sns/boards": {
+      "get": {
+        "operationId": "BoardController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "페이지 번호",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "페이지 크기",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BoardDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시판 목록",
+        "tags": [
+          "sns-boards"
+        ]
+      },
+      "post": {
+        "operationId": "BoardController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBoardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시판 생성 (관리자)",
+        "tags": [
+          "sns-boards"
+        ]
+      }
+    },
+    "/api/sns/boards/{id}": {
+      "get": {
+        "operationId": "BoardController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시판 상세",
+        "tags": [
+          "sns-boards"
+        ]
+      },
+      "put": {
+        "operationId": "BoardController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBoardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시판 수정 (관리자)",
+        "tags": [
+          "sns-boards"
+        ]
+      },
+      "delete": {
+        "operationId": "BoardController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "게시판 삭제 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시판 삭제 (관리자, soft delete)",
+        "tags": [
+          "sns-boards"
+        ]
+      }
+    },
+    "/api/sns/profiles/me": {
+      "get": {
+        "operationId": "ProfileController_getMyProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 프로필 조회",
+        "tags": [
+          "sns-profiles"
+        ]
+      },
+      "put": {
+        "operationId": "ProfileController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 프로필 수정",
+        "tags": [
+          "sns-profiles"
+        ]
+      }
+    },
+    "/api/sns/profiles/{userId}": {
+      "get": {
+        "operationId": "ProfileController_getProfileByUserId",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 프로필 조회",
+        "tags": [
+          "sns-profiles"
+        ]
+      }
+    },
+    "/api/sns/profiles/me/careers": {
+      "post": {
+        "operationId": "ProfileController_addCareer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCareerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "경력 추가 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "경력 추가",
+        "tags": [
+          "sns-profiles"
+        ]
+      }
+    },
+    "/api/sns/skills": {
+      "get": {
+        "operationId": "SkillController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SkillDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "스킬 목록",
+        "tags": [
+          "sns-skills"
+        ]
+      },
+      "post": {
+        "operationId": "SkillController_createSkill",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSkillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "스킬 생성 (관리자)",
+        "tags": [
+          "sns-skills"
+        ]
+      }
+    },
+    "/api/sns/skills/search": {
+      "get": {
+        "operationId": "SkillController_searchExperts",
+        "parameters": [
+          {
+            "name": "skillIds",
+            "required": false,
+            "in": "query",
+            "description": "스킬 ID 목록",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "keyword",
+            "required": false,
+            "in": "query",
+            "description": "검색 키워드",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "페이지 번호",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "페이지 크기",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "전문가 검색",
+        "tags": [
+          "sns-skills"
+        ]
+      }
+    },
+    "/api/sns/profiles/me/skills": {
+      "post": {
+        "operationId": "SkillController_addUserSkill",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddUserSkillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "스킬 추가 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 프로필에 스킬 추가",
+        "tags": [
+          "sns-skills"
+        ]
+      }
+    },
+    "/api/sns/profiles/me/skills/{skillId}": {
+      "delete": {
+        "operationId": "SkillController_removeUserSkill",
+        "parameters": [
+          {
+            "name": "skillId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "스킬 제거 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 프로필에서 스킬 제거",
+        "tags": [
+          "sns-skills"
+        ]
+      }
+    },
+    "/api/sns/endorsements": {
+      "post": {
+        "operationId": "SkillController_endorseSkill",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndorseSkillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "스킬 추천 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "스킬 추천",
+        "tags": [
+          "sns-skills"
+        ]
+      }
+    },
+    "/api/sns/follows/{userId}": {
+      "post": {
+        "operationId": "FollowController_follow",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팔로우 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 팔로우",
+        "tags": [
+          "sns-follows"
+        ]
+      },
+      "delete": {
+        "operationId": "FollowController_unfollow",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "언팔로우 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "사용자 언팔로우",
+        "tags": [
+          "sns-follows"
+        ]
+      }
+    },
+    "/api/sns/follows/followers": {
+      "get": {
+        "operationId": "FollowController_getFollowers",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "페이지 번호",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "페이지 크기",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팔로워 목록"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 팔로워 목록",
+        "tags": [
+          "sns-follows"
+        ]
+      }
+    },
+    "/api/sns/follows/following": {
+      "get": {
+        "operationId": "FollowController_getFollowing",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "페이지 번호",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "페이지 크기",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "팔로잉 목록"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내 팔로잉 목록",
+        "tags": [
+          "sns-follows"
+        ]
+      }
+    },
+    "/api/sns/notifications": {
+      "get": {
+        "operationId": "NotificationController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "페이지 번호",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "페이지 크기",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "unreadOnly",
+            "required": false,
+            "in": "query",
+            "description": "읽지 않은 알림만 필터",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "알림 목록",
+        "tags": [
+          "sns-notifications"
+        ]
+      }
+    },
+    "/api/sns/notifications/{id}/read": {
+      "put": {
+        "operationId": "NotificationController_markAsRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "알림 읽음 처리 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "알림 읽음 처리",
+        "tags": [
+          "sns-notifications"
+        ]
+      }
+    },
+    "/api/sns/notifications/read-all": {
+      "put": {
+        "operationId": "NotificationController_markAllAsRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "전체 알림 읽음 처리 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "전체 알림 읽음 처리",
+        "tags": [
+          "sns-notifications"
+        ]
+      }
+    },
+    "/api/sns/notifications/unread-count": {
+      "get": {
+        "operationId": "NotificationController_getUnreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "읽지 않은 알림 수"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "읽지 않은 알림 수",
+        "tags": [
+          "sns-notifications"
+        ]
+      }
+    },
+    "/api/sns/feed": {
+      "get": {
+        "operationId": "FeedController_getTimeline",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "커서 (마지막 게시물 ID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "한 번에 가져올 개수",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "feedType",
+            "required": false,
+            "in": "query",
+            "description": "피드 유형 (all, following)",
+            "schema": {
+              "default": "all",
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorUserId",
+            "required": false,
+            "in": "query",
+            "description": "작성자 사용자 ID 필터",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "피드 목록 (커서 기반 페이지네이션)"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "피드 타임라인",
+        "tags": [
+          "sns-feed"
+        ]
+      }
+    },
+    "/api/sns/posts/{postId}/reactions": {
+      "post": {
+        "operationId": "FeedController_addReaction",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "반응 추가 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 반응 추가",
+        "tags": [
+          "sns-feed"
+        ]
+      },
+      "delete": {
+        "operationId": "FeedController_removeReaction",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "반응 제거 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 반응 제거",
+        "tags": [
+          "sns-feed"
+        ]
+      }
+    },
+    "/api/sns/posts/{postId}/bookmark": {
+      "post": {
+        "operationId": "FeedController_addBookmark",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "북마크 추가 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 북마크",
+        "tags": [
+          "sns-feed"
+        ]
+      },
+      "delete": {
+        "operationId": "FeedController_removeBookmark",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "북마크 제거 완료"
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "게시물 북마크 제거",
+        "tags": [
+          "sns-feed"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "SSOO SNS API",
+    "description": "SNS module API reference",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "ApiErrorDetail": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "INTERNAL_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Internal server error"
+          },
+          "path": {
+            "type": "string",
+            "example": "/api/example"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "example": false
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiErrorDetail"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "success",
+          "error"
+        ]
+      },
+      "ApiPaginationMeta": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "minimum": 1,
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0,
+            "example": 100
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total"
+        ]
+      },
+      "PostDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "게시물 ID"
+          },
+          "authorUserId": {
+            "type": "string",
+            "description": "작성자 사용자 ID"
+          },
+          "boardId": {
+            "type": "string",
+            "description": "게시판 ID"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "카테고리 ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "게시물 제목"
+          },
+          "content": {
+            "type": "string",
+            "description": "게시물 내용"
+          },
+          "contentType": {
+            "type": "string",
+            "description": "콘텐츠 유형"
+          },
+          "visibilityScopeCode": {
+            "type": "string",
+            "description": "게시물 공개 범위",
+            "enum": [
+              "public",
+              "organization",
+              "followers",
+              "self"
+            ]
+          },
+          "targetOrgId": {
+            "type": "object",
+            "description": "대상 조직 ID"
+          },
+          "viewCount": {
+            "type": "number",
+            "description": "조회 수"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "생성일시"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "수정일시"
+          }
+        },
+        "required": [
+          "id",
+          "authorUserId",
+          "content",
+          "contentType",
+          "visibilityScopeCode",
+          "viewCount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ApiSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreatePostDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "게시물 제목"
+          },
+          "content": {
+            "type": "string",
+            "description": "게시물 내용"
+          },
+          "contentType": {
+            "type": "string",
+            "description": "콘텐츠 유형 (text, markdown, html)",
+            "default": "text"
+          },
+          "boardId": {
+            "type": "string",
+            "description": "게시판 ID"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "카테고리 ID"
+          },
+          "visibilityScopeCode": {
+            "type": "string",
+            "description": "게시물 공개 범위",
+            "enum": [
+              "public",
+              "organization",
+              "followers",
+              "self"
+            ],
+            "default": "public"
+          },
+          "tagNames": {
+            "description": "태그 이름 목록",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "UpdatePostDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "게시물 제목"
+          },
+          "content": {
+            "type": "string",
+            "description": "게시물 내용"
+          },
+          "contentType": {
+            "type": "string",
+            "description": "콘텐츠 유형"
+          },
+          "boardId": {
+            "type": "string",
+            "description": "게시판 ID"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "카테고리 ID"
+          },
+          "visibilityScopeCode": {
+            "type": "string",
+            "description": "게시물 공개 범위",
+            "enum": [
+              "public",
+              "organization",
+              "followers",
+              "self"
+            ]
+          },
+          "tagNames": {
+            "description": "태그 이름 목록",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CommentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "댓글 ID"
+          },
+          "postId": {
+            "type": "string",
+            "description": "게시물 ID"
+          },
+          "authorUserId": {
+            "type": "string",
+            "description": "작성자 사용자 ID"
+          },
+          "parentCommentId": {
+            "type": "string",
+            "description": "상위 댓글 ID"
+          },
+          "content": {
+            "type": "string",
+            "description": "댓글 내용"
+          },
+          "depth": {
+            "type": "number",
+            "description": "댓글 깊이"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "생성일시"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "수정일시"
+          }
+        },
+        "required": [
+          "id",
+          "postId",
+          "authorUserId",
+          "content",
+          "depth",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateCommentDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "댓글 내용"
+          },
+          "parentCommentId": {
+            "type": "string",
+            "description": "상위 댓글 ID (대댓글)"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "UpdateCommentDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "댓글 내용"
+          }
+        }
+      },
+      "BoardDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "게시판 ID"
+          },
+          "boardCode": {
+            "type": "string",
+            "description": "게시판 코드"
+          },
+          "boardName": {
+            "type": "string",
+            "description": "게시판명"
+          },
+          "boardType": {
+            "type": "string",
+            "description": "게시판 유형"
+          },
+          "description": {
+            "type": "string",
+            "description": "설명"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "정렬 순서"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "생성일시"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "수정일시"
+          }
+        },
+        "required": [
+          "id",
+          "boardCode",
+          "boardName",
+          "boardType",
+          "sortOrder",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateBoardDto": {
+        "type": "object",
+        "properties": {
+          "boardCode": {
+            "type": "string",
+            "description": "게시판 코드",
+            "maxLength": 50
+          },
+          "boardName": {
+            "type": "string",
+            "description": "게시판명",
+            "maxLength": 200
+          },
+          "boardType": {
+            "type": "string",
+            "description": "게시판 유형 (general, notice, qna)",
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "description": "설명",
+            "maxLength": 1000
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "정렬 순서",
+            "default": 0
+          }
+        },
+        "required": [
+          "boardCode",
+          "boardName",
+          "boardType"
+        ]
+      },
+      "UpdateBoardDto": {
+        "type": "object",
+        "properties": {
+          "boardName": {
+            "type": "string",
+            "description": "게시판명",
+            "maxLength": 200
+          },
+          "boardType": {
+            "type": "string",
+            "description": "게시판 유형",
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "description": "설명",
+            "maxLength": 1000
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "정렬 순서"
+          }
+        }
+      },
+      "ProfileUserSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "사용자 ID"
+          },
+          "userName": {
+            "type": "string",
+            "description": "사용자명"
+          },
+          "displayName": {
+            "type": "object",
+            "description": "표시명"
+          },
+          "email": {
+            "type": "string",
+            "description": "이메일"
+          },
+          "phone": {
+            "type": "object",
+            "description": "전화번호"
+          },
+          "avatarUrl": {
+            "type": "object",
+            "description": "아바타 URL"
+          },
+          "departmentCode": {
+            "type": "object",
+            "description": "부서 코드"
+          },
+          "positionCode": {
+            "type": "object",
+            "description": "직급 코드"
+          }
+        },
+        "required": [
+          "id",
+          "userName",
+          "email"
+        ]
+      },
+      "ProfileSkillDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "사용자 스킬 ID"
+          },
+          "profileId": {
+            "type": "string",
+            "description": "프로필 ID"
+          },
+          "skillId": {
+            "type": "string",
+            "description": "스킬 ID"
+          },
+          "skillName": {
+            "type": "string",
+            "description": "스킬명"
+          },
+          "skillCategory": {
+            "type": "string",
+            "description": "스킬 분류"
+          },
+          "proficiencyLevel": {
+            "type": "number",
+            "description": "숙련도"
+          },
+          "yearsOfExperience": {
+            "type": "number",
+            "description": "경험 연수"
+          },
+          "endorsementCount": {
+            "type": "number",
+            "description": "추천 수"
+          }
+        },
+        "required": [
+          "id",
+          "profileId",
+          "skillId",
+          "skillName",
+          "skillCategory",
+          "proficiencyLevel",
+          "yearsOfExperience",
+          "endorsementCount"
+        ]
+      },
+      "ProfileCareerDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "경력 ID"
+          },
+          "profileId": {
+            "type": "string",
+            "description": "프로필 ID"
+          },
+          "projectId": {
+            "type": "object",
+            "description": "프로젝트 ID"
+          },
+          "companyName": {
+            "type": "object",
+            "description": "회사명"
+          },
+          "projectName": {
+            "type": "string",
+            "description": "프로젝트명"
+          },
+          "roleName": {
+            "type": "string",
+            "description": "역할명"
+          },
+          "description": {
+            "type": "object",
+            "description": "설명"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "시작일"
+          },
+          "endDate": {
+            "type": "object",
+            "description": "종료일"
+          }
+        },
+        "required": [
+          "id",
+          "profileId",
+          "projectName",
+          "roleName",
+          "startDate"
+        ]
+      },
+      "ProfileFollowStatsDto": {
+        "type": "object",
+        "properties": {
+          "followersCount": {
+            "type": "number",
+            "description": "팔로워 수"
+          },
+          "followingCount": {
+            "type": "number",
+            "description": "팔로잉 수"
+          },
+          "isFollowing": {
+            "type": "boolean",
+            "description": "현재 사용자의 팔로우 여부"
+          }
+        },
+        "required": [
+          "followersCount",
+          "followingCount",
+          "isFollowing"
+        ]
+      },
+      "ProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "프로필 ID"
+          },
+          "userId": {
+            "type": "string",
+            "description": "사용자 ID"
+          },
+          "user": {
+            "description": "사용자 표시 요약",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfileUserSummaryDto"
+              }
+            ]
+          },
+          "bio": {
+            "type": "string",
+            "description": "자기소개"
+          },
+          "coverImageUrl": {
+            "type": "string",
+            "description": "커버 이미지 URL"
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "description": "LinkedIn URL"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "description": "웹사이트 URL"
+          },
+          "skills": {
+            "description": "프로필 스킬 목록",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileSkillDto"
+            }
+          },
+          "careers": {
+            "description": "프로젝트/경력 목록",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileCareerDto"
+            }
+          },
+          "followStats": {
+            "description": "팔로우 통계",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfileFollowStatsDto"
+              }
+            ]
+          },
+          "isOwnProfile": {
+            "type": "boolean",
+            "description": "현재 사용자의 본인 프로필 여부"
+          },
+          "profilePath": {
+            "type": "string",
+            "description": "프로필 공용 경로"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "생성일시"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "수정일시"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "user",
+          "skills",
+          "careers",
+          "followStats",
+          "isOwnProfile",
+          "profilePath",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "표시명",
+            "maxLength": 100
+          },
+          "avatarUrl": {
+            "type": "string",
+            "description": "아바타 이미지 URL",
+            "maxLength": 1000
+          },
+          "bio": {
+            "type": "string",
+            "description": "자기소개",
+            "maxLength": 2000
+          },
+          "coverImageUrl": {
+            "type": "string",
+            "description": "커버 이미지 URL",
+            "maxLength": 1000
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "description": "LinkedIn URL",
+            "maxLength": 500
+          },
+          "websiteUrl": {
+            "type": "string",
+            "description": "웹사이트 URL",
+            "maxLength": 500
+          }
+        }
+      },
+      "CreateCareerDto": {
+        "type": "object",
+        "properties": {
+          "projectName": {
+            "type": "string",
+            "description": "프로젝트명",
+            "maxLength": 300
+          },
+          "roleName": {
+            "type": "string",
+            "description": "역할명",
+            "maxLength": 100
+          },
+          "startDate": {
+            "type": "string",
+            "description": "시작일 (ISO 8601)"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "종료일 (ISO 8601)"
+          },
+          "description": {
+            "type": "string",
+            "description": "설명",
+            "maxLength": 2000
+          },
+          "companyName": {
+            "type": "string",
+            "description": "회사명",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "projectName",
+          "roleName",
+          "startDate"
+        ]
+      },
+      "SkillDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "스킬 ID"
+          },
+          "skillName": {
+            "type": "string",
+            "description": "스킬명"
+          },
+          "skillCategory": {
+            "type": "string",
+            "description": "스킬 카테고리"
+          },
+          "description": {
+            "type": "string",
+            "description": "설명"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "생성일시"
+          }
+        },
+        "required": [
+          "id",
+          "skillName",
+          "skillCategory",
+          "createdAt"
+        ]
+      },
+      "CreateSkillDto": {
+        "type": "object",
+        "properties": {
+          "skillName": {
+            "type": "string",
+            "description": "스킬명",
+            "maxLength": 200
+          },
+          "skillCategory": {
+            "type": "string",
+            "description": "스킬 카테고리",
+            "maxLength": 100
+          },
+          "parentSkillId": {
+            "type": "string",
+            "description": "상위 스킬 ID"
+          },
+          "description": {
+            "type": "string",
+            "description": "설명",
+            "maxLength": 1000
+          },
+          "synonyms": {
+            "description": "동의어 목록",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "skillName",
+          "skillCategory"
+        ]
+      },
+      "AddUserSkillDto": {
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string",
+            "description": "스킬 ID"
+          },
+          "proficiencyLevel": {
+            "type": "number",
+            "description": "숙련도 (1~5)",
+            "default": 1
+          },
+          "yearsOfExperience": {
+            "type": "number",
+            "description": "경력 연수",
+            "default": 0
+          }
+        },
+        "required": [
+          "skillId"
+        ]
+      },
+      "EndorseSkillDto": {
+        "type": "object",
+        "properties": {
+          "userSkillId": {
+            "type": "string",
+            "description": "추천 대상 프로필의 사용자 스킬 ID"
+          },
+          "comment": {
+            "type": "string",
+            "description": "추천 코멘트",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "userSkillId"
+        ]
+      },
+      "ReactionDto": {
+        "type": "object",
+        "properties": {
+          "reactionType": {
+            "type": "string",
+            "description": "반응 유형 (like, love, celebrate)",
+            "default": "like"
+          }
+        }
+      },
+      "UpdateRolePermissionsDto": {
+        "type": "object",
+        "properties": {
+          "permissionCodes": {
+            "description": "역할에 활성화할 전체 permission code 집합",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "permissionCodes"
+        ]
+      },
+      "CreateOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "orgCode": {
+            "type": "string",
+            "example": "PLATFORM-DEV"
+          },
+          "orgName": {
+            "type": "string",
+            "example": "플랫폼개발팀"
+          },
+          "orgType": {
+            "type": "string",
+            "enum": [
+              "company",
+              "division",
+              "department",
+              "team",
+              "external"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "external"
+            ],
+            "default": "internal"
+          },
+          "levelType": {
+            "type": "string"
+          },
+          "parentOrgId": {
+            "type": "object",
+            "description": "상위 조직 ID"
+          },
+          "memo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "orgCode",
+          "orgName",
+          "orgType"
+        ]
+      },
+      "UpdateOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "orgName": {
+            "type": "string"
+          },
+          "orgType": {
+            "type": "string",
+            "enum": [
+              "company",
+              "division",
+              "department",
+              "team",
+              "external"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "external"
+            ]
+          },
+          "levelType": {
+            "type": "string"
+          },
+          "parentOrgId": {
+            "type": "object",
+            "description": "상위 조직 ID. null이면 최상위로 이동"
+          },
+          "memo": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

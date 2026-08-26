@@ -1,0 +1,332 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-parity",
+  "sourceManifestSha256": "c43a3da891f5c04561c0a969f817a40ca1523b710233c900715679ae97080df0",
+  "generatedAt": "2026-08-20T08:44:35.149Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-parity",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "sessionRestoreMode": "verified-login-response-fixture",
+    "uxIds": [
+      "UX-03"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-03",
+      "sourcePage": "form",
+      "status": "complete",
+      "ownerSurface": "CRM /?sourceSurface=form",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=form&selected=crm-uiux-opp-001",
+      "capturedAt": "2026-08-20T08:44:35.148Z",
+      "structureDiff": {
+        "missingSections": [],
+        "missingFields": [],
+        "missingColumns": [],
+        "missingActions": [],
+        "missingLabels": [],
+        "renamedMeaning": [],
+        "reorderedWorkflow": [],
+        "defaultBehaviorDifferences": [],
+        "unclassified": [],
+        "defects": [],
+        "classifiedDifferences": [
+          {
+            "classification": "platform-required",
+            "area": "공용 애플리케이션 셸",
+            "rationale": "SSOO 공용 인증·MDI·내비게이션 셸을 유지하고 원천 업무 화면의 정보구조와 동작을 콘텐츠 영역에 이식했습니다."
+          }
+        ]
+      },
+      "states": [
+        {
+          "id": "new-empty",
+          "sourceScreenshot": "ux-03-form--new-empty.png",
+          "targetDesktopScreenshot": "ux-03-form--new-empty--desktop.png",
+          "targetMobileScreenshot": "ux-03-form--new-empty--mobile.png",
+          "differenceScreenshot": "ux-03-form--new-empty--difference.png",
+          "evidenceSha256": {
+            "source": "7bad9c7787a848e0b77845d5e838832f2a66601f82dde7f9bbf2ae4415bfb232",
+            "targetDesktop": "789d276bb6ce3d91d3de2685b058d56244033ee4f5364b0f962356098b9ad038",
+            "targetMobile": "e0b90336a3103625c3e8834fc410e959b81144ed6bda290f2cef2940fb1a601e",
+            "difference": "060385a5c28bc196cc96e497c63a5db6cf8cbe63bb937e8c6a0062651c243f5b"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "edit-seeded",
+          "sourceScreenshot": "ux-03-form.png",
+          "targetDesktopScreenshot": "ux-03-form--edit-seeded--desktop.png",
+          "targetMobileScreenshot": "ux-03-form--edit-seeded--mobile.png",
+          "differenceScreenshot": "ux-03-form--edit-seeded--difference.png",
+          "evidenceSha256": {
+            "source": "16bc04d73299497205e0c4886dbd74fdd4f7c6792edc9a7379c8e4db3b43eec6",
+            "targetDesktop": "5fff0aa01195aa1203f76b8d13f10cdef6b981492a3fe15c19d6f40b5f991f35",
+            "targetMobile": "e6ebec714bf346938c1134cfeaf84772d22cf94e259cf946b2a85293d1517238",
+            "difference": "39165f9417c0cb45a61d8b187dc87418efc060b6dd4b5e8b115c7e244a006ab7"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "required-validation",
+          "sourceScreenshot": "ux-03-form--required-validation.png",
+          "targetDesktopScreenshot": "ux-03-form--required-validation--desktop.png",
+          "targetMobileScreenshot": "ux-03-form--required-validation--mobile.png",
+          "differenceScreenshot": "ux-03-form--required-validation--difference.png",
+          "evidenceSha256": {
+            "source": "e879fd81369caf77cfbc5898c89caaf8c6c64780a26d6ff9785db69cb7bf61ae",
+            "targetDesktop": "f4d2669e64afc5c3d5de2fc043e915a1af6b8d62a857671e9522f15347f8bd9a",
+            "targetMobile": "774c6928b4141fe8d8544b579578ba0173cc8f11b5d9011a07c9815d6b9ccc40",
+            "difference": "cf3a22d8069453c1d0e42520f6424a42a68397fad12ab9449b97214eec097343"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "confirmed-locked",
+          "sourceScreenshot": "ux-03-form--confirmed-locked.png",
+          "targetDesktopScreenshot": "ux-03-form--confirmed-locked--desktop.png",
+          "targetMobileScreenshot": "ux-03-form--confirmed-locked--mobile.png",
+          "differenceScreenshot": "ux-03-form--confirmed-locked--difference.png",
+          "evidenceSha256": {
+            "source": "16bc04d73299497205e0c4886dbd74fdd4f7c6792edc9a7379c8e4db3b43eec6",
+            "targetDesktop": "6c2a2fbc6b376c0e28885227fc63b761122e519fa27b6732b3b12870f647a79b",
+            "targetMobile": "e6ebec714bf346938c1134cfeaf84772d22cf94e259cf946b2a85293d1517238",
+            "difference": "b5db3b3f77f89a48e4481043917333354110617bf8028e2fdfbcea761c78a6cc"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [
+            {
+              "classification": "source-bug-compatible",
+              "area": "확정 영업기회 입력 필드 표현",
+              "rationale": "원천도 확정 상태 입력 필드를 DOM disabled로 전환하지 않고 계약취소 선행 동선으로 잠금을 표현하므로 동일 의미를 유지했습니다."
+            }
+          ],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "quote-preview",
+          "sourceScreenshot": "ux-03-form--quote-preview.png",
+          "targetDesktopScreenshot": "ux-03-form--quote-preview--desktop.png",
+          "targetMobileScreenshot": "ux-03-form--quote-preview--mobile.png",
+          "differenceScreenshot": "ux-03-form--quote-preview--difference.png",
+          "evidenceSha256": {
+            "source": "1c679ec7282edc43247ba813ed6579e2f1b5e3ef25d0e2367b71f6def0494c76",
+            "targetDesktop": "f6e832286eb8e7e199107d928ad4fa7dfd8477a19cd53cceaf84f01fec703ff1",
+            "targetMobile": "654f1e1e6bc5bcfdbb60c65ed953fbb36a7b7be678db8043cf95d112b8e5a7b2",
+            "difference": "b071c872b4bb70d9743db4b9973f05df1e60e21335faf2351321d4f9bc4fe378"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [
+            {
+              "classification": "responsive-only",
+              "area": "모바일 견적서 표 containment",
+              "rationale": "원천 견적서의 열 순서·내용·스타일은 유지하되 390px에서는 문서 전체 overflow 대신 표 내부 스크롤로 한정했습니다."
+            }
+          ],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "quote-print",
+          "sourceScreenshot": "ux-03-form--quote-print.png",
+          "targetDesktopScreenshot": "ux-03-form--quote-print--desktop.png",
+          "targetMobileScreenshot": "ux-03-form--quote-print--mobile.png",
+          "differenceScreenshot": "ux-03-form--quote-print--difference.png",
+          "evidenceSha256": {
+            "source": "033a621c4e67ae1c3516c0c044a04196b473c4dca90c70bd3febf56d455b5149",
+            "targetDesktop": "90bcd7240bddf32251a26b67ee64a0c02b84203305450e27a60eec756a9aad65",
+            "targetMobile": "5c1fcc372c6851553b9cbddae7df0918d69d9c04e32c6ed3187d2baa1fe7c504",
+            "difference": "bdfa8941728dd57d4fc56af7edb8a5d957919e2376fed06d82117adc2587a57a"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [
+            {
+              "classification": "responsive-only",
+              "area": "모바일 견적서 표 containment",
+              "rationale": "원천 견적서의 열 순서·내용·스타일은 유지하되 390px에서는 문서 전체 overflow 대신 표 내부 스크롤로 한정했습니다."
+            }
+          ],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "confirm-revoke-delete",
+          "sourceScreenshot": "ux-03-form--confirm-revoke-delete.png",
+          "targetDesktopScreenshot": "ux-03-form--confirm-revoke-delete--desktop.png",
+          "targetMobileScreenshot": "ux-03-form--confirm-revoke-delete--mobile.png",
+          "differenceScreenshot": "ux-03-form--confirm-revoke-delete--difference.png",
+          "evidenceSha256": {
+            "source": "77012b3006acfc185901204c0cb5b7dafaa1c7890d76932d47f97b91fd33a75d",
+            "targetDesktop": "e019c62612d0247a47dc6039e7f50bb54d07755a14f8ff50351a806f08a2d5a6",
+            "targetMobile": "ff19e8bd03ebeb884097039fe65e5666e302d6003165e6051341e9a78b13c3ff",
+            "difference": "05d56cf819f78a694116d39795707bc912ff5690da44409f556a5f21a388ee46"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        }
+      ]
+    }
+  ]
+}

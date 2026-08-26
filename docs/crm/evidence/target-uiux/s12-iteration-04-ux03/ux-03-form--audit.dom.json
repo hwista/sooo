@@ -1,0 +1,1013 @@
+{
+  "title": "대시보드",
+  "sections": [
+    "영업기회 조회확정됨",
+    "예상계약기간",
+    "예상매출액 *",
+    "예상원가",
+    "Special DC 및 예상 손익"
+  ],
+  "fields": [
+    {
+      "id": "f-customer",
+      "name": null,
+      "type": "input",
+      "label": "고객명 *",
+      "placeholder": "고객사명 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "f-client-contact",
+      "name": null,
+      "type": "input",
+      "label": "고객사 담당자",
+      "placeholder": "고객사 담당자명 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "f-opp",
+      "name": null,
+      "type": "input",
+      "label": "영업기회명 *",
+      "placeholder": "영업기회 제목 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "f-status",
+      "name": null,
+      "type": "select",
+      "label": "상태",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "f-payment",
+      "name": null,
+      "type": "select",
+      "label": "수금조건",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "f-biz-type",
+      "name": null,
+      "type": "select",
+      "label": "사업구분 *",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "f-group-type",
+      "name": null,
+      "type": "select",
+      "label": "계열구분",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "f-domestic",
+      "name": null,
+      "type": "select",
+      "label": "국내/해외",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "f-start",
+      "name": null,
+      "type": "date",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "f-end",
+      "name": null,
+      "type": "date",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "-",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "-",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "-",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "업무/역할",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "소속",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "성명/그룹",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "등급",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "-",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "업무/역할",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "소속",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "성명/그룹",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "등급",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "-",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "업무/역할",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "소속",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "성명/그룹",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "등급",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "-",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "checkbox",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "checkbox",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "checkbox",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "업무/역할",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "소속",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "성명/그룹",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "등급",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "checkbox",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "업무/역할",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "소속",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "성명/그룹",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "등급",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "checkbox",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "업무/역할",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "소속",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "성명/그룹",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "등급",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "checkbox",
+      "label": null,
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "dc-type",
+      "name": null,
+      "type": "select",
+      "label": "Special DC 방식금액비율",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "dc-value",
+      "name": null,
+      "type": "number",
+      "label": "Special DC (원)",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    }
+  ],
+  "columns": [
+    "항목",
+    "수량",
+    "단가",
+    "절사",
+    "이익률",
+    "금액",
+    "삭제",
+    "항목",
+    "소속",
+    "성명/그룹",
+    "등급",
+    "구분",
+    "수량",
+    "단가",
+    "절사",
+    "이익률",
+    "금액",
+    "삭제",
+    "항목",
+    "수량",
+    "단가",
+    "절사",
+    "매출",
+    "매출단가",
+    "금액",
+    "삭제",
+    "항목",
+    "소속",
+    "성명/그룹",
+    "등급",
+    "구분",
+    "수량",
+    "단가",
+    "절사",
+    "매출",
+    "매출단가",
+    "금액",
+    "삭제",
+    "항목",
+    "소속",
+    "성명/그룹",
+    "등급",
+    "구분",
+    "수량",
+    "단가",
+    "절사",
+    "매출",
+    "매출단가",
+    "금액",
+    "삭제"
+  ],
+  "actions": [
+    "← 영업기회 현황으로 돌아가기",
+    "도움창",
+    "추가",
+    "라인 삭제",
+    "라인 삭제",
+    "라인 삭제",
+    "추가",
+    "라인 삭제",
+    "라인 삭제",
+    "라인 삭제",
+    "추가",
+    "매출 연동",
+    "라인 삭제",
+    "매출 연동",
+    "라인 삭제",
+    "매출 연동",
+    "라인 삭제",
+    "추가",
+    "매출 연동",
+    "라인 삭제",
+    "매출 연동",
+    "라인 삭제",
+    "추가",
+    "매출 연동",
+    "라인 삭제",
+    "취소",
+    "견적서",
+    "계약취소"
+  ],
+  "labels": [
+    "고객명 *",
+    "고객사 담당자",
+    "영업기회명 *",
+    "영업담당자 *",
+    "상태",
+    "수금조건",
+    "사업구분 *",
+    "계열구분",
+    "국내/해외",
+    "Special DC 방식금액비율",
+    "Special DC (원)"
+  ]
+}

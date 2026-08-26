@@ -1,0 +1,141 @@
+{
+  "states": [
+    {
+      "name": "confirmed-contract-list",
+      "captured": true,
+      "screenshot": "ux-07-billing-actual--confirmed-contract-list.png",
+      "screenshotSha256": "8408539e47a8aad1527f11a6e2987f401b3da8e0602dcb99a97843ce3f81961d",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.billing_actual.js"
+    },
+    {
+      "name": "contract-selected",
+      "captured": true,
+      "screenshot": "ux-07-billing-actual--contract-selected.png",
+      "screenshotSha256": "030547a6b98430e44d7931bab18c92b3ea5356fd9c9b2b997237186cc042c23e",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.billing_actual.js"
+    },
+    {
+      "name": "actual-empty",
+      "captured": true,
+      "screenshot": "ux-07-billing-actual--actual-empty.png",
+      "screenshotSha256": "67a2a1ac7129af92e70db2ee7c34a9c9ed736ba5a27545222d648ae2af8ac14b",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.billing_actual.js"
+    },
+    {
+      "name": "actual-seeded",
+      "captured": true,
+      "screenshot": "ux-07-billing-actual.png",
+      "screenshotSha256": "4f469c7f672b66504faff35a6605478d39263990d2f04c6564c82c31492e3a05",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.billing_actual.js"
+    },
+    {
+      "name": "save-validation",
+      "captured": true,
+      "screenshot": "ux-07-billing-actual--save-validation.png",
+      "screenshotSha256": "2861a76fb09de00f5f6be676cd4e10197936b963ba7ff074e32366f29273cf94",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.billing_actual.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "confirmed-contract-list",
+      "behavior": "confirmed contract list",
+      "sourceAnchors": [
+        "index.html",
+        "app.billing_actual.js"
+      ]
+    },
+    {
+      "id": "contract-selected",
+      "behavior": "contract selected",
+      "sourceAnchors": [
+        "index.html",
+        "app.billing_actual.js"
+      ]
+    },
+    {
+      "id": "actual-empty",
+      "behavior": "actual empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.billing_actual.js"
+      ]
+    },
+    {
+      "id": "actual-seeded",
+      "behavior": "actual seeded",
+      "sourceAnchors": [
+        "index.html",
+        "app.billing_actual.js"
+      ]
+    },
+    {
+      "id": "save-validation",
+      "behavior": "save validation",
+      "sourceAnchors": [
+        "index.html",
+        "app.billing_actual.js"
+      ]
+    }
+  ]
+}

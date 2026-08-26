@@ -22,7 +22,9 @@ import { serializeBigInt } from '../../../common/utils/bigint.util.js';
 import { UserProfileDto } from './dto/user-profile.dto.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { UpdateOwnProfileDto } from './dto/update-own-profile.dto.js';
 import { ApiError } from '../../../common/swagger/api-response.dto.js';
+import { ApiOkEnvelopeResponse } from '../../../common/swagger/api-response.decorator.js';
 
 @ApiTags("users")
 @ApiBearerAuth()
@@ -53,7 +55,7 @@ export class UserController {
    */
   @Get("profile")
   @ApiOperation({ summary: "내 프로필" })
-  @ApiOkResponse({ type: UserProfileDto })
+  @ApiOkEnvelopeResponse(UserProfileDto)
   @ApiNotFoundResponse({ type: ApiError })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
@@ -76,9 +78,22 @@ export class UserController {
         avatarUrl: user.avatarUrl,
         departmentCode: user.departmentCode,
         positionCode: user.positionCode,
+        roleCode: user.roleCode,
         lastLoginAt: user.lastLoginAt },
       "프로필 조회 성공",
     );
+  }
+
+  @Put('profile')
+  @ApiOperation({ summary: '내 계정 프로필 수정' })
+  @ApiBody({ type: UpdateOwnProfileDto })
+  @ApiOkResponse({ description: '프로필 수정 성공' })
+  async updateProfile(
+    @Body() dto: UpdateOwnProfileDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    const user = await this.userService.updateOwnProfile(BigInt(currentUser.userId), dto);
+    return success(serializeBigInt(user), '프로필이 저장되었습니다.');
   }
 
   /**
@@ -123,8 +138,8 @@ export class UserController {
   @ApiBody({ type: CreateUserDto })
   @ApiCreatedResponse({ description: '사용자 생성 성공' })
   @ApiForbiddenResponse({ type: ApiError })
-  async create(@Body() dto: CreateUserDto) {
-    const user = await this.userService.create(dto);
+  async create(@Body() dto: CreateUserDto, @CurrentUser() currentUser: TokenPayload) {
+    const user = await this.userService.create(dto, BigInt(currentUser.userId));
     return success(serializeBigInt(user), '사용자 생성 성공');
   }
 
@@ -140,8 +155,12 @@ export class UserController {
   @ApiOkResponse({ description: '사용자 수정 성공' })
   @ApiNotFoundResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
-  async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    const user = await this.userService.update(BigInt(id), dto);
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    const user = await this.userService.update(BigInt(id), dto, BigInt(currentUser.userId));
     return success(serializeBigInt(user), '사용자 수정 성공');
   }
 
@@ -156,8 +175,18 @@ export class UserController {
   @ApiOkResponse({ description: '사용자 비활성화 성공' })
   @ApiNotFoundResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
-  async deactivate(@Param('id') id: string) {
-    const user = await this.userService.deactivate(BigInt(id));
+  async deactivate(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
+    const user = await this.userService.deactivate(BigInt(id), BigInt(currentUser.userId));
     return success(serializeBigInt(user), '사용자 비활성화 성공');
+  }
+
+  @Post(':id/reactivate')
+  @Roles('admin')
+  @ApiOperation({ summary: '사용자 재활성화 (관리자)' })
+  @ApiParam({ name: 'id', description: '사용자 ID' })
+  @ApiOkResponse({ description: '사용자 재활성화 성공' })
+  async reactivate(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
+    const user = await this.userService.reactivate(BigInt(id), BigInt(currentUser.userId));
+    return success(serializeBigInt(user), '사용자 재활성화 성공');
   }
 }

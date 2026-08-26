@@ -1,0 +1,141 @@
+{
+  "states": [
+    {
+      "name": "seeded-years",
+      "captured": true,
+      "screenshot": "ux-12-biz-year.png",
+      "screenshotSha256": "48e6203c9b8f193d41fdb5a989970ecaa5074388a35e335ae18baee6ca86a1c6",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "empty-years",
+      "captured": true,
+      "screenshot": "ux-12-biz-year--empty-years.png",
+      "screenshotSha256": "27a542602260f7bc83ad78ab37ea80ba7d6401591000ad474f9c8d72e30e8426",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "create-validation",
+      "captured": true,
+      "screenshot": "ux-12-biz-year--create-validation.png",
+      "screenshotSha256": "58e410300a08d1d7ad5f0af2857a6ea85793a65cfc0402154d58aa959dae77f2",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "activate-deactivate",
+      "captured": true,
+      "screenshot": "ux-12-biz-year--activate-deactivate.png",
+      "screenshotSha256": "17c4e3959182e27470f02214493ad45eba83abcf653a8c41ca04589407cf6072",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "delete-confirmation",
+      "captured": true,
+      "screenshot": "ux-12-biz-year--delete-confirmation.png",
+      "screenshotSha256": "ea5f534aa2ffbbe67bd38a20bacbb3af8c0f1ce5c2b5ebe54bcb3545175cfab3",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-years",
+      "behavior": "seeded years",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "empty-years",
+      "behavior": "empty years",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "create-validation",
+      "behavior": "create validation",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "activate-deactivate",
+      "behavior": "activate deactivate",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "delete-confirmation",
+      "behavior": "delete confirmation",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    }
+  ]
+}

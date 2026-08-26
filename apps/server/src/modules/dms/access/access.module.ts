@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AccessFoundationModule } from '../../common/access/access-foundation.module.js';
 import { DatabaseModule } from '../../../database/database.module.js';
 import { CommonNotificationModule } from '../../common/notification/notification.module.js';
-import { AccessController } from './access.controller.js';
+import { DmsAccessController } from './access.controller.js';
 import { AccessGrantController } from './access-grant.controller.js';
 import { AccessRequestController } from './access-request.controller.js';
 import { AccessRequestService } from './access-request.service.js';
@@ -16,7 +16,7 @@ import { DocumentRecordService } from './document-record.service.js';
 
 @Module({
   imports: [DatabaseModule, AccessFoundationModule, CommonNotificationModule],
-  controllers: [AccessController, AccessRequestController, AccessGrantController],
+  controllers: [DmsAccessController, AccessRequestController, AccessGrantController],
   providers: [
     AccessService,
     AccessRequestService,

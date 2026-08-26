@@ -8,6 +8,7 @@ import type {
 import { DatabaseService } from '../../../database/database.service.js';
 import { AuthPolicyService } from './auth-policy.service.js';
 import { ConfirmPasswordResetDto, RequestPasswordResetDto } from './dto/password-reset.dto.js';
+import { AuthEmailOutboxWorkerService } from './auth-email-outbox-worker.service.js';
 
 const RESET_FAIL_LOCK_THRESHOLD = 5;
 const RESET_FAIL_LOCK_MINUTES = 30;
@@ -28,6 +29,7 @@ export class PasswordResetService {
   constructor(
     private readonly db: DatabaseService,
     private readonly authPolicyService: AuthPolicyService,
+    private readonly emailOutboxWorkerService: AuthEmailOutboxWorkerService,
   ) {}
 
   async requestReset(dto: RequestPasswordResetDto): Promise<RequestPasswordResetResult> {
@@ -129,6 +131,10 @@ export class PasswordResetService {
         });
       }
     });
+
+    if (this.authPolicyService.getEmailDeliveryMode(settings) === 'outbox') {
+      this.emailOutboxWorkerService.triggerRun('password-reset-request');
+    }
 
     return { accepted: true };
   }

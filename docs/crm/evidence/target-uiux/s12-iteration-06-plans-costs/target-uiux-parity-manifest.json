@@ -1,0 +1,307 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-audit",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T04:36:43.812Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-audit",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-10",
+      "UX-11",
+      "UX-13",
+      "UX-14"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-10",
+      "sourcePage": "bp-rpt",
+      "status": "partial",
+      "ownerSurface": "CRM /business-plan-performance?mode=source-compatible",
+      "targetUrl": "http://127.0.0.1:3105/business-plan-performance?mode=source-compatible",
+      "capturedAt": "2026-08-20T04:36:19.784Z",
+      "audit": {
+        "normalStateId": "seeded-plan-contract-comparison",
+        "sourceScreenshot": "ux-10-bp-rpt.png",
+        "targetDesktopScreenshot": "ux-10-bp-rpt--audit-desktop.png",
+        "targetMobileScreenshot": "ux-10-bp-rpt--audit-mobile.png",
+        "differenceScreenshot": "ux-10-bp-rpt--audit-difference.png",
+        "targetDomManifest": "ux-10-bp-rpt--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "filter-combination"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [
+            "bpr-year",
+            "bpr-biz-type",
+            "bpr-group-type",
+            "bpr-domestic"
+          ],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "c1cc331a22555b6cc8e07e9a6fe6dfdd41535301c5410683fc03754044d8f617",
+          "targetDesktop": "c5682d931c58a51616cd63cfbd87e54c0824fbd2452cae2efd58ec1255196b75",
+          "targetMobile": "802ea5c9d4e3ed704add5f9bdc00ada2a9bc5cc19b7c6942bb4e63921d29b9fa",
+          "difference": "609b4c1f20e7dbf71dd5ce7e0e5f34f3d6a636289033d8799d1fe8e3bc30595b",
+          "targetDom": "814146acc6aff9dbc1f3b43a07b4e55c738f0ff3a96ada7dbd7055fdbfbca543"
+        }
+      }
+    },
+    {
+      "uxId": "UX-11",
+      "sourcePage": "internal-cost",
+      "status": "partial",
+      "ownerSurface": "CRM /cost-plan?sourceSurface=internal-cost",
+      "targetUrl": "http://127.0.0.1:3105/cost-plan?sourceSurface=internal-cost",
+      "capturedAt": "2026-08-20T04:36:27.775Z",
+      "audit": {
+        "normalStateId": "seeded-grid",
+        "sourceScreenshot": "ux-11-internal-cost.png",
+        "targetDesktopScreenshot": "ux-11-internal-cost--audit-desktop.png",
+        "targetMobileScreenshot": "ux-11-internal-cost--audit-mobile.png",
+        "differenceScreenshot": "ux-11-internal-cost--audit-difference.png",
+        "targetDomManifest": "ux-11-internal-cost--audit.dom.json",
+        "missingStateIds": [
+          "paste",
+          "save-success",
+          "invalid-paste"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [
+            "ic-year"
+          ],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "c5ac231fda3d283f92c696a4773d239ed6fb3cd0ae0e5050aa13717610ba5432",
+          "targetDesktop": "ffbe7822c604c5d6503973f1181e4a41f61223aeff1c766a1f7b45b4ca43ad77",
+          "targetMobile": "577ec36b0863e6f5222135f1d2665e772febfe08c2e525a888fafb74058233e5",
+          "difference": "9a5d1340dab2840e14c32183e30fc9a8accb0befefe1df92ca5f5ad0c04d7604",
+          "targetDom": "9922b5a233976110c64b0a8c91ef291abefb7ab8d5471134a346769c7ca731f2"
+        }
+      }
+    },
+    {
+      "uxId": "UX-13",
+      "sourcePage": "ams-vendor",
+      "status": "partial",
+      "ownerSurface": "CRM /cost-plan?sourceSurface=ams-vendor",
+      "targetUrl": "http://127.0.0.1:3105/cost-plan?sourceSurface=ams-vendor",
+      "capturedAt": "2026-08-20T04:36:35.940Z",
+      "audit": {
+        "normalStateId": "seeded-vendor-wbs",
+        "sourceScreenshot": "ux-13-ams-vendor.png",
+        "targetDesktopScreenshot": "ux-13-ams-vendor--audit-desktop.png",
+        "targetMobileScreenshot": "ux-13-ams-vendor--audit-mobile.png",
+        "differenceScreenshot": "ux-13-ams-vendor--audit-difference.png",
+        "targetDomManifest": "ux-13-ams-vendor--audit.dom.json",
+        "missingStateIds": [
+          "empty-vendors",
+          "create-validation",
+          "multi-wbs-mapping",
+          "delete-confirmation"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [
+            "av-year"
+          ],
+          "missingColumns": [],
+          "missingActions": [
+            "삭제"
+          ],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "58a9caf3abe4b2f237b6f82ab4380aa21e6173bce7da8437c8b71e665fc16fe2",
+          "targetDesktop": "b7392587deb70c8b1069e5341503b8a28bdecd05a97574b8839ec9470b653f24",
+          "targetMobile": "aaf1146e2bf0669c5ee9eb27c34e0b851d4f5bed4aa1554bc04e225576d2ffb9",
+          "difference": "072a65d22c67f47b2da56d7d674eda15aeb91888a7ef84fdec3fcf8cb8d82b79",
+          "targetDom": "a02f48b6038b4374e0801923aa90a29d8ff903a862a8af9b4c3ea377bc17421e"
+        }
+      }
+    },
+    {
+      "uxId": "UX-14",
+      "sourcePage": "ams-cost",
+      "status": "partial",
+      "ownerSurface": "CRM /cost-plan?sourceSurface=ams-cost",
+      "targetUrl": "http://127.0.0.1:3105/cost-plan?sourceSurface=ams-cost",
+      "capturedAt": "2026-08-20T04:36:43.812Z",
+      "audit": {
+        "normalStateId": "seeded-vendor-wbs-grid",
+        "sourceScreenshot": "ux-14-ams-cost.png",
+        "targetDesktopScreenshot": "ux-14-ams-cost--audit-desktop.png",
+        "targetMobileScreenshot": "ux-14-ams-cost--audit-mobile.png",
+        "differenceScreenshot": "ux-14-ams-cost--audit-difference.png",
+        "targetDomManifest": "ux-14-ams-cost--audit.dom.json",
+        "missingStateIds": [
+          "empty-vendors",
+          "paste",
+          "save-success",
+          "invalid-paste"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [
+            "ac-year",
+            "0"
+          ],
+          "missingColumns": [
+            "공급업체",
+            "WBS코드",
+            "1월",
+            "2월",
+            "3월",
+            "4월",
+            "5월",
+            "6월",
+            "7월",
+            "8월",
+            "9월",
+            "10월",
+            "11월",
+            "12월",
+            "합계",
+            "계획",
+            "실적",
+            "차이"
+          ],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "db6d9b5f1c55a2370b36f2e83f6d6761c0532ffa058fe3daff8e1d55436737d9",
+          "targetDesktop": "ef9c87fa4f956c5b2bf0b4d79a9638e7bd772bcda5f15a5469e551796f0b7f99",
+          "targetMobile": "1f5f8c4dfe558dcfc844f6776faaf16d7ee5d0e82bfbb1bb9a5f97bb5b33480e",
+          "difference": "6d970befad36a4f19374b1da233ba7c01f5f626000940b41016b6aedba01f3e5",
+          "targetDom": "2d66f9d904ac9c280890842e92497012692580edc756eb9265daeba0f9fe27fa"
+        }
+      }
+    }
+  ]
+}

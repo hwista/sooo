@@ -2,6 +2,8 @@ import type {
   CrmContractSummary,
 } from './contract.js';
 import type {
+  CrmOpportunity,
+  CrmSourceOpportunityStatus,
   CrmOpportunityStatus,
   CrmOpportunitySummary,
 } from './opportunity.js';
@@ -52,6 +54,39 @@ export interface CrmDashboardNextAction {
   updatedAt: string;
 }
 
+export interface CrmDashboardSourceConfirmedSummary {
+  totalGroupCount: number;
+  confirmedLatestCount: number;
+  revenueTotal: number;
+  costTotal: number;
+  marginTotal: number;
+  marginRate: number;
+}
+
+export interface CrmDashboardSourceStatusDistribution {
+  status: CrmSourceOpportunityStatus;
+  count: number;
+  percentage: number;
+}
+
+export interface CrmDashboardSourceRecentOpportunity {
+  id: CrmOpportunity['id'];
+  customerName: string;
+  opportunityName: string;
+  ownerName: string;
+  status: CrmSourceOpportunityStatus;
+  updatedAt: string;
+  href: string;
+}
+
+export interface CrmDashboardSourceCompatibility {
+  calculationBasis: 'latest-version-canonical-total';
+  calculationNotice: string;
+  confirmedSummary: CrmDashboardSourceConfirmedSummary;
+  statusDistribution: CrmDashboardSourceStatusDistribution[];
+  recentOpportunities: CrmDashboardSourceRecentOpportunity[];
+}
+
 export interface CrmDashboardResponse {
   generatedAt: string;
   boundaryNotice: string;
@@ -61,5 +96,6 @@ export interface CrmDashboardResponse {
   pipeline: CrmDashboardPipelineStage[];
   queues: CrmDashboardQueue[];
   nextActions: CrmDashboardNextAction[];
+  sourceCompatibility: CrmDashboardSourceCompatibility;
   unimplementedIntegrations: string[];
 }

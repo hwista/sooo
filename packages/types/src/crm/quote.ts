@@ -8,6 +8,7 @@ import type {
 import type {
   DmsCrmQuoteLifecycleExecutionResult,
 } from '../dms/crm-quote-lifecycle.js';
+import type { CrmDmsDocumentTemplateOption } from './document-template.js';
 
 export type CrmQuotePreviewStatus = 'candidate' | 'blocked';
 export type CrmQuotePreviewLineSection = 'product' | 'service';
@@ -205,6 +206,7 @@ export interface CrmQuoteDmsDocumentPreview {
   documentTitle: string;
   templateKey: string;
   templateEvidence: CrmQuoteDmsTemplateEvidence;
+  templateOptions: CrmDmsDocumentTemplateOption[];
   folderHint: string;
   fileNameHint: string;
   draftPathHint: string;
@@ -239,6 +241,7 @@ export interface CrmQuoteDmsDocumentHandoff extends CrmQuoteDmsDocumentHandoffSu
 }
 
 export interface CrmQuoteDmsDocumentDraftRequest {
+  templateKey?: string;
   memo?: string;
 }
 

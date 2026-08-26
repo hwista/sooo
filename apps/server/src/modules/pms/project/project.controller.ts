@@ -29,8 +29,9 @@ import type {
   CreateContractPaymentDto,
   UpdateContractPaymentDto,
   ApplyCrmContractHandoffSnapshotDto } from "@ssoo/types";
-import { ProjectDto, ProjectListDto } from './dto/project.dto.js';
+import { ProjectDto } from './dto/project.dto.js';
 import { ApiError } from '../../../common/swagger/api-response.dto.js';
+import { ApiOkEnvelopeResponse, ApiOkPaginatedResponse } from '../../../common/swagger/api-response.decorator.js';
 
 type FindProjectListQuery = PaginationParams & {
   statusCode?: string;
@@ -52,7 +53,7 @@ export class ProjectController {
 
   @Get()
   @ApiOperation({ summary: "프로젝트 목록" })
-  @ApiOkResponse({ type: ProjectListDto })
+  @ApiOkPaginatedResponse(ProjectDto)
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
   @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
@@ -127,7 +128,7 @@ export class ProjectController {
   @Get(":id")
   @RequireProjectFeature('canViewProject', { projectIdParam: 'id' })
   @ApiOperation({ summary: "프로젝트 상세" })
-  @ApiOkResponse({ type: ProjectDto })
+  @ApiOkEnvelopeResponse(ProjectDto)
   @ApiNotFoundResponse({ type: ApiError })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
@@ -142,7 +143,7 @@ export class ProjectController {
 
   @Post()
   @ApiOperation({ summary: "프로젝트 생성" })
-  @ApiOkResponse({ type: ProjectDto })
+  @ApiOkEnvelopeResponse(ProjectDto)
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
   @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })
@@ -157,7 +158,7 @@ export class ProjectController {
   @Put(":id")
   @RequireProjectFeature('canEditProject', { projectIdParam: 'id' })
   @ApiOperation({ summary: "프로젝트 수정" })
-  @ApiOkResponse({ type: ProjectDto })
+  @ApiOkEnvelopeResponse(ProjectDto)
   @ApiNotFoundResponse({ type: ApiError })
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })

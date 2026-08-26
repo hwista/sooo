@@ -3,7 +3,8 @@
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import { cn } from '../../cn';
 import type { SsooAiSearchViewerSearchControls } from './toolbarTypes';
-import { Button, Input } from '@ssoo/web-ui';
+import { Button } from '@ssoo/web-ui';
+import { SsooSearchInput } from '../../search-input';
 
 function toolbarIconButtonClass(className?: string) {
   return cn(
@@ -25,6 +26,10 @@ export function SsooAiSearchToolbarSearchControls({
 }: SsooAiSearchViewerSearchControls) {
   return (
     <form
+      role="search"
+      aria-label="검색 결과 내 검색"
+      name="ssoo-in-view-search"
+      autoComplete="off"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
@@ -34,8 +39,11 @@ export function SsooAiSearchToolbarSearchControls({
       <div className="flex min-w-0 items-center">
         <Search className="mr-1 h-4 w-4 shrink-0 text-muted-foreground" />
         <div className="relative min-w-0">
-          <Input
-            type="text"
+          <SsooSearchInput
+            id="ssoo-in-view-search-input"
+            name="ssoo-in-view-search-query"
+            ariaLabel="검색 결과 내 검색"
+            intent="in-view-search"
             placeholder={placeholder}
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}

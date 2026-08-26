@@ -5,6 +5,7 @@ import { jest } from '@jest/globals';
 import type { TokenPayload } from '../../src/modules/common/auth/interfaces/auth.interface.js';
 import { configService } from '../../src/modules/dms/runtime/dms-config.service.js';
 import { gitService } from '../../src/modules/dms/runtime/git.service.js';
+import { createDocxTemplateFromText } from '../../src/modules/dms/templates/docx-template-renderer.js';
 import { TemplateService } from '../../src/modules/dms/templates/template.service.js';
 
 type TemplateRow = {
@@ -180,12 +181,23 @@ describe('TemplateService', () => {
       return row;
     });
 
-    updateMock = jest.fn(async ({ where, data }: { where: { templateId: bigint }; data: TemplateCreateData }) => {
+    updateMock = jest.fn(async ({
+      where,
+      data,
+    }: {
+      where: { templateId: bigint };
+      data: Partial<TemplateCreateData>;
+    }) => {
       const index = rows.findIndex((row) => row.templateId === where.templateId);
       if (index < 0) {
         throw new Error('row not found');
       }
-      const updated = makeCreateRow(where.templateId, data);
+      const updated: TemplateRow = {
+        ...rows[index],
+        ...data,
+        templateId: where.templateId,
+        updatedAt: new Date('2026-05-21T00:01:00.000Z'),
+      };
       rows[index] = updated;
       return updated;
     });
@@ -230,6 +242,7 @@ describe('TemplateService', () => {
       'system-doc-default',
       'system-folder-default',
       'crm-contract-v1',
+      'crm-opportunity-contract-v1',
       'crm-quote-v1',
     ]);
     expect(templates.personal.map((item) => item.id)).toEqual(['tpl-6b582033']);
@@ -276,5 +289,46 @@ describe('TemplateService', () => {
     expect(item.scope).toBe('global');
     expect(item.sourcePath).toBe('system/ws009-global.md');
     expect(fs.existsSync(path.join(tempRoot, '_templates/system/ws009-global.md'))).toBe(true);
+  });
+
+  it('stores and verifies an uploaded DOCX binary on a document template', async () => {
+    const templates = await templateService.list('1');
+    const template = templates.global.find((item) => item.id === 'crm-contract-v1');
+    expect(template).toBeDefined();
+
+    const uploadedBuffer = createDocxTemplateFromText('계약명: {contractName}');
+    const uploaded = await templateService.saveDocxBinary(
+      'crm-contract-v1',
+      'global',
+      '1',
+      { buffer: uploadedBuffer, originalName: '영업계약서.docx' },
+      tokenFor('1', 'admin'),
+    );
+
+    expect(uploaded.docxTemplate).toEqual(expect.objectContaining({
+      fileName: '영업계약서.docx',
+      origin: 'uploaded',
+      sourcePath: 'system/crm-contract-v1.docx',
+      size: uploadedBuffer.length,
+      uploadedBy: 'admin',
+    }));
+    expect(templateService.readDocxBinary(uploaded)).toEqual(uploadedBuffer);
+    expect(updateMock).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        lastActivity: 'dms.templates.docx-upload',
+      }),
+    }));
+  });
+
+  it('rejects an invalid DOCX upload before changing template metadata', async () => {
+    await templateService.list('1');
+
+    await expect(templateService.saveDocxBinary(
+      'crm-contract-v1',
+      'global',
+      '1',
+      { buffer: Buffer.from('not-a-docx'), originalName: 'invalid.docx' },
+      tokenFor('1', 'admin'),
+    )).rejects.toThrow('유효한 DOCX ZIP 파일이 아닙니다.');
   });
 });

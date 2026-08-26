@@ -1,6 +1,7 @@
 import type {
   DmsCrmContractLifecycleGovernance,
 } from '../dms/crm-contract-lifecycle.js';
+import type { CrmDmsDocumentTemplateOption } from './document-template.js';
 import type {
   CrmAdminBoundary,
   CrmIntegrationStatus,
@@ -101,6 +102,8 @@ export interface CrmContractUpsertRequest {
   customerName: string;
   contractName: string;
   ownerName: string;
+  clientContactName?: string;
+  ownerUserId?: string;
   businessType: string;
   industryLine: string;
   region: 'domestic' | 'overseas';
@@ -129,6 +132,8 @@ export interface CrmContract {
   customerName: string;
   contractName: string;
   ownerName: string;
+  clientContactName?: string;
+  ownerUserId?: string;
   businessType: string;
   industryLine: string;
   region: 'domestic' | 'overseas';
@@ -178,6 +183,8 @@ export interface CrmContractPmsHandoffPreview {
   customerName: string;
   contractName: string;
   ownerName: string;
+  clientContactName?: string;
+  ownerUserId?: string;
   businessType: string;
   industryLine: string;
   region: 'domestic' | 'overseas';
@@ -269,6 +276,8 @@ export interface CrmContractDmsDocumentPreview {
   customerName: string;
   contractName: string;
   ownerName: string;
+  clientContactName?: string;
+  ownerUserId?: string;
   contractStartDate: string;
   contractEndDate: string;
   wbsCode?: string;
@@ -279,6 +288,7 @@ export interface CrmContractDmsDocumentPreview {
   documentType: CrmContractDmsDocumentType;
   documentTitle: string;
   templateKey: string;
+  templateOptions: CrmDmsDocumentTemplateOption[];
   folderHint: string;
   fileNameHint: string;
   draftPathHint: string;
@@ -315,6 +325,7 @@ export interface CrmContractDmsDocumentHandoff extends CrmContractDmsDocumentHan
 }
 
 export interface CrmContractDmsDocumentDraftRequest {
+  templateKey?: string;
   memo?: string;
 }
 

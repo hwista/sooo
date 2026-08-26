@@ -7,7 +7,8 @@ import { ActivityListSection } from '@/components/templates/page-frame/panel';
 import type { ActivityAction } from '@/components/templates/page-frame/panel';
 import { getAttachmentCategory, ATTACHMENT_ACCEPT_STRING } from '@/lib/constants/file';
 import { armProtectedAppLifecycleCheckSkip } from '@/lib/protectedAppLifecycleCheck';
-import { Button, Input } from '@ssoo/web-ui';
+import { Button, Input, NativeSelect } from '@ssoo/web-ui';
+import { useSettingsStore } from '@/stores';
 
 function formatSize(size: number): string {
   if (size < 1024) return `${size} B`;
@@ -63,8 +64,18 @@ export function AttachmentsSection({
   locked?: boolean;
 }) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const preferredStorageProvider = useSettingsStore(
+    (state) => state.config?.personal.workspace.preferredStorageProvider ?? 'system-default',
+  );
+  const [uploadProvider, setUploadProvider] = React.useState<'system-default' | 'local' | 'nas'>(
+    preferredStorageProvider,
+  );
   const [pendingDeletes, setPendingDeletes] = React.useState<Set<string>>(new Set());
   const [deletedAttachments, setDeletedAttachments] = React.useState<SourceFileMeta[]>([]);
+
+  React.useEffect(() => {
+    setUploadProvider(preferredStorageProvider);
+  }, [preferredStorageProvider]);
 
   const attachmentKey = (a: SourceFileMeta) => a.path || a.name;
 
@@ -113,6 +124,7 @@ export function AttachmentsSection({
       size: file.size,
       origin: 'manual',
       status: 'draft',
+      ...(uploadProvider === 'system-default' ? {} : { provider: uploadProvider }),
     };
 
     onChange?.([...attachments, tempMeta]);
@@ -230,7 +242,20 @@ export function AttachmentsSection({
       locked={locked}
     >
       {editable && !templateMode && !locked && (
-        <div className="pt-2">
+        <div className="grid gap-2 pt-2">
+          <label className="grid gap-1 text-caption text-ssoo-primary/70">
+            첨부 저장소
+            <NativeSelect
+              aria-label="첨부 저장소"
+              value={uploadProvider}
+              onChange={(event) => setUploadProvider(event.target.value as 'system-default' | 'local' | 'nas')}
+              className="h-8 border-ssoo-content-border bg-card text-caption text-ssoo-primary"
+            >
+              <option value="system-default">System default</option>
+              <option value="local">Local</option>
+              <option value="nas">NAS</option>
+            </NativeSelect>
+          </label>
           <Button variant="plain" size="plain"
             type="button"
             onClick={() => {

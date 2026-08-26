@@ -24,6 +24,7 @@ const buttonVariants = cva(
         xsIcon: 'h-7 min-w-7 px-1 text-xs font-normal leading-4 [&_svg]:size-3.5',
         sm: 'h-control-h-sm px-3 text-caption',
         pageAction: 'h-control-h gap-1.5 px-3 text-action-md [&_svg]:size-4',
+        authIcon: 'h-11 w-11',
         lg: 'h-control-h-lg px-6 text-control-lg',
         icon: 'h-control-h w-control-h',
         plain: '',

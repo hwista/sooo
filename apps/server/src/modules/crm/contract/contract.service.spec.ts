@@ -141,15 +141,27 @@ function createTemplateServiceMock(
     originType: 'referenced',
     referenceDocuments: [],
     generation: { source: 'manual', taskKey: 'crm-contract-document' },
+    docxTemplate: {
+      fileName: 'crm-contract-v1.docx',
+      sourcePath: 'system/crm-contract-v1.docx',
+      size: 2048,
+      checksum: 'b'.repeat(64),
+      uploadedAt: '2026-07-09T00:00:00.000Z',
+      uploadedBy: 'system',
+      origin: 'generated',
+    },
   },
-): Pick<TemplateService, 'get'> & { get: TemplateGetMock } {
+): Pick<TemplateService, 'get' | 'list'> & { get: TemplateGetMock } {
   const calls: Parameters<TemplateService['get']>[] = [];
   const get = (async (...args: Parameters<TemplateService['get']>) => {
     calls.push(args);
     return template;
   }) as TemplateGetMock;
   get.calls = calls;
-  return { get };
+  return {
+    get,
+    list: async () => ({ global: template ? [template] : [], personal: [] }),
+  };
 }
 
 function createDmsCrmContractLifecycleMock(): Pick<DmsCrmContractLifecycleService, 'execute'> & {
@@ -537,7 +549,7 @@ function createService(
   db: QueryMock,
   quoteSettingsService: Pick<QuoteSettingsService, 'getSellerProfile' | 'toSellerInfoStatus'> = createQuoteSettingsMock(),
   fileCrudService: Pick<FileCrudService, 'write' | 'resolveFilePath'> = createFileCrudMock(),
-  templateService?: Pick<TemplateService, 'get'>,
+  templateService?: Pick<TemplateService, 'get' | 'list'>,
   dmsCrmContractLifecycleService?: Pick<DmsCrmContractLifecycleService, 'execute'>,
 ) {
   return new ContractService(
@@ -984,7 +996,7 @@ describe('ContractService', () => {
       sellerInfoStatus: 'configured',
       blockedReasons: [],
     });
-    expect(result.unavailableActions).toEqual(['Word 파일 생성', 'PDF 저장', 'DMS 템플릿 검토 확정']);
+    expect(result.unavailableActions).toEqual([]);
     expect(result.boundaryNotice).toContain('DMS');
     expect(result.fileNameHint).toContain('crm-ct-doc');
     expect(result.draftPathHint).toBe('CRM/LS_ITC/crm-ct-doc/crm-ct-doc_DMS_문서_패킷_검증_contract-draft.md');
@@ -1170,7 +1182,7 @@ describe('ContractService', () => {
       expect.objectContaining({ key: 'seller-ci', evidencePath: 'dms://ci/ssoo.png' }),
       expect.objectContaining({ key: 'billing-plan', evidencePath: 'crm-ct-doc#billing-plan:2' }),
     ]));
-    expect(result.preview.unavailableActions).toEqual(['Word 파일 생성', 'PDF 저장', 'DMS 템플릿 검토 확정']);
+    expect(result.preview.unavailableActions).toEqual([]);
     expect(fileCrud.write.calls).toHaveLength(1);
     expect(fileCrud.write.calls[0]?.[0]).toBe(result.savedPath);
     expect(fileCrud.write.calls[0]?.[1]).toContain('# LS ITC 데이터 플랫폼 구축 계약 계약서');
@@ -1906,6 +1918,7 @@ describe('ContractService', () => {
   it('creates an editable CRM contract with lines and billing plan', async () => {
     const db = createDbMock();
     db.$queryRaw
+      .mockResolvedValueOnce([{ id: 7n, userName: 'kim.mj', displayName: '김민준' }])
       .mockResolvedValueOnce([{ id: 10n, code: 'crm-ct-new' }])
       .mockResolvedValueOnce([
         {
@@ -1916,6 +1929,8 @@ describe('ContractService', () => {
           customerName: 'LS ITC',
           contractName: '계약 저장 API 검증',
           ownerName: '김민준',
+          clientContactName: '박고객',
+          ownerUserId: 7n,
           businessType: 'SI 구축',
           industryLine: '전력/제조',
           regionCode: 'domestic',
@@ -1999,6 +2014,8 @@ describe('ContractService', () => {
       customerName: 'LS ITC',
       contractName: '계약 저장 API 검증',
       ownerName: '김민준',
+      clientContactName: '박고객',
+      ownerUserId: '7',
       businessType: 'SI 구축',
       industryLine: '전력/제조',
       region: 'domestic',
@@ -2038,8 +2055,38 @@ describe('ContractService', () => {
     expect(result.id).toBe('crm-ct-new');
     expect(result.revenueTotal).toBe(190000000);
     expect(result.externalCostTotal).toBe(60000000);
+    expect(result.clientContactName).toBe('박고객');
+    expect(result.ownerUserId).toBe('7');
     expect(result.billingPlan).toHaveLength(1);
     expect(db.$executeRaw.calls).toHaveLength(5);
+  });
+
+  it('rejects a contract owner identity that is not an active common user', async () => {
+    const db = createDbMock();
+    db.$queryRaw.mockResolvedValueOnce([]);
+    const service = createService(db);
+
+    await expect(service.createContract({
+      customerName: 'LS ITC',
+      contractName: '담당 사용자 FK 검증',
+      ownerName: '알 수 없는 담당자',
+      ownerUserId: '999999',
+      businessType: 'SI 구축',
+      industryLine: '전력/제조',
+      region: 'domestic',
+      contractStartDate: '2026-09-01',
+      contractEndDate: '2026-10-31',
+      revenueLines: [{
+        category: 'service',
+        label: '구축 서비스',
+        amount: 100000000,
+        serviceType: 'internal',
+      }],
+      costLines: [],
+    }, 7n)).rejects.toThrow('활성 상태인 담당 사용자를 찾을 수 없습니다.');
+
+    expect(db.$queryRaw.calls).toHaveLength(1);
+    expect(db.$executeRaw.calls).toHaveLength(0);
   });
 
   it('rejects contract saves when billing plan totals do not match the payload totals', async () => {
@@ -2164,5 +2211,63 @@ describe('ContractService', () => {
 
     expect(result).toEqual({ id: 'crm-ct-new', deleted: true });
     expect(db.$executeRaw.calls).toHaveLength(2);
+  });
+
+  it('revokes even a confirmed converted contract and restores the source opportunity in one transaction', async () => {
+    const db = createDbMock();
+    db.$queryRaw.mockResolvedValueOnce([
+      {
+        id: 10n,
+        code: 'crm-ct-new',
+        sourceOpportunityId: 1n,
+        sourceOpportunityCode: 'crm-opp-001',
+        confirmed: true,
+        wbsCode: 'WBS-CRM-NEW',
+        revenueTotal: 190000000n,
+        externalCostTotal: 60000000n,
+      },
+    ]);
+    const service = createService(db);
+
+    const result = await service.revokeConvertedContract({
+      opportunityId: 1n,
+      opportunityCode: 'crm-opp-001',
+      contractCode: 'crm-ct-new',
+      reopenOpportunity: false,
+      currentUserId: 7n,
+    });
+
+    expect(result).toEqual({
+      contractCode: 'crm-ct-new',
+      opportunityCode: 'crm-opp-001',
+      opportunityConfirmed: true,
+    });
+    expect(db.$executeRaw.calls).toHaveLength(2);
+  });
+
+  it('rejects converted-contract recovery when the contract belongs to another opportunity', async () => {
+    const db = createDbMock();
+    db.$queryRaw.mockResolvedValueOnce([
+      {
+        id: 10n,
+        code: 'crm-ct-new',
+        sourceOpportunityId: 99n,
+        sourceOpportunityCode: 'crm-opp-099',
+        confirmed: false,
+        wbsCode: null,
+        revenueTotal: 190000000n,
+        externalCostTotal: 60000000n,
+      },
+    ]);
+    const service = createService(db);
+
+    await expect(service.revokeConvertedContract({
+      opportunityId: 1n,
+      opportunityCode: 'crm-opp-001',
+      contractCode: 'crm-ct-new',
+      reopenOpportunity: true,
+      currentUserId: 7n,
+    })).rejects.toThrow('연결 계약과 영업기회가 일치하지 않습니다.');
+    expect(db.$executeRaw.calls).toHaveLength(0);
   });
 });

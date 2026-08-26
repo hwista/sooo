@@ -34,8 +34,8 @@ describe('DocumentHydrationService', () => {
         },
         dmsDocument: {
           findMany: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([
-            { relativePath: 'docs/a.md' },
-            { relativePath: 'docs/b.md' },
+            { relativePath: 'docs/a.md', isActive: true, documentStatusCode: 'active', syncStatusCode: 'synced' },
+            { relativePath: 'docs/b.md', isActive: true, documentStatusCode: 'active', syncStatusCode: 'synced' },
           ]),
           updateMany,
           create: jest.fn(),
@@ -50,9 +50,55 @@ describe('DocumentHydrationService', () => {
       },
     } as unknown as ConstructorParameters<typeof DocumentHydrationService>[0];
 
-    const result = await new DocumentHydrationService(db).hydrateFromDisk();
+    const documentRecordService = {
+      ensureDocumentRecord: jest.fn(),
+    } as unknown as ConstructorParameters<typeof DocumentHydrationService>[1];
+    const result = await new DocumentHydrationService(db, documentRecordService).hydrateFromDisk();
 
     expect(result.documentsMissing).toBe(0);
     expect(updateMany).not.toHaveBeenCalled();
+  });
+
+  it('reactivates a disk document whose unique control-plane record is inactive', async () => {
+    fs.mkdirSync(path.join(docDir, 'docs'), { recursive: true });
+    fs.writeFileSync(path.join(docDir, 'docs', 'restored.md'), '# Restored');
+    fs.mkdirSync(path.join(docDir, '.git'));
+
+    const db = {
+      client: {
+        user: {
+          findFirst: jest.fn<() => Promise<unknown>>().mockResolvedValue({ id: 1n }),
+        },
+        dmsDocument: {
+          findMany: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([
+            {
+              relativePath: 'docs/restored.md',
+              isActive: false,
+              documentStatusCode: 'deleted',
+              syncStatusCode: 'deleted',
+            },
+          ]),
+          updateMany: jest.fn(),
+          create: jest.fn(),
+        },
+        dmsDocumentGrant: { create: jest.fn() },
+        dmsDocumentSourceFile: { create: jest.fn() },
+        dmsDocumentComment: { create: jest.fn() },
+        dmsTemplate: {
+          findMany: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+          create: jest.fn(),
+        },
+      },
+    } as unknown as ConstructorParameters<typeof DocumentHydrationService>[0];
+    const ensureDocumentRecord = jest.fn<() => Promise<unknown>>().mockResolvedValue({});
+    const documentRecordService = {
+      ensureDocumentRecord,
+    } as unknown as ConstructorParameters<typeof DocumentHydrationService>[1];
+
+    const result = await new DocumentHydrationService(db, documentRecordService).hydrateFromDisk();
+
+    expect(ensureDocumentRecord).toHaveBeenCalledWith('docs/restored.md');
+    expect(result.documentsReactivated).toBe(1);
+    expect(db.client.dmsDocument.create).not.toHaveBeenCalled();
   });
 });

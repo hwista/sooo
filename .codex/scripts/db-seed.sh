@@ -30,6 +30,12 @@ seed_files=(
   16_sns_access_policy_foundation.sql
   18_crm_access_policy_foundation.sql
   52_crm_opportunities.sql
+  55_crm_customer_activity.sql
+  53_crm_quote_seller_profile.sql
+  54_crm_business_plan.sql
+  56_crm_source_contracts.sql
+  57_crm_launch_operations.sql
+  58_crm_source_uiux_reference.sql
   17_demo_project_access_context.sql
   21_demo_project_statuses.sql
   12_demo_project_members.sql

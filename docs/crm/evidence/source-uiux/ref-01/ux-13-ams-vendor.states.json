@@ -1,0 +1,141 @@
+{
+  "states": [
+    {
+      "name": "seeded-vendor-wbs",
+      "captured": true,
+      "screenshot": "ux-13-ams-vendor.png",
+      "screenshotSha256": "58a9caf3abe4b2f237b6f82ab4380aa21e6173bce7da8437c8b71e665fc16fe2",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    },
+    {
+      "name": "empty-vendors",
+      "captured": true,
+      "screenshot": "ux-13-ams-vendor--empty-vendors.png",
+      "screenshotSha256": "46c98d6124abacbc477e9b0671b83add56743b600fd8e913250a62c15b9efdd7",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    },
+    {
+      "name": "create-validation",
+      "captured": true,
+      "screenshot": "ux-13-ams-vendor--create-validation.png",
+      "screenshotSha256": "58a9caf3abe4b2f237b6f82ab4380aa21e6173bce7da8437c8b71e665fc16fe2",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    },
+    {
+      "name": "multi-wbs-mapping",
+      "captured": true,
+      "screenshot": "ux-13-ams-vendor--multi-wbs-mapping.png",
+      "screenshotSha256": "0b8608e696d38b08c7eac3bfd7bbf11127e472c85ec057ee7fcbdc4caca1b404",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    },
+    {
+      "name": "delete-confirmation",
+      "captured": true,
+      "screenshot": "ux-13-ams-vendor--delete-confirmation.png",
+      "screenshotSha256": "0b8608e696d38b08c7eac3bfd7bbf11127e472c85ec057ee7fcbdc4caca1b404",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-vendor-wbs",
+      "behavior": "seeded vendor wbs",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    },
+    {
+      "id": "empty-vendors",
+      "behavior": "empty vendors",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    },
+    {
+      "id": "create-validation",
+      "behavior": "create validation",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    },
+    {
+      "id": "multi-wbs-mapping",
+      "behavior": "multi wbs mapping",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    },
+    {
+      "id": "delete-confirmation",
+      "behavior": "delete confirmation",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    }
+  ]
+}

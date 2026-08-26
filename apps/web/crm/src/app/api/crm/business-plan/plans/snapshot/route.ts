@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     createServerApiUrl('/crm/business-plan/plans/snapshot'),
     createServerApiProxyInit(req, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: await req.text(),
     }),
   );

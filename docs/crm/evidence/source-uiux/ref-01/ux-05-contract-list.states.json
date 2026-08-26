@@ -1,0 +1,87 @@
+{
+  "states": [
+    {
+      "name": "seeded-list",
+      "captured": true,
+      "screenshot": "ux-05-contract-list.png",
+      "screenshotSha256": "c3140e49d62b42eac86c94af036395a170b0cc87b64ad66400f36fe39c74a974",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract.js"
+    },
+    {
+      "name": "filtered-empty",
+      "captured": true,
+      "screenshot": "ux-05-contract-list--filtered-empty.png",
+      "screenshotSha256": "82e1281c9372f40b22a4e8758fb89dea9911f2b906d31e6ec62cc774a7483c79",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract.js"
+    },
+    {
+      "name": "row-drilldown",
+      "captured": true,
+      "screenshot": "ux-05-contract-list--row-drilldown.png",
+      "screenshotSha256": "aa8a77a06b9fc987b7ed2c665f2122f3b208f2d05d00bbc53fc2955a3d27c5dc",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-list",
+      "behavior": "seeded list",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract.js"
+      ]
+    },
+    {
+      "id": "filtered-empty",
+      "behavior": "filtered empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract.js"
+      ]
+    },
+    {
+      "id": "row-drilldown",
+      "behavior": "row drilldown",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract.js"
+      ]
+    }
+  ]
+}

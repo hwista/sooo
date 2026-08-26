@@ -212,6 +212,21 @@ export type {
   UseSsooGlobalHeaderSearchResult,
 } from './global-header-search';
 
+export { SsooSearchInput } from './search-input';
+export type {
+  SsooSearchInputIntent,
+  SsooSearchInputProps,
+} from './search-input';
+export {
+  getSsooSearchInputSignatureError,
+  isReservedSsooCredentialFieldSignature,
+  shouldRejectSsooUnexpectedAutofill,
+} from './search-input-autofill';
+export type {
+  SsooSearchInputSignature,
+  SsooUnexpectedAutofillDecision,
+} from './search-input-autofill';
+
 export {
   SsooTabBarControlButton,
   SsooTabBarCloseButton,

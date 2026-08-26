@@ -1,0 +1,51 @@
+{
+  "title": "계약청구실적",
+  "sections": [
+    "계약청구실적 입력",
+    "청구계획",
+    "청구실적 + 행 추가"
+  ],
+  "fields": [
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "YYYY/MM",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "← 계약청구실적 목록으로 돌아가기",
+    "+ 행 추가",
+    "실적 저장"
+  ],
+  "labels": [
+    "계획 매출액",
+    "실적 매출액",
+    "계획 외부원가",
+    "실적 외부원가",
+    "청구계획",
+    "청구실적 + 행 추가"
+  ]
+}

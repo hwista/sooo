@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { FileUp, Plus, Search } from 'lucide-react';
 import { useAssistantContextStore, useTabStore } from '@/stores';
 import type { TemplateItem } from '@/types/template';
@@ -25,6 +25,7 @@ import {
 import { createPendingSummaryFile, extractSummaryFile } from './summaryFileExtraction';
 import { armProtectedAppLifecycleCheckSkip } from '@/lib/protectedAppLifecycleCheck';
 import { Button, Input } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 
 export interface ExtractedImageItem {
   base64: string;
@@ -89,6 +90,7 @@ export function AssistantReferencePicker({
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const searchInputUid = useId().replace(/:/g, '');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeSummaryFileIdsRef = useRef<Set<string>>(new Set());
   const extractionControllersRef = useRef<Map<string, AbortController>>(new Map());
@@ -193,6 +195,7 @@ export function AssistantReferencePicker({
     activeSummaryFileIdsRef.current = nextIds;
     inlineContext.onUpsertSummaryFiles(pendingFiles);
     event.target.value = '';
+    setOpen(false);
 
     void Promise.all(pendingFiles.map(async (pendingFile) => {
       const rawFile = pendingFile.rawFile;
@@ -323,7 +326,11 @@ export function AssistantReferencePicker({
 
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ssoo-primary/50" />
-            <Input
+            <SsooSearchInput
+              id={`dms-assistant-reference-search-${searchInputUid}`}
+              name={`dms-assistant-reference-query-${searchInputUid}`}
+              ariaLabel={searchLabel}
+              intent="entity-lookup"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={searchPlaceholder}

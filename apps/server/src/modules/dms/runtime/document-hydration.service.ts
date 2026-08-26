@@ -138,13 +138,17 @@ export class DocumentHydrationService {
     const docFiles = allFiles.filter((f) => !f.startsWith(templatePrefix));
 
     const existingDocs = await this.db.client.dmsDocument.findMany({
-      where: { isActive: true },
       select: {
         relativePath: true,
         syncStatusCode: true,
+        documentStatusCode: true,
+        isActive: true,
       },
     });
     const existingDocsByPath = new Map(existingDocs.map((d) => [d.relativePath, d]));
+    const activeDocs = existingDocs.filter(
+      (document) => document.isActive && document.documentStatusCode === 'active',
+    );
 
     let created = 0;
     let reactivated = 0;
@@ -153,7 +157,12 @@ export class DocumentHydrationService {
     for (const relPath of docFiles) {
       const existing = existingDocsByPath.get(relPath);
       if (existing) {
-        if (existing.syncStatusCode === 'missing') {
+        if (
+          !existing.isActive
+          || existing.documentStatusCode !== 'active'
+          || existing.syncStatusCode === 'missing'
+          || existing.syncStatusCode === 'deleted'
+        ) {
           try {
             await this.documentRecordService.ensureDocumentRecord(relPath);
             reactivated++;
@@ -308,7 +317,7 @@ export class DocumentHydrationService {
     const shouldMarkMissing = hasGitRepository || !bootstrapRemoteConfigured;
 
     if (!shouldMarkMissing) {
-      const missingCandidateCount = existingDocs.length - skipped;
+      const missingCandidateCount = activeDocs.length - skipped;
       if (missingCandidateCount > 0) {
         logger.warn('문서 missing 체크 스킵 — Git content-plane 준비 전 DB 문서 상태 보존', {
           missingCandidateCount,
@@ -321,7 +330,7 @@ export class DocumentHydrationService {
     }
 
     const diskPaths = new Set(docFiles);
-    const missingPaths = existingDocs
+    const missingPaths = activeDocs
       .map((d) => d.relativePath)
       .filter((p) => !diskPaths.has(p));
 

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
   CheckCircle2,
+  Download,
   Eye,
   FileText,
   LockKeyhole,
@@ -33,7 +34,9 @@ import type {
   CrmOpportunityServiceType,
 } from '@ssoo/types/crm';
 import { Button, Input, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { useAuthStore } from '@/stores/auth.store';
+import { useCrmDomainAccess } from '@/lib/useCrmDomainAccess';
 import { ContractUpsertPanel } from './ContractUpsertPanel';
 
 export interface ContractWorkspaceQuery {
@@ -41,6 +44,9 @@ export interface ContractWorkspaceQuery {
   status: CrmContractStatus | 'all';
   sort: CrmContractSort;
   selected: string;
+  sourceSurface: 'list' | 'form' | 'billing-actual' | '';
+  billingView: 'list' | 'detail';
+  create: boolean;
 }
 
 interface BackendSuccessResponse<T> {
@@ -111,6 +117,14 @@ function formatWon(value: number) {
   return `${Math.round(value).toLocaleString('ko-KR')}원`;
 }
 
+function getSourceContractRevenue(item: CrmContract) {
+  return item.revenueLines.reduce((sum, line) => sum + line.amount, 0);
+}
+
+function getSourceContractCost(item: CrmContract) {
+  return item.costLines.reduce((sum, line) => sum + line.amount, 0);
+}
+
 function formatSignedWon(value: number) {
   const normalized = Math.round(value);
   if (normalized === 0) {
@@ -176,9 +190,12 @@ function getBillingAchievementRate(actual: number, plan: number) {
   return Math.round((actual / plan) * 10000) / 100;
 }
 
-function buildHref(query: ContractWorkspaceQuery, patch: Partial<Record<'search' | 'status' | 'sort' | 'selected', string>>) {
+function buildHref(query: ContractWorkspaceQuery, patch: Partial<ContractWorkspaceQuery>) {
   const params = new URLSearchParams();
   const next = { ...query, ...patch };
+  if (next.sourceSurface) params.set('sourceSurface', next.sourceSurface);
+  if (next.sourceSurface === 'billing-actual' && next.billingView === 'list') params.set('view', 'list');
+  if (next.create) params.set('create', 'contract');
   if (next.search) params.set('search', next.search);
   if (next.status && next.status !== 'all') params.set('status', next.status);
   if (next.sort && next.sort !== 'updated-desc') params.set('sort', next.sort);
@@ -204,8 +221,19 @@ function getBackendErrorMessage(responseBody: BackendSuccessResponse<unknown> | 
   return responseBody.error?.message || responseBody.message || 'CRM 계약 처리 중 오류가 발생했습니다.';
 }
 
-export function ContractWorkspaceClient({ data, query }: { data: CrmContractListResponse; query: ContractWorkspaceQuery }) {
+export function ContractWorkspaceClient({
+  data,
+  query,
+  active = true,
+}: {
+  data: CrmContractListResponse;
+  query: ContractWorkspaceQuery;
+  active?: boolean;
+}) {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { access: domainAccess, error: domainAccessError } = useCrmDomainAccess(accessToken);
+  const canWriteContract = domainAccess?.features.canWriteContract === true;
+  const canConfirmContract = domainAccess?.features.canConfirmContract === true;
   const router = useRouter();
   const [currentData, setCurrentData] = useState(data);
   const [isReloading, setIsReloading] = useState(data.items.length === 0);
@@ -228,11 +256,18 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
   const [isDmsDocumentLifecycleExecuting, setIsDmsDocumentLifecycleExecuting] = useState(false);
   const [dmsDocumentLifecycleExecutionError, setDmsDocumentLifecycleExecutionError] = useState<string | null>(null);
   const apiHref = useMemo(() => buildApiHref(query), [query]);
+  const sourceContracts = useMemo(
+    () => currentData.items.filter((item) => item.code.startsWith('crm-uiux-ct-')),
+    [currentData.items],
+  );
+  const selectionItems = query.sourceSurface ? sourceContracts : currentData.items;
   const selected = useMemo(() => (
-    currentData.items.find((item) => item.id === query.selected || item.code === query.selected)
-    ?? currentData.items[0]
-    ?? null
-  ), [currentData.items, query.selected]);
+    query.sourceSurface === 'form' && query.create
+      ? null
+      : selectionItems.find((item) => item.id === query.selected || item.code === query.selected)
+        ?? selectionItems[0]
+        ?? null
+  ), [query.create, query.selected, query.sourceSurface, selectionItems]);
 
   useEffect(() => {
     setCurrentData(data);
@@ -386,7 +421,7 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
     }
   }, [accessToken]);
 
-  const createDmsDocumentDraft = useCallback(async () => {
+  const createDmsDocumentDraft = useCallback(async (templateKey: string) => {
     if (!selected || !accessToken) {
       setDmsDocumentDraftError('로그인 세션을 확인해 주세요.');
       return;
@@ -412,7 +447,10 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ memo: 'CRM 계약 원장에서 생성한 DMS markdown 초안' }),
+        body: JSON.stringify({
+          templateKey,
+          memo: 'CRM 계약 원장에서 생성한 DMS markdown 초안',
+        }),
       });
       const payload = await response.json().catch(() => null) as BackendSuccessResponse<CrmContractDmsDocumentDraft> | BackendErrorResponse | null;
       if (!response.ok || payload?.success !== true) {
@@ -421,13 +459,12 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
       setDmsDocumentDraft(payload.data);
       setDmsDocumentPreview(payload.data.preview);
       await loadContracts();
-      router.refresh();
     } catch (error) {
       setDmsDocumentDraftError(error instanceof Error ? error.message : 'DMS markdown 초안 저장에 실패했습니다.');
     } finally {
       setIsDmsDocumentDraftSaving(false);
     }
-  }, [accessToken, dmsDocumentPreview, loadContracts, router, selected]);
+  }, [accessToken, dmsDocumentPreview, loadContracts, selected]);
 
   const executeDmsDocumentLifecycle = useCallback(async () => {
     if (!selected || !accessToken) {
@@ -466,22 +503,24 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
       setDmsDocumentLifecycleExecution(payload.data);
       setDmsDocumentPreview(payload.data.preview);
       await loadContracts();
-      router.refresh();
     } catch (error) {
       setDmsDocumentLifecycleExecutionError(error instanceof Error ? error.message : 'DMS lifecycle 산출 실행에 실패했습니다.');
     } finally {
       setIsDmsDocumentLifecycleExecuting(false);
     }
-  }, [accessToken, dmsDocumentDraft, dmsDocumentPreview, loadContracts, router, selected]);
+  }, [accessToken, dmsDocumentDraft, dmsDocumentPreview, loadContracts, selected]);
 
   useEffect(() => {
+    if (!active) {
+      return undefined;
+    }
     const abortController = new AbortController();
     void loadContracts(abortController.signal);
     return () => abortController.abort();
-  }, [loadContracts]);
+  }, [active, loadContracts]);
 
   useEffect(() => {
-    if (!selected?.id || !accessToken) {
+    if (!active || !selected?.id || !accessToken) {
       setBillingActual(null);
       setBillingActualError(null);
       setIsBillingActualLoading(false);
@@ -491,10 +530,10 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
     const abortController = new AbortController();
     void loadBillingActual(selected.id, abortController.signal);
     return () => abortController.abort();
-  }, [accessToken, loadBillingActual, selected?.id]);
+  }, [accessToken, active, loadBillingActual, selected?.id]);
 
   useEffect(() => {
-    if (!selected?.id || !accessToken) {
+    if (!active || !selected?.id || !accessToken) {
       setPmsHandoffPreview(null);
       setPmsHandoffPreviewError(null);
       setIsPmsHandoffPreviewLoading(false);
@@ -504,10 +543,10 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
     const abortController = new AbortController();
     void loadPmsHandoffPreview(selected.id, abortController.signal);
     return () => abortController.abort();
-  }, [accessToken, loadPmsHandoffPreview, selected?.id, selected?.updatedAt]);
+  }, [accessToken, active, loadPmsHandoffPreview, selected?.id, selected?.updatedAt]);
 
   useEffect(() => {
-    if (!selected?.id || !accessToken) {
+    if (!active || !selected?.id || !accessToken) {
       setDmsDocumentPreview(null);
       setDmsDocumentPreviewError(null);
       setDmsDocumentDraft(null);
@@ -523,11 +562,30 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
     const abortController = new AbortController();
     void loadDmsDocumentPreview(selected.id, abortController.signal);
     return () => abortController.abort();
-  }, [accessToken, loadDmsDocumentPreview, selected?.id, selected?.updatedAt]);
+  }, [accessToken, active, loadDmsDocumentPreview, selected?.id, selected?.updatedAt]);
+
+  const refreshWorkspace = useCallback(async () => {
+    const refreshed = await loadContracts();
+    const refreshedSelected = refreshed?.items.find((item) => item.id === query.selected || item.code === query.selected)
+      ?? refreshed?.items[0]
+      ?? selected;
+    if (!refreshedSelected?.id) {
+      return;
+    }
+    await Promise.all([
+      loadBillingActual(refreshedSelected.id),
+      loadPmsHandoffPreview(refreshedSelected.id),
+      loadDmsDocumentPreview(refreshedSelected.id),
+    ]);
+  }, [loadBillingActual, loadContracts, loadDmsDocumentPreview, loadPmsHandoffPreview, query.selected, selected]);
 
   const runWorkflow = useCallback(async (action: 'confirm' | 'reopen') => {
     if (!selected || !accessToken) {
       setWorkflowError('로그인 세션을 확인해 주세요.');
+      return;
+    }
+    if (!canConfirmContract) {
+      setWorkflowError('CRM 계약을 확정하거나 확정 해제할 권한이 없습니다.');
       return;
     }
 
@@ -550,31 +608,90 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
         throw new Error(getBackendErrorMessage(payload));
       }
       await loadContracts();
-      router.refresh();
     } catch (error) {
       setWorkflowError(error instanceof Error ? error.message : '계약 상태 처리에 실패했습니다.');
     } finally {
       setPendingWorkflow(null);
     }
-  }, [accessToken, loadContracts, router, selected]);
+  }, [accessToken, canConfirmContract, loadContracts, selected]);
 
   const handleContractSaved = useCallback(async (contract: CrmContract) => {
     await loadContracts();
-    router.replace(buildHref(query, { selected: contract.id }));
-    router.refresh();
+    router.replace(buildHref(query, { selected: contract.id, create: false }));
   }, [loadContracts, query, router]);
 
   const handleContractDeleted = useCallback(async () => {
     await loadContracts();
     router.replace(buildHref(query, { selected: '' }));
-    router.refresh();
   }, [loadContracts, query, router]);
 
   const handleBillingActualSaved = useCallback(async (next: CrmContractBillingActualResponse) => {
     setBillingActual(next);
     await loadContracts();
-    router.refresh();
-  }, [loadContracts, router]);
+  }, [loadContracts]);
+
+  if (query.sourceSurface === 'list') {
+    return (
+      <SourceContractListSurface
+        data={currentData}
+        query={query}
+        selectedId={selected?.id ?? ''}
+        isLoading={isReloading}
+        loadError={loadError}
+      />
+    );
+  }
+
+  if (query.sourceSurface === 'form') {
+    return (
+      <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="contract-form">
+        <div className="mx-auto max-w-[984px]">
+          <Link className="text-sm text-muted-foreground hover:text-foreground" href="/contracts?sourceSurface=list">
+            ← 계약현황으로 돌아가기
+          </Link>
+          <div className="mt-5">
+            <ContractUpsertPanel
+              selected={selected}
+              accessToken={accessToken}
+              canWrite={canWriteContract}
+              onSaved={handleContractSaved}
+              onDeleted={handleContractDeleted}
+              variant="source"
+              canConfirm={canConfirmContract}
+              onWorkflow={runWorkflow}
+              workflowPending={pendingWorkflow !== null}
+              onCancel={() => router.push('/contracts?sourceSurface=list')}
+            />
+          </div>
+        </div>
+        {domainAccessError ? <div className="sr-only" role="status">{domainAccessError}</div> : null}
+      </main>
+    );
+  }
+
+  if (query.sourceSurface === 'billing-actual') {
+    if (query.billingView === 'list') {
+      return (
+        <SourceBillingActualListSurface
+          items={sourceContracts}
+          query={query}
+          isLoading={isReloading}
+          loadError={loadError}
+        />
+      );
+    }
+    return (
+      <SourceBillingActualSurface
+        item={selected}
+        data={billingActual}
+        isLoading={isBillingActualLoading}
+        error={billingActualError}
+        accessToken={accessToken}
+        canWrite={canWriteContract}
+        onSaved={handleBillingActualSaved}
+      />
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-ssoo-content-bg">
@@ -584,7 +701,7 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
             <p className="text-xs font-medium uppercase text-muted-foreground">CRM Contract Ledger</p>
             <h1 className="mt-1 text-xl font-semibold text-foreground">계약 원장</h1>
           </div>
-          <Button variant="outline" size="sm" type="button" onClick={() => void loadContracts()} disabled={isReloading}>
+          <Button variant="outline" size="sm" type="button" onClick={() => void refreshWorkspace()} disabled={isReloading}>
             <RefreshCw className="mr-2 h-4 w-4" />
             새로고침
           </Button>
@@ -605,7 +722,7 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
           <form action="/contracts" className="flex flex-wrap items-end gap-3 border-b p-4">
             <label className="min-w-[220px] flex-1 text-sm font-medium text-muted-foreground">
               검색
-              <Input name="search" defaultValue={query.search} placeholder="고객사, 계약명, 담당자, WBS" className="mt-1" />
+              <SsooSearchInput id="crm-contract-search-input" name="search" ariaLabel="계약 검색" intent="data-filter" defaultValue={query.search} placeholder="고객사, 계약명, 담당자, WBS" className="mt-1" />
             </label>
             <label className="w-[160px] text-sm font-medium text-muted-foreground">
               상태
@@ -639,7 +756,7 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
         </section>
 
         <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <ContractDetail item={selected} workflowError={workflowError} pendingWorkflow={pendingWorkflow} onWorkflow={runWorkflow} />
+          <ContractDetail item={selected} canConfirm={canConfirmContract} workflowError={workflowError} pendingWorkflow={pendingWorkflow} onWorkflow={runWorkflow} />
           <div className="space-y-4">
             <BillingPlanPanel item={selected} />
             <PmsHandoffPreviewPanel
@@ -659,6 +776,7 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
               lifecycleExecution={dmsDocumentLifecycleExecution}
               isLifecycleExecuting={isDmsDocumentLifecycleExecuting}
               lifecycleExecutionError={dmsDocumentLifecycleExecutionError}
+              canWrite={canWriteContract}
               onCreateDraft={createDmsDocumentDraft}
               onExecuteLifecycle={executeDmsDocumentLifecycle}
             />
@@ -668,6 +786,7 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
               isLoading={isBillingActualLoading}
               error={billingActualError}
               accessToken={accessToken}
+              canWrite={canWriteContract}
               onSaved={handleBillingActualSaved}
             />
           </div>
@@ -677,12 +796,322 @@ export function ContractWorkspaceClient({ data, query }: { data: CrmContractList
           <ContractUpsertPanel
             selected={selected}
             accessToken={accessToken}
+            canWrite={canWriteContract}
             onSaved={handleContractSaved}
             onDeleted={handleContractDeleted}
           />
         </div>
       </main>
+      {domainAccessError ? <div className="sr-only" role="status">{domainAccessError}</div> : null}
     </div>
+  );
+}
+
+function formatSourceAmount(value: number) {
+  const rounded = Math.round(value);
+  if (Math.abs(rounded) >= 100000000) {
+    return `${(rounded / 100000000).toLocaleString('ko-KR', { maximumFractionDigits: 1 })}억`;
+  }
+  if (Math.abs(rounded) >= 10000) {
+    return `${Math.round(rounded / 10000).toLocaleString('ko-KR')}만`;
+  }
+  return rounded.toLocaleString('ko-KR');
+}
+
+function formatSourceDate(value: string) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const year = String(date.getFullYear()).slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}.${month}.${day}`;
+}
+
+function SourceContractListSurface({
+  data,
+  query,
+  selectedId,
+  isLoading,
+  loadError,
+}: {
+  data: CrmContractListResponse;
+  query: ContractWorkspaceQuery;
+  selectedId: string;
+  isLoading: boolean;
+  loadError: string | null;
+}) {
+  const sourceItems = data.items.filter((item) => item.code.startsWith('crm-uiux-ct-'));
+  const totalRevenue = sourceItems.reduce((sum, item) => sum + getSourceContractRevenue(item), 0);
+  const totalCost = sourceItems.reduce((sum, item) => sum + getSourceContractCost(item), 0);
+  const totalMargin = totalRevenue - totalCost;
+  const averageMarginRate = sourceItems.length > 0
+    ? Math.round(sourceItems.reduce((sum, item) => {
+      const revenue = getSourceContractRevenue(item);
+      const margin = revenue - getSourceContractCost(item);
+      return sum + (revenue > 0 ? margin / revenue * 100 : 0);
+    }, 0) / sourceItems.length)
+    : 0;
+
+  return (
+    <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="contract-list">
+      <div className="mx-auto max-w-[1180px]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">계약현황</h1>
+            <p className="mt-1 text-sm text-muted-foreground">등록된 계약을 조회합니다.</p>
+          </div>
+          <Button asChild size="sm" className="bg-foreground text-background hover:bg-foreground/90">
+            <Link href="/contracts?sourceSurface=form&create=contract">+ 계약등록</Link>
+          </Button>
+        </div>
+
+        <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <SourceContractMetric label="전체 건수" value={`${sourceItems.length}건`} sub="조회 기준" />
+          <SourceContractMetric label="매출액" value={formatSourceAmount(totalRevenue)} sub={formatWon(totalRevenue)} />
+          <SourceContractMetric label="이익" value={formatSourceAmount(totalMargin)} sub={formatWon(totalMargin)} accent />
+          <SourceContractMetric label="평균 이익률" value={`${averageMarginRate}%`} sub="조회 기준" />
+        </section>
+
+        <form action="/contracts" className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <Input type="hidden" name="sourceSurface" value="list" />
+          <SsooSearchInput
+            id="ct-list-search"
+            name="search"
+            ariaLabel="계약 검색"
+            intent="data-filter"
+            defaultValue={query.search}
+            placeholder="고객사, 계약명, 담당자 검색"
+            className="min-w-0 flex-1"
+          />
+          <NativeSelect id="ct-list-status" name="status" defaultValue={query.status} className="sm:w-[144px]" onChange={(event) => event.currentTarget.form?.requestSubmit()}>
+            <option value="all">전체 상태</option>
+            {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </NativeSelect>
+          <NativeSelect id="ct-list-sort" name="sort" defaultValue={query.sort} className="sm:w-[144px]" onChange={(event) => event.currentTarget.form?.requestSubmit()}>
+            {Object.entries(sortLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </NativeSelect>
+          <Button type="submit" className="hidden">조회</Button>
+        </form>
+
+        {loadError ? (
+          <div className="mt-4 flex items-center gap-2 rounded-md border border-ssoo-danger/20 bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger">
+            <AlertCircle className="h-4 w-4" />
+            {loadError}
+          </div>
+        ) : null}
+
+        <div className="mt-4 overflow-x-auto rounded-xl border bg-card">
+          <Table className="w-full min-w-[1060px] text-sm">
+            <TableHeader className="bg-muted/50 text-muted-foreground">
+              <TableRow>
+                <TableHead className="px-3 py-2">고객사</TableHead>
+                <TableHead className="px-3 py-2">계약명</TableHead>
+                <TableHead className="px-3 py-2">담당자</TableHead>
+                <TableHead className="px-3 py-2 text-right">매출액</TableHead>
+                <TableHead className="px-3 py-2 text-right">원가</TableHead>
+                <TableHead className="px-3 py-2 text-right">이익</TableHead>
+                <TableHead className="px-3 py-2 text-right">이익률</TableHead>
+                <TableHead className="px-3 py-2">계약기간</TableHead>
+                <TableHead className="px-3 py-2">상태</TableHead>
+                <TableHead className="w-12 px-3 py-2" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={10} className="px-3 py-8 text-center text-ssoo-info">계약을 불러오는 중입니다.</TableCell></TableRow>
+              ) : null}
+              {!isLoading && sourceItems.length === 0 ? (
+                <TableRow><TableCell colSpan={10} className="px-3 py-8 text-center text-muted-foreground">조회된 계약이 없습니다.</TableCell></TableRow>
+              ) : null}
+              {sourceItems.map((item) => {
+                const ownerInitial = item.ownerName.trim().slice(0, 2);
+                const revenueTotal = getSourceContractRevenue(item);
+                const costTotal = getSourceContractCost(item);
+                const marginTotal = revenueTotal - costTotal;
+                const marginRate = revenueTotal > 0 ? Math.round(marginTotal / revenueTotal * 100) : 0;
+                const rowText = `${item.customerName} ${item.contractName} ${ownerInitial} ${item.ownerName} ${formatSourceAmount(revenueTotal)} ${formatSourceAmount(costTotal)} ${formatSourceAmount(marginTotal)} ${marginRate}% ${formatSourceDate(item.contractStartDate)}~${formatSourceDate(item.contractEndDate)} ${statusLabels[item.status]} `;
+                return (
+                  <TableRow key={item.id} className={item.id === selectedId ? 'bg-ssoo-info-bg/40' : undefined}>
+                    <TableCell className="px-3 py-3 font-medium text-foreground">{item.customerName}</TableCell>
+                    <TableCell className="px-3 py-3 text-foreground">{item.contractName}</TableCell>
+                    <TableCell className="px-3 py-3 text-muted-foreground"><span className="mr-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-ssoo-success-bg text-xs text-ssoo-success">{ownerInitial}</span>{item.ownerName}</TableCell>
+                    <TableCell className="px-3 py-3 text-right font-medium">{formatSourceAmount(revenueTotal)}</TableCell>
+                    <TableCell className="px-3 py-3 text-right">{formatSourceAmount(costTotal)}</TableCell>
+                    <TableCell className="px-3 py-3 text-right text-ssoo-info">{formatSourceAmount(marginTotal)}</TableCell>
+                    <TableCell className="px-3 py-3 text-right text-ssoo-info">{marginRate}%</TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-3 text-muted-foreground">{formatSourceDate(item.contractStartDate)}~{formatSourceDate(item.contractEndDate)}</TableCell>
+                    <TableCell className="px-3 py-3"><span className={`rounded-full px-2 py-1 text-xs ${statusTone[item.status]}`}>{statusLabels[item.status]}</span></TableCell>
+                    <TableCell className="px-3 py-3 text-right">
+                      <Link href={`/contracts?sourceSurface=form&selected=${encodeURIComponent(item.id)}`} className="text-muted-foreground hover:text-foreground">
+                        <span className="sr-only">{rowText}</span>→
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">{sourceItems.length}건 표시 중</p>
+      </div>
+    </main>
+  );
+}
+
+function SourceContractMetric({ label, value, sub, accent = false }: { label: string; value: string; sub: string; accent?: boolean }) {
+  return (
+    <div className="rounded-xl border bg-card px-4 py-4">
+      <label className="text-xs text-muted-foreground">{label}</label>
+      <p className={`mt-2 text-xl font-semibold ${accent ? 'text-ssoo-info' : 'text-foreground'}`}>{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
+    </div>
+  );
+}
+
+function SourceBillingActualSurface({
+  item,
+  data,
+  isLoading,
+  error,
+  accessToken,
+  canWrite,
+  onSaved,
+}: {
+  item: CrmContract | null;
+  data: CrmContractBillingActualResponse | null;
+  isLoading: boolean;
+  error: string | null;
+  accessToken: string | null;
+  canWrite: boolean;
+  onSaved: (data: CrmContractBillingActualResponse) => Promise<void>;
+}) {
+  return (
+    <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="billing-actual">
+      <div className="mx-auto max-w-[1056px]">
+        <Link className="text-sm text-muted-foreground hover:text-foreground" href="/contracts?sourceSurface=billing-actual&view=list">
+          ← 계약청구실적 목록으로 돌아가기
+        </Link>
+        <h1 className="mt-6 text-xl font-semibold text-foreground">계약청구실적 입력</h1>
+        {item ? (
+          <p className="mt-1 text-sm text-muted-foreground">[{item.customerName}] {item.contractName} · 사업구분: {item.businessType} · 담당: {item.ownerName} · WBS: {item.wbsCode ?? '-'} · {formatSourceDate(item.contractStartDate)}~{formatSourceDate(item.contractEndDate)}</p>
+        ) : null}
+        <div className="mt-6">
+          <BillingActualPanel
+            item={item}
+            data={data}
+            isLoading={isLoading}
+            error={error}
+            accessToken={accessToken}
+            canWrite={canWrite}
+            onSaved={onSaved}
+            variant="source"
+          />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function SourceBillingActualListSurface({
+  items,
+  query,
+  isLoading,
+  loadError,
+}: {
+  items: CrmContract[];
+  query: ContractWorkspaceQuery;
+  isLoading: boolean;
+  loadError: string | null;
+}) {
+  const confirmedItems = items.filter((item) => item.confirmed);
+
+  return (
+    <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="billing-actual-list">
+      <div className="mx-auto max-w-[1180px]">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">계약청구실적</h1>
+          <p className="mt-1 text-sm text-muted-foreground">확정된 계약을 선택하세요.</p>
+        </div>
+
+        <form action="/contracts" className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <Input type="hidden" name="sourceSurface" value="billing-actual" />
+          <Input type="hidden" name="view" value="list" />
+          <SsooSearchInput
+            id="ba-list-search"
+            name="search"
+            ariaLabel="계약청구실적 계약 검색"
+            intent="data-filter"
+            defaultValue={query.search}
+            placeholder="고객사, 계약명, 담당자 검색"
+            className="min-w-0 flex-1"
+          />
+          <NativeSelect id="ba-list-sort" name="sort" defaultValue={query.sort} className="sm:w-[144px]" onChange={(event) => event.currentTarget.form?.requestSubmit()}>
+            <option value="updated-desc">최근등록순</option>
+            <option value="revenue-desc">매출 높은순</option>
+            <option value="start-asc">계약 시작일순</option>
+          </NativeSelect>
+          <Button type="submit" className="hidden">조회</Button>
+        </form>
+
+        {loadError ? (
+          <div className="mt-4 flex items-center gap-2 rounded-md border border-ssoo-danger/20 bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger">
+            <AlertCircle className="h-4 w-4" />
+            {loadError}
+          </div>
+        ) : null}
+
+        <div className="mt-4 overflow-x-auto rounded-xl border bg-card">
+          <Table className="w-full min-w-[1020px] text-sm">
+            <TableHeader className="bg-muted/50 text-muted-foreground">
+              <TableRow>
+                <TableHead className="px-3 py-2">고객사</TableHead>
+                <TableHead className="px-3 py-2">계약명</TableHead>
+                <TableHead className="px-3 py-2">사업구분</TableHead>
+                <TableHead className="px-3 py-2">담당자</TableHead>
+                <TableHead className="px-3 py-2 text-right">매출액</TableHead>
+                <TableHead className="px-3 py-2">계약기간</TableHead>
+                <TableHead className="px-3 py-2">WBS 코드</TableHead>
+                <TableHead className="px-3 py-2">청구계획</TableHead>
+                <TableHead className="w-12 px-3 py-2" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={9} className="px-3 py-8 text-center text-ssoo-info">계약을 불러오는 중입니다.</TableCell></TableRow>
+              ) : null}
+              {!isLoading && confirmedItems.length === 0 ? (
+                <TableRow><TableCell colSpan={9} className="px-3 py-8 text-center text-muted-foreground">조회된 확정 계약이 없습니다.</TableCell></TableRow>
+              ) : null}
+              {confirmedItems.map((item) => {
+                const ownerInitial = item.ownerName.trim().slice(0, 2);
+                const revenueTotal = getSourceContractRevenue(item);
+                const detailHref = buildHref(query, { billingView: 'detail', selected: item.id });
+                const rowText = `${item.customerName} ${item.contractName} ${item.businessType} ${ownerInitial} ${item.ownerName} ${formatSourceAmount(revenueTotal)} ${formatSourceDate(item.contractStartDate)}~${formatSourceDate(item.contractEndDate)} ${item.wbsCode ?? '-'} ${item.billingPlan.length}건`;
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell className="px-3 py-3 font-medium text-foreground">{item.customerName}</TableCell>
+                    <TableCell className="px-3 py-3 text-foreground">{item.contractName}</TableCell>
+                    <TableCell className="px-3 py-3 text-muted-foreground">{item.businessType}</TableCell>
+                    <TableCell className="px-3 py-3 text-muted-foreground"><span className="mr-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-ssoo-success-bg text-xs text-ssoo-success">{ownerInitial}</span>{item.ownerName}</TableCell>
+                    <TableCell className="px-3 py-3 text-right font-medium">{formatSourceAmount(revenueTotal)}</TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-3 text-muted-foreground">{formatSourceDate(item.contractStartDate)}~{formatSourceDate(item.contractEndDate)}</TableCell>
+                    <TableCell className="px-3 py-3 text-muted-foreground">{item.wbsCode ?? '-'}</TableCell>
+                    <TableCell className="px-3 py-3"><span className="rounded-full bg-ssoo-info-bg px-2 py-1 text-xs text-ssoo-info">{item.billingPlan.length}건</span></TableCell>
+                    <TableCell className="px-3 py-3 text-right">
+                      <Link href={detailHref} className="text-muted-foreground hover:text-foreground">
+                        <span className="sr-only">{rowText}</span>→
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">{confirmedItems.length}건 (확정 계약)</p>
+      </div>
+    </main>
   );
 }
 
@@ -767,11 +1196,13 @@ function ContractTableRow({ item, query, selected }: { item: CrmContract; query:
 
 function ContractDetail({
   item,
+  canConfirm,
   workflowError,
   pendingWorkflow,
   onWorkflow,
 }: {
   item: CrmContract | null;
+  canConfirm: boolean;
   workflowError: string | null;
   pendingWorkflow: 'confirm' | 'reopen' | null;
   onWorkflow: (action: 'confirm' | 'reopen') => void;
@@ -780,7 +1211,7 @@ function ContractDetail({
     return <div className="rounded-md border bg-card p-6 text-sm text-muted-foreground">선택된 계약이 없습니다.</div>;
   }
 
-  const canConfirm = !item.confirmed;
+  const canStartConfirm = canConfirm && !item.confirmed;
   return (
     <div className="rounded-md border bg-card">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b px-4 py-3">
@@ -802,13 +1233,13 @@ function ContractDetail({
           <h2 className="mt-2 text-lg font-semibold text-foreground">{item.contractName}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{item.customerName} · {item.ownerName} · {regionLabels[item.region]}</p>
         </div>
-        {canConfirm ? (
-          <Button size="sm" type="button" onClick={() => onWorkflow('confirm')} disabled={pendingWorkflow !== null}>
+        {!item.confirmed ? (
+          <Button size="sm" type="button" onClick={() => onWorkflow('confirm')} disabled={!canStartConfirm || pendingWorkflow !== null} title={canStartConfirm ? '계약 확정' : '계약 확정 권한이 없습니다.'}>
             <CheckCircle2 className="mr-2 h-4 w-4" />
             {pendingWorkflow === 'confirm' ? '처리 중' : '확정'}
           </Button>
         ) : (
-          <Button variant="outline" size="sm" type="button" onClick={() => onWorkflow('reopen')} disabled={pendingWorkflow !== null}>
+          <Button variant="outline" size="sm" type="button" onClick={() => onWorkflow('reopen')} disabled={!canConfirm || pendingWorkflow !== null} title={canConfirm ? '계약 확정 해제' : '계약 확정 해제 권한이 없습니다.'}>
             <RotateCcw className="mr-2 h-4 w-4" />
             {pendingWorkflow === 'reopen' ? '처리 중' : '확정 해제'}
           </Button>
@@ -827,6 +1258,8 @@ function ContractDetail({
           items={[
             ['계약번호', item.code],
             ['원천 영업기회', item.sourceOpportunityCode ?? '-'],
+            ['고객사 담당자', item.clientContactName ?? '-'],
+            ['담당 사용자 ID', item.ownerUserId ?? '-'],
             ['사업구분', item.businessType],
             ['계열/산업', item.industryLine],
             ['WBS', item.wbsCode ?? '-'],
@@ -1000,6 +1433,7 @@ function PmsHandoffPreviewPanel({
 
 function DmsDocumentPreviewPanel({
   item,
+  canWrite,
   preview,
   isLoading,
   error,
@@ -1013,6 +1447,7 @@ function DmsDocumentPreviewPanel({
   onExecuteLifecycle,
 }: {
   item: CrmContract | null;
+  canWrite: boolean;
   preview: CrmContractDmsDocumentPreview | null;
   isLoading: boolean;
   error: string | null;
@@ -1022,9 +1457,19 @@ function DmsDocumentPreviewPanel({
   lifecycleExecution: CrmContractDmsDocumentLifecycleExecutionResult | null;
   isLifecycleExecuting: boolean;
   lifecycleExecutionError: string | null;
-  onCreateDraft: () => void;
+  onCreateDraft: (templateKey: string) => void;
   onExecuteLifecycle: () => void;
 }) {
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState('');
+
+  useEffect(() => {
+    if (!item || preview?.contractId !== item.id) {
+      setSelectedTemplateKey('');
+      return;
+    }
+    setSelectedTemplateKey(preview.templateKey);
+  }, [item, preview]);
+
   if (!item) {
     return <div className="rounded-md border bg-card p-6 text-sm text-muted-foreground">DMS 문서 패킷을 표시할 계약을 선택하세요.</div>;
   }
@@ -1039,6 +1484,7 @@ function DmsDocumentPreviewPanel({
     ? 'bg-ssoo-success-bg text-ssoo-success'
     : 'bg-ssoo-warning-bg text-ssoo-warning';
   const canCreateDraft = activePreview?.readiness === 'ready';
+  const selectedTemplate = activePreview?.templateOptions.find((option) => option.templateKey === selectedTemplateKey);
   const requiredVariables = activePreview?.variables.filter((variable) => variable.required).slice(0, 8) ?? [];
   const lifecycleSteps = activePreview?.lifecycle ?? [];
   const canExecuteLifecycle = Boolean(
@@ -1068,8 +1514,8 @@ function DmsDocumentPreviewPanel({
             variant="outline"
             size="sm"
             type="button"
-            onClick={onCreateDraft}
-            disabled={!canCreateDraft || isDraftSaving}
+            onClick={() => onCreateDraft(selectedTemplateKey)}
+            disabled={!canWrite || !canCreateDraft || isDraftSaving || !selectedTemplate?.selectable}
             className="mt-1"
           >
             <Save className="mr-2 h-4 w-4" />
@@ -1080,7 +1526,7 @@ function DmsDocumentPreviewPanel({
             size="sm"
             type="button"
             onClick={onExecuteLifecycle}
-            disabled={!canExecuteLifecycle || isLifecycleExecuting}
+            disabled={!canWrite || !canExecuteLifecycle || isLifecycleExecuting}
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
             {isLifecycleExecuting ? '실행 중' : 'DMS 산출 실행'}
@@ -1125,6 +1571,26 @@ function DmsDocumentPreviewPanel({
             </div>
           ) : null}
 
+          <label className="block space-y-1 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">DOCX 템플릿 선택</span>
+            <NativeSelect
+              value={selectedTemplateKey}
+              disabled={isDraftSaving || activePreview.templateOptions.length === 0}
+              onChange={(event) => setSelectedTemplateKey(event.target.value)}
+            >
+              {activePreview.templateOptions.map((option) => (
+                <option key={option.templateKey} value={option.templateKey} disabled={!option.selectable}>
+                  {option.templateName}{option.selectable ? '' : ` · ${option.unavailableReason ?? '사용 불가'}`}
+                </option>
+              ))}
+            </NativeSelect>
+            {selectedTemplate ? (
+              <span className="block text-caption-2xs">
+                {selectedTemplate.docxFileName ?? 'DOCX binary 없음'} · {selectedTemplate.docxOrigin === 'uploaded' ? '업로드 템플릿' : '자동 생성 템플릿'} · {selectedTemplate.reviewStatus === 'confirmed' ? '검토 확정' : '검토 대기'}
+              </span>
+            ) : null}
+          </label>
+
           <InfoList
             items={[
               ['문서명', activePreview.documentTitle],
@@ -1135,6 +1601,8 @@ function DmsDocumentPreviewPanel({
               ['Handoff', latestHandoff ? `${latestHandoff.status} · ${formatDateTime(latestHandoff.savedAt)}` : '-'],
               ['Handoff ID', latestHandoff?.id ?? '-'],
               ['DMS 상태', activePreview.dmsLinkStatus],
+              ['고객사 담당자', activePreview.clientContactName ?? '-'],
+              ['담당 사용자 ID', activePreview.ownerUserId ?? '-'],
               ['공급자', `${activePreview.sellerName} · ${activePreview.sellerInfoStatus}`],
             ]}
           />
@@ -1158,6 +1626,15 @@ function DmsDocumentPreviewPanel({
                     <div className="min-w-0 text-muted-foreground">
                       <div className="break-all">{step.evidencePath ?? step.evidenceLabel}</div>
                       <div className="mt-1 break-words">{step.note}</div>
+                      {(step.key === 'word-export' || step.key === 'pdf-export') && step.status === 'completed' ? (
+                        <a
+                          href={`/api/crm/contracts/${encodeURIComponent(item.id)}/dms-document-artifacts/${step.key}`}
+                          download
+                          className="mt-1 inline-flex items-center gap-1 font-medium text-ssoo-accent hover:underline"
+                        >
+                          <Download className="h-3 w-3" /> {step.key === 'word-export' ? 'DOCX 다운로드' : 'PDF 다운로드'}
+                        </a>
+                      ) : null}
                     </div>
                   </div>
                 ))}
@@ -1175,7 +1652,18 @@ function DmsDocumentPreviewPanel({
                 {activeLifecycleExecution.dmsExecution.artifacts.map((artifact) => (
                   <div key={`${artifact.kind}-${artifact.path}`} className="grid gap-2 px-3 py-2 sm:grid-cols-[132px_minmax(0,1fr)]">
                     <div className="font-medium text-foreground">{artifact.label}</div>
-                    <div className="min-w-0 break-all text-muted-foreground">{artifact.storageUri ?? artifact.path}</div>
+                    <div className="min-w-0 break-all text-muted-foreground">
+                      <div>{artifact.storageUri ?? artifact.path}</div>
+                      {(artifact.kind === 'word-export' || artifact.kind === 'pdf-export') ? (
+                        <a
+                          href={`/api/crm/contracts/${encodeURIComponent(item.id)}/dms-document-artifacts/${artifact.kind}`}
+                          download
+                          className="mt-1 inline-flex items-center gap-1 font-medium text-ssoo-accent hover:underline"
+                        >
+                          <Download className="h-3 w-3" /> {artifact.kind === 'word-export' ? 'DOCX 다운로드' : 'PDF 다운로드'}
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1420,28 +1908,38 @@ function getLifecycleStatusClass(status: CrmContractDmsDocumentPreview['lifecycl
 
 function BillingActualPanel({
   item,
+  canWrite,
   data,
   isLoading,
   error,
   accessToken,
   onSaved,
+  variant = 'workspace',
 }: {
   item: CrmContract | null;
+  canWrite: boolean;
   data: CrmContractBillingActualResponse | null;
   isLoading: boolean;
   error: string | null;
   accessToken: string | null;
   onSaved: (data: CrmContractBillingActualResponse) => Promise<void>;
+  variant?: 'workspace' | 'source';
 }) {
   const [lines, setLines] = useState<BillingActualDraftLine[]>([createBillingActualDraftLine()]);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const activeData = data?.contractId === item?.id ? data : null;
 
   useEffect(() => {
-    setLines(toBillingActualDraftLines(activeData));
+    setLines(
+      variant === 'source' && activeData && activeData.actualLines.length === 0
+        ? []
+        : toBillingActualDraftLines(activeData),
+    );
     setSaveError(null);
-  }, [activeData, item?.id]);
+    setSaveSuccess(null);
+  }, [activeData, item?.id, variant]);
 
   const planLines = activeData?.planLines ?? item?.billingPlan ?? [];
   const planRevenueTotal = planLines.reduce((sum, line) => sum + line.revenueAmount, 0);
@@ -1459,21 +1957,24 @@ function BillingActualPanel({
   }, [lines]);
   const revenueDelta = actualSummary.revenueTotal - planRevenueTotal;
   const externalCostDelta = actualSummary.externalCostTotal - planExternalCostTotal;
-  const isReadOnly = !item?.confirmed;
-  const canSave = Boolean(item && item.confirmed && accessToken && !isSaving && !isLoading);
+  const isReadOnly = !canWrite || !item?.confirmed;
+  const canSave = Boolean(canWrite && item && item.confirmed && accessToken && !isSaving && !isLoading);
 
   const updateLine = (id: string, patch: Partial<Omit<BillingActualDraftLine, 'id'>>) => {
+    setSaveSuccess(null);
     setLines((current) => current.map((line) => (line.id === id ? { ...line, ...patch } : line)));
   };
 
   const addLine = () => {
+    setSaveSuccess(null);
     setLines((current) => [...current, createBillingActualDraftLine()]);
   };
 
   const removeLine = (id: string) => {
+    setSaveSuccess(null);
     setLines((current) => {
       const next = current.filter((line) => line.id !== id);
-      return next.length > 0 ? next : [createBillingActualDraftLine()];
+      return next.length > 0 || variant === 'source' ? next : [createBillingActualDraftLine()];
     });
   };
 
@@ -1514,6 +2015,7 @@ function BillingActualPanel({
 
     setIsSaving(true);
     setSaveError(null);
+    setSaveSuccess(null);
     try {
       const response = await fetch(`/api/crm/contracts/${encodeURIComponent(item.id)}/billing-actual`, {
         method: 'PUT',
@@ -1528,6 +2030,7 @@ function BillingActualPanel({
         throw new Error(getBackendErrorMessage(payload));
       }
       await onSaved(payload.data);
+      setSaveSuccess('청구실적이 저장되었습니다.');
     } catch (saveActualError) {
       setSaveError(saveActualError instanceof Error ? saveActualError.message : '청구실적 저장에 실패했습니다.');
     } finally {
@@ -1537,6 +2040,70 @@ function BillingActualPanel({
 
   if (!item) {
     return <div className="rounded-md border bg-card p-6 text-sm text-muted-foreground">청구실적을 입력할 계약을 선택하세요.</div>;
+  }
+
+  if (variant === 'source') {
+    return (
+      <div data-source-billing-actual-ready={!isLoading && activeData ? 'true' : 'false'}>
+        {error ? (
+          <div className="mb-4 flex items-center gap-2 rounded-md bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger"><AlertCircle className="h-4 w-4" />{error}</div>
+        ) : null}
+        {saveError ? (
+          <div className="mb-4 flex items-center gap-2 rounded-md bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger" role="alert"><AlertCircle className="h-4 w-4" />{saveError}</div>
+        ) : null}
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <SourceContractMetric label="계획 매출액" value={formatSourceAmount(planRevenueTotal)} sub={formatWon(planRevenueTotal)} />
+          <SourceContractMetric label="실적 매출액" value={formatSourceAmount(actualSummary.revenueTotal)} sub={`달성률 ${formatPercent(getBillingAchievementRate(actualSummary.revenueTotal, planRevenueTotal))}`} accent />
+          <SourceContractMetric label="계획 외부원가" value={formatSourceAmount(planExternalCostTotal)} sub={formatWon(planExternalCostTotal)} />
+          <SourceContractMetric label="실적 외부원가" value={formatSourceAmount(actualSummary.externalCostTotal)} sub={`달성률 ${formatPercent(getBillingAchievementRate(actualSummary.externalCostTotal, planExternalCostTotal))}`} accent />
+        </section>
+
+        <section className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border bg-card p-5">
+            <h2 className="text-sm font-semibold text-foreground"><label>청구계획</label></h2>
+            <div className="mt-3 overflow-x-auto rounded-md border"><BillingPlanTable lines={planLines} /></div>
+            <div className="mt-2 bg-muted/50 px-3 py-2 text-right text-sm text-muted-foreground">계획 합계&nbsp;&nbsp; {formatWon(planRevenueTotal)} &nbsp;/&nbsp; {formatWon(planExternalCostTotal)}</div>
+          </div>
+          <div className="rounded-xl border bg-card p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-foreground"><label>청구실적 + 행 추가</label></h2>
+              <Button size="sm" type="button" onClick={addLine} disabled={isReadOnly}>+ 행 추가</Button>
+            </div>
+            {!item.confirmed ? <p className="mt-3 rounded-md bg-ssoo-warning-bg px-3 py-2 text-sm text-ssoo-warning">확정 계약에서만 청구실적을 저장할 수 있습니다.</p> : null}
+            <div className="mt-3 overflow-x-auto rounded-md border">
+              <Table className="w-full min-w-[420px] text-xs">
+                <TableHeader className="bg-muted/50 text-muted-foreground">
+                  <TableRow><TableHead className="px-3 py-2">청구월</TableHead><TableHead className="px-3 py-2 text-right">매출액 (원)</TableHead><TableHead className="px-3 py-2 text-right">외부원가 (원)</TableHead><TableHead className="w-10 px-3 py-2"><span className="sr-only">삭제</span></TableHead></TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? <TableRow><TableCell colSpan={4} className="px-3 py-4 text-center text-ssoo-info">청구실적을 불러오는 중입니다.</TableCell></TableRow> : null}
+                  {!isLoading ? lines.map((line) => (
+                    <TableRow key={line.id}>
+                      <TableCell className="px-3 py-2"><Input value={line.billingYm} placeholder="YYYY/MM" className="h-8" disabled={isReadOnly} onChange={(event) => updateLine(line.id, { billingYm: event.target.value })} /></TableCell>
+                      <TableCell className="px-3 py-2"><Input value={line.revenueAmount} placeholder="0" inputMode="numeric" className="h-8 text-right" disabled={isReadOnly} onChange={(event) => updateLine(line.id, { revenueAmount: event.target.value })} /></TableCell>
+                      <TableCell className="px-3 py-2"><Input value={line.externalCostAmount} placeholder="0" inputMode="numeric" className="h-8 text-right" disabled={isReadOnly} onChange={(event) => updateLine(line.id, { externalCostAmount: event.target.value })} /></TableCell>
+                      <TableCell className="px-3 py-2"><Button variant="ghost" size="icon" type="button" title="실적 행 삭제" disabled={isReadOnly} onClick={() => removeLine(line.id)}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                    </TableRow>
+                  )) : null}
+                  {!isLoading && lines.length === 0 ? (
+                    <TableRow><TableCell colSpan={4} className="px-3 py-8 text-center text-muted-foreground">행 추가를 눌러 실적을 입력하세요.</TableCell></TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="mt-2 bg-muted/50 px-3 py-2 text-right text-sm text-muted-foreground">실적 합계&nbsp;&nbsp; {formatWon(actualSummary.revenueTotal)} &nbsp;/&nbsp; {formatWon(actualSummary.externalCostTotal)}</div>
+          </div>
+        </section>
+        <div className="mt-4 flex justify-end">
+          <Button type="button" onClick={() => void saveActual()} disabled={!canSave || actualSummary.hasInvalidAmount}>
+            <Save className="mr-2 h-4 w-4" />{isSaving ? '저장 중' : '실적 저장'}
+          </Button>
+        </div>
+        {saveSuccess ? (
+          <div className="fixed bottom-6 right-6 z-50 rounded-lg bg-foreground px-4 py-3 text-sm text-background shadow-lg" role="status">{saveSuccess}</div>
+        ) : null}
+      </div>
+    );
   }
 
   return (

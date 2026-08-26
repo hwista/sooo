@@ -12,7 +12,7 @@ import type {
 } from '@ssoo/types/dms';
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../database/database.service.js';
-import { configService } from '../runtime/dms-config.service.js';
+import { configService, normalizeStorageProvider } from '../runtime/dms-config.service.js';
 import { normalizeRelativePath } from '../runtime/path-utils.js';
 
 const DOCUMENT_CONTROL_PLANE_SELECT = {
@@ -325,7 +325,7 @@ function mapSourceFileRows(sourceFiles: ControlPlaneDocument['sourceFiles']): So
       size: sourceFile.fileSize ?? undefined,
       url: sourceFile.url ?? undefined,
       storageUri: sourceFile.storageUri ?? undefined,
-      provider: sourceFile.providerCode ?? undefined,
+      provider: normalizeStorageProvider(sourceFile.providerCode),
       versionId: sourceFile.versionId ?? undefined,
       etag: sourceFile.etag ?? undefined,
       checksum: sourceFile.checksum ?? undefined,
@@ -582,7 +582,7 @@ export class DocumentControlPlaneService {
         size: typeof entry['size'] === 'number' && Number.isFinite(entry['size']) ? entry['size'] : undefined,
         url: pickString(entry['url']),
         storageUri: pickString(entry['storageUri']),
-        provider: pickString(entry['provider']),
+        provider: normalizeStorageProvider(entry['provider']),
         versionId: pickString(entry['versionId']),
         etag: pickString(entry['etag']),
         checksum: pickString(entry['checksum']),

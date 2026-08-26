@@ -20,13 +20,15 @@ import { AuthService } from './auth.service.js';
 import { AuthPolicyService } from './auth-policy.service.js';
 import { MicrosoftIdentityService, type MicrosoftAuthIntent } from './microsoft-identity.service.js';
 import { PasswordResetService } from './password-reset.service.js';
-import { LoginDto } from './dto/login.dto.js';
+import { AuthClientTokensDto, LoginDto } from './dto/login.dto.js';
 import { ConfirmPasswordResetDto, RequestPasswordResetDto } from './dto/password-reset.dto.js';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
 import { Public } from './decorators/public.decorator.js';
 import { TokenPayload } from './interfaces/auth.interface.js';
 import { success } from '../../../common/index.js';
 import { ApiSuccess, ApiError } from '../../../common/swagger/api-response.dto.js';
+import { ApiOkEnvelopeResponse } from '../../../common/swagger/api-response.decorator.js';
 
 interface AuthClientTokens {
   accessToken: string;
@@ -356,6 +358,24 @@ export class AuthController {
     return success(result, "비밀번호가 재설정되었습니다");
   }
 
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '현재 사용자의 비밀번호 변경' })
+  @ApiOkResponse({ type: ApiSuccess })
+  async changePassword(
+    @Body() dto: ChangePasswordDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    const result = await this.authService.changePassword(
+      BigInt(currentUser.userId),
+      currentUser.sessionId,
+      dto,
+    );
+    return success(result, '비밀번호가 변경되었습니다.');
+  }
+
   /**
    * 로그인
    * POST /api/auth/login
@@ -365,7 +385,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: "로그인", description: "JWT Access/Refresh 토큰 발급" })
-  @ApiOkResponse({ type: ApiSuccess })
+  @ApiOkEnvelopeResponse(AuthClientTokensDto)
   @ApiUnauthorizedResponse({ type: ApiError, description: "잘못된 자격 증명" })
   @ApiTooManyRequestsResponse({ type: ApiError, description: "로그인 레이트리밋 초과" })
   @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })

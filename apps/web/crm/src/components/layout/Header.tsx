@@ -41,23 +41,27 @@ export function Header({
   });
 
   const handleCreateOpportunity = () => {
+    const path = '/?sourceSurface=form&create=opportunity';
     openTab({
       id: 'crm-opportunity-create',
       title: '새 기회',
-      path: '/?create=opportunity',
+      path,
       closable: true,
       activate: true,
     });
+    router.push(path);
   };
 
   const openUserSurfaceTab = (kind: SsooUserSurfaceTabKind) => {
+    const path = getSsooUserSurfaceTabPath(kind);
     openTab({
       id: getSsooUserSurfaceTabId(kind),
       title: getSsooUserSurfaceTabTitle(kind),
-      path: getSsooUserSurfaceTabPath(kind),
+      path,
       closable: true,
       activate: true,
     });
+    router.push(path);
   };
 
   const globalHeaderSearch = useSsooGlobalHeaderSearch({
@@ -69,6 +73,7 @@ export function Header({
         closable: true,
         activate: true,
       });
+      router.push(path);
     },
   });
 

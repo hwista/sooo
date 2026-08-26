@@ -1,27 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Save, Search } from 'lucide-react';
 import type {
   CrmBusinessPlanPerformanceActualInputRequest,
   CrmBusinessPlanPerformanceActualInputResult,
   CrmBusinessPlanPerformanceMonth,
-  CrmBusinessPlanPerformanceQuery,
+  CrmBusinessPlanPerformanceMode,
   CrmBusinessPlanPerformanceResponse,
   CrmBusinessPlanPerformanceRow,
   CrmBusinessPlanPerformanceSource,
   CrmBusinessPlanPreviewRegion,
 } from '@ssoo/types/crm';
 import { Badge, Button, Input, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { useAuthStore } from '@/stores/auth.store';
-
-export interface BusinessPlanPerformancePreviewWorkspaceQuery {
-  year: number;
-  businessType: string;
-  industryLine: string;
-  region: CrmBusinessPlanPreviewRegion;
-  search: string;
-}
+import { useCrmBusinessYearOptions } from '@/lib/crmCommonCodeOptions';
+import { useCrmDomainAccess } from '@/lib/useCrmDomainAccess';
+import type { BusinessPlanPerformancePreviewWorkspaceQuery } from './businessPlanPerformancePreviewQuery';
 
 interface BackendSuccessResponse<T> {
   success: true;
@@ -70,6 +66,11 @@ const rowKindLabels: Record<PerformanceRowKind, string> = {
   gap: '차이',
 };
 
+const performanceModeLabels: Record<CrmBusinessPlanPerformanceMode, string> = {
+  'source-compatible': '원천 호환 · 계약 청구계획',
+  'extended-actual': 'SSOO 확장 · 청구실적/직접실적',
+};
+
 function formatWon(value: number) {
   return `${Math.round(value).toLocaleString('ko-KR')}원`;
 }
@@ -91,6 +92,7 @@ function formatTableAmount(value: number) {
 function buildApiHref(query: BusinessPlanPerformancePreviewWorkspaceQuery) {
   const params = new URLSearchParams();
   params.set('year', String(query.year));
+  params.set('mode', query.mode);
   if (query.businessType) params.set('businessType', query.businessType);
   if (query.industryLine) params.set('industryLine', query.industryLine);
   if (query.region !== 'all') params.set('region', query.region);
@@ -138,6 +140,8 @@ export function BusinessPlanPerformancePreviewWorkspaceClient({
   query: BusinessPlanPerformancePreviewWorkspaceQuery;
 }) {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { access: domainAccess } = useCrmDomainAccess(accessToken);
+  const canWriteBusinessPlan = domainAccess?.features.canWriteBusinessPlan === true;
   const [currentData, setCurrentData] = useState(data);
   const [isReloading, setIsReloading] = useState(data.rows.length === 0);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -146,7 +150,8 @@ export function BusinessPlanPerformancePreviewWorkspaceClient({
   const [directActualMessage, setDirectActualMessage] = useState<string | null>(null);
   const [directActualError, setDirectActualError] = useState<string | null>(null);
   const apiHref = useMemo(() => buildApiHref(query), [query]);
-  const yearOptions = useMemo(() => getYearOptions(query.year), [query.year]);
+  const businessYears = useCrmBusinessYearOptions(query.year, getYearOptions(query.year));
+  const yearOptions = businessYears.years;
 
   useEffect(() => {
     setCurrentData(data);
@@ -248,6 +253,31 @@ export function BusinessPlanPerformancePreviewWorkspaceClient({
     return () => abortController.abort();
   }, [loadPreview]);
 
+  if (query.mode === 'source-compatible') {
+    return (
+      <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="business-plan-performance">
+        <div className="mx-auto max-w-[1180px]">
+          <h1 className="text-xl font-semibold text-foreground">사업계획대비실적 (월별)</h1>
+          <p className="mt-1 text-sm text-muted-foreground">확정 사업계획 대비 계약 청구계획 실적을 조회합니다.</p>
+          <form action="/business-plan-performance" className="mt-6 flex flex-wrap items-end gap-3">
+            <Input type="hidden" name="mode" value="source-compatible" />
+            <SourceBprField label="사업년도 *" htmlFor="bpr-year"><NativeSelect id="bpr-year" name="year" defaultValue={String(query.year)}>{yearOptions.map((year) => <option key={year} value={year}>{year}년</option>)}</NativeSelect></SourceBprField>
+            <SourceBprField label="사업구분" htmlFor="bpr-biz-type"><NativeSelect id="bpr-biz-type" name="businessType" defaultValue={query.businessType}><option value="">전체</option>{[...new Set([query.businessType, ...currentData.summary.businessTypeOptions].filter(Boolean))].map((option) => <option key={option} value={option}>{option}</option>)}</NativeSelect></SourceBprField>
+            <SourceBprField label="계열구분" htmlFor="bpr-group-type"><NativeSelect id="bpr-group-type" name="industryLine" defaultValue={query.industryLine}><option value="">전체</option>{[...new Set([query.industryLine, ...currentData.summary.industryLineOptions].filter(Boolean))].map((option) => <option key={option} value={option}>{option}</option>)}</NativeSelect></SourceBprField>
+            <SourceBprField label="국내/해외" htmlFor="bpr-domestic"><NativeSelect id="bpr-domestic" name="region" defaultValue={query.region}>{Object.entries(regionLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</NativeSelect></SourceBprField>
+            <Button type="submit" variant="outline">조회</Button>
+          </form>
+          <p className="mt-4 text-sm text-muted-foreground">사업계획 {currentData.summary.confirmedPlanName || `${query.year}년`} 기준</p>
+          {loadError ? <div className="mt-3 flex items-center gap-2 rounded-md bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger"><AlertCircle className="h-4 w-4" />{loadError}</div> : null}
+          <div className="mt-5 overflow-x-auto rounded-xl border bg-card">
+            <PerformanceTable rows={currentData.rows} months={currentData.months} isLoading={isReloading} sourceCompatible />
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">{currentData.summary.rowCount}개 WBS그룹 · {query.year}년 계획 vs 확정계약 청구계획</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col bg-ssoo-content-bg">
       <header className="border-b bg-card px-5 py-4">
@@ -264,6 +294,8 @@ export function BusinessPlanPerformancePreviewWorkspaceClient({
         <p className="mt-2 text-sm text-muted-foreground">{currentData.summary.boundaryNotice}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge variant="secondary">{currentData.summary.planBasisLabel}</Badge>
+          <Badge variant={currentData.summary.mode === 'source-compatible' ? 'default' : 'secondary'}>{performanceModeLabels[currentData.summary.mode]}</Badge>
+          <Badge variant="secondary">실적: {currentData.summary.actualBasisLabel}</Badge>
           <Badge variant="secondary">{currentData.summary.costBasisLabel}</Badge>
           {currentData.summary.confirmedPlanCode ? (
             <Badge variant="outline">{currentData.summary.confirmedPlanCode} · {currentData.summary.confirmedPlanName}</Badge>
@@ -290,28 +322,39 @@ export function BusinessPlanPerformancePreviewWorkspaceClient({
       </header>
 
       <main className="min-h-0 flex-1 overflow-auto p-5">
-        <section className="grid gap-3 md:grid-cols-6">
+        <section className="grid gap-3 md:grid-cols-5 xl:grid-cols-6">
           <Metric label="기준년도" value={`${currentData.summary.year}년`} sub={`${currentData.summary.rowCount}개 후보`} />
           <Metric label="계획 매출" value={formatEok(currentData.summary.planRevenueTotal)} sub={formatWon(currentData.summary.planRevenueTotal)} />
           <Metric label="실적 매출" value={formatEok(currentData.summary.actualRevenueTotal)} sub={formatWon(currentData.summary.actualRevenueTotal)} />
-          <Metric label="직접 실적" value={`${currentData.summary.directActualInputCount}개`} sub={`매출 ${formatWon(currentData.summary.directActualRevenueTotal)} · 원가 ${formatWon(currentData.summary.directActualCostTotal)}`} />
+          {currentData.summary.mode === 'extended-actual' ? (
+            <Metric label="직접 실적" value={`${currentData.summary.directActualInputCount}개`} sub={`매출 ${formatWon(currentData.summary.directActualRevenueTotal)} · 원가 ${formatWon(currentData.summary.directActualCostTotal)}`} />
+          ) : null}
           <Metric label="매출 차이" value={formatEok(currentData.summary.revenueGapTotal)} sub={formatWon(currentData.summary.revenueGapTotal)} />
           <Metric label="손익 차이" value={formatEok(currentData.summary.marginGapTotal)} sub={formatWon(currentData.summary.marginGapTotal)} />
         </section>
 
-        <DirectActualInputPanel
-          draft={directActualDraft}
-          businessTypeOptions={currentData.summary.businessTypeOptions}
-          industryLineOptions={currentData.summary.industryLineOptions}
-          isSaving={isDirectActualSaving}
-          message={directActualMessage}
-          error={directActualError}
-          onDraftChange={setDirectActualDraft}
-          onSave={() => void saveDirectActual()}
-        />
+        {currentData.summary.mode === 'extended-actual' ? (
+          <DirectActualInputPanel
+            canWrite={canWriteBusinessPlan}
+            draft={directActualDraft}
+            businessTypeOptions={currentData.summary.businessTypeOptions}
+            industryLineOptions={currentData.summary.industryLineOptions}
+            isSaving={isDirectActualSaving}
+            message={directActualMessage}
+            error={directActualError}
+            onDraftChange={setDirectActualDraft}
+            onSave={() => void saveDirectActual()}
+          />
+        ) : null}
 
         <section className="mt-4 rounded-md border bg-card">
           <form action="/business-plan-performance" className="flex flex-wrap items-end gap-3 border-b p-4">
+            <label className="w-[220px] text-sm font-medium text-muted-foreground">
+              비교 기준
+              <NativeSelect name="mode" defaultValue={query.mode} className="mt-1">
+                {Object.entries(performanceModeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </NativeSelect>
+            </label>
             <label className="w-[132px] text-sm font-medium text-muted-foreground">
               기준년도
               <NativeSelect name="year" defaultValue={String(query.year)} className="mt-1">
@@ -340,7 +383,7 @@ export function BusinessPlanPerformancePreviewWorkspaceClient({
             </label>
             <label className="min-w-[220px] flex-1 text-sm font-medium text-muted-foreground">
               검색
-              <Input name="search" defaultValue={query.search} placeholder="고객, 건명, 담당자, WBS" className="mt-1" />
+              <SsooSearchInput id="crm-business-plan-performance-search-input" name="search" ariaLabel="사업계획 대비 실적 검색" intent="data-filter" defaultValue={query.search} placeholder="고객, 건명, 담당자, WBS" className="mt-1" />
             </label>
             <Button type="submit">
               <Search className="mr-2 h-4 w-4" />
@@ -356,13 +399,13 @@ export function BusinessPlanPerformancePreviewWorkspaceClient({
           ) : null}
 
           <div className="border-b px-4 py-2 text-xs text-muted-foreground">
-            단위: 억원 · 계획은 {currentData.summary.confirmedPlanAvailable ? '확정 사업계획 차수의 월별 입력 우선, 미입력 line은 월 균등 배분' : 'pipeline 후보와 확정 계약 청구계획'} 기준, 원가는 {currentData.summary.costBasisLabel} 기준
+            단위: 억원 · 계획은 {currentData.summary.confirmedPlanAvailable ? '확정 사업계획 차수의 월별 매출·외부원가 우선, 미입력 line은 월 균등 배분' : currentData.summary.mode === 'source-compatible' ? '확정 사업계획 없음' : 'pipeline 후보와 확정 계약 청구계획'} 기준 · 실적은 {currentData.summary.actualBasisLabel} 기준 · 원가는 {currentData.summary.costBasisLabel} 기준
             {currentData.summary.amsExternalCostAdjustedWbsCount > 0 ? ` · AMS 확정 WBS ${currentData.summary.amsExternalCostAdjustedWbsCount}개는 계약 외부원가 실적 ${formatWon(currentData.summary.amsExternalCostAdjustedActualAmountTotal)}를 제외` : ''}
           </div>
           <MonthSummary months={currentData.months} />
           <PerformanceTable rows={currentData.rows} months={currentData.months} isLoading={isReloading} />
           <div className="border-t px-4 py-3 text-xs text-muted-foreground">
-            {currentData.summary.rowCount}개 후보 · 확정원가 {currentData.summary.confirmedCostInputCount}개 · AMS 조정 WBS {currentData.summary.amsExternalCostAdjustedWbsCount}개 · {currentData.summary.confirmedPlanAvailable ? '확정 사업계획 차수 기준 읽기 전용 비교' : '확정 사업계획 차수 없이 읽기 전용 후보 비교'}
+            {currentData.summary.rowCount}개 후보 · {currentData.summary.mode === 'source-compatible' ? '원천 기준: 확정 계약 청구계획을 실적으로 비교' : `확정원가 ${currentData.summary.confirmedCostInputCount}개 · AMS 조정 WBS ${currentData.summary.amsExternalCostAdjustedWbsCount}개`} · {currentData.summary.confirmedPlanAvailable ? '확정 사업계획 차수 기준 읽기 전용 비교' : '확정 사업계획 차수 없이 읽기 전용 후보 비교'}
           </div>
         </section>
       </main>
@@ -381,7 +424,12 @@ function Metric({ label, value, sub }: { label: string; value: string; sub: stri
   );
 }
 
+function SourceBprField({ label, htmlFor, children }: { label: string; htmlFor: string; children: ReactNode }) {
+  return <div className="w-[160px]"><label data-for={htmlFor} className="mb-1 block text-sm text-muted-foreground">{label}</label>{children}</div>;
+}
+
 function DirectActualInputPanel({
+  canWrite,
   draft,
   businessTypeOptions,
   industryLineOptions,
@@ -391,6 +439,7 @@ function DirectActualInputPanel({
   onDraftChange,
   onSave,
 }: {
+  canWrite: boolean;
   draft: DirectActualDraft;
   businessTypeOptions: string[];
   industryLineOptions: string[];
@@ -402,7 +451,7 @@ function DirectActualInputPanel({
 }) {
   const revenueTotal = draft.monthlyRevenueAmounts.reduce((sum, amount) => sum + amount, 0);
   const costTotal = draft.monthlyCostAmounts.reduce((sum, amount) => sum + amount, 0);
-  const canSave = Boolean(draft.businessType.trim() && draft.industryLine.trim() && draft.ownerName.trim() && !isSaving);
+  const canSave = Boolean(canWrite && draft.businessType.trim() && draft.industryLine.trim() && draft.ownerName.trim() && !isSaving);
   const updateField = <K extends keyof DirectActualDraft>(key: K, value: DirectActualDraft[K]) => {
     onDraftChange({ ...draft, [key]: value });
   };
@@ -417,7 +466,7 @@ function DirectActualInputPanel({
   };
 
   return (
-    <section className="mt-4 rounded-md border bg-card">
+    <fieldset disabled={!canWrite} className="mt-4 rounded-md border bg-card">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold text-foreground">실적 직접 입력</h2>
@@ -507,7 +556,7 @@ function DirectActualInputPanel({
           {error}
         </div>
       ) : null}
-    </section>
+    </fieldset>
   );
 }
 
@@ -539,21 +588,29 @@ function PerformanceTable({
   rows,
   months,
   isLoading,
+  sourceCompatible = false,
 }: {
   rows: CrmBusinessPlanPerformanceRow[];
   months: CrmBusinessPlanPerformanceMonth[];
   isLoading: boolean;
+  sourceCompatible?: boolean;
 }) {
-  const columnCount = 5 + ((months.length + 1) * 3);
+  const columnCount = (sourceCompatible ? 6 : 5) + ((months.length + 1) * 3);
   return (
     <div className="overflow-auto">
       <Table className="w-full min-w-[2920px] text-xs">
         <TableHeader className="sticky top-0 z-10 bg-ssoo-content-bg text-left text-muted-foreground shadow-sm">
           <TableRow>
             <TableHead className="w-[150px] px-2 py-2" rowSpan={2}>사업구분</TableHead>
-            <TableHead className="w-[150px] px-2 py-2" rowSpan={2}>계열/산업</TableHead>
-            <TableHead className="w-[220px] px-2 py-2" rowSpan={2}>사업/WBS</TableHead>
-            <TableHead className="w-[88px] px-2 py-2" rowSpan={2}>출처</TableHead>
+            <TableHead className="w-[150px] px-2 py-2" rowSpan={2}>{sourceCompatible ? '계열구분' : '계열/산업'}</TableHead>
+            {sourceCompatible ? <>
+              <TableHead className="w-[100px] px-2 py-2" rowSpan={2}>국내/해외</TableHead>
+              <TableHead className="w-[220px] px-2 py-2" rowSpan={2}>사업명</TableHead>
+              <TableHead className="w-[140px] px-2 py-2" rowSpan={2}>WBS코드</TableHead>
+            </> : <>
+              <TableHead className="w-[220px] px-2 py-2" rowSpan={2}>사업/WBS</TableHead>
+              <TableHead className="w-[88px] px-2 py-2" rowSpan={2}>출처</TableHead>
+            </>}
             <TableHead className="w-[56px] px-2 py-2" rowSpan={2}>구분</TableHead>
             {months.map((month) => (
               <TableHead key={month.month} className="px-2 py-2 text-center" colSpan={3}>{month.month}월</TableHead>
@@ -577,7 +634,7 @@ function PerformanceTable({
               <TableCell className="px-3 py-5 text-center text-muted-foreground" colSpan={columnCount}>조회된 사업계획대비실적 후보가 없습니다.</TableCell>
             </TableRow>
           ) : null}
-          {!isLoading ? rows.map((row) => <PerformanceRows key={row.key} row={row} months={months} />) : null}
+          {!isLoading ? rows.map((row) => <PerformanceRows key={row.key} row={row} months={months} sourceCompatible={sourceCompatible} />) : null}
         </TableBody>
       </Table>
     </div>
@@ -597,9 +654,11 @@ function AmountHeads() {
 function PerformanceRows({
   row,
   months,
+  sourceCompatible = false,
 }: {
   row: CrmBusinessPlanPerformanceRow;
   months: CrmBusinessPlanPerformanceMonth[];
+  sourceCompatible?: boolean;
 }) {
   const rowKinds: PerformanceRowKind[] = ['plan', 'actual', 'gap'];
   return (
@@ -608,15 +667,16 @@ function PerformanceRows({
         <TableRow key={`${row.key}-${kind}`} className={kind === 'gap' ? 'bg-ssoo-warning-bg' : kind === 'actual' ? 'bg-ssoo-info-bg' : undefined}>
           <TableCell className="px-2 py-2 font-medium text-foreground">{kind === 'plan' ? row.businessType : ''}</TableCell>
           <TableCell className="px-2 py-2 text-muted-foreground">{kind === 'plan' ? row.industryLine : ''}</TableCell>
-          <TableCell className="px-2 py-2 text-muted-foreground">
-            {kind === 'plan' ? (
-              <div>
-                <div className="font-medium text-foreground">{row.label}</div>
-                <div className="mt-0.5 text-caption-2xs text-muted-foreground">{row.wbsCode || 'WBS 미지정'} · {row.ownerName} · {regionLabels[row.region]}</div>
-              </div>
-            ) : null}
-          </TableCell>
-          <TableCell className="px-2 py-2">{kind === 'plan' ? <SourceBadge value={row.source} /> : null}</TableCell>
+          {sourceCompatible ? <>
+            <TableCell className="px-2 py-2 text-muted-foreground">{kind === 'plan' ? regionLabels[row.region] : ''}</TableCell>
+            <TableCell className="px-2 py-2 font-medium text-foreground">{kind === 'plan' ? row.label : ''}</TableCell>
+            <TableCell className="px-2 py-2 text-muted-foreground">{kind === 'plan' ? row.wbsCode || '-' : ''}</TableCell>
+          </> : <>
+            <TableCell className="px-2 py-2 text-muted-foreground">
+              {kind === 'plan' ? <div><div className="font-medium text-foreground">{row.label}</div><div className="mt-0.5 text-caption-2xs text-muted-foreground">{row.wbsCode || 'WBS 미지정'} · {row.ownerName} · {regionLabels[row.region]}</div></div> : null}
+            </TableCell>
+            <TableCell className="px-2 py-2">{kind === 'plan' ? <SourceBadge value={row.source} /> : null}</TableCell>
+          </>}
           <TableCell className="px-2 py-2 font-medium text-muted-foreground">{rowKindLabels[kind]}</TableCell>
           {months.map((month) => <AmountCells key={month.month} month={getMonthForKind(row.months[month.month - 1], kind)} kind={kind} />)}
           <AmountCells month={getMonthForKind(row.total, kind)} kind={kind} isTotal />
@@ -679,48 +739,4 @@ function AmountCells({
       <TableCell className={`px-2 py-2 text-right ${tone} ${weight}`}>{formatTableAmount(month.planMarginAmount)}</TableCell>
     </>
   );
-}
-
-export function normalizeBusinessPlanPerformancePreviewQuery(path: string): BusinessPlanPerformancePreviewWorkspaceQuery {
-  const [, queryString = ''] = path.split('?');
-  const searchParams = new URLSearchParams(queryString);
-  const year = Number(searchParams.get('year') ?? new Date().getFullYear());
-  const region = searchParams.get('region') as CrmBusinessPlanPreviewRegion | null;
-  return {
-    year: Number.isFinite(year) && year >= 2000 ? Math.trunc(year) : new Date().getFullYear(),
-    businessType: (searchParams.get('businessType') ?? '').trim(),
-    industryLine: (searchParams.get('industryLine') ?? '').trim(),
-    region: region && ['all', 'domestic', 'overseas'].includes(region) ? region : 'all',
-    search: (searchParams.get('search') ?? '').trim(),
-  };
-}
-
-export function toRequiredBusinessPlanPerformancePreviewQuery(
-  query: BusinessPlanPerformancePreviewWorkspaceQuery,
-): Required<CrmBusinessPlanPerformanceQuery> {
-  return {
-    year: query.year,
-    businessType: query.businessType,
-    industryLine: query.industryLine,
-    region: query.region,
-    search: query.search,
-  };
-}
-
-export function normalizeBusinessPlanPerformancePreviewQueryRecord(
-  query: Record<string, string | string[] | undefined> = {},
-): BusinessPlanPerformancePreviewWorkspaceQuery {
-  const value = (key: string) => {
-    const raw = query[key];
-    return Array.isArray(raw) ? raw[0] ?? '' : raw ?? '';
-  };
-  const year = Number(value('year') || new Date().getFullYear());
-  const region = value('region') as CrmBusinessPlanPreviewRegion;
-  return {
-    year: Number.isFinite(year) && year >= 2000 ? Math.trunc(year) : new Date().getFullYear(),
-    businessType: value('businessType').trim(),
-    industryLine: value('industryLine').trim(),
-    region: ['all', 'domestic', 'overseas'].includes(region) ? region : 'all',
-    search: value('search').trim(),
-  };
 }

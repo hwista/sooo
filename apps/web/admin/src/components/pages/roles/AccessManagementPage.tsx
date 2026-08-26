@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { RefreshCcw, Search, Shield, AlertTriangle, Users } from 'lucide-react';
-import { SsooSettingsPage } from '@ssoo/web-shell';
+import { RefreshCcw, Search, Shield, AlertTriangle, Users, Save, ScrollText } from 'lucide-react';
+import { SsooSearchInput, SsooSettingsPage } from '@ssoo/web-shell';
 import type {
   AccessInspectionResult,
   PermissionCatalogGroup,
@@ -19,12 +19,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useInspectAccess, useListExceptions, usePermissionCatalog } from '@/hooks/queries/useAccessOps';
+import {
+  useAccessAudit,
+  useInspectAccess,
+  useListExceptions,
+  usePermissionCatalog,
+  useRolePermissions,
+  useUpdateRolePermissions,
+} from '@/hooks/queries/useAccessOps';
 import { useUserList } from '@/hooks/queries/useUsers';
 import type { InspectAccessParams, ListExceptionsParams } from '@/lib/api/endpoints/accessOps';
-import { NativeSelect } from '@ssoo/web-ui';
+import { Checkbox, NativeSelect } from '@ssoo/web-ui';
 
-type TabId = 'catalog' | 'inspect' | 'exceptions';
+type TabId = 'grants' | 'catalog' | 'inspect' | 'exceptions' | 'audit';
 
 interface InspectDraft {
   targetObjectType: string;
@@ -354,7 +361,7 @@ function CatalogTab() {
           <div>
             <h3 className="text-sm font-semibold">플랫폼/앱별 권한 기능 명세</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Admin은 SSOT 플랫폼/base 권한을 운영하고, DMS는 문서 도메인 내부 권한·설정·운영을 소유합니다. PMS/CRM/SNS는 앱 개발 진행에 맞춰 같은 분류로 이어갑니다.
+              Admin은 SSOT 플랫폼/base 권한을 운영합니다. DMS와 CRM의 런칭 권한은 각 소유 앱의 API guard가 집행하고, 이 화면은 같은 permission snapshot의 부여·감사를 담당합니다. PMS/SNS는 앱 개발 진행에 맞춰 같은 분류로 이어갑니다.
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={() => catalogQuery.refetch()}>
@@ -466,7 +473,11 @@ function InspectTab() {
         {!usersQuery.isLoading && !usersQuery.isError && (
           <>
             <div className="flex gap-3">
-              <Input
+              <SsooSearchInput
+                id="admin-access-user-lookup-input"
+                name="admin-access-user-lookup-query"
+                ariaLabel="권한 대상 사용자 검색"
+                intent="entity-lookup"
                 placeholder="이름 또는 로그인 ID 검색..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
@@ -659,7 +670,11 @@ function ExceptionsTab() {
       <div className="rounded-lg border bg-card p-4">
         <h3 className="mb-3 text-sm font-semibold">예외 검색</h3>
         <div className="flex flex-wrap gap-3">
-          <Input
+          <SsooSearchInput
+            id="admin-access-login-id-filter-input"
+            name="admin-access-login-id-filter-query"
+            ariaLabel="권한 예외 로그인 ID 필터"
+            intent="data-filter"
             placeholder="로그인 ID 필터..."
             value={loginIdSearch}
             onChange={(e) => setLoginIdSearch(e.target.value)}
@@ -757,14 +772,270 @@ function ExceptionsTab() {
   );
 }
 
+/* ────────────── Role Grants Tab ────────────── */
+function RoleGrantsTab() {
+  const rolesQuery = useRolePermissions();
+  const catalogQuery = usePermissionCatalog();
+  const updateMutation = useUpdateRolePermissions();
+  const [selectedRoleCode, setSelectedRoleCode] = useState('');
+  const [draftCodes, setDraftCodes] = useState<string[]>([]);
+  const [searchText, setSearchText] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const roles = rolesQuery.data ?? [];
+  const selectedRole = roles.find((role) => role.roleCode === selectedRoleCode) ?? roles[0];
+
+  useEffect(() => {
+    if (!selectedRole) return;
+    setSelectedRoleCode(selectedRole.roleCode);
+    setDraftCodes(selectedRole.permissionCodes);
+    setSuccessMessage('');
+  }, [selectedRole]);
+
+  const catalogGroups = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    return (catalogQuery.data?.groups ?? [])
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => (
+          !query
+          || item.permissionCode.toLowerCase().includes(query)
+          || item.permissionName.toLowerCase().includes(query)
+        )),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [catalogQuery.data, searchText]);
+
+  const isDirty = selectedRole
+    ? [...draftCodes].sort().join('|') !== [...selectedRole.permissionCodes].sort().join('|')
+    : false;
+
+  const togglePermission = (permissionCode: string, checked: boolean) => {
+    setDraftCodes((current) => (
+      checked
+        ? Array.from(new Set([...current, permissionCode]))
+        : current.filter((code) => code !== permissionCode)
+    ));
+    setSuccessMessage('');
+  };
+
+  const save = async () => {
+    if (!selectedRole || !isDirty) return;
+    const confirmed = window.confirm(
+      `${selectedRole.roleName} 역할의 권한을 ${draftCodes.length}개 항목으로 갱신할까요?`,
+    );
+    if (!confirmed) return;
+    try {
+      await updateMutation.mutateAsync({
+        roleCode: selectedRole.roleCode,
+        permissionCodes: draftCodes,
+      });
+      setSuccessMessage(`${selectedRole.roleName} 역할 권한을 저장했습니다.`);
+    } catch {
+      setSuccessMessage('');
+    }
+  };
+
+  if (rolesQuery.isLoading || catalogQuery.isLoading) {
+    return <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">역할 권한을 불러오는 중...</div>;
+  }
+
+  if (rolesQuery.isError || catalogQuery.isError) {
+    const error = rolesQuery.error ?? catalogQuery.error;
+    return (
+      <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+        <p className="text-sm text-destructive">
+          {error instanceof Error ? error.message : '역할 권한을 불러오지 못했습니다.'}
+        </p>
+        <Button variant="outline" onClick={() => Promise.all([rolesQuery.refetch(), catalogQuery.refetch()])}>
+          <RefreshCcw className="mr-1 h-4 w-4" /> 다시 시도
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <section className="rounded-lg border bg-card p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="min-w-64 space-y-1 text-sm">
+            <span className="font-medium">편집할 역할</span>
+            <NativeSelect
+              value={selectedRole?.roleCode ?? ''}
+              onChange={(event) => setSelectedRoleCode(event.target.value)}
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+            >
+              {roles.map((role) => (
+                <option key={role.roleCode} value={role.roleCode} disabled={!role.isActive}>
+                  {role.roleName} ({role.roleCode}) · {role.permissionCodes.length}개
+                </option>
+              ))}
+            </NativeSelect>
+          </label>
+          <label className="min-w-64 flex-1 space-y-1 text-sm">
+            <span className="font-medium">Permission 검색</span>
+            <SsooSearchInput
+              id="admin-permission-catalog-filter-input"
+              name="admin-permission-catalog-filter-query"
+              ariaLabel="Permission 코드 또는 이름 검색"
+              intent="data-filter"
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              placeholder="permission code 또는 이름"
+            />
+          </label>
+          <Button onClick={save} disabled={!isDirty || updateMutation.isPending}>
+            <Save className="mr-1 h-4 w-4" />
+            {updateMutation.isPending ? '저장 중...' : '변경 저장'}
+          </Button>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
+          <span>선택 {draftCodes.length}개</span>
+          <span>범위 {selectedRole?.roleScopeCode ?? '-'}</span>
+          <span>{selectedRole?.description ?? '설명 없음'}</span>
+        </div>
+        {selectedRole?.roleCode === 'admin' && (
+          <p className="mt-3 rounded-md bg-ssoo-warning-bg px-3 py-2 text-xs text-ssoo-warning">
+            admin의 system.override는 런칭 안전장치로 제거할 수 없습니다.
+          </p>
+        )}
+        {successMessage && <p className="mt-3 text-sm text-ssoo-success">{successMessage}</p>}
+        {updateMutation.isError && (
+          <p className="mt-3 text-sm text-destructive">
+            {updateMutation.error instanceof Error ? updateMutation.error.message : '역할 권한 저장에 실패했습니다.'}
+          </p>
+        )}
+      </section>
+
+      {catalogGroups.map((group) => (
+        <section key={group.owner} className="rounded-lg border bg-card">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
+            <div>
+              <h3 className="text-sm font-semibold">{group.title}</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">{group.responsibility}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDraftCodes((current) => Array.from(new Set([
+                  ...current,
+                  ...group.items.map((item) => item.permissionCode),
+                ])))}
+              >
+                표시 항목 전체 선택
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const removable = new Set(group.items
+                    .map((item) => item.permissionCode)
+                    .filter((code) => !(selectedRole?.roleCode === 'admin' && code === 'system.override')));
+                  setDraftCodes((current) => current.filter((code) => !removable.has(code)));
+                }}
+              >
+                표시 항목 해제
+              </Button>
+            </div>
+          </div>
+          <div className="grid gap-2 p-4 lg:grid-cols-2">
+            {group.items.map((item) => {
+              const locked = selectedRole?.roleCode === 'admin' && item.permissionCode === 'system.override';
+              return (
+                <label key={item.permissionCode} className="flex gap-3 rounded-md border p-3 text-sm">
+                  <Checkbox
+                    checked={draftCodes.includes(item.permissionCode)}
+                    disabled={locked || updateMutation.isPending}
+                    onCheckedChange={(checked) => togglePermission(item.permissionCode, checked === true)}
+                    aria-label={`${item.permissionCode} 권한`}
+                  />
+                  <span className="min-w-0">
+                    <span className="block break-all font-medium">{item.permissionCode}</span>
+                    <span className="block text-xs text-muted-foreground">{item.permissionName} · {item.status}</span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+/* ────────────── Audit Tab ────────────── */
+function AuditTab() {
+  const auditQuery = useAccessAudit(100);
+  const events = auditQuery.data ?? [];
+
+  return (
+    <div className="space-y-4 rounded-lg border bg-card">
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <div>
+          <h3 className="text-sm font-semibold">플랫폼 운영 감사 이벤트</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">사용자·로그인·세션·조직·역할 권한 이력의 최신 100건</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => auditQuery.refetch()} disabled={auditQuery.isFetching}>
+          <RefreshCcw className={`mr-1 h-4 w-4 ${auditQuery.isFetching ? 'animate-spin' : ''}`} /> 새로고침
+        </Button>
+      </div>
+      {auditQuery.isLoading ? (
+        <div className="p-8 text-center text-sm text-muted-foreground">감사 이벤트를 불러오는 중...</div>
+      ) : auditQuery.isError ? (
+        <p className="p-4 text-sm text-destructive">
+          {auditQuery.error instanceof Error ? auditQuery.error.message : '감사 이벤트 조회에 실패했습니다.'}
+        </p>
+      ) : events.length === 0 ? (
+        <div className="p-8 text-center text-sm text-muted-foreground">기록된 감사 이벤트가 없습니다.</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">시각</TableHead>
+                <TableHead className="text-xs">분류/이벤트</TableHead>
+                <TableHead className="text-xs">대상</TableHead>
+                <TableHead className="text-xs">요약</TableHead>
+                <TableHead className="text-xs">운영자</TableHead>
+                <TableHead className="text-xs">출처/활동</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {events.map((event) => (
+                <TableRow key={event.id}>
+                  <TableCell className="whitespace-nowrap text-xs">{formatDateTime(event.eventAt)}</TableCell>
+                  <TableCell>
+                    <div className="text-xs font-medium">{event.category}</div>
+                    <div className="text-xs text-muted-foreground">{event.eventType}</div>
+                  </TableCell>
+                  <TableCell className="text-xs">{event.subjectId}</TableCell>
+                  <TableCell className="min-w-72 text-xs">{event.summary}</TableCell>
+                  <TableCell className="text-xs">{event.operatorUserId ?? '-'}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    <div>{event.source ?? '-'}</div>
+                    <div>{event.activity ?? '-'}</div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ────────────── Main Page ────────────── */
 export function AccessManagementPage() {
-  const [activeTab, setActiveTab] = useState<TabId>('catalog');
+  const [activeTab, setActiveTab] = useState<TabId>('grants');
 
   const tabItems: Array<{ id: TabId; label: string; icon: typeof Shield }> = [
+    { id: 'grants', label: '역할 권한 편집', icon: Shield },
     { id: 'catalog', label: '권한 기능 명세', icon: Shield },
     { id: 'inspect', label: '권한 조회', icon: Search },
     { id: 'exceptions', label: '예외 내역', icon: Users },
+    { id: 'audit', label: '감사 이벤트', icon: ScrollText },
   ];
 
   return (
@@ -802,11 +1073,15 @@ export function AccessManagementPage() {
       </div>
 
       <div id={`admin-roles-${activeTab}`} className="scroll-mt-4">
-        {activeTab === 'catalog'
+        {activeTab === 'grants'
+          ? <RoleGrantsTab />
+        : activeTab === 'catalog'
           ? <CatalogTab />
         : activeTab === 'inspect'
           ? <InspectTab />
-            : <ExceptionsTab />}
+        : activeTab === 'exceptions'
+          ? <ExceptionsTab />
+          : <AuditTab />}
       </div>
     </SsooSettingsPage>
   );

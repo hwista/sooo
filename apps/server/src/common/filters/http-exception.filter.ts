@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { redactSecretsInText } from '../security/secret-redaction.js';
 
 const PMS_API_PATH_PREFIXES = [
   '/api/projects',
@@ -49,6 +50,9 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       }
     }
 
+    message = redactSecretsInText(message);
+    const sanitizedRequestUrl = redactSecretsInText(request.url);
+
     code = resolveErrorCode({
       requestPath,
       status,
@@ -61,7 +65,7 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       error: {
         code,
         message,
-        path: request.url,
+        path: sanitizedRequestUrl,
         statusCode: status,
       },
       timestamp: new Date().toISOString(),

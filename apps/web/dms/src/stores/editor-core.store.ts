@@ -11,7 +11,7 @@ import type { TemplateReferenceDoc, TemplateGeneration, TemplateOriginType } fro
 import { logger, PerformanceTimer } from '@/lib/utils/errorUtils';
 import { normalizeDocumentPath } from '@/lib/utils/linkUtils';
 import { isUserScopeTransition, registerUserScopedReset } from '@/lib/user-scope';
-import { useFileStore } from './file.store';
+import { isDmsPageLifecycleTransition, useFileStore } from './file.store';
 
 /**
  * 템플릿 저장 시 필요한 메타데이터.
@@ -194,6 +194,10 @@ export const useEditorMultiStore = create<EditorMultiStore>((set, get) => ({
       logger.info('파일 로드 성공', { path, hasMetadata: !!fileData?.metadata });
       timer.end({ success: true });
     } catch (error) {
+      if (isDmsPageLifecycleTransition()) {
+        timer.end({ success: false, discarded: true, reason: 'page-lifecycle-transition' });
+        return;
+      }
       timer.end({ success: false });
       const errorMsg = error instanceof Error ? error.message : '파일 로드 실패';
 
@@ -522,6 +526,10 @@ export const useEditorMultiStore = create<EditorMultiStore>((set, get) => ({
       logger.info('통합 콘텐츠 로드 성공', { path, contentType });
       timer.end({ success: true });
     } catch (error) {
+      if (isDmsPageLifecycleTransition()) {
+        timer.end({ success: false, discarded: true, reason: 'page-lifecycle-transition' });
+        return;
+      }
       timer.end({ success: false });
       const errorMsg = error instanceof Error ? error.message : '콘텐츠 로드 실패';
       get()._updateTab(tabId, {

@@ -31,7 +31,7 @@ import { CollaborationService } from '../collaboration/collaboration.service.js'
 import { DmsFeatureGuard } from '../access/dms-feature.guard.js';
 import { RequireDmsFeature } from '../access/require-dms-feature.decorator.js';
 import { contentService } from '../runtime/content.service.js';
-import type { StorageProvider } from '../runtime/dms-config.service.js';
+import { normalizeStorageProvider, type StorageProvider } from '../runtime/dms-config.service.js';
 import {
   formatContentDisposition,
   getMimeType,
@@ -324,7 +324,7 @@ export class StorageController {
   }
 
   private resolveSourceFileProviderForOpen(sourceFile: SourceFileMeta): StorageProvider | null {
-    if (sourceFile.provider === 'local' || sourceFile.provider === 'sharepoint' || sourceFile.provider === 'nas') {
+    if (sourceFile.provider === 'local' || sourceFile.provider === 'nas') {
       return sourceFile.provider;
     }
 
@@ -341,7 +341,7 @@ export class StorageController {
       return null;
     }
 
-    const match = storageUri.trim().match(/^(local|sharepoint|nas):\/\//);
+    const match = storageUri.trim().match(/^(local|nas):\/\//);
     return match ? match[1] as StorageProvider : null;
   }
 
@@ -372,7 +372,7 @@ export class StorageController {
         size: typeof entry.size === 'number' ? entry.size : undefined,
         url: typeof entry.url === 'string' ? entry.url : undefined,
         storageUri: typeof entry.storageUri === 'string' ? entry.storageUri : undefined,
-        provider: typeof entry.provider === 'string' ? entry.provider : undefined,
+        provider: normalizeStorageProvider(entry.provider),
         versionId: typeof entry.versionId === 'string' ? entry.versionId : undefined,
         etag: typeof entry.etag === 'string' ? entry.etag : undefined,
         checksum: typeof entry.checksum === 'string' ? entry.checksum : undefined,
@@ -448,7 +448,7 @@ export class StorageController {
     requestedProvider?: StorageProvider,
   ): StorageProvider | undefined {
     if (typeof sourceFile.provider === 'string') {
-      if (sourceFile.provider === 'local' || sourceFile.provider === 'sharepoint' || sourceFile.provider === 'nas') {
+      if (sourceFile.provider === 'local' || sourceFile.provider === 'nas') {
         return sourceFile.provider;
       }
     }

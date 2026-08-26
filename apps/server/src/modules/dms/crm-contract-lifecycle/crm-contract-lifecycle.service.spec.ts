@@ -8,6 +8,7 @@ import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.j
 import type { FileCrudService } from '../file/file-crud.service.js';
 import { configService } from '../runtime/dms-config.service.js';
 import type { StorageReference } from '../storage/storage-adapter.service.js';
+import { createDocxTemplateFromText } from '../templates/docx-template-renderer.js';
 import type { TemplateService } from '../templates/template.service.js';
 import {
   DmsCrmContractLifecycleService,
@@ -19,8 +20,9 @@ type FileCrudMock = Pick<FileCrudService, 'read' | 'write'> & {
   writeCalls: Parameters<FileCrudService['write']>[];
 };
 
-type TemplateServiceMock = Pick<TemplateService, 'get'> & {
+type TemplateServiceMock = Pick<TemplateService, 'get' | 'readDocxBinary'> & {
   getCalls: Parameters<TemplateService['get']>[];
+  readDocxBinaryCalls: Parameters<TemplateService['readDocxBinary']>[];
 };
 
 type StorageMock = DmsCrmContractLifecycleStorage & {
@@ -61,8 +63,10 @@ function createFileCrudMock(): FileCrudMock {
 
 function createTemplateServiceMock(status: 'active' | 'archived' = 'active'): TemplateServiceMock {
   const getCalls: Parameters<TemplateService['get']>[] = [];
+  const readDocxBinaryCalls: Parameters<TemplateService['readDocxBinary']>[] = [];
   return {
     getCalls,
+    readDocxBinaryCalls,
     get: async (...args) => {
       getCalls.push(args);
       return {
@@ -83,7 +87,20 @@ function createTemplateServiceMock(status: 'active' | 'archived' = 'active'): Te
         referenceDocuments: [],
         generation: { source: 'manual' },
         sourcePath: 'system/crm-contract-v1.md',
+        docxTemplate: {
+          fileName: 'crm-contract-v1.docx',
+          sourcePath: 'system/crm-contract-v1.docx',
+          size: 1,
+          checksum: 'template-checksum',
+          uploadedAt: '2026-07-09T00:00:00.000Z',
+          uploadedBy: 'system',
+          origin: 'generated',
+        },
       };
+    },
+    readDocxBinary: (...args) => {
+      readDocxBinaryCalls.push(args);
+      return createDocxTemplateFromText('# {계약번호} / {{customerName}}');
     },
   };
 }
@@ -264,6 +281,7 @@ describe('DmsCrmContractLifecycleService', () => {
     const result = await service.execute(createRequest(), currentUser);
 
     expect(templateService.getCalls).toEqual([['crm-contract-v1', 'global', 'system']]);
+    expect(templateService.readDocxBinaryCalls).toHaveLength(1);
     expect(db.userFindFirstCalls).toHaveLength(1);
     expect(fileCrud.readCalls[0]?.[0]).toBe('crm/contracts/CRM-CT-001.md');
     expect(fileCrud.writeCalls.map((call) => call[0])).toEqual([
@@ -313,7 +331,7 @@ describe('DmsCrmContractLifecycleService', () => {
     ]));
     expect(result.governance.templateVersion).toMatchObject({
       templateKey: 'crm-contract-v1',
-      sourcePath: 'system/crm-contract-v1.md',
+      sourcePath: 'system/crm-contract-v1.docx',
     });
     expect(result.governance.exportPolicy).toMatchObject({
       policyKey: 'dms-crm-contract-export-standard',

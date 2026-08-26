@@ -135,12 +135,12 @@ UI에서 버튼을 숨기는 것은 보안 통제가 아닙니다. 쓰기/관리
 | `X-Content-Type-Options` | `nosniff` | ✅ |
 | `X-Frame-Options` | `DENY` | ✅ |
 | CSP frame/base/object/form | enforced baseline | ✅ |
-| CSP script/style/connect + Trusted Types | report-only 관측 baseline | ⚠️ |
+| CSP script/style/connect + Trusted Types | Next bootstrap inline script와 localhost/127.0.0.1 개발 연결을 허용하고 Trusted Types policy 이름을 제한하는 report-only 관측 baseline. Next 15 route chunk가 policy 없이 script sink를 사용하는 동안 `require-trusted-types-for 'script'`는 보류 | ⚠️ |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | ✅ |
 | `Permissions-Policy` | camera/microphone/geolocation disabled | ✅ |
 | HSTS/TLS | Helmet 및 인프라 종단 설정 확인 필요 | ⚠️ |
 
-전체 CSP를 enforce로 전환할 때는 Next runtime inline script/style, DMS blob/data image, WebSocket/SSE, Azure endpoint를 실제 브라우저에서 먼저 관측합니다. 기능 증거 없이 report-only를 enforce로 바꾸지 않습니다.
+전체 CSP를 enforce로 전환하거나 `require-trusted-types-for 'script'`를 다시 활성화할 때는 Next runtime inline script/style·route chunk, DMS blob/data image, WebSocket/SSE, Azure endpoint를 실제 브라우저에서 먼저 관측합니다. 기능 증거 없이 report-only를 enforce로 바꾸거나 Trusted Types 강제를 활성화하지 않습니다.
 
 ## 9. 공개 전 강제 게이트
 
@@ -159,6 +159,10 @@ pnpm run verify:access-dms
 pnpm run codex:dms-guard
 pnpm run docker:production:verify-env
 pnpm run docker:production:config
+pnpm run verify:dms-backup-restore:production
+pnpm run verify:dms-public-endpoints
+pnpm run verify:workspace-release-state
+pnpm run verify:dms-go-live
 pnpm run security:audit
 ```
 
@@ -172,6 +176,8 @@ pnpm run security:audit
 4. DMS path traversal/symlink, active content 다운로드, 이미지 signature, 문서 ACL을 검증합니다.
 5. 데스크톱/모바일에서 오류/빈 상태/수동 복구 동선을 포함한 브라우저 smoke를 수행합니다.
 6. 공개 endpoint, CORS, cookie, CSP report, TLS/HSTS, secret 주입 상태를 배포 URL에서 확인합니다.
+7. PostgreSQL과 DMS Markdown Git/ingest/storage를 함께 백업해 격리 복원하고 DB contract와 file manifest/hash를 확인합니다.
+8. server/DMS/Admin runtime SHA가 clean local/GitHub/GitLab release SHA와 모두 일치하는지 확인합니다.
 
 ### No-Go 조건
 
@@ -184,6 +190,9 @@ pnpm run security:audit
 - 권한 없는 persona가 domain/object 데이터 또는 DMS WebSocket event를 읽을 수 있음
 - DMS Git/DB/runtime binding이 요구 배포 역할과 불일치
 - TLS/CORS/secret manager/backup·복구 증거 없이 public internet에 노출
+- local/GitHub/GitLab/runtime release SHA 중 하나라도 불일치
+- browser console warning/error, page error 또는 관련 HTTP 5xx가 남은 상태에서 Go 선언
+- AI/RAG 외부 provider 예외를 readiness·복구·릴리즈·브라우저 실패의 예외로 확대
 
 ## 10. 남은 보안 백로그
 
@@ -192,6 +201,7 @@ pnpm run security:audit
 | P0 | 최신 이미지 기반 auth/access/domain smoke | 모든 allow/deny 시나리오 통과 |
 | P0 | 배포 TLS/cookie/CORS/secret 검증 | 배포 URL header와 secret 주입 증거 |
 | P0 | production Compose와 durable path 검증 | `docker:production:verify-env/config` 통과, DB/DMS backup·restore evidence |
+| P0 | 동일 release SHA와 공개 Ralph 증거 | local/GitHub/GitLab/server/DMS/Admin SHA 일치, `verify:dms-go-live` GO report |
 | P1 | OpenAPI production 노출 정책 | authenticated/disabled/public 중 명시 결정과 회귀 |
 | P1 | CRM 외부 endpoint HTTPS/host 정책 | production config validation과 테스트 |
 | P1 | 구조화 보안/인증 감사 로그 | 민감정보 redaction 포함 운영 sink 증거 |
@@ -210,6 +220,7 @@ pnpm run security:audit
 
 | Date | Change |
 |------|--------|
+| 2026-08-13 | DMS 최종 공개 gate에 동일 release SHA, 공개 endpoint TLS/HSTS/cookie/readiness, PostgreSQL+runtime root 격리 복원, console/network fail-closed Ralph를 추가하고 AI/RAG 외부 provider 예외가 다른 보안 실패를 면제하지 않도록 고정 |
 | 2026-07-20 | `adm-zip` 0.6.0으로 production audit high 취약점을 제거하고 PR validation에 production audit·문서 검증을 blocking gate로 연결. CI의 Node/pnpm 버전은 `.nvmrc`와 루트 `packageManager` 정본을 사용 |
 | 2026-07-16 | Node.js 22.13+/Docker Node.js 22 LTS와 pnpm 11.13.1, 24시간 release-age strict gate, versioned install-script allowlist, 관측형 `security:audit`를 공급망 기준으로 추가. NestJS/Next/Axios/DMS sanitizer·diagram/Git 및 transitive advisory를 패치하고 SheetJS 공식 0.20.3 tarball로 전환해 production audit 전 등급 0을 확인 |
 | 2026-07-16 | 로컬/프로덕션 Compose를 분리하고 프로덕션 env의 비밀값, HTTPS origin, secure cookie, 내부 DB URL, 절대 DMS path, secure Git remote를 fail-closed로 검증하는 gate를 추가. 7개 Docker build의 TLS 검증을 유지한 채 승인 PEM CA를 BuildKit secret으로 전달하고 server/db-init만 runtime secret을 소비하며, 잠금형 pnpm store cache로 중복 registry 요청을 줄이는 선택 경로를 추가. 실제 TLS/secret manager/backup 증거는 계속 공개 전 미완료로 유지 |

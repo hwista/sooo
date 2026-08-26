@@ -1,14 +1,17 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, type ComponentProps } from 'react';
 import { SsooAppHeader, useSsooGlobalHeaderSearch } from '@ssoo/web-shell';
-import { Plus } from 'lucide-react';
+import { Menu, Plus, X } from 'lucide-react';
 import { useAccessStore, useTabStore } from '@/stores';
 import { UserMenu } from './UserMenu';
 import { HeaderNotifications } from './HeaderNotifications';
 
 interface HeaderProps {
   variant?: 'workspace' | 'settings';
+  mobile?: boolean;
+  mobileMenuOpen?: boolean;
+  onMobileMenuClick?: () => void;
 }
 
 /**
@@ -18,15 +21,42 @@ interface HeaderProps {
  * - 알림
  * - 사용자 프로필
  */
-export function Header({ variant = 'workspace' }: HeaderProps) {
+export function Header({
+  variant = 'workspace',
+  mobile = false,
+  mobileMenuOpen = false,
+  onMobileMenuClick,
+}: HeaderProps) {
+  const mobileHeaderProps: Pick<ComponentProps<typeof SsooAppHeader>, 'leading' | 'leadingAction'> = mobile ? {
+    leading: { title: 'DMS / 문서', subtitle: variant === 'settings' ? '환경설정' : '문서 관리' },
+    leadingAction: {
+      iconSlot: mobileMenuOpen ? <X /> : <Menu />,
+      'aria-controls': 'dms-mobile-sidebar',
+      'aria-expanded': mobileMenuOpen,
+      'aria-label': mobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기',
+      title: mobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기',
+      onClick: onMobileMenuClick,
+    },
+  } : {};
+
   if (variant === 'settings') {
-    return <SsooAppHeader mode="primary" />;
+    return <SsooAppHeader mode="primary" {...mobileHeaderProps} />;
   }
 
-  return <WorkspaceHeader />;
+  return (
+    <WorkspaceHeader
+      mobile={mobile}
+      mobileHeaderProps={mobileHeaderProps}
+    />
+  );
 }
 
-function WorkspaceHeader() {
+interface WorkspaceHeaderProps {
+  mobile: boolean;
+  mobileHeaderProps: Pick<ComponentProps<typeof SsooAppHeader>, 'leading' | 'leadingAction'>;
+}
+
+function WorkspaceHeader({ mobile, mobileHeaderProps }: WorkspaceHeaderProps) {
   const { openTab, updateTab } = useTabStore();
   const accessSnapshot = useAccessStore((state) => state.snapshot);
   const canUseSearch = accessSnapshot?.features.canUseSearch ?? false;
@@ -71,8 +101,9 @@ function WorkspaceHeader() {
   return (
     <SsooAppHeader
       mode="primary"
-      search={globalHeaderSearch.search}
-      primaryAction={{
+      {...mobileHeaderProps}
+      search={mobile ? null : globalHeaderSearch.search}
+      primaryAction={mobile ? null : {
         label: '새 문서',
         iconSlot: <Plus />,
         type: 'button',

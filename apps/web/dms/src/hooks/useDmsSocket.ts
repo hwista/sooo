@@ -51,6 +51,11 @@ interface DmsCollaborationChangedSocketEvent {
   snapshot: DocumentCollaborationSnapshotClient;
 }
 
+interface DmsSubscriptionAck {
+  success: boolean;
+  error?: string;
+}
+
 interface UseDmsSocketOptions {
   /** 인증/권한 부트스트랩 완료 후에만 실시간 연결을 시작한다. */
   enabled?: boolean;
@@ -157,6 +162,7 @@ export function useDmsSocket(options: UseDmsSocketOptions = {}) {
   const subscribedDocumentPathKey = subscribedDocumentPaths.join('\n');
   const socketAccessToken = accessToken?.trim() || null;
   const prevDocPaths = useRef<Set<string>>(new Set());
+  const readySocketRef = useRef<Socket | null>(null);
   const subscribedDocumentPathsRef = useRef(subscribedDocumentPaths);
   const directDocumentSubscriptionCountsRef = useRef<Map<string, number>>(new Map());
   const directDocumentSubscriptionIdsRef = useRef<Map<string, Set<string>>>(new Map());
@@ -194,8 +200,10 @@ export function useDmsSocket(options: UseDmsSocketOptions = {}) {
     const normalizedPath = normalizeDocumentPath(documentPath);
     if (!normalizedPath) return;
 
-    socket.emit('subscribe:document', { path: normalizedPath }, () => {
-      void dispatchCollaborationSnapshot(normalizedPath);
+    socket.emit('subscribe:document', { path: normalizedPath }, (ack: DmsSubscriptionAck) => {
+      if (ack?.success) {
+        void dispatchCollaborationSnapshot(normalizedPath);
+      }
     });
   }, [dispatchCollaborationSnapshot]);
 
@@ -234,11 +242,18 @@ export function useDmsSocket(options: UseDmsSocketOptions = {}) {
     };
 
     socket.on('connect', () => {
-      // 트리 변경 구독
+      readySocketRef.current = null;
+      prevDocPaths.current = new Set();
+    });
+
+    socket.on('dms:ready', () => {
+      readySocketRef.current = socket;
+
+      // 서버의 비동기 인증·권한 검증이 끝난 뒤 트리와 문서를 구독한다.
       socket.emit('subscribe:tree');
 
       // 열린 문서가 있으면 구독.
-      // connect handler 는 socket lifecycle 동안 유지되므로 최신 경로는 ref 에서 읽는다.
+      // ready handler 는 socket lifecycle 동안 유지되므로 최신 경로는 ref 에서 읽는다.
       const latestDocumentPaths = Array.from(new Set([
         ...subscribedDocumentPathsRef.current,
         ...directDocumentSubscriptionCountsRef.current.keys(),
@@ -284,6 +299,9 @@ export function useDmsSocket(options: UseDmsSocketOptions = {}) {
 
     socket.on('connect_error', refreshAuthSession);
     socket.on('disconnect', (reason) => {
+      if (readySocketRef.current === socket) {
+        readySocketRef.current = null;
+      }
       if (reason === 'io server disconnect') {
         refreshAuthSession();
       }
@@ -292,6 +310,9 @@ export function useDmsSocket(options: UseDmsSocketOptions = {}) {
     return () => {
       socket.disconnect();
       socketRef.current = null;
+      if (readySocketRef.current === socket) {
+        readySocketRef.current = null;
+      }
       prevDocPaths.current = new Set();
     };
   }, [enabled, invalidateFileTree, isAuthenticated, socketAccessToken, subscribeDocument]);
@@ -324,7 +345,7 @@ export function useDmsSocket(options: UseDmsSocketOptions = {}) {
       const counts = directDocumentSubscriptionCountsRef.current;
       counts.set(normalizedPath, (counts.get(normalizedPath) ?? 0) + 1);
       const socket = socketRef.current;
-      if (socket?.connected) {
+      if (socket?.connected && readySocketRef.current === socket) {
         subscribeDocument(socket, normalizedPath);
       }
     };
@@ -366,7 +387,7 @@ export function useDmsSocket(options: UseDmsSocketOptions = {}) {
       }
 
       const socket = socketRef.current;
-      if (socket?.connected) {
+      if (socket?.connected && readySocketRef.current === socket) {
         socket.emit('unsubscribe:document', { path: normalizedPath });
       }
     };
@@ -382,7 +403,7 @@ export function useDmsSocket(options: UseDmsSocketOptions = {}) {
   // Document path subscription management
   useEffect(() => {
     const socket = socketRef.current;
-    if (!socket?.connected) return;
+    if (!socket?.connected || readySocketRef.current !== socket) return;
 
     const nextPaths = new Set([
       ...subscribedDocumentPathsRef.current,

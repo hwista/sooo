@@ -61,7 +61,8 @@ export function RuntimePathSurface({
 
       <div className="grid gap-3">
         {entries.map(({ key, label, description: entryDescription, binding }) => {
-          const healthy = binding.exists;
+          const healthy = binding.status === 'ready';
+          const notRequired = binding.status === 'not-required';
           return (
             <article key={key} className="rounded-lg border border-ssoo-content-border bg-card px-4 py-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -73,11 +74,13 @@ export function RuntimePathSurface({
                   className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-badge ${
                     healthy
                       ? 'ssoo-tone-success-surface'
-                      : 'ssoo-tone-warning-surface'
+                      : notRequired
+                        ? 'border-ssoo-content-border bg-ssoo-content-bg text-ssoo-primary/80'
+                        : 'ssoo-tone-danger-surface'
                   }`}
                 >
                   {healthy ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
-                  {healthy ? '경로 확인됨' : '경로 미존재'}
+                  {healthy ? '읽기·쓰기 확인' : notRequired ? '비활성 provider' : '운영 차단'}
                 </span>
               </div>
 
@@ -86,7 +89,17 @@ export function RuntimePathSurface({
                 <PathInfoRow label="Source" value={formatSource(binding)} />
                 <PathInfoRow label="Configured value" value={binding.configuredPath} breakAll />
                 <PathInfoRow label="Effective input" value={binding.effectiveInput} breakAll />
+                <PathInfoRow
+                  label="Probe"
+                  value={`directory ${binding.isDirectory ? 'yes' : 'no'} · read ${binding.readable ? 'yes' : 'no'} · write ${binding.writable ? 'yes' : 'no'}`}
+                />
               </div>
+
+              {binding.reason && (
+                <p className={`mt-3 text-caption ${binding.status === 'blocked' ? 'text-ssoo-danger' : 'text-ssoo-primary/70'}`}>
+                  {binding.reason}
+                </p>
+              )}
 
               {binding.relativeToAppRoot && (
                 <p className="mt-3 text-caption text-ssoo-primary/70">

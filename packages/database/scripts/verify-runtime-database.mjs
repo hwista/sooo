@@ -119,7 +119,27 @@ try {
           WHERE table_schema = 'crm'
             AND table_name = 'crm_cost_plan_accounting_handoff_m'
             AND column_name = 'execution_evidence_snapshot'
-       ) AS execution_evidence_column_exists`,
+       ) AS execution_evidence_column_exists,
+       (
+         SELECT COUNT(*) = 4
+           FROM information_schema.columns
+          WHERE table_schema = 'crm'
+            AND (
+              (table_name = 'crm_contract_m' AND column_name IN ('client_contact', 'owner_user_id'))
+              OR (table_name = 'crm_contract_h' AND column_name IN ('client_contact', 'owner_user_id'))
+            )
+       ) AS contract_party_columns_exist,
+       EXISTS (
+         SELECT 1
+           FROM pg_constraint
+          WHERE conname = 'fk_crm_contract_m_owner_user'
+            AND conrelid = 'crm.crm_contract_m'::regclass
+            AND confrelid = 'common.cm_user_m'::regclass
+            AND confdeltype = 'n'
+            AND confupdtype = 'c'
+       ) AS contract_owner_fk_exists,
+       to_regclass('crm.ix_crm_contract_m_owner_user') IS NOT NULL
+         AS contract_owner_index_exists`,
   );
   assertNativeContract(nativeContract.rows[0]);
 

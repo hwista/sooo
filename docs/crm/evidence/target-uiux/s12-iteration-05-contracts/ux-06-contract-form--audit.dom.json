@@ -1,0 +1,830 @@
+{
+  "title": "계약 조회",
+  "sections": [
+    "계약 조회",
+    "계약기간",
+    "매출액 *",
+    "원가",
+    "청구계획 (매출액·외부원가 합계가 계약금액과 일치해야 저장됩니다)"
+  ],
+  "fields": [
+    {
+      "id": "ct-customer",
+      "name": null,
+      "type": "input",
+      "label": "고객명 *",
+      "placeholder": "고객사명 입력",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "ct-client-contact",
+      "name": null,
+      "type": "input",
+      "label": "고객사 담당자",
+      "placeholder": "고객사 담당자명 입력",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "ct-name",
+      "name": null,
+      "type": "input",
+      "label": "계약명 *",
+      "placeholder": "계약명 입력",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "ct-owner",
+      "name": null,
+      "type": "select",
+      "label": "영업담당자 *시스템관리자PM Kim · #2Dev Park · #7AM Park · #4Dev Lee · #3Con Jung · #6SM Choi · #5Viewer Han · #8Admin · #1도움창",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "ct-status",
+      "name": null,
+      "type": "select",
+      "label": "상태검토계약중계약완료해지",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "ct-payment",
+      "name": null,
+      "type": "select",
+      "label": "수금조건선택계약즉시분할납부NET30NET60",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "ct-wbs",
+      "name": null,
+      "type": "input",
+      "label": "WBS 코드",
+      "placeholder": "WBS 코드 입력 (선택)",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "ct-biz-type",
+      "name": null,
+      "type": "select",
+      "label": "사업구분 *선택클라우드 전환AI/분석AMS내부SI외부SI",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "ct-group-type",
+      "name": null,
+      "type": "select",
+      "label": "계열구분선택대외엠트론가온전선반도체/제조자동차/제조전자/제조철강/제조화학/제조IT/플랫폼LS전선",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "ct-domestic",
+      "name": null,
+      "type": "select",
+      "label": "국내/해외국내해외",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "ct-start",
+      "name": null,
+      "type": "date",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "ct-end",
+      "name": null,
+      "type": "date",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": "ct-dc-type",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": "ct-dc-value",
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "매출단가",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "매출단가",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "매출단가",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "상품명",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "매출단가",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "YYYY/MM",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "YYYY/MM",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "YYYY/MM",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "0",
+      "disabled": true,
+      "readOnly": false
+    }
+  ],
+  "columns": [
+    "구분",
+    "항목",
+    "수량",
+    "단가",
+    "직접금액",
+    "마진율",
+    "절사",
+    "소속",
+    "성명/그룹",
+    "금액",
+    "삭제",
+    "구분",
+    "항목",
+    "수량",
+    "단가",
+    "직접금액",
+    "소속",
+    "성명/그룹",
+    "금액",
+    "삭제",
+    "예정월",
+    "매출",
+    "외부원가",
+    "삭제"
+  ],
+  "actions": [
+    "← 계약현황으로 돌아가기",
+    "도움창",
+    "상품매출 1 · 1.2억",
+    "용역매출 3 · 2.7억",
+    "상품원가 1 · 8,400만",
+    "내부용역원가 2 · 1.4억",
+    "외부용역원가 1 · 5,760만",
+    "행 추가",
+    "자동스플릿",
+    "✕ 확정취소"
+  ],
+  "labels": [
+    "고객명 *",
+    "고객사 담당자",
+    "계약명 *",
+    "영업담당자 *시스템관리자PM Kim · #2Dev Park · #7AM Park · #4Dev Lee · #3Con Jung · #6SM Choi · #5Viewer Han · #8Admin · #1도움창",
+    "상태검토계약중계약완료해지",
+    "수금조건선택계약즉시분할납부NET30NET60",
+    "WBS 코드",
+    "사업구분 *선택클라우드 전환AI/분석AMS내부SI외부SI",
+    "계열구분선택대외엠트론가온전선반도체/제조자동차/제조전자/제조철강/제조화학/제조IT/플랫폼LS전선",
+    "국내/해외국내해외"
+  ]
+}

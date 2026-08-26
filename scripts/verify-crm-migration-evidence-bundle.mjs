@@ -8,6 +8,10 @@ import { pathToFileURL } from 'node:url';
 import { validateReport as validateAccountingPaymentProviderReport } from './verify-crm-accounting-payment-provider-report.mjs';
 import { validateReport as validateCrmAiRagRuntimeReport } from './verify-crm-ai-rag-runtime-report.mjs';
 import { validateReport as validateProtectedSourceReflectionReport } from './verify-crm-protected-source-reflection-report.mjs';
+import {
+  assertRepositoryWorktreeIdentity,
+  createRepositoryWorktreeIdentity,
+} from './repository-worktree-identity.mjs';
 
 const REPORT_SPECS = [
   {
@@ -26,11 +30,13 @@ const REPORT_SPECS = [
     validateReport: validateProtectedSourceReflectionReport,
   },
 ];
+let currentWorktreeIdentityCache;
 
 const REQUIRED_LOCAL_CHECKS = [
   'crm-launch-static-readiness',
   'crm-server-unit-and-boundary-tests',
   'crm-web-production-build',
+  'worktree-identity-unchanged',
 ];
 
 const REQUIRED_EXTERNAL_INPUT_IDS = [
@@ -188,7 +194,7 @@ function validateManifest(manifest) {
 
 function validateLocalVerificationReport(report) {
   assertObject(report, 'localVerificationReport');
-  assertEquals(report.schemaVersion, 1, 'localVerificationReport.schemaVersion');
+  assertEquals(report.schemaVersion, 2, 'localVerificationReport.schemaVersion');
   assertEquals(report.status, 'passed', 'localVerificationReport.status');
   if (!Array.isArray(report.checks)) {
     throw new Error('localVerificationReport.checks must be an array.');
@@ -198,6 +204,11 @@ function validateLocalVerificationReport(report) {
     assertObject(check, `localVerificationReport.checks.${id}`);
     assertEquals(check.status, 'passed', `localVerificationReport.checks.${id}.status`);
   }
+  assertRepositoryWorktreeIdentity(
+    report.worktreeIdentity,
+    getCurrentWorktreeIdentity(),
+    'localVerificationReport.worktreeIdentity',
+  );
 }
 
 function validateRequiredExternalInputsPacket(packet) {
@@ -286,14 +297,14 @@ function assertSelfTest() {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ssoo-crm-evidence-bundle-verify-'));
   try {
     const passedBundleDir = path.join(tempDir, 'passed');
-    writeSelfTestBundle(passedBundleDir, { draftAccountingReport: false });
+    writeSelfTestBundle(passedBundleDir, { draftAccountingReport: false, staleLocalWorktree: false });
     const passedReport = verifyEvidenceBundle({ bundleDir: passedBundleDir });
     if (passedReport.status !== 'passed') {
       throw new Error(`expected self-test passed bundle to pass: ${JSON.stringify(passedReport.checks, null, 2)}`);
     }
 
     const failedBundleDir = path.join(tempDir, 'failed');
-    writeSelfTestBundle(failedBundleDir, { draftAccountingReport: true });
+    writeSelfTestBundle(failedBundleDir, { draftAccountingReport: true, staleLocalWorktree: false });
     const failedReport = verifyEvidenceBundle({ bundleDir: failedBundleDir });
     if (failedReport.status !== 'failed') {
       throw new Error('expected self-test draft accounting bundle to fail.');
@@ -302,12 +313,20 @@ function assertSelfTest() {
     if (failedAccounting?.status !== 'failed' || !failedAccounting.error.includes('status')) {
       throw new Error('expected draft accounting report failure to mention status.');
     }
+
+    const staleBundleDir = path.join(tempDir, 'stale-local-worktree');
+    writeSelfTestBundle(staleBundleDir, { draftAccountingReport: false, staleLocalWorktree: true });
+    const staleReport = verifyEvidenceBundle({ bundleDir: staleBundleDir });
+    const staleLocal = staleReport.checks.find((check) => check.id === 'local-verification-report');
+    if (staleLocal?.status !== 'failed' || !staleLocal.error.includes('current repository worktree')) {
+      throw new Error('expected stale local verification worktree identity to fail.');
+    }
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 }
 
-function writeSelfTestBundle(bundleDir, { draftAccountingReport }) {
+function writeSelfTestBundle(bundleDir, { draftAccountingReport, staleLocalWorktree }) {
   fs.mkdirSync(bundleDir, { recursive: true });
   const protectedSourcePath = path.join(bundleDir, 'unlocked-protected-crm-source.txt');
   fs.writeFileSync(protectedSourcePath, 'unlocked protected CRM migration source evidence material\n', 'utf-8');
@@ -327,7 +346,9 @@ function writeSelfTestBundle(bundleDir, { draftAccountingReport }) {
   writeJson(protectedReportPath, createProtectedSourceReflectionReport(protectedSourcePath, protectedSourceSha256));
 
   const localReportPath = path.join(bundleDir, 'crm-local-verification-report.json');
-  writeJson(localReportPath, createLocalVerificationReport());
+  const localReport = createLocalVerificationReport();
+  if (staleLocalWorktree) localReport.worktreeIdentity.fingerprint = 'f'.repeat(64);
+  writeJson(localReportPath, localReport);
 
   const requiredInputsPath = path.join(bundleDir, 'crm-migration-required-external-inputs.json');
   writeJson(requiredInputsPath, createRequiredExternalInputsPacket());
@@ -337,7 +358,7 @@ function writeSelfTestBundle(bundleDir, { draftAccountingReport }) {
     status: 'draft',
     localVerification: {
       script: 'verify:crm-local',
-      command: 'pnpm run verify:crm-local -- --report-path=crm-local-verification-report.json',
+      command: 'pnpm run verify:crm-local -- --report-path=output/crm-local-evidence/crm-local-verification-report.json',
       reportPath: localReportPath,
       requiredBeforeCompletionAudit: true,
     },
@@ -366,9 +387,11 @@ function writeSelfTestBundle(bundleDir, { draftAccountingReport }) {
 }
 
 function createLocalVerificationReport() {
+  const worktreeIdentity = structuredClone(getCurrentWorktreeIdentity());
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     status: 'passed',
+    worktreeIdentity,
     startedAt: '2026-07-10T00:00:00.000Z',
     finishedAt: '2026-07-10T00:01:00.000Z',
     durationMs: 60000,
@@ -386,8 +409,19 @@ function createLocalVerificationReport() {
         },
       },
       { id: 'crm-web-production-build', status: 'passed', durationMs: 5000 },
+      {
+        id: 'worktree-identity-unchanged',
+        status: 'passed',
+        durationMs: 0,
+        evidence: { started: worktreeIdentity, completed: worktreeIdentity },
+      },
     ],
   };
+}
+
+function getCurrentWorktreeIdentity() {
+  currentWorktreeIdentityCache ??= createRepositoryWorktreeIdentity({ repoRoot: process.cwd() });
+  return currentWorktreeIdentityCache;
 }
 
 function createAccountingPaymentReport() {

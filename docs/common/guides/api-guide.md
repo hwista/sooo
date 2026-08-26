@@ -1,6 +1,6 @@
 # API 가이드
 
-> 최종 업데이트: 2026-04-14
+> 최종 업데이트: 2026-07-22
 
 SSOO 백엔드 서버의 REST API 사용 가이드입니다.
 
@@ -24,6 +24,27 @@ SSOO 백엔드 서버의 REST API 사용 가이드입니다.
 | **[OpenAPI Spec (JSON)](../../pms/reference/api/openapi.json)** | PMS API OpenAPI 3.0 스펙 |
 | **[API 문서 (Redoc)](../../pms/reference/api/index.html)** | PMS API 인터랙티브 문서 |
 
+### SNS API
+
+| 문서 | 설명 |
+|------|------|
+| **[OpenAPI Spec (JSON)](../../sns/reference/api/openapi.json)** | SNS API OpenAPI 3.0 스펙 |
+| **[API 문서 (Redoc)](../../sns/reference/api/index.html)** | SNS API 인터랙티브 문서 |
+
+### DMS API
+
+| 문서 | 설명 |
+|------|------|
+| **[OpenAPI Spec (JSON)](../../dms/reference/api/openapi.json)** | DMS API OpenAPI 3.0 스펙 |
+| **[API 문서 (Redoc)](../../dms/reference/api/index.html)** | DMS API 인터랙티브 문서 |
+
+### CRM API
+
+| 문서 | 설명 |
+|------|------|
+| **[OpenAPI Spec (JSON)](../../crm/reference/api/openapi.json)** | CRM API OpenAPI 3.0 스펙 |
+| **[API 문서 (Redoc)](../../crm/reference/api/index.html)** | CRM API 인터랙티브 문서 |
+
 ---
 
 ## 기본 정보
@@ -34,6 +55,21 @@ SSOO 백엔드 서버의 REST API 사용 가이드입니다.
 | Content-Type | `application/json` |
 | 인증 방식 | JWT Bearer Token |
 | 런타임 OpenAPI | `/api/openapi.json` |
+
+정적 OpenAPI는 Common → PMS → SNS → DMS → CRM 순서로 각 operation의 canonical domain owner를 정합니다. 다섯 정적 spec의 operation 합집합은 런타임 OpenAPI와 정확히 일치해야 하며, 공통 access-ops처럼 여러 모듈에서 import되는 route는 Common spec에만 기록합니다.
+
+```bash
+# 정적 JSON + Redoc 재생성
+pnpm docs:openapi
+
+# 빈 schema, 중복 operation/operationId, 핵심 envelope 계약 검증
+pnpm verify:openapi-contract
+
+# 기동된 서버와 정적 operation inventory 비교
+pnpm verify:openapi-contract -- --runtime-url=http://127.0.0.1:4000/api/openapi.json
+```
+
+CI access verification은 실제 서버 기동 후 runtime/static inventory 비교를 먼저 통과해야 인증·권한·도메인 API 검증으로 진행합니다.
 
 ---
 
@@ -177,6 +213,12 @@ Authorization: Bearer <access_token>
 - [Access Verification Runbook](./access-verification-runbook.md)
 - [Access Cutover Cleanup Plan](../explanation/architecture/access-cutover-cleanup-plan.md)
 - [보안 표준](../explanation/architecture/security-standards.md)
+
+## Changelog
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-07-22 | Common/PMS/SNS/DMS/CRM 정적 OpenAPI와 런타임 395-operation inventory 동등성, 핵심 응답 envelope/DTO schema, CI 계약 검증 명령을 추가 |
 
 ---
 

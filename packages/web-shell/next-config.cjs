@@ -50,6 +50,14 @@ function createSsooNextConfig(options = {}) {
       ? { serverExternalPackages: uniq(serverExternalPackages) }
       : {}),
     images: mergedImages,
+    async rewrites() {
+      return [
+        {
+          source: '/favicon.ico',
+          destination: '/ssot-icon.svg',
+        },
+      ];
+    },
     async headers() {
       const appHeaders = typeof headers === 'function' ? await headers() : [];
       return [...ssooSecurityHeaders, ...appHeaders];

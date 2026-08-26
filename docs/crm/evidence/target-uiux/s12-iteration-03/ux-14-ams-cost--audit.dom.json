@@ -1,0 +1,1744 @@
+{
+  "title": "2026년 내부원가 등록 · 원본 5개 항목",
+  "sections": [
+    "2026년 내부원가 등록 · 원본 5개 항목",
+    "2026년 AMS 공급업체 관리 · 원본 다중 WBS",
+    "2026년 AMS 연간 외부원가 · 업체×WBS",
+    "회계·지급 handoff"
+  ],
+  "fields": [
+    {
+      "id": null,
+      "name": "year",
+      "type": "select",
+      "label": "사업년도202420252026",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": "businessType",
+      "type": "select",
+      "label": "사업구분전체내부SI외부SI클라우드 전환AI/분석AMS",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": "industryLine",
+      "type": "select",
+      "label": "계열/산업전체가온전선대외반도체/제조엠트론자동차/제조전자/제조철강/제조화학/제조IT/플랫폼LS전선",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": "region",
+      "type": "select",
+      "label": "국내/해외전체국내해외",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": "search",
+      "type": "input",
+      "label": "검색",
+      "placeholder": "고객, 건명, 담당자, WBS",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "0",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": "내부원가 입력 기준외부SI / 대외 / 시스템관리자 / WBS-2026-002외부SI / 대외 / 시스템관리자 / WBS-2025-003AMS / 엠트론 / 시스템관리자 / WBS-2026-001AMS / 가온전선 / 시스템관리자 / WBS-2025-002내부SI / LS전선 / 시스템관리자 / WBS-2025-001",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": null,
+      "placeholder": "공급업체명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": "AMS 매핑 기준외부SI / 대외 / 시스템관리자 / WBS-2026-002외부SI / 대외 / 시스템관리자 / WBS-2025-003AMS / 가온전선 / 시스템관리자 / WBS-2025-002내부SI / LS전선 / 시스템관리자 / WBS-2025-001",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "업체명",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "계약/발주 번호",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": "AMS 외부원가 입력 기준입력 후보 없음",
+      "placeholder": null,
+      "disabled": true
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "계획",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "number",
+      "label": "실적",
+      "placeholder": null,
+      "disabled": true,
+      "readOnly": false
+    }
+  ],
+  "columns": [
+    "항목",
+    "구분",
+    "1월",
+    "2월",
+    "3월",
+    "4월",
+    "5월",
+    "6월",
+    "7월",
+    "8월",
+    "9월",
+    "10월",
+    "11월",
+    "12월",
+    "합계",
+    "인건비",
+    "계획",
+    "실적",
+    "기타",
+    "계획",
+    "실적",
+    "사업부간조정",
+    "계획",
+    "실적",
+    "매출원가용역",
+    "계획",
+    "실적",
+    "사업부공통",
+    "계획",
+    "실적",
+    "소계",
+    "계획",
+    "실적",
+    "차이",
+    "계획-실적",
+    "사업구분",
+    "계열/산업",
+    "담당자",
+    "WBS",
+    "AMS",
+    "업체 매핑",
+    "AMS 입력 계획",
+    "AMS 입력 실적",
+    "AMS 입력 Gap",
+    "AMS 정산 상태",
+    "Pipeline 내부",
+    "Pipeline 외부",
+    "계약 내부",
+    "입력 계획",
+    "입력 실적",
+    "입력 상태",
+    "내부 Gap",
+    "외부 계획",
+    "외부 실적",
+    "Gap",
+    "차단 사유"
+  ],
+  "actions": [
+    "조회",
+    "원본 5개 항목 저장",
+    "내부원가 월별 저장",
+    "업체 추가",
+    "AMS 연간 외부원가 저장",
+    "AMS 업체 매핑 저장",
+    "AMS 외부원가 월별 저장",
+    "회계·지급 실행",
+    "회계·지급 handoff 기록"
+  ],
+  "labels": [
+    "사업년도202420252026",
+    "사업구분전체내부SI외부SI클라우드 전환AI/분석AMS",
+    "계열/산업전체가온전선대외반도체/제조엠트론자동차/제조전자/제조철강/제조화학/제조IT/플랫폼LS전선",
+    "국내/해외전체국내해외",
+    "검색",
+    "내부원가 입력 기준외부SI / 대외 / 시스템관리자 / WBS-2026-002외부SI / 대외 / 시스템관리자 / WBS-2025-003AMS / 엠트론 / 시스템관리자 / WBS-2026-001AMS / 가온전선 / 시스템관리자 / WBS-2025-002내부SI / LS전선 / 시스템관리자 / WBS-2025-001",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "AMS 매핑 기준외부SI / 대외 / 시스템관리자 / WBS-2026-002외부SI / 대외 / 시스템관리자 / WBS-2025-003AMS / 가온전선 / 시스템관리자 / WBS-2025-002내부SI / LS전선 / 시스템관리자 / WBS-2025-001",
+    "업체명",
+    "계약/발주 번호",
+    "AMS 외부원가 입력 기준입력 후보 없음",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적",
+    "계획",
+    "실적"
+  ]
+}

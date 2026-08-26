@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "startedAt": "2026-08-21T08:19:37.034Z",
+  "finishedAt": "2026-08-21T08:20:59.595Z",
+  "durationMs": 82561,
+  "checks": [
+    {
+      "id": "crm-launch-static-readiness",
+      "requirement": "CRM static readiness source gate passes.",
+      "command": "node scripts/verify-crm-launch-readiness.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 56,
+      "evidence": "✓ CRM launch readiness source verification passed"
+    },
+    {
+      "id": "crm-server-unit-and-boundary-tests",
+      "requirement": "CRM server unit tests and DMS/PMS CRM boundary tests pass.",
+      "command": "pnpm -C apps/server test --runInBand --json --outputFile=/tmp/ssoo-crm-local-prha7Z/crm-server-jest.json src/modules/crm src/modules/dms/crm-contract-lifecycle src/modules/dms/crm-quote-lifecycle src/modules/pms/project/project-handoff-contract.service.spec.ts",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 10130,
+      "evidence": {
+        "reportPath": "/tmp/ssoo-crm-local-prha7Z/crm-server-jest.json",
+        "success": true,
+        "numTotalTestSuites": 23,
+        "numPassedTestSuites": 23,
+        "numFailedTestSuites": 0,
+        "numTotalTests": 171,
+        "numPassedTests": 171,
+        "numFailedTests": 0,
+        "testResults": [
+          {
+            "name": "apps/server/src/modules/crm/operations/operations.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 2
+          },
+          {
+            "name": "apps/server/src/modules/crm/contract/dto/contract.dto.spec.ts",
+            "status": "passed",
+            "assertionResults": 2
+          },
+          {
+            "name": "apps/server/src/modules/crm/opportunity/opportunity.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 34
+          },
+          {
+            "name": "apps/server/src/modules/crm/cost-plan/cost-plan.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 25
+          },
+          {
+            "name": "apps/server/src/modules/crm/business-plan/business-plan.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 16
+          },
+          {
+            "name": "apps/server/src/modules/crm/dashboard/dashboard.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 2
+          },
+          {
+            "name": "apps/server/src/modules/crm/opportunity/dto/opportunity.dto.spec.ts",
+            "status": "passed",
+            "assertionResults": 2
+          },
+          {
+            "name": "apps/server/src/modules/crm/reports/reports.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 5
+          },
+          {
+            "name": "apps/server/src/modules/crm/customer/customer.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 6
+          },
+          {
+            "name": "apps/server/src/modules/crm/contract/contract.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 22
+          },
+          {
+            "name": "apps/server/src/modules/dms/crm-quote-lifecycle/crm-quote-lifecycle.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 3
+          },
+          {
+            "name": "apps/server/src/modules/crm/reports/dto/reports.dto.spec.ts",
+            "status": "passed",
+            "assertionResults": 3
+          },
+          {
+            "name": "apps/server/src/modules/dms/crm-contract-lifecycle/crm-contract-lifecycle.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 5
+          },
+          {
+            "name": "apps/server/src/modules/crm/search/crm-ai-index.adapter.spec.ts",
+            "status": "passed",
+            "assertionResults": 6
+          },
+          {
+            "name": "apps/server/src/modules/crm/operations/readiness.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 2
+          },
+          {
+            "name": "apps/server/src/modules/crm/operations/data-quality.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 3
+          },
+          {
+            "name": "apps/server/src/modules/crm/operations/launch-readiness.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 2
+          },
+          {
+            "name": "apps/server/src/modules/crm/operations/operation-attempt.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 4
+          },
+          {
+            "name": "apps/server/src/modules/crm/access/access.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 16
+          },
+          {
+            "name": "apps/server/src/modules/pms/project/project-handoff-contract.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 2
+          },
+          {
+            "name": "apps/server/src/modules/crm/quote-settings/quote-settings.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 3
+          },
+          {
+            "name": "apps/server/src/modules/crm/operations/settings.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 3
+          },
+          {
+            "name": "apps/server/src/modules/crm/cost-plan/accounting-payment-external-executor.service.spec.ts",
+            "status": "passed",
+            "assertionResults": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "crm-web-production-build",
+      "requirement": "web-crm production build passes with route generation and type checks.",
+      "command": "pnpm build:web-crm",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 72374,
+      "evidence": "web-crm:build: ├ ƒ /api/crm/cost-plan/ams/vendor-wbs                                         571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/cost-plan/internal-cost/monthly                                  571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/cost-plan/internal-cost/monthly/[id]/confirm                     571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/cost-plan/internal-cost/monthly/[id]/reopen                      571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/cost-plan/internal-cost/source-grid                              571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/cost-plan/preview                                                571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/customers                                                        571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/customers/[id]                                                   571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/customers/[id]/access                                            571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/customers/[id]/activities                                        571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/customers/access                                                 571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/dashboard                                                        571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/operations/access                                                571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/operations/attempts                                              571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/operations/attempts/[id]                                         571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/operations/attempts/[id]/retry                                   571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/operations/launch-readiness                                      571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/operations/overview                                              571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/operations/preview                                               571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities                                                    571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]                                               571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/access                                        571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/confirm                                       571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/contract-document-artifact                    571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/contract-document-draft                       571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/contract-document-lifecycle-execution         571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/contract-document-preview                     571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/contract-document-sample                      571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/convert-contract                              571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/history                                       571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/quote-dms-artifacts/[kind]                    571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/quote-dms-document-draft                      571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/quote-dms-document-execution-evidence         571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/quote-dms-document-lifecycle-execution        571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/quote-preview                                 571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/quote-workflow                                571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/reopen                                        571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/revoke-contract                               571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/[id]/versions                                      571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/access                                             571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/opportunities/owners/lookup                                      571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/quote-seller-profile                                             571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/quote-seller-profile/ci                                          571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/reports/confirm                                                  571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/reports/confirmations/[id]/reopen                                571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/reports/preview                                                  571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/settings                                                         571 B         476 kB\nweb-crm:build: ├ ƒ /api/crm/settings/history                                                 571 B         476 kB\nweb-crm:build: ├ ƒ /api/notifications/[[...path]]                                            571 B         476 kB\nweb-crm:build: ├ ƒ /business-plan                                                          4.09 kB         498 kB\nweb-crm:build: ├ ƒ /business-plan-performance                                              4.09 kB         494 kB\nweb-crm:build: ├ ƒ /contract-performance                                                   3.88 kB         491 kB\nweb-crm:build: ├ ƒ /contracts                                                              1.19 kB         513 kB\nweb-crm:build: ├ ƒ /cost-plan                                                              4.09 kB         501 kB\nweb-crm:build: ├ ƒ /customers                                                                364 B         497 kB\nweb-crm:build: ├ ○ /login                                                                  3.39 kB         487 kB\nweb-crm:build: ├ ƒ /operations                                                             3.88 kB         494 kB\nweb-crm:build: ├ ○ /operations/settings                                                    3.15 kB         491 kB\nweb-crm:build: ├ ○ /password-reset                                                         3.24 kB         487 kB\nweb-crm:build: ├ ○ /quote-settings                                                         3.57 kB         491 kB\nweb-crm:build: ├ ƒ /reports                                                                1.31 kB         495 kB\nweb-crm:build: ├ ○ /settings                                                                 135 B         103 kB\nweb-crm:build: ├ ƒ /ssoo/search                                                              135 B         103 kB\nweb-crm:build: └ ƒ /ssot-icon.svg                                                            323 B         421 kB\nweb-crm:build: + First Load JS shared by all                                                103 kB\nweb-crm:build:   ├ chunks/1532-a79e4088ae862519.js                                         46.4 kB\nweb-crm:build:   ├ chunks/b168c62a-a6ee1ea01c395ad4.js                                     54.2 kB\nweb-crm:build:   └ other shared chunks (total)                                             1.97 kB\nweb-crm:build:\nweb-crm:build:\nweb-crm:build: ƒ Middleware                                                                33.2 kB\nweb-crm:build:\nweb-crm:build: ○  (Static)   prerendered as static content\nweb-crm:build: ƒ  (Dynamic)  server-rendered on demand\nweb-crm:build:\n Tasks:    5 successful, 5 total\nCached:    4 cached, 5 total\n  Time:    1m11.007s\n$ turbo build --filter=web-crm\n• turbo 2.7.4"
+    }
+  ]
+}

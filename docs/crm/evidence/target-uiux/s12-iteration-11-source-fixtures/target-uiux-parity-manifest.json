@@ -1,0 +1,471 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-audit",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T06:04:28.262Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-audit",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-01",
+      "UX-02",
+      "UX-03",
+      "UX-04",
+      "UX-05",
+      "UX-06",
+      "UX-07"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-01",
+      "sourcePage": "dashboard",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=dashboard",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=dashboard",
+      "capturedAt": "2026-08-20T06:03:39.210Z",
+      "audit": {
+        "normalStateId": "seeded-summary",
+        "sourceScreenshot": "ux-01-dashboard.png",
+        "targetDesktopScreenshot": "ux-01-dashboard--audit-desktop.png",
+        "targetMobileScreenshot": "ux-01-dashboard--audit-mobile.png",
+        "differenceScreenshot": "ux-01-dashboard--audit-difference.png",
+        "targetDomManifest": "ux-01-dashboard--audit.dom.json",
+        "missingStateIds": [
+          "no-confirmed-opportunity",
+          "recent-opportunity-drilldown"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "6e5a4f5b22abedd3bb9f8de1e43a70b5f2722a2b11068f5524dcf62faf59ecae",
+          "targetDesktop": "8078fa1f80292b8204f54250f123c6518f93238a2b1d2324f71dfe4664e73f3b",
+          "targetMobile": "0734ac26445f30b9d1ed68fefe126690031d516cab5b4213315dfcebc85d1d6f",
+          "difference": "0ec02c46979980081b294a46947254f02104c770bcd9e9c023d65808ac5686cd",
+          "targetDom": "2bacff6b83d62f0ed76a992954cddb3bae07a71cef03695e001f4f96c33a06b0"
+        }
+      }
+    },
+    {
+      "uxId": "UX-02",
+      "sourcePage": "list",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=list",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=list",
+      "capturedAt": "2026-08-20T06:03:46.959Z",
+      "audit": {
+        "normalStateId": "seeded-list",
+        "sourceScreenshot": "ux-02-list.png",
+        "targetDesktopScreenshot": "ux-02-list--audit-desktop.png",
+        "targetMobileScreenshot": "ux-02-list--audit-mobile.png",
+        "differenceScreenshot": "ux-02-list--audit-difference.png",
+        "targetDomManifest": "ux-02-list--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "previous-version-expanded",
+          "row-drilldown"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [
+            "삼성전자 ERP 시스템 구축 프로젝트 김민 김민준 1.6억 1.1억 4,770만 29% 26.01.01~26.12.31 계약완료 계약확정 1차 →",
+            "현대자동차 SCM 플랫폼 고도화 이서 이서연 9,500만 6,650만 2,850만 30% 26.04.01~27.03.31 진행중 확정 1차 →"
+          ],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "dcf9996346430206e1cec713d5bd4d916b55b8ac06b485e6e54c5c9514ccc53f",
+          "targetDesktop": "8d81733fe69d07f1b14eb6fd6ea164a7d8ec0ca35b06c858d4f80937fb986f87",
+          "targetMobile": "3dd7496df22671c05664bd2846720f136116758301a56e905f156c2330de4e9d",
+          "difference": "b88bfd481a98b7dced89e362310edcc4bad52d6941efd1d5652592b86e0d04f6",
+          "targetDom": "c71363cb30b98f928864e29551bf3c91408a442c3be2396d327f88308db31170"
+        }
+      }
+    },
+    {
+      "uxId": "UX-03",
+      "sourcePage": "form",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=form",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=form&selected=crm-uiux-opp-001",
+      "capturedAt": "2026-08-20T06:03:54.761Z",
+      "audit": {
+        "normalStateId": "edit-seeded",
+        "sourceScreenshot": "ux-03-form.png",
+        "targetDesktopScreenshot": "ux-03-form--audit-desktop.png",
+        "targetMobileScreenshot": "ux-03-form--audit-mobile.png",
+        "differenceScreenshot": "ux-03-form--audit-difference.png",
+        "targetDomManifest": "ux-03-form--audit.dom.json",
+        "missingStateIds": [
+          "new-empty",
+          "required-validation",
+          "confirmed-locked",
+          "confirm-revoke-delete"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "16bc04d73299497205e0c4886dbd74fdd4f7c6792edc9a7379c8e4db3b43eec6",
+          "targetDesktop": "8c722ea87cce68929ea1981fa37e2d0f3a00edddb2f069c940b20014f253c310",
+          "targetMobile": "74d4de1b09cae29a8483b247847ef62fbcc9b7bcb94465b622f5a0703c21ae1f",
+          "difference": "79bdf0ee613aa674fe9ebbf6fa575d68c0f6db7f7091b40f6db66b738abd50d6",
+          "targetDom": "bd386e424b074460e2b46c981980865c845460e16876c3c8a55109114042e3a8"
+        }
+      }
+    },
+    {
+      "uxId": "UX-04",
+      "sourcePage": "contract-gen",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=contract-document + DMS",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=contract-document",
+      "capturedAt": "2026-08-20T06:04:03.829Z",
+      "audit": {
+        "normalStateId": "no-template",
+        "sourceScreenshot": "ux-04-contract-gen.png",
+        "targetDesktopScreenshot": "ux-04-contract-gen--audit-desktop.png",
+        "targetMobileScreenshot": "ux-04-contract-gen--audit-mobile.png",
+        "differenceScreenshot": "ux-04-contract-gen--audit-difference.png",
+        "targetDomManifest": "ux-04-contract-gen--audit.dom.json",
+        "missingStateIds": [
+          "template-ready",
+          "opportunity-selected",
+          "preview-ready",
+          "generation-download-success",
+          "generation-error"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "ecdaa7fb7187cb184b7c3ac227f63ba8c523de1e7682cf4a74d10fafb2667bf2",
+          "targetDesktop": "f5f862d058a35a8069419fb90c6dc1e34c2b40702638fec01eced486cdd345d0",
+          "targetMobile": "d6b58c8c86cdc16538f54cb5de5a162b7f7bb654cf18fcdaa9dd2282e792b343",
+          "difference": "f89914fa8e2cc70cfa52df49efcfa9d8473b7cb24d7ad4f1b29957b4b7345740",
+          "targetDom": "ed882931becb0bca89e3b218ca9913f9d4f452ee4319d577ac8abb299bd963c6"
+        }
+      }
+    },
+    {
+      "uxId": "UX-05",
+      "sourcePage": "contract-list",
+      "status": "partial",
+      "ownerSurface": "CRM /contracts?sourceSurface=list",
+      "targetUrl": "http://127.0.0.1:3105/contracts?sourceSurface=list",
+      "capturedAt": "2026-08-20T06:04:11.606Z",
+      "audit": {
+        "normalStateId": "seeded-list",
+        "sourceScreenshot": "ux-05-contract-list.png",
+        "targetDesktopScreenshot": "ux-05-contract-list--audit-desktop.png",
+        "targetMobileScreenshot": "ux-05-contract-list--audit-mobile.png",
+        "differenceScreenshot": "ux-05-contract-list--audit-difference.png",
+        "targetDomManifest": "ux-05-contract-list--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "row-drilldown"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "c3140e49d62b42eac86c94af036395a170b0cc87b64ad66400f36fe39c74a974",
+          "targetDesktop": "0bd9576a5aad72c1d76731b0cb60ed4fb313b74dbc592110c50460a8a8578219",
+          "targetMobile": "e9773caaf0d1fadc69193c0be8df8622992a578f54337dd10470a6c0b89bab35",
+          "difference": "cd121e325ec045a043d343e8ef0d3be5f18dc45233ed63355e8e8dc79837d261",
+          "targetDom": "e2f873d8ab7e7352c0fbc1b434d60ac85acda6f61cd035ac5ab59463e74b1700"
+        }
+      }
+    },
+    {
+      "uxId": "UX-06",
+      "sourcePage": "contract-form",
+      "status": "partial",
+      "ownerSurface": "CRM /contracts?sourceSurface=form",
+      "targetUrl": "http://127.0.0.1:3105/contracts?sourceSurface=form",
+      "capturedAt": "2026-08-20T06:04:19.633Z",
+      "audit": {
+        "normalStateId": "edit-seeded",
+        "sourceScreenshot": "ux-06-contract-form.png",
+        "targetDesktopScreenshot": "ux-06-contract-form--audit-desktop.png",
+        "targetMobileScreenshot": "ux-06-contract-form--audit-mobile.png",
+        "differenceScreenshot": "ux-06-contract-form--audit-difference.png",
+        "targetDomManifest": "ux-06-contract-form--audit.dom.json",
+        "missingStateIds": [
+          "new-empty",
+          "required-validation",
+          "confirmed-locked",
+          "confirm-unconfirm-delete"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "545cf46e078f336be8f810420a523eb4e8fa858c36c9af748a9de0c2fa98e211",
+          "targetDesktop": "01d3cd965b6eece5e888010bcd78ba7b7c9d7c1a1f0026224abd0aeb27769df6",
+          "targetMobile": "552c52d77ef1a892df67b26d0cdc7056a4068f2edbaffda1ac0deb80be5a395e",
+          "difference": "f06a40395ceb062b6d3778d4207d4db1705898293c7d6acec053711d1a53c100",
+          "targetDom": "3879b2a17f6b68df1e3366545c1974327a199b9e6a6bfe2695b36cddeba9fb93"
+        }
+      }
+    },
+    {
+      "uxId": "UX-07",
+      "sourcePage": "billing-actual",
+      "status": "partial",
+      "ownerSurface": "CRM /contracts?sourceSurface=billing-actual",
+      "targetUrl": "http://127.0.0.1:3105/contracts?sourceSurface=billing-actual",
+      "capturedAt": "2026-08-20T06:04:28.262Z",
+      "audit": {
+        "normalStateId": "actual-seeded",
+        "sourceScreenshot": "ux-07-billing-actual.png",
+        "targetDesktopScreenshot": "ux-07-billing-actual--audit-desktop.png",
+        "targetMobileScreenshot": "ux-07-billing-actual--audit-mobile.png",
+        "differenceScreenshot": "ux-07-billing-actual--audit-difference.png",
+        "targetDomManifest": "ux-07-billing-actual--audit.dom.json",
+        "missingStateIds": [
+          "confirmed-contract-list",
+          "contract-selected",
+          "actual-empty",
+          "save-validation"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "4f469c7f672b66504faff35a6605478d39263990d2f04c6564c82c31492e3a05",
+          "targetDesktop": "7e828ef6d7d5d3b9e897cda325b84a05db5056b6d74bb472bd233b92b6285710",
+          "targetMobile": "ee3cd1fa58b2f8fb84606c9f16ce1ef12947d085fb6d454039722c8541897c54",
+          "difference": "9f9d4f2ee3feb1de7773b8d115cdcbcac11fb5c2f4daaae1ccf81fb8b2dc9481",
+          "targetDom": "ac828071e21af2be54d0946b2da38feea75c933e288ffeb8a1097842b8c81778"
+        }
+      }
+    }
+  ]
+}

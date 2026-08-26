@@ -1,0 +1,87 @@
+{
+  "states": [
+    {
+      "name": "seeded-plan-contract-comparison",
+      "captured": true,
+      "screenshot": "ux-10-bp-rpt.png",
+      "screenshotSha256": "c1cc331a22555b6cc8e07e9a6fe6dfdd41535301c5410683fc03754044d8f617",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.bp_rpt.js"
+    },
+    {
+      "name": "filtered-empty",
+      "captured": true,
+      "screenshot": "ux-10-bp-rpt--filtered-empty.png",
+      "screenshotSha256": "b725ed9b77b0c15bc937e1bf74cfabbeadf23a435173b52bbac98528a644b33b",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.bp_rpt.js"
+    },
+    {
+      "name": "filter-combination",
+      "captured": true,
+      "screenshot": "ux-10-bp-rpt--filter-combination.png",
+      "screenshotSha256": "f910c9fd153d87a1543dab1934ce063b3557759209e4b3ce7f598ee43b54c366",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.bp_rpt.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-plan-contract-comparison",
+      "behavior": "seeded plan contract comparison",
+      "sourceAnchors": [
+        "index.html",
+        "app.bp_rpt.js"
+      ]
+    },
+    {
+      "id": "filtered-empty",
+      "behavior": "filtered empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.bp_rpt.js"
+      ]
+    },
+    {
+      "id": "filter-combination",
+      "behavior": "filter combination",
+      "sourceAnchors": [
+        "index.html",
+        "app.bp_rpt.js"
+      ]
+    }
+  ]
+}

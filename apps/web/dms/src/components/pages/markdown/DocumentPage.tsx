@@ -86,6 +86,8 @@ import {
   type DocumentMetadataDiffSnapshot,
 } from './documentPageUtils';
 import { useDocumentAccessRequestStore } from '@/features/access';
+import { homeApi } from '@/lib/api/homeApi';
+import { useInvalidateHomeSummary } from '@/hooks/queries/useHomeSummary';
 import {
   DMS_LOCK_TAKEOVER_REQUEST_FOCUS_EVENT,
   isDmsLockTakeoverRequestFocusEventDetail,
@@ -159,6 +161,7 @@ export function DocumentPage() {
   const toggleAssistantReference = useAssistantContextStore((state) => state.toggleReference);
   const attachedReferences = useAssistantContextStore((state) => state.attachedReferences);
   const openDocumentTab = useOpenDocumentTab();
+  const invalidateHomeSummary = useInvalidateHomeSummary();
   const openAccessRequestDialog = useDocumentAccessRequestStore((state) => state.open);
   const currentUser = useAuthStore((state) => state.user);
   const accessSnapshot = useAccessStore((state) => state.snapshot);
@@ -221,6 +224,7 @@ export function DocumentPage() {
   );
   const [resumeEditAfterRefresh, setResumeEditAfterRefresh] = useState(() => canResumeExistingEdit);
   const shouldResumeExistingEdit = resumeEditAfterRefresh && canResumeExistingEdit;
+  const recordedVisitRef = useRef<string | null>(null);
 
   const [mode, setMode] = useState<PageMode>(() => (shouldResumeExistingEdit ? 'editor' : 'viewer'));
   const [inlineInstruction, setInlineInstruction] = useState('');
@@ -479,6 +483,42 @@ export function DocumentPage() {
     loadFile,
     setIsEditing,
     shouldResumeExistingEdit,
+  ]);
+
+  useEffect(() => {
+    if (
+      activeTabId !== tabId
+      || !filePath
+      || isCreateMode
+      || isLoading
+      || error
+      || !documentMetadata
+      || lockedPreview
+    ) {
+      return;
+    }
+
+    const visitKey = `${filePath}:${activeTab?.reloadSeq ?? 0}`;
+    if (recordedVisitRef.current === visitKey) {
+      return;
+    }
+    recordedVisitRef.current = visitKey;
+    void homeApi.recordVisit({ path: filePath }).then((response) => {
+      if (response.success) {
+        void invalidateHomeSummary();
+      }
+    });
+  }, [
+    activeTab?.reloadSeq,
+    activeTabId,
+    documentMetadata,
+    error,
+    filePath,
+    invalidateHomeSummary,
+    isCreateMode,
+    isLoading,
+    lockedPreview,
+    tabId,
   ]);
 
   useEffect(() => {
@@ -1238,37 +1278,42 @@ export function DocumentPage() {
         if (currentFile?.provider) {
           formData.append('provider', currentFile.provider);
         }
-        try {
-          const res = await fetchWithSharedAuth(uploadUrl, { method: 'POST', body: formData });
-          const data = await res.json();
-          if (res.ok && data && typeof data.path === 'string') {
-            const idx = updatedFiles.findIndex((f) => f.path === tempPath);
-            const nextFile = {
-              ...(idx >= 0 ? updatedFiles[idx] ?? {} : currentFile ?? {}),
-              name: typeof data.fileName === 'string' ? data.fileName : currentFile?.name ?? file.name,
-              path: data.path,
-              size: typeof data.size === 'number' ? data.size : currentFile?.size ?? file.size,
-              type: typeof data.type === 'string' ? data.type : currentFile?.type ?? file.type,
-              provider: typeof data.provider === 'string' ? data.provider : currentFile?.provider,
-              storageUri: typeof data.storageUri === 'string' ? data.storageUri : currentFile?.storageUri,
-              versionId: typeof data.versionId === 'string' ? data.versionId : currentFile?.versionId,
-              etag: typeof data.etag === 'string' ? data.etag : currentFile?.etag,
-              checksum: typeof data.checksum === 'string' ? data.checksum : currentFile?.checksum,
-              url: typeof data.webUrl === 'string' ? data.webUrl : currentFile?.url,
-              status: data.status === 'draft' || data.status === 'pending_confirm' || data.status === 'published'
-                ? data.status
-                : 'published',
-            };
-            if (idx >= 0) {
-              updatedFiles[idx] = nextFile;
-            } else {
-              updatedFiles.push(nextFile);
-            }
-            pending.delete(tempPath);
-          }
-        } catch {
-          // 업로드 실패 시 해당 파일은 pending 상태로 유지
+        const res = await fetchWithSharedAuth(uploadUrl, { method: 'POST', body: formData });
+        const data = await res.json().catch(() => null) as Record<string, unknown> | null;
+        if (!res.ok || !data || typeof data.path !== 'string') {
+          const message = typeof data?.error === 'string'
+            ? data.error
+            : `${file.name} 업로드에 실패했습니다.`;
+          toast.error(message);
+          throw new Error(message);
         }
+
+        const idx = updatedFiles.findIndex((f) => f.path === tempPath);
+        const resolvedProvider = data.provider === 'local' || data.provider === 'nas'
+          ? data.provider
+          : currentFile?.provider;
+        const nextFile: SourceFileMeta = {
+          ...(idx >= 0 ? updatedFiles[idx] ?? {} : currentFile ?? {}),
+          name: typeof data.fileName === 'string' ? data.fileName : currentFile?.name ?? file.name,
+          path: data.path,
+          size: typeof data.size === 'number' ? data.size : currentFile?.size ?? file.size,
+          type: typeof data.type === 'string' ? data.type : currentFile?.type ?? file.type,
+          provider: resolvedProvider,
+          storageUri: typeof data.storageUri === 'string' ? data.storageUri : currentFile?.storageUri,
+          versionId: typeof data.versionId === 'string' ? data.versionId : currentFile?.versionId,
+          etag: typeof data.etag === 'string' ? data.etag : currentFile?.etag,
+          checksum: typeof data.checksum === 'string' ? data.checksum : currentFile?.checksum,
+          url: typeof data.webUrl === 'string' ? data.webUrl : currentFile?.url,
+          status: data.status === 'draft' || data.status === 'pending_confirm' || data.status === 'published'
+            ? data.status
+            : 'published',
+        };
+        if (idx >= 0) {
+          updatedFiles[idx] = nextFile;
+        } else {
+          updatedFiles.push(nextFile);
+        }
+        pending.delete(tempPath);
       }
       setLocalDocumentMetadata({ sourceFiles: updatedFiles });
     }

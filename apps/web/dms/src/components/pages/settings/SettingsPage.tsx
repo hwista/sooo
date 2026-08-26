@@ -27,6 +27,8 @@ import {
 import type { SettingSection } from './_config/settingsPageConfig';
 import { GitObservabilitySurface } from './_components/GitObservabilitySurface';
 import { RuntimePathSurface } from './_components/RuntimePathSurface';
+import { RuntimeReadinessSurface } from './_components/RuntimeReadinessSurface';
+import { IngestOperationsSurface } from './_components/IngestOperationsSurface';
 import { SettingsCustomSlot } from './_components/SettingsCustomSlot';
 import { SettingsFieldList } from './_components/SettingsFieldList';
 import { getSettingsTabOptions, parseSettingsTabPath } from './_utils/settingsNavigation';
@@ -98,8 +100,10 @@ export function SettingsPage() {
     content: '',
     scope: 'global' as TemplateScope,
     kind: 'document' as TemplateKind,
+    usage: 'general' as 'general' | 'crm-quote-document' | 'crm-contract-document' | 'crm-opportunity-contract-document',
   });
   const [reviewConfirmingTemplateId, setReviewConfirmingTemplateId] = useState<string | null>(null);
+  const [uploadingDocxTemplateId, setUploadingDocxTemplateId] = useState<string | null>(null);
   const runtimeSectionIds = useMemo(() => new Set(['git', 'storage-runtime', 'ingest-runtime', 'templates-runtime']), []);
 
   const canOpenSection = useCallback((section: SettingSection) => {
@@ -256,7 +260,7 @@ export function SettingsPage() {
   }, []);
 
   const hasChanges = modifiedKeys.length > 0;
-  const hasValidationErrors = Object.keys(validationErrors).length > 0;
+  const hasValidationErrors = modifiedKeys.some((key) => Boolean(validationErrors[key]));
 
   const handleStructuredChange = useCallback((key: string, value: unknown) => {
     setLocalConfig((prev) => setNestedValue(prev, key, value));
@@ -271,7 +275,8 @@ export function SettingsPage() {
   const handleSave = useCallback(async () => {
     if (!currentSection) return;
 
-    if (Object.keys(getValidationErrors(editableSections, localConfig)).length > 0) {
+    const currentValidationErrors = getValidationErrors(editableSections, localConfig);
+    if (modifiedKeys.some((key) => Boolean(currentValidationErrors[key]))) {
       return;
     }
 
@@ -303,6 +308,9 @@ export function SettingsPage() {
       content: templateDraft.content,
       scope: templateDraft.scope,
       kind: templateDraft.kind,
+      generation: templateDraft.usage === 'general'
+        ? { source: 'manual' }
+        : { source: 'manual', taskKey: templateDraft.usage },
     });
     if (!response.success || !response.data) return;
     await queryClient.invalidateQueries({ queryKey: templateKeys.all });
@@ -312,6 +320,7 @@ export function SettingsPage() {
       content: '',
       scope: 'global',
       kind: 'document',
+      usage: 'general',
     });
   }, [queryClient, templateDraft]);
 
@@ -319,6 +328,17 @@ export function SettingsPage() {
     const response = await templateApi.remove(template.id, template.scope);
     if (!response.success) return;
     await queryClient.invalidateQueries({ queryKey: templateKeys.all });
+  }, [queryClient]);
+
+  const handleTemplateDocxUpload = useCallback(async (template: TemplateItem, file: File) => {
+    setUploadingDocxTemplateId(template.id);
+    try {
+      const response = await templateApi.uploadDocx(template, file);
+      if (!response.success) return;
+      await queryClient.invalidateQueries({ queryKey: templateKeys.all });
+    } finally {
+      setUploadingDocxTemplateId(null);
+    }
   }, [queryClient]);
 
   const handleTemplateReviewConfirm = useCallback(async (template: TemplateItem) => {
@@ -368,12 +388,6 @@ export function SettingsPage() {
                 binding: runtime.paths.storageRoots.local,
               },
               {
-                key: 'storage-sharepoint',
-                label: 'SharePoint provider root',
-                description: 'SharePoint provider 의 mount/library 기준 경로입니다.',
-                binding: runtime.paths.storageRoots.sharepoint,
-              },
-              {
                 key: 'storage-nas',
                 label: 'NAS provider root',
                 description: 'NAS provider 의 mount/gateway 기준 경로입니다.',
@@ -407,14 +421,7 @@ export function SettingsPage() {
                 key: 'template-root',
                 label: 'Template directory',
                 description: '문서 markdown root 의 _templates/ 하위 경로입니다.',
-                binding: {
-                  configuredPath: runtime.paths.templateDir,
-                  effectiveInput: runtime.paths.templateDir,
-                  resolvedPath: runtime.paths.templateDir,
-                  exists: true,
-                  relativeToAppRoot: false,
-                  source: 'config' as const,
-                },
+                binding: runtime.paths.template,
               },
             ]}
           />
@@ -440,8 +447,20 @@ export function SettingsPage() {
   }, [keyToLabel, modifiedKeys]);
 
   const headerActions = useMemo<SsooPageHeaderAction[]>(() => {
-    if (isCustomSection || isRuntimeSection) {
+    if (isCustomSection) {
       return [];
+    }
+
+    if (isRuntimeSection) {
+      return [{
+        label: isLoading ? '확인 중...' : '상태 새로고침',
+        icon: <RotateCcw className="h-4 w-4" />,
+        variant: 'outline',
+        onClick: () => {
+          void loadSettings(true);
+        },
+        disabled: isLoading,
+      }];
     }
 
     const actions: SsooPageHeaderAction[] = [];
@@ -473,7 +492,7 @@ export function SettingsPage() {
     });
 
     return actions;
-  }, [handleReset, handleSave, hasChanges, hasValidationErrors, isCustomSection, isRuntimeSection, isSaving, pendingLabels.length]);
+  }, [handleReset, handleSave, hasChanges, hasValidationErrors, isCustomSection, isLoading, isRuntimeSection, isSaving, loadSettings, pendingLabels.length]);
 
   const settingsIndex = currentSection ? {
     ariaLabel: '설정 항목 색인',
@@ -536,7 +555,9 @@ export function SettingsPage() {
       ) : null}
       compactMode={isCompactMode}
     >
+      {isRuntimeSection && <RuntimeReadinessSurface readiness={runtime?.readiness ?? null} />}
       {runtimePathSurface}
+      {currentSection.id === 'ingest-runtime' && <IngestOperationsSurface />}
       {currentSection.id === 'git' && <GitObservabilitySurface git={runtime?.git ?? null} />}
 
       {isLoading && !isCustomSection ? (
@@ -557,10 +578,14 @@ export function SettingsPage() {
           onDelete={(template) => {
             void handleTemplateDelete(template);
           }}
+          onUploadDocx={(template, file) => {
+            void handleTemplateDocxUpload(template, file);
+          }}
           onConfirmReview={(template) => {
             void handleTemplateReviewConfirm(template);
           }}
           reviewConfirmingTemplateId={reviewConfirmingTemplateId}
+          uploadingDocxTemplateId={uploadingDocxTemplateId}
           config={config}
           isSavingSettings={isSaving}
           onUpdateSettings={updateSettings}

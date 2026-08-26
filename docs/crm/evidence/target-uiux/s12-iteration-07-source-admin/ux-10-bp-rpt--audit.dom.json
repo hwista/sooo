@@ -1,0 +1,109 @@
+{
+  "title": "사업계획대비실적 (월별)",
+  "sections": [
+    "사업계획대비실적 (월별)"
+  ],
+  "fields": [
+    {
+      "id": "bpr-year",
+      "name": "year",
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "bpr-biz-type",
+      "name": "businessType",
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "bpr-group-type",
+      "name": "industryLine",
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "bpr-domestic",
+      "name": "region",
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "columns": [
+    "사업구분",
+    "계열구분",
+    "국내/해외",
+    "사업명",
+    "WBS코드",
+    "구분",
+    "1월",
+    "2월",
+    "3월",
+    "4월",
+    "5월",
+    "6월",
+    "7월",
+    "8월",
+    "9월",
+    "10월",
+    "11월",
+    "12월",
+    "합계",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익",
+    "매출",
+    "원가",
+    "손익"
+  ],
+  "actions": [
+    "조회"
+  ],
+  "labels": [
+    "사업년도 *",
+    "사업구분",
+    "계열구분",
+    "국내/해외"
+  ]
+}

@@ -61,6 +61,12 @@ function sanitizeMarkdownHtml(html: string): string {
     ) {
       return;
     }
+    // Bare relative document links (for example `guide.md` or `folder/guide.md`)
+    // are resolved against the current DMS document by resolveDocPath(). Keep
+    // them while continuing to reject unknown or unsafe URI schemes below.
+    if (!/^[a-z][a-z\d+.-]*:/iu.test(href)) {
+      return;
+    }
 
     try {
       const url = new URL(href);

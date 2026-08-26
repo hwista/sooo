@@ -132,6 +132,36 @@ const webAuthStore = file('packages/web-auth/src/store.ts');
 assert(!webAuthStore.includes('refreshToken: string | null'), 'shared auth store state must not expose refreshToken');
 assert(!webAuthStore.includes('refresh: (refreshToken'), 'shared auth API adapter must not expose body-based refresh');
 
+const sharedLoginPage = file('packages/web-auth/src/login-page.tsx');
+assert(sharedLoginPage.includes('const [isSubmitting, setIsSubmitting] = useState(false);'), 'shared login page must distinguish user submit loading from initial auth bootstrap');
+assert(sharedLoginPage.includes('authIsLoading: isLoading && !isSubmitting'), 'shared login page must keep the login card mounted during credential submit');
+assert(sharedLoginPage.includes('isLoading={isLoading || isSubmitting}'), 'shared login card must disable repeat submit while credential login is pending');
+assert(sharedLoginPage.includes('onAuthenticated: handleAuthenticated'), 'shared login page must use one stable authenticated navigation callback');
+assert(!/await login\(loginId, password\);\s*navigate\(postLoginPath\);/u.test(sharedLoginPage), 'shared login submit must not duplicate the authenticated navigation effect');
+
+const sharedLoginUi = file('packages/web-auth/src/ui.tsx');
+assert(sharedLoginUi.includes("AUTH_REMEMBERED_LOGIN_ID_STORAGE_KEY = 'ssoo.auth.remembered-login-id'"), 'shared login UI must persist only the opted-in remembered login ID under a dedicated key');
+assert(sharedLoginUi.includes("aria-label={passwordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}"), 'shared login UI must expose an accessible password visibility toggle');
+assert(sharedLoginUi.includes('size="authIcon"'), 'shared login password visibility control must consume the platform 44px auth icon recipe');
+assert(sharedLoginUi.includes('아이디 저장'), 'shared login UI must expose the source-compatible remember-login-ID label');
+assert(sharedLoginUi.includes('window.localStorage.setItem(AUTH_REMEMBERED_LOGIN_ID_STORAGE_KEY, value)'), 'shared login UI must persist the remembered login ID after successful submit');
+assert(!sharedLoginUi.includes('localStorage.setItem(AUTH_REMEMBERED_LOGIN_ID_STORAGE_KEY, password)'), 'shared login UI must never persist a password');
+
+const crmLoginPage = file('apps/web/crm/src/app/(auth)/login/page.tsx');
+assert(crmLoginPage.includes('rememberLoginIdEnabled'), 'CRM login must opt into source-compatible remember-login-ID control');
+assert(crmLoginPage.includes('passwordVisibilityEnabled'), 'CRM login must opt into source-compatible password visibility control');
+
+for (const app of ['admin', 'dms', 'pms', 'sns']) {
+  const loginPage = file(`apps/web/${app}/src/app/(auth)/login/page.tsx`);
+  assert(!loginPage.includes('rememberLoginIdEnabled'), `${app} login must not inherit CRM-only remember-login-ID UI without an explicit decision`);
+  assert(!loginPage.includes('passwordVisibilityEnabled'), `${app} login must not inherit CRM-only password visibility UI without an explicit decision`);
+}
+
+const protectedAppBootstrap = file('packages/web-auth/src/protected-app-bootstrap.ts');
+assert(protectedAppBootstrap.includes('initialAuthCheckRef = useRef<Promise<void> | null>(null)'), 'protected app bootstrap must retain the in-flight initial auth check across Strict Mode effect replay');
+assert(protectedAppBootstrap.includes('const initialAuthCheck = initialAuthCheckRef.current;'), 'protected app bootstrap must reattach completion handling to the retained initial auth check');
+assert(!protectedAppBootstrap.includes('initCalled'), 'protected app bootstrap must not strand completion state behind a one-shot init flag');
+
 const passwordResetPage = file('packages/web-auth/src/password-reset-page.tsx');
 assert(passwordResetPage.includes("'/api/auth/password-reset'"), 'shared password reset page must call the same-origin app password-reset proxy by default');
 assert(!passwordResetPage.includes('NEXT_PUBLIC_API_URL'), 'shared password reset page must not bypass app-local auth proxy with NEXT_PUBLIC_API_URL');
@@ -219,6 +249,8 @@ for (const docPath of [
 
 const authSystemDoc = file('docs/common/explanation/architecture/auth-system.md');
 assert(authSystemDoc.includes('AuthIdentityProfileProjection'), 'auth-system doc must document shared profile display auth projection');
+assert(authSystemDoc.includes('credential submit 중에는 로그인 카드를 유지'), 'auth-system doc must document visible credential failure handling');
+assert(authSystemDoc.includes('React Strict Mode effect replay'), 'auth-system doc must document Strict Mode-safe protected bootstrap completion');
 assert(!authSystemDoc.includes('SNS profile 표시 필드 projection은 `ProfileSummary` 기반으로 후속 정리한다'), 'auth-system doc must not leave SNS profile projection as follow-up');
 
 if (failures.length) {

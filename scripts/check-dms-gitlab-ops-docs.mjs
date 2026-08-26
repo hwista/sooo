@@ -47,6 +47,10 @@ try {
       'apps/server/src/modules/dms/runtime/git.service.ts',
       'pnpm run codex:workspace-sync-from-gitlab',
       'compose.yaml',
+      'compose.local.yaml',
+      'compose.local-test.yaml',
+      'compose.production.yaml',
+      'pnpm run verify:dms-runtime-profile-contract:self-test',
       '.env',
     ],
     guidePath,
@@ -87,10 +91,10 @@ try {
   requireIncludes(
     compose,
     [
-      'DMS_INSTANCE_ENV: ${DMS_INSTANCE_ENV:-prod}',
+      'DMS_INSTANCE_ENV: ""',
       'DMS_GIT_PROD_REMOTE_URL: ${DMS_GIT_PROD_REMOTE_URL:-http://10.125.31.72:8010/LSITC_WEB/LSWIKI_DOC.git}',
       'DMS_GIT_DEV_REMOTE_URL: ${DMS_GIT_DEV_REMOTE_URL:-git@10.125.31.72:LSITC_WEB/LSWIKI_DOC_DEV.git}',
-      'DMS_GIT_BOOTSTRAP_REMOTE_URL: ${DMS_GIT_BOOTSTRAP_REMOTE_URL:-}',
+      'DMS_GIT_BOOTSTRAP_REMOTE_URL: ""',
       'DMS_GIT_BOOTSTRAP_BRANCH: ${DMS_GIT_BOOTSTRAP_BRANCH:-master}',
       'AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}',
       'AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}',
@@ -100,6 +104,39 @@ try {
       'AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}',
     ],
     'compose.yaml',
+  );
+
+  const localCompose = read('compose.local.yaml');
+  requireIncludes(
+    localCompose,
+    [
+      'DMS_INSTANCE_ENV: "dev"',
+      'DMS_GIT_BOOTSTRAP_REMOTE_URL: ""',
+    ],
+    'compose.local.yaml',
+  );
+
+  const localTestCompose = read('compose.local-test.yaml');
+  requireIncludes(
+    localTestCompose,
+    [
+      'DMS_INSTANCE_ENV: "local-test"',
+      'DMS_GIT_BOOTSTRAP_REMOTE_URL: ""',
+      'volumes: !override',
+      'name: ssoo-dms-local-test-postgres',
+      'name: ssoo-dms-local-test-documents',
+    ],
+    'compose.local-test.yaml',
+  );
+
+  const productionCompose = read('compose.production.yaml');
+  requireIncludes(
+    productionCompose,
+    [
+      'DMS_INSTANCE_ENV: ${DMS_INSTANCE_ENV:?Set DMS_INSTANCE_ENV=prod}',
+      'DMS_GIT_BOOTSTRAP_REMOTE_URL: ${DMS_GIT_BOOTSTRAP_REMOTE_URL:-}',
+    ],
+    'compose.production.yaml',
   );
 
   const envExample = read('.env.example');

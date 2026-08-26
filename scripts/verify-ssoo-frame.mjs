@@ -90,6 +90,7 @@ async function verifyCanonicalDocs() {
   assertIncludes(doc, '탭 아이콘 SVG와 route 응답은 `packages/web-shell/src/app-icon.ts`', 'frame doc records shared browser tab icon source');
   assertIncludes(doc, '브라우저 제목 표시줄은 `SSOT {서비스명}` 형식을 기준으로 한다', 'frame doc records compact browser title format');
   assertIncludes(doc, '브라우저 탭 아이콘은 5개 앱 모두 같은 `/ssot-icon.svg` route를 사용한다', 'frame doc records common browser tab icon route');
+  assertIncludes(doc, '`/favicon.ico` 요청은 공용 Next rewrite로 `/ssot-icon.svg`에 연결', 'frame doc records the legacy favicon compatibility route');
   assertIncludes(doc, 'favicon accent는 앱 기본 theme의 `ssooPrimary`와 런타임 `--ssoo-primary`', 'frame doc records dynamic favicon theme ownership');
   assertIncludes(doc, '앱별 색상 theme은 의도된 식별 장치', 'frame doc records app-specific theme colors as intentional');
   assertIncludes(doc, '클릭 시 주입되는 도메인 action 함수는 각 앱이 소유', 'frame doc records shared component/domain action boundary');
@@ -899,6 +900,7 @@ async function verifyVisibleBrandSurfaceSource() {
 async function verifySharedAppIdentitySource() {
   const identity = await readText('packages/web-shell/src/app-identity.ts');
   const appIcon = await readText('packages/web-shell/src/app-icon.ts');
+  const nextConfig = await readText('packages/web-shell/next-config.cjs');
   const index = await readText('packages/web-shell/src/index.ts');
 
   assertIncludes(identity, 'SSOO_APP_IDENTITIES', 'shared app identity source owns the visible app identity registry');
@@ -913,6 +915,8 @@ async function verifySharedAppIdentitySource() {
   assertIncludes(appIcon, 'SSOO_APP_ICON_COLOR_PARAM', 'shared app icon source owns the custom accent query param');
   assertIncludes(appIcon, 'data-ssoo-app-icon="ssot"', 'shared app icon source emits a stable runtime verification marker');
   assertIncludes(appIcon, 'private, max-age=0, must-revalidate', 'shared app icon source avoids immutable caching for custom accent colors');
+  assertIncludes(nextConfig, "source: '/favicon.ico'", 'shared Next config owns the legacy favicon compatibility path');
+  assertIncludes(nextConfig, "destination: '/ssot-icon.svg'", 'legacy favicon requests resolve to the canonical shared app icon route');
   assertIncludes(index, 'getSsooAppMetadata', 'web-shell root exports app metadata helper');
   assertIncludes(index, 'getSsooAppIdentity', 'web-shell root exports app identity helper');
   assertIncludes(index, 'getSsooAppIconResponse', 'web-shell root exports app icon route helper');
@@ -1413,7 +1417,11 @@ async function verifyDmsSource() {
   assertUsesSharedAppHeader(header, 'DMS');
   assertIncludes(header, "variant?: 'workspace' | 'settings'", 'DMS header keeps the shared header slot while switching settings content');
   assertIncludes(header, "variant === 'settings'", 'DMS header renders a settings-mode empty header shell branch');
-  assertIncludes(header, '<SsooAppHeader mode="primary" />', 'DMS settings header branch keeps the shared header shell empty');
+  assertIncludes(
+    header,
+    '<SsooAppHeader mode="primary" {...mobileHeaderProps} />',
+    'DMS settings header branch keeps the shared desktop shell empty while preserving mobile navigation',
+  );
   const headerNotifications = await readText('apps/web/dms/src/components/layout/HeaderNotifications.tsx');
   assertIncludes(headerNotifications, 'useCommonNotificationCenter', 'DMS notification slot consumes the shared notification data hook');
   assertIncludes(headerNotifications, 'SsooHeaderNotificationCenter', 'DMS notification slot consumes the shared header notification center surface');

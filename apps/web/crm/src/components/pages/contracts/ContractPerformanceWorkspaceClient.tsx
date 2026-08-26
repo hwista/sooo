@@ -1,24 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Search } from 'lucide-react';
 import type {
   CrmContractPerformanceMonth,
-  CrmContractPerformanceQuery,
   CrmContractPerformanceRegion,
   CrmContractPerformanceResponse,
   CrmContractPerformanceRow,
 } from '@ssoo/types/crm';
 import { Button, Input, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { useAuthStore } from '@/stores/auth.store';
-
-export interface ContractPerformanceWorkspaceQuery {
-  year: number;
-  businessType: string;
-  industryLine: string;
-  region: CrmContractPerformanceRegion;
-  search: string;
-}
+import { useCrmBusinessYearOptions } from '@/lib/crmCommonCodeOptions';
+import type { ContractPerformanceWorkspaceQuery } from './contractPerformanceQuery';
 
 interface BackendSuccessResponse<T> {
   success: true;
@@ -101,7 +95,8 @@ export function ContractPerformanceWorkspaceClient({
   const [isReloading, setIsReloading] = useState(data.items.length === 0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const apiHref = useMemo(() => buildApiHref(query), [query]);
-  const yearOptions = useMemo(() => getYearOptions(query.year), [query.year]);
+  const businessYears = useCrmBusinessYearOptions(query.year, getYearOptions(query.year));
+  const yearOptions = businessYears.years;
 
   useEffect(() => {
     setCurrentData(data);
@@ -147,6 +142,46 @@ export function ContractPerformanceWorkspaceClient({
     void loadPerformance(abortController.signal);
     return () => abortController.abort();
   }, [loadPerformance]);
+
+  if (query.mode === 'source-compatible') {
+    return (
+      <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="contract-performance">
+        <div className="mx-auto max-w-[1180px]">
+          <h1 className="text-xl font-semibold text-foreground">계약대비실적 (월별)</h1>
+          <p className="mt-1 text-sm text-muted-foreground">확정 계약 기준 월별 청구계획·실적을 조회합니다.</p>
+
+          <form action="/contract-performance" className="mt-6 flex flex-wrap items-end gap-3">
+            <Input type="hidden" name="mode" value="source-compatible" />
+            <SourcePerformanceField label="사업년도 *" htmlFor="rpt-year" className="w-[140px]">
+              <NativeSelect id="rpt-year" name="year" defaultValue={String(query.year)}>
+                {yearOptions.map((year) => <option key={year} value={year}>{year}년</option>)}
+              </NativeSelect>
+            </SourcePerformanceField>
+            <SourcePerformanceField label="사업구분" htmlFor="rpt-biz-type" className="w-[132px]">
+              <NativeSelect id="rpt-biz-type" name="businessType" defaultValue={query.businessType}><option value="">전체</option>{[...new Set([query.businessType, ...currentData.summary.businessTypeOptions].filter(Boolean))].map((option) => <option key={option} value={option}>{option}</option>)}</NativeSelect>
+            </SourcePerformanceField>
+            <SourcePerformanceField label="계열구분" htmlFor="rpt-group-type" className="w-[168px]">
+              <NativeSelect id="rpt-group-type" name="industryLine" defaultValue={query.industryLine}><option value="">전체</option>{[...new Set([query.industryLine, ...currentData.summary.industryLineOptions].filter(Boolean))].map((option) => <option key={option} value={option}>{option}</option>)}</NativeSelect>
+            </SourcePerformanceField>
+            <SourcePerformanceField label="국내/해외" htmlFor="rpt-domestic" className="w-[132px]">
+              <NativeSelect id="rpt-domestic" name="region" defaultValue={query.region}>{Object.entries(regionLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</NativeSelect>
+            </SourcePerformanceField>
+            <SourcePerformanceField label="사업명" htmlFor="rpt-search" className="min-w-[190px] flex-1">
+              <SsooSearchInput id="rpt-search" name="search" ariaLabel="계약명 검색" intent="data-filter" defaultValue={query.search} placeholder="계약명 검색" />
+            </SourcePerformanceField>
+            <Button type="submit">조회</Button>
+          </form>
+
+          {loadError ? <div className="mt-4 flex items-center gap-2 rounded-md bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger"><AlertCircle className="h-4 w-4" />{loadError}</div> : null}
+          <div className="mt-7 text-right text-xs text-muted-foreground">단위 : 억원</div>
+          <div className="mt-1 overflow-x-auto rounded-xl border bg-card">
+            <PerformanceTable items={currentData.items} isLoading={isReloading} sourceCompatible />
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">{currentData.summary.contractCount}건 조회 (확정 계약 · {currentData.summary.year}년 청구계획/실적 기준)</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-ssoo-content-bg">
@@ -203,7 +238,7 @@ export function ContractPerformanceWorkspaceClient({
             </label>
             <label className="min-w-[220px] flex-1 text-sm font-medium text-muted-foreground">
               검색
-              <Input name="search" defaultValue={query.search} placeholder="계약명, 고객사, WBS" className="mt-1" />
+              <SsooSearchInput id="crm-contract-performance-search-input" name="search" ariaLabel="계약 대비 실적 검색" intent="data-filter" defaultValue={query.search} placeholder="계약명, 고객사, WBS" className="mt-1" />
             </label>
             <Button type="submit">
               <Search className="mr-2 h-4 w-4" />
@@ -240,15 +275,27 @@ function Metric({ label, value, sub }: { label: string; value: string; sub: stri
   );
 }
 
-function PerformanceTable({ items, isLoading }: { items: CrmContractPerformanceRow[]; isLoading: boolean }) {
+function SourcePerformanceField({ label, htmlFor, className, children }: { label: string; htmlFor: string; className?: string; children: ReactNode }) {
+  return <div className={className}><label data-for={htmlFor} className="mb-1 block text-sm text-muted-foreground">{label}</label>{children}</div>;
+}
+
+function PerformanceTable({ items, isLoading, sourceCompatible = false }: { items: CrmContractPerformanceRow[]; isLoading: boolean; sourceCompatible?: boolean }) {
   return (
     <div className="overflow-auto">
       <Table className="w-full min-w-[2920px] text-xs">
         <TableHeader className="sticky top-0 z-10 bg-ssoo-content-bg text-left text-muted-foreground shadow-sm">
           <TableRow>
-            <TableHead className="w-[260px] px-2 py-2" rowSpan={2}>계약명</TableHead>
-            <TableHead className="w-[170px] px-2 py-2" rowSpan={2}>고객/구분</TableHead>
-            <TableHead className="w-[120px] px-2 py-2" rowSpan={2}>WBS</TableHead>
+            {sourceCompatible ? <>
+              <TableHead className="w-[100px] px-2 py-2" rowSpan={2}>사업구분</TableHead>
+              <TableHead className="w-[100px] px-2 py-2" rowSpan={2}>계열구분</TableHead>
+              <TableHead className="w-[90px] px-2 py-2" rowSpan={2}>국내/해외</TableHead>
+              <TableHead className="w-[240px] px-2 py-2" rowSpan={2}>사업명</TableHead>
+              <TableHead className="w-[120px] px-2 py-2" rowSpan={2}>WBS코드</TableHead>
+            </> : <>
+              <TableHead className="w-[260px] px-2 py-2" rowSpan={2}>계약명</TableHead>
+              <TableHead className="w-[170px] px-2 py-2" rowSpan={2}>고객/구분</TableHead>
+              <TableHead className="w-[120px] px-2 py-2" rowSpan={2}>WBS</TableHead>
+            </>}
             <TableHead className="w-[138px] px-2 py-2" rowSpan={2}>계약기간</TableHead>
             <TableHead className="w-[58px] px-2 py-2 text-center" rowSpan={2}>구분</TableHead>
             {MONTHS.map((month) => (
@@ -265,15 +312,15 @@ function PerformanceTable({ items, isLoading }: { items: CrmContractPerformanceR
         <TableBody className="divide-y divide-border">
           {isLoading ? (
             <TableRow>
-              <TableCell className="px-3 py-5 text-center text-ssoo-info" colSpan={44}>계약대비실적을 불러오는 중입니다.</TableCell>
+              <TableCell className="px-3 py-5 text-center text-ssoo-info" colSpan={sourceCompatible ? 46 : 44}>계약대비실적을 불러오는 중입니다.</TableCell>
             </TableRow>
           ) : null}
           {!isLoading && items.length === 0 ? (
             <TableRow>
-              <TableCell className="px-3 py-5 text-center text-muted-foreground" colSpan={44}>조회된 계약대비실적이 없습니다.</TableCell>
+              <TableCell className="px-3 py-5 text-center text-muted-foreground" colSpan={sourceCompatible ? 46 : 44}>조회된 계약대비실적이 없습니다.</TableCell>
             </TableRow>
           ) : null}
-          {!isLoading ? items.map((item) => <PerformanceRowGroup key={item.contractId} item={item} />) : null}
+          {!isLoading ? items.map((item) => <PerformanceRowGroup key={item.contractId} item={item} sourceCompatible={sourceCompatible} />) : null}
         </TableBody>
       </Table>
     </div>
@@ -290,12 +337,12 @@ function MonthAmountHeads() {
   );
 }
 
-function PerformanceRowGroup({ item }: { item: CrmContractPerformanceRow }) {
+function PerformanceRowGroup({ item, sourceCompatible = false }: { item: CrmContractPerformanceRow; sourceCompatible?: boolean }) {
   const rows = [
     { key: 'plan', label: '계획', className: 'bg-card', values: item.months.map(toPlanValues), total: toPlanValues(item.total) },
     { key: 'actual', label: '실적', className: 'bg-ssoo-info-bg', values: item.months.map(toActualValues), total: toActualValues(item.total) },
     { key: 'delta', label: '차이', className: 'bg-ssoo-warning-bg', values: item.months.map(toDeltaValues), total: toDeltaValues(item.total) },
-  ];
+  ].filter((row) => !sourceCompatible || row.key !== 'delta');
 
   return (
     <>
@@ -303,16 +350,24 @@ function PerformanceRowGroup({ item }: { item: CrmContractPerformanceRow }) {
         <TableRow key={row.key} className={row.className}>
           {index === 0 ? (
             <>
-              <TableCell className="px-2 py-2 align-top font-medium text-foreground" rowSpan={3}>
-                <div className="truncate" title={item.contractName}>{item.contractName}</div>
-                <div className="mt-1 text-caption-2xs font-normal text-muted-foreground">{item.contractCode} · {item.ownerName}</div>
-              </TableCell>
-              <TableCell className="px-2 py-2 align-top text-muted-foreground" rowSpan={3}>
-                <div className="truncate" title={item.customerName}>{item.customerName}</div>
-                <div className="mt-1 text-caption-2xs text-muted-foreground">{item.businessType} · {item.industryLine}</div>
-              </TableCell>
-              <TableCell className="px-2 py-2 align-top text-muted-foreground" rowSpan={3}>{item.wbsCode ?? '-'}</TableCell>
-              <TableCell className="px-2 py-2 align-top text-muted-foreground" rowSpan={3}>{formatDate(item.contractStartDate)} - {formatDate(item.contractEndDate)}</TableCell>
+              {sourceCompatible ? <>
+                <TableCell className="px-2 py-2 align-top" rowSpan={rows.length}>{item.businessType}</TableCell>
+                <TableCell className="px-2 py-2 align-top" rowSpan={rows.length}>{item.industryLine}</TableCell>
+                <TableCell className="px-2 py-2 align-top" rowSpan={rows.length}>{regionLabels[item.region]}</TableCell>
+                <TableCell className="px-2 py-2 align-top font-medium" rowSpan={rows.length}>{item.contractName}</TableCell>
+                <TableCell className="px-2 py-2 align-top" rowSpan={rows.length}>{item.wbsCode ?? '-'}</TableCell>
+              </> : <>
+                <TableCell className="px-2 py-2 align-top font-medium text-foreground" rowSpan={rows.length}>
+                  <div className="truncate" title={item.contractName}>{item.contractName}</div>
+                  <div className="mt-1 text-caption-2xs font-normal text-muted-foreground">{item.contractCode} · {item.ownerName}</div>
+                </TableCell>
+                <TableCell className="px-2 py-2 align-top text-muted-foreground" rowSpan={rows.length}>
+                  <div className="truncate" title={item.customerName}>{item.customerName}</div>
+                  <div className="mt-1 text-caption-2xs text-muted-foreground">{item.businessType} · {item.industryLine}</div>
+                </TableCell>
+                <TableCell className="px-2 py-2 align-top text-muted-foreground" rowSpan={rows.length}>{item.wbsCode ?? '-'}</TableCell>
+              </>}
+              <TableCell className="px-2 py-2 align-top text-muted-foreground" rowSpan={rows.length}>{formatDate(item.contractStartDate)} - {formatDate(item.contractEndDate)}</TableCell>
             </>
           ) : null}
           <TableCell className="px-2 py-2 text-center font-medium text-muted-foreground">{row.label}</TableCell>
@@ -352,46 +407,4 @@ function AmountCells({ values, isDelta, isTotal = false }: { values: number[]; i
       })}
     </>
   );
-}
-
-export function normalizeContractPerformanceQuery(path: string): ContractPerformanceWorkspaceQuery {
-  const [, queryString = ''] = path.split('?');
-  const searchParams = new URLSearchParams(queryString);
-  const year = Number(searchParams.get('year') ?? new Date().getFullYear());
-  const region = searchParams.get('region') as CrmContractPerformanceRegion | null;
-  return {
-    year: Number.isFinite(year) && year >= 2000 ? Math.trunc(year) : new Date().getFullYear(),
-    businessType: (searchParams.get('businessType') ?? '').trim(),
-    industryLine: (searchParams.get('industryLine') ?? '').trim(),
-    region: region && ['all', 'domestic', 'overseas'].includes(region) ? region : 'all',
-    search: (searchParams.get('search') ?? '').trim(),
-  };
-}
-
-export function toRequiredPerformanceQuery(query: ContractPerformanceWorkspaceQuery): Required<CrmContractPerformanceQuery> {
-  return {
-    year: query.year,
-    businessType: query.businessType,
-    industryLine: query.industryLine,
-    region: query.region,
-    search: query.search,
-  };
-}
-
-export function normalizeContractPerformanceQueryRecord(
-  query: Record<string, string | string[] | undefined> = {},
-): ContractPerformanceWorkspaceQuery {
-  const value = (key: string) => {
-    const raw = query[key];
-    return Array.isArray(raw) ? raw[0] ?? '' : raw ?? '';
-  };
-  const year = Number(value('year') || new Date().getFullYear());
-  const region = value('region') as CrmContractPerformanceRegion;
-  return {
-    year: Number.isFinite(year) && year >= 2000 ? Math.trunc(year) : new Date().getFullYear(),
-    businessType: value('businessType').trim(),
-    industryLine: value('industryLine').trim(),
-    region: ['all', 'domestic', 'overseas'].includes(region) ? region : 'all',
-    search: value('search').trim(),
-  };
 }

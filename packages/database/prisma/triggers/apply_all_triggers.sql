@@ -223,6 +223,9 @@
 \echo 'Installing: dm_document_index_state_h trigger...'
 \i 49_dm_document_index_state_h_trigger.sql
 
+\echo 'Installing: dm_user_document_activity_h trigger...'
+\i 81_dm_user_document_activity_h_trigger.sql
+
 \echo 'Installing: dm_document_comment_h trigger...'
 \i 55_dm_document_comment_h_trigger.sql
 
@@ -250,6 +253,12 @@
 
 \echo 'Installing: crm_business_plan_h trigger...'
 \i 74_crm_business_plan_h_trigger.sql
+
+\echo 'Installing: crm_config_h trigger...'
+\i 79_crm_config_h_trigger.sql
+
+\echo 'Installing: crm_operation_attempt_h trigger...'
+\i 80_crm_operation_attempt_h_trigger.sql
 
 \echo ''
 \echo '-- SNS --'

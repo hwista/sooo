@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-const INSECURE_SECRET_MARKERS = ['change-me', 'development', 'your-', 'placeholder'];
+const INSECURE_SECRET_MARKERS = ['change-me', 'development', 'your-', 'placeholder', 'replace-'];
 
 function isLocalhostOrigin(origin: string): boolean {
   try {
@@ -57,6 +57,19 @@ function validateProductionHardening(value: unknown, helpers: Joi.CustomHelpers)
     errors.push('AUTH_SESSION_COOKIE_SECURE must be true when production CORS_ORIGIN contains non-localhost origins.');
   }
 
+  if (!getBooleanValue(config, 'AUTH_EMAIL_OUTBOX_WORKER_ENABLED')) {
+    errors.push('AUTH_EMAIL_OUTBOX_WORKER_ENABLED must be true in production.');
+  }
+  for (const key of ['AUTH_EMAIL_SMTP_HOST', 'AUTH_EMAIL_SMTP_USERNAME', 'AUTH_EMAIL_FROM_ADDRESS']) {
+    if (!getStringValue(config, key)) {
+      errors.push(`${key} must be configured in production.`);
+    }
+  }
+  const smtpPassword = getStringValue(config, 'AUTH_EMAIL_SMTP_PASSWORD');
+  if (smtpPassword.length < 16 || hasInsecureSecretMarker(smtpPassword)) {
+    errors.push('AUTH_EMAIL_SMTP_PASSWORD must be a non-placeholder secret with at least 16 characters in production.');
+  }
+
   if (errors.length > 0) {
     return helpers.error('any.custom', { message: errors.join(' ') });
   }
@@ -82,10 +95,21 @@ export const configValidationSchema = Joi.object({
   AUTH_SESSION_COOKIE_DOMAIN: Joi.string().allow('').default(''),
   AUTH_SESSION_COOKIE_SECURE: Joi.boolean().default(false),
   AUTH_SESSION_COOKIE_SAME_SITE: Joi.string().valid('lax', 'strict', 'none').default('lax'),
+  AUTH_SESSION_IDLE_TIMEOUT_MINUTES: Joi.number().integer().min(1).max(1440).default(30),
   AUTH_MICROSOFT_OAUTH_STATE_COOKIE_NAME: Joi.string().default('ssoo-ms-oauth-state'),
   AUTH_OAUTH_STATE_SIGNING_SECRET: Joi.string().min(32).allow('').default(''),
   AUTH_CONFIG_ENCRYPTION_KEY: Joi.string().allow('').default(''),
   AUTH_DEFAULT_LOGIN_URL: Joi.string().allow('').default(''),
+  AUTH_EMAIL_OUTBOX_WORKER_ENABLED: Joi.boolean().default(false),
+  AUTH_EMAIL_OUTBOX_INTERVAL_MS: Joi.number().integer().min(5000).max(3600000).default(30000),
+  AUTH_EMAIL_OUTBOX_BATCH_LIMIT: Joi.number().integer().min(1).max(100).default(20),
+  AUTH_EMAIL_OUTBOX_RUN_ON_START: Joi.boolean().default(true),
+  AUTH_EMAIL_SMTP_HOST: Joi.string().allow('').default(''),
+  AUTH_EMAIL_SMTP_PORT: Joi.number().port().default(587),
+  AUTH_EMAIL_SMTP_SECURE: Joi.boolean().default(false),
+  AUTH_EMAIL_SMTP_USERNAME: Joi.string().allow('').default(''),
+  AUTH_EMAIL_SMTP_PASSWORD: Joi.string().allow('').default(''),
+  AUTH_EMAIL_FROM_ADDRESS: Joi.string().email().allow('').default(''),
 
   // Database
   DATABASE_URL: Joi.string().uri().required(),

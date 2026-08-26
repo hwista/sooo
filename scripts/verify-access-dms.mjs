@@ -526,8 +526,15 @@ async function uploadProbeFile(
   assertSuccessEnvelope(data, label);
 
   const result = data.data;
-  if (!isPlainObject(result) || typeof result.path !== 'string' || !result.path) {
-    throw new Error(`${label} path 를 찾지 못했습니다.`);
+  if (
+    !isPlainObject(result)
+    || typeof result.path !== 'string'
+    || !result.path
+    || result.provider !== 'local'
+    || typeof result.storageUri !== 'string'
+    || !result.storageUri.startsWith('local://')
+  ) {
+    throw new Error(`${label} 응답이 local storage reference 계약과 일치하지 않습니다.`);
   }
 
   return result;
@@ -540,8 +547,7 @@ async function uploadStorageProbe(baseUrl, accessToken, suffix) {
       'Content-Type': 'application/json',
     }),
     body: JSON.stringify({
-      provider: 'local',
-      fileName: 'verify-storage-reference.pptx',
+      fileName: `verify-storage-reference-${suffix}.pptx`,
       relativePath: 'access-verification',
       content: `DMS access verification storage fixture ${suffix}`,
       origin: 'reference',
@@ -561,6 +567,9 @@ async function uploadStorageProbe(baseUrl, accessToken, suffix) {
   ) {
     throw new Error('DMS storage upload 응답이 storage reference 형식이 아닙니다.');
   }
+  if (result.provider !== 'local' || !result.storageUri.startsWith('local://')) {
+    throw new Error('DMS 기본 storage upload 가 local provider 계약과 일치하지 않습니다.');
+  }
 
   return result;
 }
@@ -569,13 +578,13 @@ async function cleanupProbeFixtures(baseUrl, accessToken, probe, options = {}) {
   console.log(`→ cleanup: DMS probe fixtures (${probe.documentPath})`);
   const errors = [];
 
-  for (const assetPath of [probe.imagePath, probe.attachmentPath]) {
+  for (const assetPath of [probe.imagePath, probe.attachmentPath, probe.storagePath]) {
     if (!assetPath) {
       continue;
     }
 
     try {
-      await deleteProbeAsset(baseUrl, accessToken, assetPath);
+      deleteLocalProbeAsset(assetPath);
     } catch (error) {
       errors.push(`asset ${assetPath}: ${errorMessage(error)}`);
     }
@@ -609,6 +618,12 @@ function resolveDmsRuntimeBindings() {
       ['git', 'repositoryPath'],
       '../../../.runtime/documents',
       'DMS_MARKDOWN_ROOT',
+    ),
+    localStorageRoot: resolveRuntimeBinding(
+      { defaultConfig: null, userConfig: null },
+      ['storage', 'local', 'basePath'],
+      '../../../.runtime/document-storage/local',
+      'DMS_STORAGE_LOCAL_BASE_PATH',
     ),
   };
   // templateRoot is derived: markdownRoot/_templates
@@ -738,19 +753,17 @@ async function deleteProbeDocument(baseUrl, accessToken, documentPath) {
   }
 }
 
-async function deleteProbeAsset(baseUrl, accessToken, assetPath) {
-  const { response } = await requestJson(`${baseUrl}/dms/file`, {
-    method: 'POST',
-    headers: authHeaders(accessToken, {
-      'Content-Type': 'application/json',
-    }),
-    body: JSON.stringify({
-      action: 'delete',
-      path: assetPath,
-    }),
-  });
-
-  assertStatusOneOf(response, [200, 201, 404], `DMS probe asset delete (${assetPath})`);
+function deleteLocalProbeAsset(assetPath) {
+  const storageRoot = path.resolve(DMS_RUNTIME_BINDINGS.localStorageRoot.resolvedPath);
+  const targetPath = path.resolve(storageRoot, assetPath);
+  const relativePath = path.relative(storageRoot, targetPath);
+  if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    throw new Error(`local storage cleanup containment 위반: ${assetPath}`);
+  }
+  if (!fs.existsSync(targetPath)) {
+    throw new Error(`local storage cleanup 대상이 없습니다: ${targetPath}`);
+  }
+  fs.unlinkSync(targetPath);
 }
 
 async function verifyAccessSnapshot(baseUrl, accessToken, inspection, label) {
@@ -1791,6 +1804,16 @@ async function verifySettingsBoundary(baseUrl, accessToken, canManageSettings, l
     if (snapshot.access?.canManageSystem !== true || snapshot.runtime == null) {
       throw new Error(`/dms/settings GET (${label}) admin system/runtime 접근 플래그가 올바르지 않습니다.`);
     }
+    const storageConfig = snapshot.config.system?.storage;
+    if (!isPlainObject(storageConfig)) {
+      throw new Error(`/dms/settings GET (${label}) system.storage 설정이 없습니다.`);
+    }
+    if (Object.prototype.hasOwnProperty.call(storageConfig, 'sharepoint')) {
+      throw new Error(`/dms/settings GET (${label}) 폐기된 SharePoint storage 설정이 노출되었습니다.`);
+    }
+    if (storageConfig.defaultProvider !== 'local' && storageConfig.defaultProvider !== 'nas') {
+      throw new Error(`/dms/settings GET (${label}) 지원하지 않는 default storage provider 입니다.`);
+    }
   } else {
     if (snapshot.config.system != null || snapshot.runtime != null || snapshot.access?.canManageSystem !== false) {
       throw new Error(`/dms/settings GET (${label}) 일반 사용자에게 system/runtime 설정이 노출되었습니다.`);
@@ -1964,6 +1987,22 @@ async function verifyStorageBoundary(baseUrl, accessToken, features, probe, labe
     canReadDocuments ? [400] : [403],
     `/dms/storage/open invalid provider (${label})`,
   );
+
+  const retiredProviderResult = await requestJson(`${baseUrl}/dms/storage/open`, {
+    method: 'POST',
+    headers: authHeaders(accessToken, {
+      'Content-Type': 'application/json',
+    }),
+    body: JSON.stringify({
+      ...requestBody,
+      provider: 'sharepoint',
+    }),
+  });
+  assertStatusOneOf(
+    retiredProviderResult.response,
+    canReadDocuments ? [400] : [403],
+    `/dms/storage/open retired provider (${label})`,
+  );
 }
 
 async function verifyTemplateBoundary(
@@ -2109,12 +2148,14 @@ function assertSettingsSnapshot(settingsSnapshot, label) {
   if (!isPlainObject(runtime.paths.storageRoots)) {
     throw new Error(`${label} runtime.paths.storageRoots 가 객체가 아닙니다.`);
   }
+  if (Object.prototype.hasOwnProperty.call(runtime.paths.storageRoots, 'sharepoint')) {
+    throw new Error(`${label} runtime.paths.storageRoots 에 폐기된 SharePoint root 가 노출되었습니다.`);
+  }
 
   const localStorage = assertRuntimePathInfo(
     runtime.paths.storageRoots.local,
     `${label} runtime.paths.storageRoots.local`,
   );
-  assertRuntimePathInfo(runtime.paths.storageRoots.sharepoint, `${label} runtime.paths.storageRoots.sharepoint`);
   assertRuntimePathInfo(runtime.paths.storageRoots.nas, `${label} runtime.paths.storageRoots.nas`);
 
   if (settingsSnapshot.docDir !== markdownRoot.resolvedPath) {

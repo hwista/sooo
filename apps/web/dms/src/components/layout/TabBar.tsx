@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname, useRouter } from 'next/navigation';
 import { useSettingsPageNavigationStore, useTabStore, HOME_TAB } from '@/stores';
 import { useAssistantPanelStore, useConfirmStore } from '@/stores';
 import { useEditorMultiStore } from '@/stores/editor-core.store';
@@ -7,6 +8,7 @@ import { SsooMdiTabBar } from '@ssoo/web-shell';
 import { X, Minimize2, ChevronLeft, ChevronRight, Home, FileText, Bot, Search, Sparkles, FileSearch, Settings, FilePenLine } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { isSettingsTabPath } from '@/components/pages/settings/_utils/settingsNavigation';
+import { APP_HOME_PATH } from '@/lib/constants/routes';
 
 /**
  * DMS 탭바 컴포넌트
@@ -16,6 +18,8 @@ import { isSettingsTabPath } from '@/components/pages/settings/_utils/settingsNa
  * - 드래그로 탭 순서 변경
  */
 export function TabBar() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { tabs, activeTabId, activateTab, closeTab, reorderTabs } = useTabStore();
   const exitSettings = useSettingsPageNavigationStore((state) => state.exitSettings);
   const openPanel = useAssistantPanelStore((state) => state.openPanel);
@@ -69,7 +73,14 @@ export function TabBar() {
           ? (tab.path.startsWith('/ai/chat') ? <Minimize2 /> : <X />)
           : null
       )}
-      onActivateTab={(tab) => activateTab(tab.id)}
+      onActivateTab={(tab) => {
+        activateTab(tab.id);
+        if (isSettingsTabPath(tab.path)) {
+          router.push(tab.path);
+        } else if (tab.id === HOME_TAB.id && (pathname === '/settings' || pathname.startsWith('/settings/'))) {
+          router.push(APP_HOME_PATH);
+        }
+      }}
       onActionTab={async (tab, event) => {
         event.stopPropagation();
         if (tab.path.startsWith('/ai/chat')) {
@@ -100,6 +111,9 @@ export function TabBar() {
           } else {
             exitSettings();
             activateTab(HOME_TAB.id);
+            if (pathname === '/settings' || pathname.startsWith('/settings/')) {
+              router.replace(APP_HOME_PATH);
+            }
           }
         }
       }}

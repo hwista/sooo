@@ -1,0 +1,545 @@
+{
+  "version": 1,
+  "source": {
+    "prototypeDirectoryName": "Sales Management System -proto",
+    "captureMode": "offline-read-only",
+    "externalNetwork": "blocked",
+    "captureFont": {
+      "family": "CRM REF Korean",
+      "fileName": "malgun.ttf",
+      "sha256": "7a183cf1c6c56b9609fcc16eda8b5229fbc11758a21e669ec00343239b02192f",
+      "purpose": "Linux Chromium Korean glyph fallback; source sizes and layout rules are unchanged"
+    },
+    "seedFiles": [
+      {
+        "path": "script/1.SQL script/sample_data.sql",
+        "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+      },
+      {
+        "path": "script/sample_contracts.sql",
+        "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+      }
+    ],
+    "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+    "companyCiEvidence": {
+      "fileName": "source-company-ci.png",
+      "sha256": "2c65ffaf1f6fe6e4dd02fcf00b9e4d8db97867f094c9cd744c417b5e00606b1d",
+      "sourcePath": "assets/images/ci.png"
+    }
+  },
+  "prototypeFiles": [
+    {
+      "path": "app.admin.js",
+      "sha256": "7584f57a39e71ffa1327d807be4ed514c00b576be1d15930aea93a11195a05c2"
+    },
+    {
+      "path": "app.ams_vendor.js",
+      "sha256": "3e719acb9a61679b3c103a674aa8b495bb6f2e01e364438022fce62b2596ea50"
+    },
+    {
+      "path": "app.billing_actual.js",
+      "sha256": "987833c9b289e2eaa6d0c21bcc6a192b211391fefe98a55df7cae3219e5c345e"
+    },
+    {
+      "path": "app.biz_plan.js",
+      "sha256": "4bebc0c1ddca595f868684970e72a8bed2d20a85448ea9130ce7f73c1044d3d4"
+    },
+    {
+      "path": "app.bp_rpt.js",
+      "sha256": "22f06ff9e9200eba359012d470a8ba86627d5624fff1cc9d29f74b8f102fc9b5"
+    },
+    {
+      "path": "app.contract.js",
+      "sha256": "1e84698a237091948e7aa6e6b5360f3e6f9b67bef4b5a65c16a75d90df06b59c"
+    },
+    {
+      "path": "app.contract_gen.js",
+      "sha256": "d23a0a2c0140cadb422947617639c74e7e94afa5525dea2a5e298b673637e1d9"
+    },
+    {
+      "path": "app.form.js",
+      "sha256": "1b034d67aed10b96e89d0c90f2b1b71536dc6fdd47d5f18f9206254516166a2a"
+    },
+    {
+      "path": "app.globals.js",
+      "sha256": "066968f9073af606390435cd257b9c8478e3b33f508f27baca40a5e626cd4dee"
+    },
+    {
+      "path": "app.internal_cost.js",
+      "sha256": "91e582ae8c882f114ccc2c4778c9bcdf4d10d4d0d3c32168b75498b5879e2434"
+    },
+    {
+      "path": "app.list.js",
+      "sha256": "eb782284bc3201dd8dd2cbd1dc9a54e29567471c33efe5e16c26bd8476526b30"
+    },
+    {
+      "path": "app.quote.js",
+      "sha256": "2829cfdd3574d8d6b77be4c315d906ab71d89c5941799bb4c456e4bb841ef94b"
+    },
+    {
+      "path": "app.report.js",
+      "sha256": "9512c4a732809bedfd359272d1315a75c3fa5793a9e376c0272b83d24af95d3b"
+    },
+    {
+      "path": "app.system.js",
+      "sha256": "b84af92edf28bdee4086a47699f69079ea902fadec606ca6a5acae5e977ab744"
+    },
+    {
+      "path": "assets/images/ci.png",
+      "sha256": "2c65ffaf1f6fe6e4dd02fcf00b9e4d8db97867f094c9cd744c417b5e00606b1d"
+    },
+    {
+      "path": "index.html",
+      "sha256": "857eae785861e6ea5863d67697b3dd020d17277a925a55542e32f6bb04fb6588"
+    },
+    {
+      "path": "login.js",
+      "sha256": "91cb8bd84fdc8c96da637148bee443617ed771b6055bf6d05a690104d61bada1"
+    },
+    {
+      "path": "script/03_html_integration.js",
+      "sha256": "be9921b71d69e0f2384010102a4648aaab63cc6661d5ba37a6c15d5492e72a27"
+    },
+    {
+      "path": "script/1.SQL script/01_schema.sql",
+      "sha256": "11381a2a1e8bcab2668713c78895f704fb609d1ab24ad4bb8b8dde1fe25de084"
+    },
+    {
+      "path": "script/1.SQL script/add_special_dc.sql",
+      "sha256": "16ce8280494ccad4aa5bf68987d95f44b7018686c2bd515f0f378f47a3a74962"
+    },
+    {
+      "path": "script/1.SQL script/add_version_columns.sql",
+      "sha256": "e53f9e574f2e57c846d82e598a8d96e1576d769a9b082be29f19a19d50078073"
+    },
+    {
+      "path": "script/1.SQL script/reset_admin_password.sql",
+      "sha256": "86524d5fd99a338f27f8b361dc2b21939d6bc09ce336baa369bc4fab04deb8bd"
+    },
+    {
+      "path": "script/1.SQL script/reset_password_sure.sql",
+      "sha256": "f70f2cd396671dbddebf6364894119dfa3bfc0adf833186deacbc08ac7b9c990"
+    },
+    {
+      "path": "script/1.SQL script/sample_data.sql",
+      "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+    },
+    {
+      "path": "script/README.md",
+      "sha256": "d7c63e013741231faefc88bbc5c8f9a9b4e09b79c9dfe3061b6335e485cc57b3"
+    },
+    {
+      "path": "script/add_ams_vendor.sql",
+      "sha256": "c94fa74a59327ed8b4631f63eb01072b248464a97641a55906e79820bbc4c27c"
+    },
+    {
+      "path": "script/add_billing_actual_schema.sql",
+      "sha256": "9e4267b82fcf753f49afd1325a7d200e7dedcedd2cf7a3faac745947b98cb4ca"
+    },
+    {
+      "path": "script/add_billing_schema.sql",
+      "sha256": "d953d99244ae2e9ac4404d9cd4d3749d24ff97fe2732ba52c73718c924d99919"
+    },
+    {
+      "path": "script/add_biz_plan.sql",
+      "sha256": "02b7e5e2ba96bdea9b42af15c839b4429e4abbe251b32a5079e1a62d0411c693"
+    },
+    {
+      "path": "script/add_biz_plan_v2.sql",
+      "sha256": "93f495fa2659f4544d808e85494dcf0d746b5a8412eceb285ba4aa00c3a60e7d"
+    },
+    {
+      "path": "script/add_biz_plan_v3.sql",
+      "sha256": "0b596f188535594980a8288b4be12cdffc12d4eb0d34447e6f6c78bf9fce8377"
+    },
+    {
+      "path": "script/add_biz_plan_wbs.sql",
+      "sha256": "2f2e6dd1fa1c927a21cf7e130a672f9c04ef30b19aa63f31512ae066d136dcc1"
+    },
+    {
+      "path": "script/add_biz_type.sql",
+      "sha256": "62d4c4ca8d412cb2955b98148c855918ec1386e4ee7cc6943bd31f3d995e4359"
+    },
+    {
+      "path": "script/add_biz_year.sql",
+      "sha256": "40ce73da6e9e815f304c413a0b73ff41eed9d09e97fce009d0f7128e67f40f38"
+    },
+    {
+      "path": "script/add_contract_confirm.sql",
+      "sha256": "e3abbdc0d501ff6f48f611a97bf1e6ba90263a0da84ae917fa22c05b00a0d0fa"
+    },
+    {
+      "path": "script/add_contract_flag.sql",
+      "sha256": "30beafd842fb39569ad92f28174fc87b83a0ec59efbb769bde53428f0d2c5e6b"
+    },
+    {
+      "path": "script/add_contracts_schema.sql",
+      "sha256": "95dffc7ebe1cb1f35f7c63251eb7b5f4795717dc4a50136ed2e967edc0cc05bb"
+    },
+    {
+      "path": "script/add_group_domestic.sql",
+      "sha256": "8a540a770576dbf2a048869eafa9fcc98eb05bca9518e9d8f2be700ea9b927e3"
+    },
+    {
+      "path": "script/add_internal_cost.sql",
+      "sha256": "5590504743d81a520035f2b57ff0cad26c0c3dccc24a40752b3e87c29dba3a6f"
+    },
+    {
+      "path": "script/add_internal_cost_v2.sql",
+      "sha256": "93b6225cf45db3a38a741e2c64c655004de9aa9a0d45580d63c02f20397326a8"
+    },
+    {
+      "path": "script/add_quotation_fields.sql",
+      "sha256": "126b0f0aa1d64bac8798db12dc4dccd3f3f3d0a66d8f4c493296dda0d9a8d175"
+    },
+    {
+      "path": "script/add_wbs_column.sql",
+      "sha256": "499486eeef0c9b57a5215efca6b5069952fa2028585e6aa51a5acb6ac0d4e8f5"
+    },
+    {
+      "path": "script/sample_contracts.sql",
+      "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+    },
+    {
+      "path": "script/start_server.bat",
+      "sha256": "476dac7b36e49897a8be1c904359a1155b9ae133737bbed69ba2897bcd267197"
+    },
+    {
+      "path": "script/supabase_client.zip",
+      "sha256": "847a55a1e21f24a7ad189a70aac8ea8a3b99d34f2835797661bfb55888d7dac2"
+    },
+    {
+      "path": "script/update_biz_type_default.sql",
+      "sha256": "028798ed26b3688b1c7259366a0240079b614ce5148e6614e58d1c7eb8901374"
+    },
+    {
+      "path": "supabase_client.js",
+      "sha256": "10b0320a13cd76c4d3959ae5414113c998a7072ccc20227b3e0af02050086f27"
+    }
+  ],
+  "captures": [
+    {
+      "uxId": "UX-01",
+      "sourcePage": "dashboard",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-01-dashboard.png",
+      "domManifest": "ux-01-dashboard.dom.json",
+      "stateManifest": "ux-01-dashboard.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:32:44.074Z",
+      "evidenceSha256": {
+        "screenshot": "6e5a4f5b22abedd3bb9f8de1e43a70b5f2722a2b11068f5524dcf62faf59ecae",
+        "domManifest": "2bacff6b83d62f0ed76a992954cddb3bae07a71cef03695e001f4f96c33a06b0",
+        "stateManifest": "a6278ca93d13c6e5fb67a1037daac093af686b9b1dbda0265a32ce7a27f9beb4"
+      }
+    },
+    {
+      "uxId": "UX-02",
+      "sourcePage": "list",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-02-list.png",
+      "domManifest": "ux-02-list.dom.json",
+      "stateManifest": "ux-02-list.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:32:46.199Z",
+      "evidenceSha256": {
+        "screenshot": "dcf9996346430206e1cec713d5bd4d916b55b8ac06b485e6e54c5c9514ccc53f",
+        "domManifest": "8edb6d6f1befe3025219a88adb727298e4671d2784c5de271de14a8fca61f447",
+        "stateManifest": "8b7b71dafdbe919d521f8e0b7142e9ca084bc8788d5d86ea2f75fd87558e519f"
+      }
+    },
+    {
+      "uxId": "UX-03",
+      "sourcePage": "form",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-03-form.png",
+      "domManifest": "ux-03-form.dom.json",
+      "stateManifest": "ux-03-form.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:32:52.199Z",
+      "evidenceSha256": {
+        "screenshot": "16bc04d73299497205e0c4886dbd74fdd4f7c6792edc9a7379c8e4db3b43eec6",
+        "domManifest": "b8106c5fa114b9dc9981c9c6096413b97f7ee270947459e2a1a6bc39b7599885",
+        "stateManifest": "a2f406bf9e082a5d04891e0c70b6330a5893c4495d068df286ffd6dd63a18a62"
+      }
+    },
+    {
+      "uxId": "UX-04",
+      "sourcePage": "contract-gen",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-04-contract-gen.png",
+      "domManifest": "ux-04-contract-gen.dom.json",
+      "stateManifest": "ux-04-contract-gen.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:32:55.154Z",
+      "evidenceSha256": {
+        "screenshot": "ecdaa7fb7187cb184b7c3ac227f63ba8c523de1e7682cf4a74d10fafb2667bf2",
+        "domManifest": "2470afa6f0a3eb50d363e8921a199481d5e80ffb633784838162779fca9a18af",
+        "stateManifest": "b8d23ea21f7fd738cc3f69bf380d7d57c1d98a86afbfad838340b5bd73198146"
+      }
+    },
+    {
+      "uxId": "UX-05",
+      "sourcePage": "contract-list",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-05-contract-list.png",
+      "domManifest": "ux-05-contract-list.dom.json",
+      "stateManifest": "ux-05-contract-list.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:32:56.915Z",
+      "evidenceSha256": {
+        "screenshot": "c3140e49d62b42eac86c94af036395a170b0cc87b64ad66400f36fe39c74a974",
+        "domManifest": "b62b774d3201de625ab3e23618dd3b63f0f6e47947ae7c869fbb2ab7c4e8d148",
+        "stateManifest": "1f608b15f8e69cbe437f759e2b308a7055df4863390339a721ded8b77329a45e"
+      }
+    },
+    {
+      "uxId": "UX-06",
+      "sourcePage": "contract-form",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-06-contract-form.png",
+      "domManifest": "ux-06-contract-form.dom.json",
+      "stateManifest": "ux-06-contract-form.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:32:59.493Z",
+      "evidenceSha256": {
+        "screenshot": "aa8a77a06b9fc987b7ed2c665f2122f3b208f2d05d00bbc53fc2955a3d27c5dc",
+        "domManifest": "00a1fd813fa9eccd4e7cc99508d8aae0b6dd1f0623276fe393f9eda1631b89b1",
+        "stateManifest": "456d8d017b4d400bc903e9cf2b6aa4c66ebdc53a895f6e0b50581971e9b24783"
+      }
+    },
+    {
+      "uxId": "UX-07",
+      "sourcePage": "billing-actual",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-07-billing-actual.png",
+      "domManifest": "ux-07-billing-actual.dom.json",
+      "stateManifest": "ux-07-billing-actual.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:02.645Z",
+      "evidenceSha256": {
+        "screenshot": "4f469c7f672b66504faff35a6605478d39263990d2f04c6564c82c31492e3a05",
+        "domManifest": "8b064317d156889483d5117f3adf1c922a587170771731e934620860840e3abd",
+        "stateManifest": "ca127bd2d7f9a630b886aa533ce4e452bd95eb89567ab29dfa7e792c557188fb"
+      }
+    },
+    {
+      "uxId": "UX-08",
+      "sourcePage": "biz-report",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-08-biz-report.png",
+      "domManifest": "ux-08-biz-report.dom.json",
+      "stateManifest": "ux-08-biz-report.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:04.371Z",
+      "evidenceSha256": {
+        "screenshot": "2c8a83ed6e42ab27a12b9e57af39bfbf782570344776b30f4f077d094ff3875c",
+        "domManifest": "c6d35a4f3fc91ddc7d12df23afc9744c316db3ce28bb5c556ac41f1b55700e0d",
+        "stateManifest": "6b1a8fe7b9852fc066115d82c7cf7ac5d37c813243dbfc5ec1ab4c6a5d3161c3"
+      }
+    },
+    {
+      "uxId": "UX-09",
+      "sourcePage": "biz-plan",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-09-biz-plan.png",
+      "domManifest": "ux-09-biz-plan.dom.json",
+      "stateManifest": "ux-09-biz-plan.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:07.601Z",
+      "evidenceSha256": {
+        "screenshot": "78c8f1e5185c80e6107f25319c12d46600cdcb51b73560b3348177ed530ae292",
+        "domManifest": "624b94e8ffef371e868da79f653aa41b9b754f7c7da44255786612e9cceb9750",
+        "stateManifest": "d3cdae412e2470b6c0ff9e377c2ede9dcba3628dd35c7c4ba6fbb1cdcddaad99"
+      }
+    },
+    {
+      "uxId": "UX-10",
+      "sourcePage": "bp-rpt",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-10-bp-rpt.png",
+      "domManifest": "ux-10-bp-rpt.dom.json",
+      "stateManifest": "ux-10-bp-rpt.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:09.312Z",
+      "evidenceSha256": {
+        "screenshot": "c1cc331a22555b6cc8e07e9a6fe6dfdd41535301c5410683fc03754044d8f617",
+        "domManifest": "d1e23ceb99fb5e15cb3918db42527543719d3e71b220be28475d892d9d348229",
+        "stateManifest": "6e6cdf456e360f7e1cb24d61025724947bae47775642de10369393baf5d8798b"
+      }
+    },
+    {
+      "uxId": "UX-11",
+      "sourcePage": "internal-cost",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-11-internal-cost.png",
+      "domManifest": "ux-11-internal-cost.dom.json",
+      "stateManifest": "ux-11-internal-cost.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:11.535Z",
+      "evidenceSha256": {
+        "screenshot": "c5ac231fda3d283f92c696a4773d239ed6fb3cd0ae0e5050aa13717610ba5432",
+        "domManifest": "6a8e5c018f237e2cd9cda36664208ac5d58a25f253c930ded2015fb809df33d6",
+        "stateManifest": "1f626117dd51576cb44f797a9dfb6af5b4bea74a9bc5757c6fe891d4e6df7bad"
+      }
+    },
+    {
+      "uxId": "UX-12",
+      "sourcePage": "biz-year",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-12-biz-year.png",
+      "domManifest": "ux-12-biz-year.dom.json",
+      "stateManifest": "ux-12-biz-year.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:13.961Z",
+      "evidenceSha256": {
+        "screenshot": "48e6203c9b8f193d41fdb5a989970ecaa5074388a35e335ae18baee6ca86a1c6",
+        "domManifest": "8130e15367fa15bfbb74d8be2b0c9100a4e94b37a32a98d7d24ce6abeeb3b043",
+        "stateManifest": "b5d1ed9bd30ce1fdb2aaead94387bef8f2f12c74c055dba84924b84079b95698"
+      }
+    },
+    {
+      "uxId": "UX-13",
+      "sourcePage": "ams-vendor",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-13-ams-vendor.png",
+      "domManifest": "ux-13-ams-vendor.dom.json",
+      "stateManifest": "ux-13-ams-vendor.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:16.384Z",
+      "evidenceSha256": {
+        "screenshot": "58a9caf3abe4b2f237b6f82ab4380aa21e6173bce7da8437c8b71e665fc16fe2",
+        "domManifest": "e7ff77f496b7551b7298ec7c7ff9aab3631b990ea741e73149ab59b017b6e974",
+        "stateManifest": "6bd4a23ffd8becb7001dfd0f0f96a444523ac10d3628e67fbfb926b738939382"
+      }
+    },
+    {
+      "uxId": "UX-14",
+      "sourcePage": "ams-cost",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-14-ams-cost.png",
+      "domManifest": "ux-14-ams-cost.dom.json",
+      "stateManifest": "ux-14-ams-cost.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:18.995Z",
+      "evidenceSha256": {
+        "screenshot": "db6d9b5f1c55a2370b36f2e83f6d6761c0532ffa058fe3daff8e1d55436737d9",
+        "domManifest": "b9c8c26bdeb772f0c7438d1d1fa70a47e6feb43a0a3935c5a1b639ebf2814476",
+        "stateManifest": "30e3ef389ee2a6f1fa04fa26c2dc59157acf83429783911e99e379fe35a77e25"
+      }
+    },
+    {
+      "uxId": "UX-15",
+      "sourcePage": "codes",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-15-codes.png",
+      "domManifest": "ux-15-codes.dom.json",
+      "stateManifest": "ux-15-codes.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:21.580Z",
+      "evidenceSha256": {
+        "screenshot": "e656d63fe3a142315a62593caaec34bc7209398cfdba1083999f81eff7ea4930",
+        "domManifest": "1a81fab099dbe06e830531a0d7ad79415e5cd04159eb96abf11ac89ea4c4ddc1",
+        "stateManifest": "90c09067c8f6454acd08a5183e9e30f19dcaada9cf152390ddd8a94eedba7f1f"
+      }
+    },
+    {
+      "uxId": "UX-16",
+      "sourcePage": "company",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-16-company.png",
+      "domManifest": "ux-16-company.dom.json",
+      "stateManifest": "ux-16-company.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:24.232Z",
+      "evidenceSha256": {
+        "screenshot": "06cec651f33d6d5c93b26343acde393046721446b84274fd018258abfb53cce4",
+        "domManifest": "7ece80c8cdf32d570d683cc058accb226858c569da0652023841c23b89a7a635",
+        "stateManifest": "f790fcd05997165730bf44d870e392794b511cd8ab357ecef0023ef990594e67"
+      }
+    },
+    {
+      "uxId": "UX-17",
+      "sourcePage": "admin",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "screenshot": "ux-17-admin.png",
+      "domManifest": "ux-17-admin.dom.json",
+      "stateManifest": "ux-17-admin.states.json",
+      "captureCommand": "pnpm run capture:crm-source-uiux",
+      "seedState": "source-owned SQL anchors + deterministic offline fixture c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "capturedAt": "2026-08-20T08:33:27.946Z",
+      "evidenceSha256": {
+        "screenshot": "fc574be305c7ce56417d52e2c25c0f8518069fda6f7b8bacba00b93b0cf886f4",
+        "domManifest": "830f044299d7310a6f5a15e8e24a9fe6d18a0cd4a1f099014aaffac238129ee7",
+        "stateManifest": "7acf2b2970dd2cd30223e5d8b4756eac61144a414c2470c7f0a325a758346d09"
+      }
+    }
+  ]
+}

@@ -251,6 +251,8 @@ describe('BusinessPlanService', () => {
     const result = await service.getPerformancePreview({ year: 2026 });
 
     expect(result.summary.year).toBe(2026);
+    expect(result.summary.mode).toBe('extended-actual');
+    expect(result.summary.actualBasisLabel).toBe('계약 청구실적 + 직접실적 + 확정원가');
     expect(result.summary.rowCount).toBe(2);
     expect(result.summary.confirmedPlanAvailable).toBe(false);
     expect(result.summary.planBasisLabel).toBe('Pipeline 후보 + 확정 계약 청구계획');
@@ -264,7 +266,7 @@ describe('BusinessPlanService', () => {
     expect(result.summary.marginGapTotal).toBe(-270000000);
     expect(result.summary.unavailableActions).toEqual(expect.arrayContaining([
       '확정 사업계획 차수 기준 비교',
-      '실적 직접 편집',
+      '확정 원가 회계/지급 반영',
     ]));
     expect(result.months[0]).toMatchObject({
       month: 1,
@@ -333,7 +335,7 @@ describe('BusinessPlanService', () => {
     const result = await service.getPerformancePreview({ year: 2026 });
 
     expect(result.summary.rowCount).toBe(4);
-    expect(result.summary.costBasisLabel).toBe('계약 청구실적 + 확정 내부원가/AMS 원가(AMS WBS 계약 외부원가 제외)');
+    expect(result.summary.costBasisLabel).toBe('사업계획 외부원가 + 계약 청구실적 + 확정 내부원가/AMS 원가(AMS WBS 계약 외부원가 제외)');
     expect(result.summary.confirmedCostInputCount).toBe(2);
     expect(result.summary.confirmedInternalCostInputCount).toBe(1);
     expect(result.summary.confirmedAmsExternalCostInputCount).toBe(1);
@@ -503,15 +505,20 @@ describe('BusinessPlanService', () => {
           businessPlanId: 11n,
           id: 21n,
           lineCode: 'line-2026',
+          rowCode: 'ROW-2026',
           targetYear: 2026,
           businessType: 'SI 구축',
           industryLine: '전력/제조',
           ownerName: '김민준',
           regionCode: 'domestic',
+          businessName: '2026년 통합 사업',
+          wbsCode: 'WBS-2026',
           pipelineAmount: 700000000n,
           contractPlanAmount: 500000000n,
           contractActualAmount: 180000000n,
           planCandidateAmount: 1200000000n,
+          planExternalCostAmount: 360000000n,
+          planMonthlyExternalCostAmounts: Array(12).fill(30000000),
           actualGapAmount: -1020000000n,
           sortOrder: 10,
         }],
@@ -527,17 +534,20 @@ describe('BusinessPlanService', () => {
     expect(result.summary.confirmedPlanId).toBe('11');
     expect(result.summary.confirmedPlanCode).toBe('BP-2026-V001');
     expect(result.summary.confirmedPlanName).toBe('2026 확정 사업계획');
-    expect(result.summary.planBasisLabel).toBe('확정 사업계획 차수 매출 기준');
+    expect(result.summary.planBasisLabel).toBe('확정 사업계획 차수 매출·외부원가 기준');
     expect(result.summary.unavailableActions).not.toContain('확정 사업계획 차수 기준 비교');
     expect(result.summary.planRevenueTotal).toBe(1200000000);
-    expect(result.summary.planCostTotal).toBe(0);
+    expect(result.summary.planCostTotal).toBe(360000000);
     expect(result.summary.actualRevenueTotal).toBe(180000000);
     expect(result.summary.revenueGapTotal).toBe(-1020000000);
     expect(result.months[0]).toMatchObject({
       month: 1,
       planRevenueAmount: 100000000,
+      planCostAmount: 30000000,
       actualRevenueAmount: 180000000,
+      actualCostAmount: 90000000,
       revenueGapAmount: 80000000,
+      costGapAmount: 60000000,
     });
     expect(result.months[1]).toMatchObject({
       month: 2,
@@ -545,21 +555,99 @@ describe('BusinessPlanService', () => {
       actualRevenueAmount: 0,
       revenueGapAmount: -100000000,
     });
-    expect(result.rows).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        source: 'confirmed-plan',
-        label: 'BP-2026-V001 · SI 구축 · 김민준',
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]).toMatchObject({
+      source: 'mixed',
+      label: '2026년 통합 사업',
+      wbsCode: 'WBS-2026',
+      total: expect.objectContaining({
+        planRevenueAmount: 1200000000,
+        planCostAmount: 360000000,
+        actualRevenueAmount: 180000000,
+        actualCostAmount: 90000000,
       }),
-      expect.objectContaining({
-        source: 'contract',
-        label: '2026년 통합 계약',
-        wbsCode: 'WBS-2026',
-        total: expect.objectContaining({
-          planRevenueAmount: 0,
-          actualRevenueAmount: 180000000,
-        }),
+    });
+  });
+
+  it('uses confirmed contract billing plans as actuals in source-compatible mode', async () => {
+    const db = {
+      $queryRaw: createAsyncMock([
+        [{
+          id: 11n,
+          code: 'BP-2026-V001',
+          planName: '2026 확정 사업계획',
+          baseYear: 2026,
+          versionNo: 1,
+          statusCode: 'confirmed',
+          confirmed: true,
+          confirmedAt: new Date('2026-07-07T00:00:00.000Z'),
+          businessTypeFilter: null,
+          industryLineFilter: null,
+          regionFilter: 'all',
+          searchFilter: null,
+          pipelineAmountTotal: 700000000n,
+          contractPlanAmountTotal: 500000000n,
+          contractActualAmountTotal: 180000000n,
+          planCandidateAmountTotal: 1200000000n,
+          actualGapAmountTotal: -1020000000n,
+          rowCount: 1,
+          memo: 'confirmed',
+          updatedAt: new Date('2026-07-07T01:00:00.000Z'),
+        }],
+        [{
+          businessPlanId: 11n,
+          id: 21n,
+          lineCode: 'line-2026',
+          rowCode: 'ROW-2026',
+          targetYear: 2026,
+          businessType: 'SI 구축',
+          industryLine: '전력/제조',
+          ownerName: '김민준',
+          regionCode: 'domestic',
+          businessName: '2026년 통합 사업',
+          wbsCode: 'WBS-2026',
+          pipelineAmount: 700000000n,
+          contractPlanAmount: 500000000n,
+          contractActualAmount: 180000000n,
+          planCandidateAmount: 1200000000n,
+          planExternalCostAmount: 360000000n,
+          planMonthlyExternalCostAmounts: Array(12).fill(30000000),
+          actualGapAmount: -1020000000n,
+          sortOrder: 10,
+        }],
+      ]),
+      $executeRaw: createValueAsyncMock(1),
+      client: {},
+    };
+    const { service } = createService(db as unknown as DatabaseService);
+
+    const result = await service.getPerformancePreview({ year: 2026, mode: 'source-compatible' });
+
+    expect(result.summary.mode).toBe('source-compatible');
+    expect(result.summary.activeFilters.mode).toBe('source-compatible');
+    expect(result.summary.actualBasisLabel).toBe('확정 계약 청구계획 매출·외부원가');
+    expect(result.summary.planRevenueTotal).toBe(1200000000);
+    expect(result.summary.planCostTotal).toBe(360000000);
+    expect(result.summary.actualRevenueTotal).toBe(200000000);
+    expect(result.summary.actualCostTotal).toBe(120000000);
+    expect(result.summary.revenueGapTotal).toBe(-1000000000);
+    expect(result.summary.directActualInputCount).toBe(0);
+    expect(result.summary.confirmedCostInputCount).toBe(0);
+    expect(result.summary.boundaryNotice).toContain('app.bp_rpt.js');
+    expect(result.months[0]).toMatchObject({
+      planRevenueAmount: 100000000,
+      actualRevenueAmount: 200000000,
+      actualCostAmount: 120000000,
+      revenueGapAmount: 100000000,
+    });
+    expect(result.rows[0]).toMatchObject({
+      source: 'mixed',
+      wbsCode: 'WBS-2026',
+      total: expect.objectContaining({
+        actualRevenueAmount: 200000000,
+        actualCostAmount: 120000000,
       }),
-    ]));
+    });
   });
 
   it('uses manual monthly business plan inputs before falling back to annual distribution', async () => {
@@ -772,6 +860,70 @@ describe('BusinessPlanService', () => {
       monthlyRevenueAmounts: Array.from({ length: 12 }, () => 10000000),
     }, 7n)).rejects.toThrow('확정된 사업계획 차수');
     expect(writer.$executeRaw.calls).toHaveLength(0);
+  });
+
+  it('updates WBS across a confirmed previous-version logical row', async () => {
+    const planRow = {
+      id: 11n,
+      code: 'BP-2026-V001',
+      planName: '2026 confirmed',
+      baseYear: 2026,
+      versionNo: 1,
+      statusCode: 'confirmed',
+      confirmed: true,
+      confirmedAt: new Date('2026-07-07T00:00:00.000Z'),
+      businessTypeFilter: null,
+      industryLineFilter: null,
+      regionFilter: 'all',
+      searchFilter: null,
+      pipelineAmountTotal: 0n,
+      contractPlanAmountTotal: 0n,
+      contractActualAmountTotal: 0n,
+      planCandidateAmountTotal: 600000000n,
+      actualGapAmountTotal: -600000000n,
+      rowCount: 1,
+      memo: null,
+      updatedAt: new Date('2026-07-07T01:00:00.000Z'),
+    };
+    const lineRows = [2026, 2027, 2028].map((targetYear, index) => ({
+      businessPlanId: 11n,
+      id: BigInt(21 + index),
+      lineCode: `line-${targetYear}`,
+      rowCode: 'ROW-ONE',
+      targetYear,
+      businessType: 'SI 구축',
+      industryLine: '전력/제조',
+      ownerName: '김민준',
+      regionCode: 'domestic',
+      businessName: '통합 사업',
+      wbsCode: 'WBS-CONFIRMED-EDIT',
+      pipelineAmount: 0n,
+      contractPlanAmount: 0n,
+      contractActualAmount: 0n,
+      planCandidateAmount: 200000000n,
+      planExternalCostAmount: 50000000n,
+      actualGapAmount: -200000000n,
+      sortOrder: (index + 1) * 10,
+    }));
+    const db = {
+      $queryRaw: createAsyncMock([
+        [{ ...planRow, isLatest: false }],
+        [{ lineCount: 3n }],
+        [planRow],
+        lineRows,
+      ]),
+      $executeRaw: createValueAsyncMock(3),
+      client: {},
+    };
+    const { service } = createService(db as unknown as DatabaseService);
+
+    const result = await service.updatePlanRowWbs('BP-2026-V001', 'ROW-ONE', ' WBS-CONFIRMED-EDIT ', 7n);
+
+    expect(db.$executeRaw.calls).toHaveLength(1);
+    expect(result.rowCode).toBe('ROW-ONE');
+    expect(result.plan).toMatchObject({ confirmed: true, rowCount: 1 });
+    expect(result.plan.rows[0]).toMatchObject({ rowCode: 'ROW-ONE', wbsCode: 'WBS-CONFIRMED-EDIT' });
+    expect(result.plan.lines).toHaveLength(3);
   });
 
   it('passes normalized filters into the business plan performance read model', async () => {

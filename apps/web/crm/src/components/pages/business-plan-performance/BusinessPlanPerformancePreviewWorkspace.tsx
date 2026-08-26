@@ -1,10 +1,10 @@
 import type { CrmBusinessPlanPerformanceResponse } from '@ssoo/types/crm';
+import { BusinessPlanPerformancePreviewWorkspaceClient } from './BusinessPlanPerformancePreviewWorkspaceClient';
+import { businessPlanPerformancePreviewFallback } from './businessPlanPerformancePreviewFallback';
 import {
-  BusinessPlanPerformancePreviewWorkspaceClient,
   normalizeBusinessPlanPerformancePreviewQueryRecord,
   toRequiredBusinessPlanPerformancePreviewQuery,
-} from './BusinessPlanPerformancePreviewWorkspaceClient';
-import { businessPlanPerformancePreviewFallback } from './businessPlanPerformancePreviewFallback';
+} from './businessPlanPerformancePreviewQuery';
 
 const API_BASE_URL = process.env.CRM_SERVER_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -14,6 +14,7 @@ async function loadBusinessPlanPerformancePreview(
   try {
     const params = new URLSearchParams();
     params.set('year', String(query.year));
+    params.set('mode', query.mode);
     if (query.businessType) params.set('businessType', query.businessType);
     if (query.industryLine) params.set('industryLine', query.industryLine);
     if (query.region !== 'all') params.set('region', query.region);

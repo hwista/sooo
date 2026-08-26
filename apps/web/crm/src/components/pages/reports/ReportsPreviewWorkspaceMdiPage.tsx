@@ -1,6 +1,7 @@
 'use client';
 
-import { ReportsPreviewWorkspaceClient, normalizeReportsPreviewQuery } from './ReportsPreviewWorkspaceClient';
+import { ReportsPreviewWorkspaceClient } from './ReportsPreviewWorkspaceClient';
+import { normalizeReportsPreviewQuery } from './reportsPreviewQuery';
 import { reportsPreviewFallback } from './reportsPreviewFallback';
 
 export function ReportsPreviewWorkspaceMdiPage({ path }: { path: string }) {

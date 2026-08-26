@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { accessOpsApi } from '@/lib/api/endpoints/accessOps';
 import type { InspectAccessParams, ListExceptionsParams } from '@/lib/api/endpoints/accessOps';
 
@@ -13,6 +13,8 @@ export const accessOpsKeys = {
     [...ACCESS_OPS_ALL, 'inspect', params] as const,
   exceptions: (params?: ListExceptionsParams | null) =>
     [...ACCESS_OPS_ALL, 'exceptions', params] as const,
+  roles: () => [...ACCESS_OPS_ALL, 'roles'] as const,
+  audit: (limit: number) => [...ACCESS_OPS_ALL, 'audit', limit] as const,
 };
 
 export function usePermissionCatalog(enabled: boolean = true) {
@@ -41,6 +43,34 @@ export function useListExceptions(
   return useQuery({
     queryKey: accessOpsKeys.exceptions(params),
     queryFn: () => accessOpsApi.listExceptions(params ?? {}),
+    enabled,
+  });
+}
+
+export function useRolePermissions(enabled: boolean = true) {
+  return useQuery({
+    queryKey: accessOpsKeys.roles(),
+    queryFn: () => accessOpsApi.listRoles(),
+    enabled,
+  });
+}
+
+export function useUpdateRolePermissions() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ roleCode, permissionCodes }: { roleCode: string; permissionCodes: string[] }) =>
+      accessOpsApi.updateRolePermissions(roleCode, permissionCodes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: accessOpsKeys.roles() });
+      queryClient.invalidateQueries({ queryKey: accessOpsKeys.audit(100) });
+    },
+  });
+}
+
+export function useAccessAudit(limit = 100, enabled: boolean = true) {
+  return useQuery({
+    queryKey: accessOpsKeys.audit(limit),
+    queryFn: () => accessOpsApi.listAudit(limit),
     enabled,
   });
 }

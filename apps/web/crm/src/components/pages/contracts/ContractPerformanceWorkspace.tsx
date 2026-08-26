@@ -1,9 +1,9 @@
 import type { CrmContractPerformanceResponse } from '@ssoo/types/crm';
+import { ContractPerformanceWorkspaceClient } from './ContractPerformanceWorkspaceClient';
 import {
-  ContractPerformanceWorkspaceClient,
   normalizeContractPerformanceQueryRecord,
   toRequiredPerformanceQuery,
-} from './ContractPerformanceWorkspaceClient';
+} from './contractPerformanceQuery';
 import { contractPerformanceFallback } from './contractPerformanceFallback';
 
 const API_BASE_URL = process.env.CRM_SERVER_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';

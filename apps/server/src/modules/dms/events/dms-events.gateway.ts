@@ -130,6 +130,7 @@ export class DmsEventsGateway implements OnGatewayConnection, OnGatewayDisconnec
       this.connectedUsers.set(user.userId, existing);
 
       logger.log(`WebSocket 연결 수립: ${user.loginId} (${client.id})`);
+      client.emit('dms:ready', { ready: true });
     } catch {
       logger.warn('WebSocket 연결 중 오류', { id: client.id });
       client.disconnect(true);
@@ -157,7 +158,8 @@ export class DmsEventsGateway implements OnGatewayConnection, OnGatewayDisconnec
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { path: string },
   ): { success: boolean; error?: string } {
-    if (!client.data.user || !data?.path) return { success: false };
+    if (!client.data.user) return { success: false, error: 'not-ready' };
+    if (!data?.path) return { success: false, error: 'invalid-path' };
 
     const documentPath = normalizePath(data.path);
     if (!documentPath || !this.canSubscribeDocument(client.data.user, documentPath)) {

@@ -1,11 +1,14 @@
-﻿import { IsString, IsNotEmpty, MinLength, MaxLength, Matches } from "class-validator";
+﻿import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, MinLength, MaxLength, Matches } from "class-validator";
 
 export class LoginDto {
+  @ApiProperty({ minLength: 1, maxLength: 50, example: 'admin' })
   @IsString()
   @IsNotEmpty({ message: "로그인을 입력해주세요" })
   @MaxLength(50, { message: "로그인은 50자 이하여야 합니다" })
   loginId!: string;
 
+  @ApiProperty({ minLength: 8, maxLength: 100, format: 'password', writeOnly: true })
   @IsString()
   @IsNotEmpty({ message: "비밀번호를 입력해주세요" })
   @MinLength(8, { message: "비밀번호는 8자 이상이어야 합니다" })
@@ -14,4 +17,9 @@ export class LoginDto {
     message: "비밀번호는 영문, 숫자, 특수문자를 각각 1자 이상 포함해야 합니다",
   })
   password!: string;
+}
+
+export class AuthClientTokensDto {
+  @ApiProperty({ description: 'JWT access token' })
+  accessToken!: string;
 }

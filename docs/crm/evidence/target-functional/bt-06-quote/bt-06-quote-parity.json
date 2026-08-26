@@ -1,0 +1,115 @@
+{
+  "contract": "BT-06",
+  "status": "PASS_CLEANED",
+  "databaseName": "ssoo_crm_ralph_20260825_current_demo_v6",
+  "startedAt": "2026-08-25T02:10:21.825Z",
+  "completedAt": "2026-08-25T02:10:27.115Z",
+  "credentialsStored": false,
+  "evidenceFiles": {
+    "desktopPreview": "docs/crm/evidence/target-functional/bt-06-quote/quote-preview-desktop.png",
+    "mobilePreview": "docs/crm/evidence/target-functional/bt-06-quote/quote-preview-mobile.png",
+    "desktopPrint": "docs/crm/evidence/target-functional/bt-06-quote/quote-print-desktop.png",
+    "browserPdf": "docs/crm/evidence/target-functional/bt-06-quote/quote-browser-print.pdf"
+  },
+  "sourceCi": {
+    "sha256": "2c65ffaf1f6fe6e4dd02fcf00b9e4d8db97867f094c9cd744c417b5e00606b1d",
+    "size": 64062,
+    "sourceEvidence": "docs/crm/evidence/source-uiux/ref-01/source-company-ci.png"
+  },
+  "ciRoundTrip": {
+    "apiSha256": "2c65ffaf1f6fe6e4dd02fcf00b9e4d8db97867f094c9cd744c417b5e00606b1d",
+    "proxySha256": "2c65ffaf1f6fe6e4dd02fcf00b9e4d8db97867f094c9cd744c417b5e00606b1d",
+    "exact": true
+  },
+  "preview": {
+    "opportunityCode": "crm-uiux-opp-001",
+    "paymentTermCode": "monthly",
+    "paymentTermLabel": "월별",
+    "totals": {
+      "productSubtotal": 90000000,
+      "serviceSubtotal": 72000000,
+      "revenueSubtotal": 162000000,
+      "specialDiscountType": "amount",
+      "specialDiscountValue": 5000000,
+      "specialDiscountAmount": 5000000,
+      "quoteTotal": 157000000,
+      "vatIncluded": false,
+      "vatNotice": "VAT 별도"
+    },
+    "productLineCount": 1,
+    "serviceLineCount": 1,
+    "variableCount": 20,
+    "sellerCiStatus": "configured"
+  },
+  "sourceContradictionPolicy": {
+    "opportunityCode": "crm-uiux-opp-001",
+    "dashboardListRawRevenue": 162000000,
+    "formQuoteSubtotal": 162000000,
+    "specialDiscountAmount": 5000000,
+    "formQuoteFinalRevenue": 157000000,
+    "policy": "source-compatible dashboard/list raw total plus additive coherent form/quote subtotal-discount-final metrics"
+  },
+  "browser": {
+    "desktopViewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "mobileViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "mobileOverflowPx": 0,
+    "routePreserved": true,
+    "ciRendered": {
+      "sourceMode": "authenticated-data-url",
+      "complete": true,
+      "naturalWidth": 550
+    },
+    "browserGate": {
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "unexpectedHttpFailures": 0
+    },
+    "browserPdf": {
+      "size": 44735,
+      "sha256": "199c3b5f1dcef4caa2ffd5ee5d87ecf735989e807a0004d63beee786496b89e1",
+      "reopened": true
+    }
+  },
+  "dms": {
+    "opportunityCode": "crm-uiux-opp-002",
+    "draftStatus": 201,
+    "lifecycleStatus": 201,
+    "word": {
+      "size": 1584,
+      "sha256": "8c8cec1fa5ef933345988d559c029c33ec58f7e32195b28a048f18515bede704",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "entryCount": 3,
+      "documentXmlSha256": "94be8a36d640be5b3f08ccc41624c552868b34b4939ae69ff4c8df0ca29579fb",
+      "reopened": true
+    },
+    "pdf": {
+      "size": 2292,
+      "sha256": "3041079ba4f97de46bf7eabfab54aa787a3b95859329b6e5ce1ec0cf26550528",
+      "contentType": "application/pdf",
+      "reopened": true
+    }
+  },
+  "statusBeforeCleanup": "PASS_PENDING_CLEANUP",
+  "mutationsCreated": {
+    "handoffs": 2,
+    "operationAttempts": 1,
+    "aiJobs": 0,
+    "authSessions": 1,
+    "files": 6
+  },
+  "cleanup": {
+    "databaseRowsRemaining": {
+      "handoffs": 0,
+      "operationAttempts": 0,
+      "aiJobs": 0,
+      "authSessions": 0
+    },
+    "filesRemaining": 0
+  }
+}

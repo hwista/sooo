@@ -25,10 +25,12 @@ RUN --mount=type=secret,id=ssoo_tls_ca,required=false \
     pnpm install --filter server... --frozen-lockfile
 
 FROM base AS builder
+ARG SSOO_RELEASE_SHA=local-development
 COPY --from=deps /app/ ./
 COPY . .
 
 ENV NODE_ENV=production
+ENV SSOO_RELEASE_SHA=${SSOO_RELEASE_SHA}
 RUN --mount=type=secret,id=ssoo_tls_ca,required=false \
     if [ -s /run/secrets/ssoo_tls_ca ]; then \
       export NODE_EXTRA_CA_CERTS=/run/secrets/ssoo_tls_ca; \
@@ -39,12 +41,14 @@ RUN --mount=type=secret,id=ssoo_tls_ca,required=false \
     pnpm --filter server build
 
 FROM node:22 AS runner
+ARG SSOO_RELEASE_SHA=local-development
 RUN apt-get update -qq && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 RUN git config --global --add safe.directory /var/lib/ssoo/documents
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=4000
+ENV SSOO_RELEASE_SHA=${SSOO_RELEASE_SHA}
 
 COPY --from=builder /app /app
 COPY --chmod=755 docker/node-tls-ca-entrypoint.sh /usr/local/bin/node-tls-ca-entrypoint

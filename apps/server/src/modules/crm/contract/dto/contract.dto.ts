@@ -176,6 +176,12 @@ export class CrmContractBillingActualUpsertDto implements CrmContractBillingActu
 }
 
 export class CrmContractDmsDocumentDraftDto implements CrmContractDmsDocumentDraftRequest {
+  @ApiPropertyOptional({ description: '선택한 DMS 계약 DOCX 템플릿 key', maxLength: 120 })
+  @IsString()
+  @MaxLength(120)
+  @IsOptional()
+  templateKey?: string;
+
   @ApiPropertyOptional({ description: 'DMS markdown 초안 저장 메모', maxLength: 1000 })
   @IsString()
   @MaxLength(1000)
@@ -290,6 +296,18 @@ export class CrmContractUpsertDto implements CrmContractUpsertRequest {
   @IsString()
   @MaxLength(100)
   ownerName!: string;
+
+  @ApiPropertyOptional({ description: '고객사 계약 담당자명', maxLength: 120 })
+  @IsString()
+  @MaxLength(120)
+  @IsOptional()
+  clientContactName?: string;
+
+  @ApiPropertyOptional({ description: 'SSOO 공용 사용자 담당자 ID', maxLength: 40 })
+  @IsString()
+  @MaxLength(40)
+  @IsOptional()
+  ownerUserId?: string;
 
   @ApiProperty({ description: '사업구분', maxLength: 120 })
   @IsString()

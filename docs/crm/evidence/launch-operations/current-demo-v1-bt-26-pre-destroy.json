@@ -1,0 +1,37 @@
+{
+  "contract": "BT-26",
+  "phase": "pre-destroy-inventory",
+  "status": "ISOLATED_ACTIVE",
+  "capturedAt": "2026-08-24T07:36:58.695Z",
+  "credentialsStored": false,
+  "isolation": {
+    "databaseName": "ssoo_crm_ralph_20260824_current_demo_v1",
+    "databasePatternValid": true,
+    "databaseExists": true,
+    "runtimeRoots": [
+      {
+        "root": "/tmp/ssoo-crm-ralph-20260824-current-demo-v1",
+        "exists": true,
+        "files": 50,
+        "bytes": 53940,
+        "digest": "5803efc56ef9aaa54be675cb639599e52c7e4316f3a5edceb547d12f19f09cab"
+      }
+    ],
+    "databaseRowsContained": {
+      "common.cm_user_session_m": 4,
+      "common.cm_user_session_h": 107,
+      "common.cm_user_password_reset_challenge_m": 0,
+      "common.cm_user_password_reset_challenge_h": 0,
+      "common.cm_auth_email_outbox_m": 0,
+      "common.cm_auth_email_outbox_h": 0,
+      "common.cm_ai_index_job_m": 3,
+      "crm.crm_config_h": 0,
+      "crm.crm_operation_attempt_m": 2,
+      "crm.crm_operation_attempt_h": 4,
+      "crm.crm_quote_dms_handoff_m": 0,
+      "crm.crm_opportunity_contract_dms_handoff_m": 3,
+      "crm.crm_contract_dms_handoff_m": 0,
+      "crm.crm_quote_seller_profile_h": 0
+    }
+  }
+}

@@ -40,6 +40,9 @@ fi
 echo "[preflight] running: node .codex/scripts/verify-codex-sync.js"
 node .codex/scripts/verify-codex-sync.js
 
+echo "[preflight] running: pnpm run verify:dms-runtime-profile-contract"
+pnpm run verify:dms-runtime-profile-contract
+
 echo "[preflight] running: node .github/scripts/verify-ui-primitives.js"
 node .github/scripts/verify-ui-primitives.js
 
@@ -48,6 +51,9 @@ node .github/scripts/verify-ui-consumption.js
 
 echo "[preflight] running: node .github/scripts/verify-ui-style-boundary.js"
 node .github/scripts/verify-ui-style-boundary.js
+
+echo "[preflight] running: pnpm run verify:input-intent"
+pnpm run verify:input-intent
 
 echo "[preflight] running: pnpm run verify:ssoo-frame -- --skip-runtime"
 pnpm run verify:ssoo-frame -- --skip-runtime
@@ -78,6 +84,9 @@ NEED_AI_RAG=0
 NEED_PRODUCTION_COMPOSE=0
 NEED_DATABASE_CONTRACT=0
 NEED_SUPPLY_CHAIN_RUNTIME=0
+NEED_DMS_LAUNCH_CONTRACT=0
+NEED_CRM_GO_LIVE_CONTRACT=0
+NEED_CRM_DEMO_CONTRACT=0
 PATTERN_FILES=()
 
 if changed_matches '\.md$|^docs/|^\.github/'; then
@@ -92,16 +101,28 @@ if changed_matches '^apps/server/src/modules/common/ai-index/|^apps/server/src/m
   NEED_AI_RAG=1
 fi
 
-if changed_matches '^compose(\.local|\.production)?\.yaml$|^\.env\.production\.example$|^scripts/verify-production-compose-env\.mjs$|^apps/web/(admin|crm|pms|dms|sns)/Dockerfile$|^package\.json$'; then
+if changed_matches '^compose(\.(local|local-test|production))?\.yaml$|^\.env\.production\.example$|^scripts/verify-production-compose-env\.mjs$|^apps/web/(admin|crm|pms|dms|sns)/Dockerfile$|^package\.json$'; then
   NEED_PRODUCTION_COMPOSE=1
 fi
 
-if changed_matches '^packages/database/(package\.json|scripts/|prisma/launch-migrations/|prisma/triggers/)|^scripts/db-init-entrypoint\.sh$|^compose(\.local|\.production)?\.yaml$|^package\.json$|^\.github/workflows/pr-validation\.yml$'; then
+if changed_matches '^packages/database/(package\.json|scripts/|prisma/launch-migrations/|prisma/triggers/)|^scripts/db-init-entrypoint\.sh$|^compose(\.(local|local-test|production))?\.yaml$|^package\.json$|^\.github/workflows/pr-validation\.yml$'; then
   NEED_DATABASE_CONTRACT=1
 fi
 
 if changed_matches '^pnpm-lock\.yaml$|^pnpm-workspace\.yaml$|^package\.json$|^apps/web/(admin|crm|pms|dms|sns)/package\.json$|^scripts/verify-sharp-runtime\.mjs$'; then
   NEED_SUPPLY_CHAIN_RUNTIME=1
+fi
+
+if changed_matches '^apps/web/(admin|dms)/|^automation/(playwright\.config\.ts|scripts/playwright/start-dms-e2e-stack\.sh|tests/e2e/)|^scripts/(dms-go-live-contract|run-dms-go-live-gate|verify-dms-launch-contract|verify-prisma-deepmerge-security)\.mjs$|^docs/dms/(planning/(2026-08-14-operational-launch-ralph-plan|backlog|roadmap)\.md|guides/deployment\.md)$|^\.github/instructions/(dms|testing)\.instructions\.md$|^\.codex/instructions/(dms|testing)\.instructions\.md$|^pnpm-(lock|workspace)\.yaml$|^package\.json$'; then
+  NEED_DMS_LAUNCH_CONTRACT=1
+fi
+
+if changed_matches '^scripts/verify-crm-go-live(-browser-evidence)?\.mjs$|^docs/crm/(README\.md|guides/go-live-external-inputs\.md|planning/launch-operations-(prd|handoff|test-plan)\.md)$|^\.env\.production\.example$|^package\.json$'; then
+  NEED_CRM_GO_LIVE_CONTRACT=1
+fi
+
+if changed_matches '^scripts/(repository-worktree-identity|capture-crm-target-uiux-parity|verify-crm-(uiux-parity-evidence|local-evidence|core-runtime|current-demo-parity|migration-completion|launch-readiness)|prepare-crm-ralph-runtime|run-crm-ralph-process)\.mjs$|^docs/crm/(README\.md|planning/(demo-100-verification-contract|source-parity-matrix|source-migration-prd|backlog)\.md)$|^package\.json$'; then
+  NEED_CRM_DEMO_CONTRACT=1
 fi
 
 if [ "$NEED_PATTERNS" -eq 1 ]; then
@@ -148,6 +169,24 @@ if [ "$NEED_PRODUCTION_COMPOSE" -eq 1 ]; then
   pnpm run docker:production:verify-env:self-test
 fi
 
+if [ "$NEED_CRM_GO_LIVE_CONTRACT" -eq 1 ]; then
+  echo "[preflight] running: pnpm run verify:crm-go-live:self-test"
+  pnpm run verify:crm-go-live:self-test
+  echo "[preflight] running: pnpm run verify:crm-go-live:final:self-test"
+  pnpm run verify:crm-go-live:final:self-test
+fi
+
+if [ "$NEED_CRM_DEMO_CONTRACT" -eq 1 ]; then
+  echo "[preflight] running: pnpm run verify:crm-worktree-identity:self-test"
+  pnpm run verify:crm-worktree-identity:self-test
+  echo "[preflight] running: pnpm run verify:crm-uiux-parity:self-test"
+  pnpm run verify:crm-uiux-parity:self-test
+  echo "[preflight] running: pnpm run verify:crm-current-demo:self-test"
+  pnpm run verify:crm-current-demo:self-test
+  echo "[preflight] running: pnpm run verify:crm-launch:raw"
+  pnpm run verify:crm-launch:raw
+fi
+
 if [ "$NEED_DATABASE_CONTRACT" -eq 1 ]; then
   echo "[preflight] running: pnpm run db:contract:test"
   pnpm run db:contract:test
@@ -156,6 +195,13 @@ fi
 if [ "$NEED_SUPPLY_CHAIN_RUNTIME" -eq 1 ]; then
   echo "[preflight] running: pnpm run security:sharp-runtime"
   pnpm run security:sharp-runtime
+fi
+
+if [ "$NEED_DMS_LAUNCH_CONTRACT" -eq 1 ]; then
+  echo "[preflight] running: pnpm run verify:dms-launch-contract"
+  pnpm run verify:dms-launch-contract
+  echo "[preflight] running: pnpm run verify:dms-launch-types"
+  pnpm run verify:dms-launch-types
 fi
 
 echo "[preflight] completed."

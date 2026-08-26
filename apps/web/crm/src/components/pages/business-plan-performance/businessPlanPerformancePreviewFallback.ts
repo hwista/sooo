@@ -5,6 +5,7 @@ const currentYear = new Date().getFullYear();
 export const businessPlanPerformancePreviewFallback: CrmBusinessPlanPerformanceResponse = {
   summary: {
     year: currentYear,
+    mode: 'extended-actual',
     rowCount: 0,
     planRevenueTotal: 0,
     planCostTotal: 0,
@@ -17,6 +18,7 @@ export const businessPlanPerformancePreviewFallback: CrmBusinessPlanPerformanceR
     marginGapTotal: 0,
     activeFilters: {
       year: currentYear,
+      mode: 'extended-actual',
       businessType: '',
       industryLine: '',
       region: 'all',
@@ -25,7 +27,8 @@ export const businessPlanPerformancePreviewFallback: CrmBusinessPlanPerformanceR
     businessTypeOptions: [],
     industryLineOptions: [],
     planBasisLabel: 'Pipeline 후보 + 확정 계약 청구계획',
-    costBasisLabel: '계약 청구실적 원가 기준',
+    actualBasisLabel: '계약 청구실적 + 직접실적 + 확정원가',
+    costBasisLabel: '계획·실적 계약 청구 외부원가',
     confirmedCostInputCount: 0,
     confirmedInternalCostInputCount: 0,
     confirmedAmsExternalCostInputCount: 0,
@@ -39,7 +42,6 @@ export const businessPlanPerformancePreviewFallback: CrmBusinessPlanPerformanceR
     boundaryNotice: '사업계획대비실적 Preview는 확정 사업계획 차수가 없을 때 영업기회 pipeline 후보와 확정 계약 월별 계획/실적을 비교하는 읽기용 화면입니다. 확정 AMS 정산 WBS는 계약 외부원가와 중복되지 않도록 계약 성과 외부원가를 제외하고, 확정 내부원가/AMS 원가는 별도 확정원가 행으로 합산합니다.',
     unavailableActions: [
       '확정 사업계획 차수 기준 비교',
-      '실적 직접 편집',
       '확정 원가 회계/지급 반영',
     ],
   },

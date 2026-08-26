@@ -1,43 +1,74 @@
 'use client';
 
-import { useCallback } from 'react';
-import { FileText, Search, Clock, Plus } from 'lucide-react';
-import { useOpenTabWithConfirm } from '@/hooks';
-import { useAccessStore } from '@/stores';
-import { cn } from '@/lib/utils';
-import { Button } from '@ssoo/web-ui';
+import { useCallback, useMemo } from 'react';
+import {
+  Activity,
+  AlertCircle,
+  Clock3,
+  FileClock,
+  ListTodo,
+  RefreshCw,
+  ShieldAlert,
+} from 'lucide-react';
+import type {
+  DmsHomeActionItem,
+  DmsHomeDocumentItem,
+  DmsHomeOperationalExceptionItem,
+} from '@ssoo/types/dms';
+import { Button, Card, CardContent, Skeleton } from '@ssoo/web-ui';
+import { useOpenDocumentTab, useOpenTabWithConfirm } from '@/hooks';
+import { useHomeSummary } from '@/hooks/queries/useHomeSummary';
 import { GLOBAL_SEARCH_PATH } from '@/lib/constants/routes';
+import { resolveDocPath } from '@/lib/utils/linkUtils';
+import { useAccessStore, useFileStore, useTabStore, HOME_TAB } from '@/stores';
+import { getSettingsTabOptions } from '@/components/pages/settings/_utils/settingsNavigation';
+import { QuickAccessSection } from './_components/QuickAccessSection';
+import { DocumentSection } from './_components/DocumentSection';
+import { AttentionSection } from './_components/AttentionSection';
+import { OperationsSection } from './_components/OperationsSection';
+import { formatHomeDate } from './_components/homeFormatters';
 
-/**
- * DMS 홈 대시보드 페이지
- * - 빠른 액션 버튼
- * - 최근 문서 (향후 확장)
- */
+function HomeLoading() {
+  return (
+    <div className="space-y-4" aria-label="홈 작업 요약을 불러오는 중">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <Skeleton key={index} className="h-24 w-full" />
+        ))}
+      </div>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="space-y-4">
+          <Skeleton className="h-72 w-full" />
+          <Skeleton className="h-72 w-full" />
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DashboardPage() {
   const openTabWithConfirm = useOpenTabWithConfirm();
+  const openDocumentTab = useOpenDocumentTab();
+  const activeTabId = useTabStore((state) => state.activeTabId);
   const accessSnapshot = useAccessStore((state) => state.snapshot);
+  const storedBookmarks = useFileStore((state) => state.bookmarks);
   const canWriteDocuments = accessSnapshot?.features.canWriteDocuments ?? false;
   const canUseSearch = accessSnapshot?.features.canUseSearch ?? false;
+  const isActive = activeTabId === HOME_TAB.id;
+  const homeQuery = useHomeSummary(isActive);
 
-  const handleAISearch = useCallback(async () => {
-    if (!canUseSearch) {
-      return;
-    }
-    await openTabWithConfirm({
-      id: 'global-search',
-      title: 'AI 검색',
-      path: GLOBAL_SEARCH_PATH,
-      icon: 'Bot',
-      closable: true,
-      activate: true,
-    });
-  }, [canUseSearch, openTabWithConfirm]);
+  const bookmarks = useMemo(() => storedBookmarks
+    .map((bookmark) => ({ ...bookmark, path: resolveDocPath(bookmark.path) }))
+    .filter((bookmark): bookmark is typeof bookmark & { path: string } => Boolean(bookmark.path))
+    .slice(0, 4), [storedBookmarks]);
 
-  const handleNewDocument = useCallback(async () => {
-    if (!canWriteDocuments) {
-      return;
-    }
-    await openTabWithConfirm({
+  const handleNewDocument = useCallback(() => {
+    if (!canWriteDocuments) return;
+    void openTabWithConfirm({
       id: `new-doc-${Date.now()}`,
       title: '새 문서',
       path: '/doc/new',
@@ -47,67 +78,168 @@ export function DashboardPage() {
     });
   }, [canWriteDocuments, openTabWithConfirm]);
 
-  const actionCardClassName = 'p-4 bg-ssoo-content-bg/30 rounded-lg border border-ssoo-content-border text-left transition-colors';
-  const enabledActionCardClassName = `${actionCardClassName} hover:border-ssoo-primary cursor-pointer group`;
-  const disabledActionCardClassName = `${actionCardClassName} cursor-not-allowed opacity-60`;
+  const handleSearch = useCallback(() => {
+    if (!canUseSearch) return;
+    void openTabWithConfirm({
+      id: 'global-search',
+      title: 'AI 검색',
+      path: GLOBAL_SEARCH_PATH,
+      icon: 'Bot',
+      closable: true,
+      activate: true,
+    });
+  }, [canUseSearch, openTabWithConfirm]);
+
+  const handleOpenDocument = useCallback((document: Pick<DmsHomeDocumentItem, 'path' | 'title'>) => {
+    void openDocumentTab({ path: document.path, title: document.title });
+  }, [openDocumentTab]);
+
+  const handleOpenSettings = useCallback((scope: 'personal' | 'system', sectionId: string) => {
+    void openTabWithConfirm(getSettingsTabOptions(scope, sectionId));
+  }, [openTabWithConfirm]);
+
+  const handleOpenAction = useCallback((item: DmsHomeActionItem) => {
+    if (item.target.kind === 'document' && item.target.path) {
+      void openDocumentTab({ path: item.target.path, title: item.title });
+      return;
+    }
+    if (item.target.kind === 'settings' && item.target.scope && item.target.sectionId) {
+      handleOpenSettings(item.target.scope, item.target.sectionId);
+    }
+  }, [handleOpenSettings, openDocumentTab]);
+
+  const handleOpenOperation = useCallback((item: DmsHomeOperationalExceptionItem) => {
+    if (item.target.kind === 'document' && item.target.path) {
+      void openDocumentTab({ path: item.target.path, title: item.title });
+      return;
+    }
+    if (item.target.kind === 'settings' && item.target.scope && item.target.sectionId) {
+      handleOpenSettings(item.target.scope, item.target.sectionId);
+    }
+  }, [handleOpenSettings, openDocumentTab]);
+
+  const data = homeQuery.data;
+  const metrics = data ? [
+    { label: '이어서 작업', value: data.metrics.continueWorking, icon: FileClock },
+    { label: data.hasPreviousVisit ? '방문 후 변경' : '최근 변경', value: data.metrics.changedSinceLastVisit, icon: Activity },
+    { label: '내 처리함', value: data.metrics.pendingActions, icon: ListTodo },
+    ...(data.features.canManageSettings
+      ? [{ label: '운영 예외', value: data.metrics.operationalExceptions, icon: ShieldAlert }]
+      : []),
+  ] : [];
 
   return (
-    <main className="min-h-full flex-1 overflow-auto bg-card p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-title-section text-ssoo-primary mb-4">
-          문서 관리 시스템
-        </h1>
-        <p className="text-ssoo-primary/70 mb-8">
-          문서를 검색하거나 사이드바에서 파일을 선택하여 시작하세요.
-        </p>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Button variant="plain" size="plain"
-            onClick={handleNewDocument}
-            disabled={!canWriteDocuments}
-            className={cn(enabledActionCardClassName, !canWriteDocuments && disabledActionCardClassName)}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <Plus className="w-5 h-5 text-ssoo-primary/50 group-hover:text-ssoo-primary" />
-              <h3 className="text-label-md text-ssoo-primary">새 문서 작성</h3>
-            </div>
-            <p className="text-body-sm text-ssoo-primary/70">
-              {canWriteDocuments ? '새로운 문서를 작성합니다' : '문서 작성 권한이 필요합니다'}
+    <main className="min-h-full flex-1 overflow-auto bg-ssoo-content-bg/20 px-4 py-5 sm:px-6 sm:py-6">
+      <div className="mx-auto w-full max-w-6xl space-y-5">
+        <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-1 text-label-sm text-ssoo-primary/65">DMS HOME</p>
+            <h1 className="text-title-section text-foreground">문서 업무 허브</h1>
+            <p className="mt-2 max-w-2xl text-body-md text-muted-foreground">
+              하던 일을 이어가고, 달라진 문서와 지금 처리할 항목을 한곳에서 확인하세요.
             </p>
-          </Button>
-
-          <Button variant="plain" size="plain"
-            onClick={handleAISearch}
-            disabled={!canUseSearch}
-            className={cn(enabledActionCardClassName, !canUseSearch && disabledActionCardClassName)}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <Search className="w-5 h-5 text-ssoo-primary/50 group-hover:text-ssoo-primary" />
-              <h3 className="text-label-md text-ssoo-primary">AI 검색</h3>
-            </div>
-            <p className="text-body-sm text-ssoo-primary/70">
-              {canUseSearch ? 'AI로 전역 결과를 검색합니다' : 'AI 검색 권한이 필요합니다'}
+          </div>
+          {data && (
+            <p className="flex items-center gap-1.5 text-caption text-muted-foreground">
+              <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+              {formatHomeDate(data.generatedAt)} 기준
             </p>
-          </Button>
+          )}
+        </header>
 
-          <div className="p-4 bg-ssoo-content-bg/30 rounded-lg border border-ssoo-content-border hover:border-ssoo-primary cursor-pointer transition-colors group">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-5 h-5 text-ssoo-primary/50 group-hover:text-ssoo-primary" />
-              <h3 className="text-label-md text-ssoo-primary">최근 문서</h3>
+        <QuickAccessSection
+          canWriteDocuments={canWriteDocuments}
+          canUseSearch={canUseSearch}
+          bookmarks={bookmarks}
+          onNewDocument={handleNewDocument}
+          onSearch={handleSearch}
+          onOpenBookmark={(bookmark) => handleOpenDocument(bookmark)}
+        />
+
+        {homeQuery.isLoading && !data ? (
+          <HomeLoading />
+        ) : homeQuery.isError && !data ? (
+          <Card className="border-ls-red/35 shadow-sm" role="alert">
+            <CardContent className="flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-ls-red" aria-hidden="true" />
+                <div>
+                  <h2 className="text-label-lg text-foreground">홈 작업 요약을 불러오지 못했습니다.</h2>
+                  <p className="mt-1 text-body-sm text-muted-foreground">
+                    빠른 시작은 계속 사용할 수 있습니다. 요약 데이터만 다시 불러오세요.
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => void homeQuery.refetch()}>
+                <RefreshCw aria-hidden="true" /> 다시 시도
+              </Button>
+            </CardContent>
+          </Card>
+        ) : data ? (
+          <>
+            <section aria-labelledby="home-summary-heading">
+              <h2 id="home-summary-heading" className="sr-only">업무 요약</h2>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {metrics.map(({ label, value, icon: Icon }) => (
+                  <Card key={label} className="shadow-sm">
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div>
+                        <p className="text-caption text-muted-foreground">{label}</p>
+                        <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+                      </div>
+                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-ssoo-primary/10 text-ssoo-primary">
+                        <Icon className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+
+            <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+              <div className="min-w-0 space-y-4">
+                <DocumentSection
+                  title="이어서 작업"
+                  description="계정에 저장된 실제 문서 열람 기록입니다."
+                  emptyMessage="아직 열어본 문서가 없습니다. 검색이나 사이드바에서 문서를 열어보세요."
+                  icon={FileClock}
+                  section={data.sections.continueWorking}
+                  timeSource="lastOpenedAt"
+                  onOpen={handleOpenDocument}
+                  onRetry={() => void homeQuery.refetch()}
+                />
+                <DocumentSection
+                  title={data.hasPreviousVisit ? '마지막 방문 후 변경' : '최근 변경 문서'}
+                  description={data.hasPreviousVisit
+                    ? `${formatHomeDate(data.lastSeenAt)} 이후 갱신된 문서입니다.`
+                    : '첫 방문 기준으로 최근 갱신된 문서를 보여드립니다.'}
+                  emptyMessage={data.hasPreviousVisit
+                    ? '마지막 방문 이후 변경된 문서가 없습니다.'
+                    : '표시할 최근 변경 문서가 없습니다.'}
+                  icon={Activity}
+                  section={data.sections.changes}
+                  timeSource="updatedAt"
+                  onOpen={handleOpenDocument}
+                  onRetry={() => void homeQuery.refetch()}
+                />
+              </div>
+              <aside className="min-w-0 space-y-4" aria-label="처리 및 운영 상태">
+                <AttentionSection
+                  section={data.sections.actions}
+                  onOpen={handleOpenAction}
+                  onRetry={() => void homeQuery.refetch()}
+                />
+                {data.features.canManageSettings && (
+                  <OperationsSection
+                    section={data.sections.operations}
+                    onOpen={handleOpenOperation}
+                    onRetry={() => void homeQuery.refetch()}
+                  />
+                )}
+              </aside>
             </div>
-            <p className="text-body-sm text-ssoo-primary/70">최근 열어본 문서</p>
-          </div>
-        </div>
-
-        <section className="mt-8">
-          <h2 className="text-title-card text-foreground mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            최근 열어본 문서
-          </h2>
-          <div className="text-muted-foreground text-body-sm p-4 bg-muted rounded-lg border border-dashed border-border">
-            최근 문서 기록이 없습니다.
-          </div>
-        </section>
+          </>
+        ) : null}
       </div>
     </main>
   );

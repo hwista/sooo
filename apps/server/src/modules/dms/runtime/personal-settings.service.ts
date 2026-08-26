@@ -1,4 +1,4 @@
-import type { DeepPartial, StorageProvider } from './dms-config.service.js';
+import type { DeepPartial, SettingsPersistenceStatus, StorageProvider } from './dms-config.service.js';
 import { configService } from './dms-config.service.js';
 import { createDmsLogger } from './dms-logger.js';
 import type {
@@ -35,14 +35,28 @@ export interface PersonalSidebarSettings {
   sections: PersonalSidebarSectionsSettings;
 }
 
+export interface PersonalHomeSettings {
+  /** 마지막으로 홈 변경 요약을 확인한 서버 시각(ISO 8601). */
+  lastSeenAt?: string;
+}
+
 export interface DmsPersonalSettings {
   identity: PersonalIdentitySettings;
   workspace: PersonalWorkspaceSettings;
   viewer: PersonalViewerSettings;
   sidebar: PersonalSidebarSettings;
+  home: PersonalHomeSettings;
 }
 
 const ANONYMOUS_PROFILE_KEY: SettingsProfileKey = 'anonymous';
+
+export function resolvePreferredStorageProvider(
+  preferredStorageProvider: PersonalWorkspaceSettings['preferredStorageProvider'],
+): StorageProvider | undefined {
+  return preferredStorageProvider === 'local' || preferredStorageProvider === 'nas'
+    ? preferredStorageProvider
+    : undefined;
+}
 
 class PersonalSettingsService {
   private settingsCache: Map<string, DmsPersonalSettings> = new Map();
@@ -61,21 +75,19 @@ class PersonalSettingsService {
 
   private async loadFromDb(userId: string): Promise<DmsPersonalSettings | null> {
     if (!this.dbClient) return null;
-    try {
-      const row = await this.dbClient.dmsConfig.findFirst({
-        where: { scopeCode: 'personal', ownerRef: userId, isActive: true },
-      });
-      if (row && row.configData && typeof row.configData === 'object') {
-        return this.sanitizeSettings(row.configData as unknown as DmsPersonalSettings);
-      }
-    } catch (error) {
-      logger.error('DB에서 개인 설정 로드 실패', error);
+    const row = await this.dbClient.dmsConfig.findFirst({
+      where: { scopeCode: 'personal', ownerRef: userId, isActive: true },
+    });
+    if (row && row.configData && typeof row.configData === 'object') {
+      return this.sanitizeSettings(row.configData as unknown as DmsPersonalSettings);
     }
     return null;
   }
 
   private async saveToDb(userId: string, settings: DmsPersonalSettings): Promise<void> {
-    if (!this.dbClient) return;
+    if (!this.dbClient) {
+      throw new Error('DMS personal settings persistence is not initialized.');
+    }
     try {
       const existing = await this.dbClient.dmsConfig.findFirst({
         where: { scopeCode: 'personal', ownerRef: userId },
@@ -93,6 +105,8 @@ class PersonalSettingsService {
       }
     } catch (error) {
       logger.error('DB에 개인 설정 저장 실패', error);
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new Error(`DMS personal settings persistence failed: ${reason}`, { cause: error });
     }
   }
 
@@ -106,6 +120,13 @@ class PersonalSettingsService {
 
   getAccessMode(): SettingsAccessMode {
     return 'anonymous-first';
+  }
+
+  getPersistenceStatus(): SettingsPersistenceStatus {
+    return {
+      initialized: this.dbClient !== null,
+      ready: this.dbReady,
+    };
   }
 
   /** 동기 읽기 (캐시에서). 캐시 미스 시 하드코딩 defaults 반환. */
@@ -122,15 +143,19 @@ class PersonalSettingsService {
   /** 비동기 읽기 (DB에서 프리로드). */
   async loadSettingsForUser(userId: string): Promise<DmsPersonalSettings> {
     if (this.dbReady) {
-      const fromDb = await this.loadFromDb(userId);
-      if (fromDb) {
-        const defaults = this.getDefaults();
-        const merged = this.deepMerge(
-          defaults as unknown as Record<string, unknown>,
-          fromDb as unknown as Record<string, unknown>,
-        ) as unknown as DmsPersonalSettings;
-        this.settingsCache.set(userId, merged);
-        return merged;
+      try {
+        const fromDb = await this.loadFromDb(userId);
+        if (fromDb) {
+          const defaults = this.getDefaults();
+          const merged = this.deepMerge(
+            defaults as unknown as Record<string, unknown>,
+            fromDb as unknown as Record<string, unknown>,
+          ) as unknown as DmsPersonalSettings;
+          this.settingsCache.set(userId, merged);
+          return merged;
+        }
+      } catch (error) {
+        logger.error('DB에서 개인 설정 로드 실패', error);
       }
     }
     const defaults = this.getDefaults();
@@ -140,15 +165,30 @@ class PersonalSettingsService {
 
   /** 비동기 업데이트 (DB에 저장). */
   async updateSettingsForUser(userId: string, partial: DeepPartial<DmsPersonalSettings>): Promise<DmsPersonalSettings> {
-    const current = await this.loadSettingsForUser(userId);
+    if (this.dbClient && !this.dbReady) {
+      throw new Error('DMS personal settings persistence is unavailable.');
+    }
+
+    let current: DmsPersonalSettings;
+    if (this.dbClient) {
+      const persisted = await this.loadFromDb(userId);
+      current = persisted
+        ? this.deepMerge(
+            this.getDefaults() as unknown as Record<string, unknown>,
+            persisted as unknown as Record<string, unknown>,
+          ) as unknown as DmsPersonalSettings
+        : this.getDefaults();
+    } else {
+      current = this.getSettings(userId);
+    }
     const merged = this.sanitizeSettings(this.deepMerge(
       current as unknown as Record<string, unknown>,
       partial as unknown as Record<string, unknown>,
     ) as unknown as DmsPersonalSettings);
-    this.settingsCache.set(userId, merged);
-    if (this.dbReady) {
+    if (this.dbClient) {
       await this.saveToDb(userId, merged);
     }
+    this.settingsCache.set(userId, merged);
     return merged;
   }
 
@@ -204,6 +244,7 @@ class PersonalSettingsService {
           changes: false,
         },
       },
+      home: {},
     };
   }
 
@@ -213,6 +254,18 @@ class PersonalSettingsService {
     if (workspace && typeof workspace === 'object') {
       delete workspace.defaultSettingsView;
       delete workspace.showDiffByDefault;
+      if (workspace.preferredStorageProvider === 'sharepoint') {
+        workspace.preferredStorageProvider = 'system-default';
+      }
+    }
+    const home = next.home as unknown as Record<string, unknown> | undefined;
+    if (home && typeof home === 'object' && typeof home.lastSeenAt === 'string') {
+      const parsed = new Date(home.lastSeenAt);
+      if (Number.isNaN(parsed.getTime())) {
+        delete home.lastSeenAt;
+      } else {
+        home.lastSeenAt = parsed.toISOString();
+      }
     }
     return next;
   }

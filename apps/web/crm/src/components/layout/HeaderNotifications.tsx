@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import type { CommonNotificationItem } from '@ssoo/types/common';
 import {
   getCommonNotificationPath,
@@ -45,6 +46,7 @@ function getPrimaryActionLabel(item: CommonNotificationItem): string {
 }
 
 export function HeaderNotifications() {
+  const router = useRouter();
   const openTab = useTabStore((state) => state.openTab);
   const notificationCenter = useCommonNotificationCenter({
     pageSize: NOTIFICATION_PAGE_SIZE,
@@ -90,7 +92,8 @@ export function HeaderNotifications() {
       closable: true,
       activate: true,
     });
-  }, [markAsRead, openTab]);
+    router.push(path);
+  }, [markAsRead, openTab, router]);
 
   return (
     <SsooHeaderNotificationCenter

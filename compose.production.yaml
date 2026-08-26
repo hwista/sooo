@@ -13,6 +13,37 @@ services:
       DATABASE_URL: ${DOCKER_DATABASE_URL:?Set DOCKER_DATABASE_URL in .env.production}
       DB_INIT_BASELINE_MODE: strict
 
+  dms-restore-verify:
+    profiles: ["operations"]
+    build:
+      context: .
+      dockerfile: docker/db-init.Dockerfile
+      secrets:
+        - source: ssoo_tls_ca
+          target: ssoo_tls_ca
+    entrypoint: ["node", "scripts/verify-dms-backup-restore.mjs"]
+    restart: "no"
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL:?Set DOCKER_DATABASE_URL in .env.production}
+      DMS_BACKUP_DATABASE_URL: ${DOCKER_DATABASE_URL:?Set DOCKER_DATABASE_URL in .env.production}
+      DMS_BACKUP_ADMIN_DATABASE_URL: ${DOCKER_DATABASE_URL:?Set DOCKER_DATABASE_URL in .env.production}
+      DMS_MARKDOWN_HOST_PATH: /backup-source/markdown
+      DMS_INGEST_HOST_PATH: /backup-source/ingest
+      DMS_STORAGE_LOCAL_HOST_PATH: /backup-source/storage-local
+      DMS_BACKUP_ARCHIVE_PATH: /backup-output/${DMS_BACKUP_ARCHIVE_NAME:?Set a unique DMS_BACKUP_ARCHIVE_NAME in .env.production}
+      DMS_BACKUP_EVIDENCE_PATH: /backup-output/${DMS_BACKUP_ARCHIVE_NAME:?Set DMS_BACKUP_ARCHIVE_NAME in .env.production}.evidence.json
+    volumes:
+      - ${DMS_MARKDOWN_HOST_PATH:?Set absolute DMS_MARKDOWN_HOST_PATH}:/backup-source/markdown:ro
+      - ${DMS_INGEST_HOST_PATH:?Set absolute DMS_INGEST_HOST_PATH}:/backup-source/ingest:ro
+      - ${DMS_STORAGE_LOCAL_HOST_PATH:?Set absolute DMS_STORAGE_LOCAL_HOST_PATH}:/backup-source/storage-local:ro
+      - ${DMS_BACKUP_ARCHIVE_ROOT:?Set absolute DMS_BACKUP_ARCHIVE_ROOT}:/backup-output
+    secrets:
+      - source: ssoo_tls_ca
+        target: ssoo_tls_ca
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   server:
     env_file: !reset []
     ports: !override
@@ -32,8 +63,22 @@ services:
       AUTH_OAUTH_STATE_SIGNING_SECRET: ${AUTH_OAUTH_STATE_SIGNING_SECRET:?Set AUTH_OAUTH_STATE_SIGNING_SECRET in .env.production}
       AUTH_CONFIG_ENCRYPTION_KEY: ${AUTH_CONFIG_ENCRYPTION_KEY:?Set AUTH_CONFIG_ENCRYPTION_KEY in .env.production}
       AUTH_DEFAULT_LOGIN_URL: ${AUTH_DEFAULT_LOGIN_URL:?Set AUTH_DEFAULT_LOGIN_URL in .env.production}
+      AUTH_EMAIL_OUTBOX_WORKER_ENABLED: ${AUTH_EMAIL_OUTBOX_WORKER_ENABLED:?Set AUTH_EMAIL_OUTBOX_WORKER_ENABLED=true}
+      AUTH_EMAIL_OUTBOX_INTERVAL_MS: ${AUTH_EMAIL_OUTBOX_INTERVAL_MS:-30000}
+      AUTH_EMAIL_OUTBOX_BATCH_LIMIT: ${AUTH_EMAIL_OUTBOX_BATCH_LIMIT:-20}
+      AUTH_EMAIL_OUTBOX_RUN_ON_START: ${AUTH_EMAIL_OUTBOX_RUN_ON_START:-true}
+      AUTH_EMAIL_SMTP_HOST: ${AUTH_EMAIL_SMTP_HOST:?Set AUTH_EMAIL_SMTP_HOST in .env.production}
+      AUTH_EMAIL_SMTP_PORT: ${AUTH_EMAIL_SMTP_PORT:?Set AUTH_EMAIL_SMTP_PORT in .env.production}
+      AUTH_EMAIL_SMTP_SECURE: ${AUTH_EMAIL_SMTP_SECURE:?Set AUTH_EMAIL_SMTP_SECURE in .env.production}
+      AUTH_EMAIL_SMTP_USERNAME: ${AUTH_EMAIL_SMTP_USERNAME:?Set AUTH_EMAIL_SMTP_USERNAME in .env.production}
+      AUTH_EMAIL_SMTP_PASSWORD: ${AUTH_EMAIL_SMTP_PASSWORD:?Set AUTH_EMAIL_SMTP_PASSWORD in .env.production}
+      AUTH_EMAIL_FROM_ADDRESS: ${AUTH_EMAIL_FROM_ADDRESS:?Set AUTH_EMAIL_FROM_ADDRESS in .env.production}
       DMS_INSTANCE_ENV: ${DMS_INSTANCE_ENV:?Set DMS_INSTANCE_ENV=prod}
       DMS_GIT_PROD_REMOTE_URL: ${DMS_GIT_PROD_REMOTE_URL:?Set DMS_GIT_PROD_REMOTE_URL in .env.production}
+      DMS_GIT_BOOTSTRAP_REMOTE_URL: ${DMS_GIT_BOOTSTRAP_REMOTE_URL:-}
+    build:
+      args:
+        SSOO_RELEASE_SHA: ${SSOO_RELEASE_SHA:?Set SSOO_RELEASE_SHA to the release commit}
     volumes:
       - ${DMS_MARKDOWN_HOST_PATH:?Set absolute DMS_MARKDOWN_HOST_PATH}:${DMS_MARKDOWN_ROOT:-/var/lib/ssoo/documents}
       - ${DMS_INGEST_HOST_PATH:?Set absolute DMS_INGEST_HOST_PATH}:${DMS_INGEST_QUEUE_PATH:-/var/lib/ssoo/document-ingest}
@@ -44,6 +89,7 @@ services:
       - "127.0.0.1:3000:3000"
     build:
       args:
+        SSOO_RELEASE_SHA: ${SSOO_RELEASE_SHA:?Set SSOO_RELEASE_SHA to the release commit}
         NEXT_PUBLIC_API_URL: ${ADMIN_NEXT_PUBLIC_API_URL:?Set ADMIN_NEXT_PUBLIC_API_URL in .env.production}
         NEXT_PUBLIC_ADMIN_APP_URL: ${NEXT_PUBLIC_ADMIN_APP_URL:?Set NEXT_PUBLIC_ADMIN_APP_URL in .env.production}
         NEXT_PUBLIC_CRM_APP_URL: ${NEXT_PUBLIC_CRM_APP_URL:?Set NEXT_PUBLIC_CRM_APP_URL in .env.production}
@@ -102,6 +148,7 @@ services:
       - "127.0.0.1:3003:3003"
     build:
       args:
+        SSOO_RELEASE_SHA: ${SSOO_RELEASE_SHA:?Set SSOO_RELEASE_SHA to the release commit}
         NEXT_PUBLIC_API_URL: ${DMS_NEXT_PUBLIC_API_URL:?Set DMS_NEXT_PUBLIC_API_URL in .env.production}
         NEXT_PUBLIC_WS_URL: ${DMS_NEXT_PUBLIC_WS_URL:-}
         NEXT_PUBLIC_ADMIN_APP_URL: ${NEXT_PUBLIC_ADMIN_APP_URL:?Set NEXT_PUBLIC_ADMIN_APP_URL in .env.production}

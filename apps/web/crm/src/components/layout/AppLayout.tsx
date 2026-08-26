@@ -26,10 +26,12 @@ import {
   CircleDollarSign,
   ClipboardList,
   FileText,
+  FilePlus2,
   FolderTree,
   Handshake,
   Layers,
   LineChart,
+  List,
   Menu,
   PieChart,
   RefreshCw,
@@ -42,6 +44,8 @@ import {
   X,
 } from 'lucide-react';
 import { CRM_HOME_TAB, useTabStore } from '@/stores/tab.store';
+import { useAuthStore } from '@/stores/auth.store';
+import { getCrmWorkspaceTabOptions, isCrmMenuPathActive, isCrmSystemSettingsPath } from '@/lib/crmWorkspaceRoutes';
 import { TabBar } from './TabBar';
 import { ContentArea } from './ContentArea';
 import { Header } from './Header';
@@ -49,19 +53,33 @@ import { Header } from './Header';
 const CRM_APP_IDENTITY = getSsooAppIdentity('crm');
 
 const menuItems = [
-  { label: '영업기회', path: '/', icon: BarChart3, hasChildren: false, disabled: false },
+  { label: '대시보드', path: '/?sourceSurface=dashboard', icon: BarChart3, hasChildren: false, disabled: false },
+  { label: '영업기회 현황', path: '/?sourceSurface=list', icon: List, hasChildren: false, disabled: false },
+  { label: '영업기회 등록', path: '/?sourceSurface=form&create=opportunity', icon: FilePlus2, hasChildren: false, disabled: false },
+  { label: '계약서 생성', path: '/?sourceSurface=contract-document', icon: FileText, hasChildren: false, disabled: false },
+  { label: '영업기회 작업공간', path: '/', icon: Layers, hasChildren: false, disabled: false },
   { label: '고객/활동', path: '/customers', icon: UsersRound, hasChildren: false, disabled: false },
+  { label: '회사 정보', path: '/quote-settings?mode=source-compatible', icon: FolderTree, hasChildren: false, disabled: false },
   { label: '견적 설정', path: '/quote-settings', icon: FileText, hasChildren: false, disabled: false },
+  { label: '계약현황', path: '/contracts?sourceSurface=list', icon: List, hasChildren: false, disabled: false },
+  { label: '계약등록', path: '/contracts?sourceSurface=form&create=contract', icon: FilePlus2, hasChildren: false, disabled: false },
+  { label: '계약청구실적', path: '/contracts?sourceSurface=billing-actual', icon: CircleDollarSign, hasChildren: false, disabled: false },
   { label: '계약 원장', path: '/contracts', icon: CircleDollarSign, hasChildren: false, disabled: false },
+  { label: '계약대비실적(월별)', path: '/contract-performance?mode=source-compatible', icon: BarChart3, hasChildren: false, disabled: false },
   { label: '계약대비실적', path: '/contract-performance', icon: BarChart3, hasChildren: false, disabled: false },
   { label: '보고 Preview', path: '/reports', icon: PieChart, hasChildren: false, disabled: false },
+  { label: '사업계획 등록', path: '/business-plan?mode=source-compatible', icon: ClipboardList, hasChildren: false, disabled: false },
   { label: '사업계획 Preview', path: '/business-plan', icon: ClipboardList, hasChildren: false, disabled: false },
+  { label: '사업계획대비실적(월별)', path: '/business-plan-performance?mode=source-compatible', icon: LineChart, hasChildren: false, disabled: false },
   { label: '사업계획대비실적 Preview', path: '/business-plan-performance', icon: LineChart, hasChildren: false, disabled: false },
+  { label: '내부원가 등록', path: '/cost-plan?sourceSurface=internal-cost', icon: Calculator, hasChildren: false, disabled: false },
+  { label: '공급업체 관리', path: '/cost-plan?sourceSurface=ams-vendor', icon: UsersRound, hasChildren: false, disabled: false },
+  { label: '연간 외부원가', path: '/cost-plan?sourceSurface=ams-cost', icon: Calculator, hasChildren: false, disabled: false },
   { label: '원가/AMS Preview', path: '/cost-plan', icon: Calculator, hasChildren: false, disabled: false },
-  { label: '운영 기준 Preview', path: '/operations', icon: SlidersHorizontal, hasChildren: false, disabled: false },
+  { label: '운영 기준·제어', path: '/operations', icon: SlidersHorizontal, hasChildren: false, disabled: false },
   { label: 'PMS 인계', icon: Handshake, active: false, hasChildren: true, disabled: true },
   { label: '공용 Admin', icon: ShieldCheck, active: false, hasChildren: false, disabled: true },
-  { label: '설정', icon: Settings, active: false, hasChildren: false, disabled: true },
+  { label: 'CRM 시스템 설정', path: '/operations/settings', icon: Settings, active: false, hasChildren: false, disabled: false },
 ];
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -74,12 +92,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const openTab = useTabStore((state) => state.openTab);
+  const [tabsHydrated, setTabsHydrated] = useState(false);
   const currentPath = useMemo(() => {
     const search = searchParams.toString();
     return search ? `${pathname}?${search}` : pathname;
   }, [pathname, searchParams]);
 
   useEffect(() => {
+    const unsubscribe = useTabStore.persist.onFinishHydration(() => setTabsHydrated(true));
+    if (useTabStore.persist.hasHydrated()) setTabsHydrated(true);
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!tabsHydrated) return;
+    const workspaceTab = getCrmWorkspaceTabOptions(currentPath);
+    if (workspaceTab) {
+      openTab(workspaceTab);
+      return;
+    }
+
     const userSurfaceRoute = parseSsooUserSurfaceRouteEntry(currentPath);
     if (userSurfaceRoute) {
       openTab({
@@ -91,13 +123,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
       return;
     }
 
-    openTab({
-      id: CRM_HOME_TAB.id,
-      title: CRM_HOME_TAB.title,
-      path: currentPath || CRM_HOME_TAB.path,
-      closable: false,
-    });
-  }, [currentPath, openTab]);
+    openTab(CRM_HOME_TAB);
+  }, [currentPath, openTab, tabsHydrated]);
 
   useEffect(() => {
     if (!isMobileViewport && isMobileMenuOpen) {
@@ -168,9 +195,11 @@ function CrmSidebar({
   const tabs = useTabStore((state) => state.tabs);
   const activeTabId = useTabStore((state) => state.activeTabId);
   const openTab = useTabStore((state) => state.openTab);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const activateTab = useTabStore((state) => state.activateTab);
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
   const [searchQuery, setSearchQuery] = useState('');
+  const [canReadOperations, setCanReadOperations] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     favorites: true,
     openTabs: false,
@@ -181,6 +210,29 @@ function CrmSidebar({
     setExpandedSections((current) => ({ ...current, [section]: !current[section] }));
   };
 
+  useEffect(() => {
+    if (!accessToken) {
+      setCanReadOperations(false);
+      return;
+    }
+    const controller = new AbortController();
+    void fetch('/api/crm/operations/access', {
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => null) as { success?: boolean; data?: { features?: { canReadOperations?: boolean } } } | null;
+        if (!controller.signal.aborted) setCanReadOperations(response.ok && payload?.success === true && payload.data?.features?.canReadOperations === true);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setCanReadOperations(false);
+      });
+    return () => controller.abort();
+  }, [accessToken]);
+
+  const visibleMenuItems = menuItems.filter((item) => !('path' in item) || item.path !== '/operations/settings' || canReadOperations);
+
   return (
     <SsooSidebarSurface
       expanded={!isCollapsed}
@@ -189,6 +241,9 @@ function CrmSidebar({
       toggleLabel={toggleLabel}
       brandTitle={CRM_APP_IDENTITY.brandTitle}
       search={{
+        inputId: 'ssoo-crm-navigation-search-input',
+        inputName: 'ssoo-crm-navigation-search-query',
+        ariaLabel: 'CRM 메뉴 검색',
         value: searchQuery,
         onChange: setSearchQuery,
         railIcon: Search,
@@ -231,7 +286,10 @@ function CrmSidebar({
               getNodeSearchText={(tab) => [tab.title, tab.path]}
               getNodeIcon={() => BarChart3}
               isNodeActive={(tab) => tab.id === activeTabId}
-              onNodeSelect={(tab) => activateTab(tab.id)}
+              onNodeSelect={(tab) => {
+                activateTab(tab.id);
+                router.push(tab.path);
+              }}
               disclosureIcon={ChevronRight}
               emptyState={<SsooSidebarEmptyState>열린 페이지가 없습니다.</SsooSidebarEmptyState>}
             />
@@ -247,13 +305,19 @@ function CrmSidebar({
           onToggle: () => toggleSection('menuTree'),
           children: (
             <SsooSidebarSearchableTree<(typeof menuItems)[number]>
-              nodes={menuItems}
+              nodes={visibleMenuItems}
               getNodeId={(item) => item.label}
               getNodeLabel={(item) => item.label}
               getNodeTitle={(item) => item.label}
               getNodeSearchText={(item) => item.label}
               isNodeFolder={(item) => item.hasChildren}
-              isNodeActive={(item) => Boolean('path' in item && activeTab?.path.split('?')[0] === item.path)}
+              isNodeActive={(item) => Boolean(
+                'path' in item
+                && (
+                  isCrmMenuPathActive(activeTab?.path, item.path ?? '')
+                  || (item.path === '/operations/settings' && activeTab && isCrmSystemSettingsPath(activeTab.path))
+                )
+              )}
               isNodeDisabled={(item) => item.disabled}
               getNodeIcon={(item) => item.icon}
               renderNodeTrailingAction={(item) => (
@@ -261,12 +325,14 @@ function CrmSidebar({
               )}
               onNodeSelect={(item) => {
                 if ('path' in item && item.path) {
-                  openTab({
-                    id: item.path === CRM_HOME_TAB.path ? CRM_HOME_TAB.id : item.path,
-                    title: item.path === CRM_HOME_TAB.path ? CRM_HOME_TAB.title : item.label,
+                  const tab = getCrmWorkspaceTabOptions(item.path);
+                  openTab(tab ?? {
+                    id: item.path,
+                    title: item.label,
                     path: item.path,
                     closable: item.path !== CRM_HOME_TAB.path,
                   });
+                  router.push(item.path);
                 }
               }}
               disclosureIcon={ChevronRight}

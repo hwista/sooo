@@ -10,6 +10,7 @@ import type {
   SourceFileMeta,
 } from '@ssoo/types/dms';
 import { resolveDocumentPresentation } from '../search/search.helpers.js';
+import { normalizeStorageProvider } from '../runtime/dms-config.service.js';
 import type {
   AccessRequestGrantRecord,
   AccessRequestRecord,
@@ -364,7 +365,7 @@ export function normalizeSourceFiles(metadata: Record<string, unknown> | null): 
       size: typeof entry['size'] === 'number' && Number.isFinite(entry['size']) ? entry['size'] : undefined,
       url: typeof entry['url'] === 'string' ? entry['url'] : undefined,
       storageUri: typeof entry['storageUri'] === 'string' ? entry['storageUri'] : undefined,
-      provider: typeof entry['provider'] === 'string' ? entry['provider'] : undefined,
+      provider: normalizeStorageProvider(entry['provider']),
       versionId: typeof entry['versionId'] === 'string' ? entry['versionId'] : undefined,
       etag: typeof entry['etag'] === 'string' ? entry['etag'] : undefined,
       checksum: typeof entry['checksum'] === 'string' ? entry['checksum'] : undefined,

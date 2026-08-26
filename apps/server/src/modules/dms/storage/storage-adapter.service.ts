@@ -62,7 +62,7 @@ function hashValue(content: string | Buffer): string {
 }
 
 class StorageAdapterService {
-  private readonly supportedProviders = new Set<StorageProvider>(['local', 'sharepoint', 'nas']);
+  private readonly supportedProviders = new Set<StorageProvider>(['local', 'nas']);
 
   private resolveProvider(provider?: StorageProvider): StorageProvider {
     if (!provider) {
@@ -81,7 +81,7 @@ class StorageAdapterService {
   }
 
   private parseStorageUri(storageUri: string): { provider: StorageProvider; path: string } {
-    const match = storageUri.match(/^(local|sharepoint|nas):\/\/(.+)$/);
+    const match = storageUri.match(/^(local|nas):\/\/(.+)$/);
     if (!match) {
       throw new Error('유효하지 않은 storageUri 형식입니다.');
     }
@@ -173,7 +173,7 @@ class StorageAdapterService {
       throw new Error(`${provider} 저장소가 비활성화되어 있습니다.`);
     }
     const contained = this.resolveContainedPath(provider, targetPath);
-    if (provider === 'local' && !fs.existsSync(contained.fullPath)) {
+    if (!fs.existsSync(contained.fullPath)) {
       throw new Error('대상 파일을 찾을 수 없습니다.');
     }
 

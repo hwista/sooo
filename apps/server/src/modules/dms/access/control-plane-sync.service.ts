@@ -12,13 +12,41 @@ import { DocumentControlPlaneService } from './document-control-plane.service.js
 import { DocumentRecordService } from './document-record.service.js';
 
 const CONTROL_PLANE_SYNC_MAX_AGE_MS = 30_000;
+const BULK_DEACTIVATION_MIN_DOCUMENTS = 10;
+const BULK_DEACTIVATION_MAX_RATIO = 0.5;
 const logger = createDmsLogger('DmsControlPlaneSyncService');
+
+interface ActiveDocumentIdentity {
+  documentId: bigint;
+  relativePath: string;
+}
+
+export interface ControlPlaneSyncStatus {
+  state: 'not-run' | 'ready' | 'degraded' | 'failed';
+  lastAttemptAt?: string;
+  lastSuccessAt?: string;
+  reason?: string;
+  scanned?: number;
+  synced?: number;
+  repaired?: number;
+  failed?: number;
+  deactivated?: number;
+}
+
+interface ControlPlaneSyncSummary {
+  scanned: number;
+  synced: number;
+  repaired: number;
+  failed: number;
+  deactivated: number;
+}
 
 @Injectable()
 export class ControlPlaneSyncService {
   private lastControlPlaneSyncAt = 0;
   private controlPlaneSyncPromise: Promise<void> | null = null;
   private deferredGitBootstrapRoot: string | null = null;
+  private syncStatus: ControlPlaneSyncStatus = { state: 'not-run' };
 
   constructor(
     private readonly db: DatabaseService,
@@ -28,6 +56,18 @@ export class ControlPlaneSyncService {
 
   markSynced(): void {
     this.lastControlPlaneSyncAt = Date.now();
+    const now = new Date(this.lastControlPlaneSyncAt).toISOString();
+    this.syncStatus = {
+      ...this.syncStatus,
+      state: 'ready',
+      lastAttemptAt: now,
+      lastSuccessAt: now,
+      reason: undefined,
+    };
+  }
+
+  getStatus(): ControlPlaneSyncStatus {
+    return { ...this.syncStatus };
   }
 
   async ensureRepoControlPlaneSynced(force = false): Promise<void> {
@@ -41,6 +81,12 @@ export class ControlPlaneSyncService {
     }
 
     this.controlPlaneSyncPromise = (async () => {
+      this.syncStatus = {
+        ...this.syncStatus,
+        state: 'not-run',
+        lastAttemptAt: new Date().toISOString(),
+        reason: undefined,
+      };
       try {
         await this.ensureGitContentPlaneReady();
         const repoParity = await this.inspectRepoMutationParity();
@@ -63,14 +109,31 @@ export class ControlPlaneSyncService {
             });
             await this.documentControlPlaneService.refreshCache();
             this.lastControlPlaneSyncAt = Date.now();
+            this.syncStatus = {
+              ...this.syncStatus,
+              state: 'degraded',
+              reason: repoParity.reason ?? 'Remote parity verification is required.',
+            };
             return;
           }
         }
-        await this.syncRepoControlPlane(force);
+        const summary = await this.syncRepoControlPlane(force);
         await this.documentControlPlaneService.refreshCache();
         this.lastControlPlaneSyncAt = Date.now();
+        this.syncStatus = {
+          state: 'ready',
+          lastAttemptAt: this.syncStatus.lastAttemptAt,
+          lastSuccessAt: new Date(this.lastControlPlaneSyncAt).toISOString(),
+          ...summary,
+        };
       } catch (error) {
-        logger.warn('문서 control-plane 동기화 실패', error instanceof Error ? { message: error.message } : undefined);
+        const reason = error instanceof Error ? error.message : String(error);
+        this.syncStatus = {
+          ...this.syncStatus,
+          state: 'failed',
+          reason,
+        };
+        logger.warn('문서 control-plane 동기화 실패', { message: reason });
         throw error;
       } finally {
         this.controlPlaneSyncPromise = null;
@@ -142,17 +205,20 @@ export class ControlPlaneSyncService {
     return false;
   }
 
-  private async syncRepoControlPlane(force: boolean): Promise<void> {
+  private async syncRepoControlPlane(force: boolean): Promise<ControlPlaneSyncSummary> {
     const rootDir = configService.getDocDir();
     const markdownFiles = listMarkdownFiles(rootDir);
-    const scannedRelativePaths = new Set<string>();
+    const scannedRelativePaths = new Set(
+      markdownFiles.map((absolutePath) => normalizeRelativePath(path.relative(rootDir, absolutePath))),
+    );
+    const activeDocuments = await this.loadActiveDocuments();
+    this.assertDeactivationIsSafe(rootDir, scannedRelativePaths, activeDocuments);
     let synced = 0;
     let repaired = 0;
     let failed = 0;
 
     for (const absolutePath of markdownFiles) {
       const relativePath = normalizeRelativePath(path.relative(rootDir, absolutePath));
-      scannedRelativePaths.add(relativePath);
       try {
         await this.documentRecordService.ensureDocumentRecord(relativePath);
         synced += 1;
@@ -170,7 +236,7 @@ export class ControlPlaneSyncService {
       }
     }
 
-    const deactivated = await this.deactivateMissingDocuments(scannedRelativePaths);
+    const deactivated = await this.deactivateMissingDocuments(scannedRelativePaths, activeDocuments);
 
     logger.info('문서 repo -> control-plane 동기화 완료', {
       force,
@@ -180,10 +246,18 @@ export class ControlPlaneSyncService {
       failed,
       deactivated,
     });
+
+    return {
+      scanned: markdownFiles.length,
+      synced,
+      repaired,
+      failed,
+      deactivated,
+    };
   }
 
-  private async deactivateMissingDocuments(scannedRelativePaths: ReadonlySet<string>): Promise<number> {
-    const activeDocuments = await this.db.client.dmsDocument.findMany({
+  private async loadActiveDocuments(): Promise<ActiveDocumentIdentity[]> {
+    return this.db.client.dmsDocument.findMany({
       where: {
         isActive: true,
         documentStatusCode: 'active',
@@ -193,6 +267,45 @@ export class ControlPlaneSyncService {
         relativePath: true,
       },
     });
+  }
+
+  private assertDeactivationIsSafe(
+    rootDir: string,
+    scannedRelativePaths: ReadonlySet<string>,
+    activeDocuments: readonly ActiveDocumentIdentity[],
+  ): void {
+    if (activeDocuments.length === 0) {
+      return;
+    }
+
+    const missingCount = activeDocuments.filter(
+      (document) => !scannedRelativePaths.has(document.relativePath),
+    ).length;
+    if (missingCount === 0) {
+      return;
+    }
+
+    if (scannedRelativePaths.size === 0) {
+      throw new Error(
+        `DMS control-plane safety guard blocked deactivation: markdown root scanned 0 files while ${activeDocuments.length} active documents exist (${rootDir}).`,
+      );
+    }
+
+    const missingRatio = missingCount / activeDocuments.length;
+    if (
+      missingCount >= BULK_DEACTIVATION_MIN_DOCUMENTS
+      && missingRatio >= BULK_DEACTIVATION_MAX_RATIO
+    ) {
+      throw new Error(
+        `DMS control-plane safety guard blocked bulk deactivation: ${missingCount}/${activeDocuments.length} active documents are absent from the configured markdown root (${rootDir}).`,
+      );
+    }
+  }
+
+  private async deactivateMissingDocuments(
+    scannedRelativePaths: ReadonlySet<string>,
+    activeDocuments: readonly ActiveDocumentIdentity[],
+  ): Promise<number> {
 
     const missingDocumentIds = activeDocuments
       .filter((document) => !scannedRelativePaths.has(document.relativePath))

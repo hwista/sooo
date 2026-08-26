@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { AuthLoadingScreen, AuthPageShell, AuthStandardLoginCard } from './ui';
 import type { AuthIdentityProviderAction, AuthLoginActionLink } from './ui';
@@ -21,6 +21,8 @@ export interface SharedAuthLoginPageProps<TUser extends AuthIdentity = AuthIdent
   passwordLoginEnabled?: boolean;
   registrationLink?: AuthLoginActionLink;
   identityProviders?: AuthIdentityProviderAction[];
+  rememberLoginIdEnabled?: boolean;
+  passwordVisibilityEnabled?: boolean;
 }
 
 function isSafeRelativeReturnPath(value: string | null | undefined): value is string {
@@ -131,8 +133,11 @@ export function SharedAuthLoginPage<TUser extends AuthIdentity = AuthIdentity>({
   passwordLoginEnabled,
   registrationLink,
   identityProviders,
+  rememberLoginIdEnabled = false,
+  passwordVisibilityEnabled = false,
 }: SharedAuthLoginPageProps<TUser>) {
   const [publicConfig, setPublicConfig] = useState<AuthPublicLoginConfig | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const login = authStore((state) => state.login);
   const checkAuth = authStore((state) => state.checkAuth);
   const isLoading = authStore((state) => state.isLoading);
@@ -147,6 +152,9 @@ export function SharedAuthLoginPage<TUser extends AuthIdentity = AuthIdentity>({
     () => resolveAuthReturnPath(effectiveReturnTo, homePath),
     [effectiveReturnTo, homePath],
   );
+  const handleAuthenticated = useCallback(() => {
+    navigate(postLoginPath);
+  }, [navigate, postLoginPath]);
   const resolvedPasswordResetHref = passwordResetHref
     ?? publicConfig?.passwordResetHref
     ?? readPublicHref(process.env.NEXT_PUBLIC_AUTH_PASSWORD_RESET_URL);
@@ -177,9 +185,9 @@ export function SharedAuthLoginPage<TUser extends AuthIdentity = AuthIdentity>({
   const { showLoading, shouldRenderLogin } = useLoginPageBootstrap({
     hasHydrated,
     isAuthenticated,
-    authIsLoading: isLoading,
+    authIsLoading: isLoading && !isSubmitting,
     checkAuth,
-    onAuthenticated: () => navigate(resolveAuthReturnPath(effectiveReturnTo, homePath)),
+    onAuthenticated: handleAuthenticated,
   });
 
   if (showLoading) {
@@ -193,15 +201,21 @@ export function SharedAuthLoginPage<TUser extends AuthIdentity = AuthIdentity>({
   return (
     <AuthPageShell>
       <AuthStandardLoginCard
-        isLoading={isLoading}
+        isLoading={isLoading || isSubmitting}
         passwordLoginEnabled={resolvedPasswordLoginEnabled}
         passwordResetHref={resolvedPasswordResetHref}
         registrationLink={resolvedRegistrationLink}
         identityProviders={resolvedIdentityProviders}
+        rememberLoginIdEnabled={rememberLoginIdEnabled}
+        passwordVisibilityEnabled={passwordVisibilityEnabled}
         onSubmit={async ({ loginId, password }) => {
-          await beforeSubmit?.();
-          await login(loginId, password);
-          navigate(postLoginPath);
+          setIsSubmitting(true);
+          try {
+            await beforeSubmit?.();
+            await login(loginId, password);
+          } finally {
+            setIsSubmitting(false);
+          }
         }}
       />
     </AuthPageShell>

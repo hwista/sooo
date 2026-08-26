@@ -34,6 +34,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const openTab = useTabStore((s) => s.openTab);
+  const [tabsHydrated, setTabsHydrated] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobileViewport = useSsooMobileViewport();
@@ -44,6 +45,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     const search = searchParams.toString();
     return search ? `${pathname}?${search}` : pathname;
   }, [pathname, searchParams]);
+
+  useEffect(() => {
+    const unsubscribe = useTabStore.persist.onFinishHydration(() => setTabsHydrated(true));
+    if (useTabStore.persist.hasHydrated()) setTabsHydrated(true);
+    return unsubscribe;
+  }, []);
 
   const redirectToLogin = useCallback((currentPath: string) => {
     const returnTo = currentPath && currentPath !== LOGIN_PATH
@@ -66,7 +73,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const adminAccess = usePermissionCatalog(shouldRender);
 
   useEffect(() => {
-    if (shouldRender) {
+    if (shouldRender && tabsHydrated) {
       const userSurfaceRoute = parseSsooUserSurfaceRouteEntry(currentPath);
       if (userSurfaceRoute) {
         openTab({
@@ -80,7 +87,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       openTab(getAdminTabOptions(currentPath));
     }
-  }, [currentPath, openTab, shouldRender]);
+  }, [currentPath, openTab, shouldRender, tabsHydrated]);
 
   useEffect(() => {
     if (!isMobileViewport && isMobileMenuOpen) {

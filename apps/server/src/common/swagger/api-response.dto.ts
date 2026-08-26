@@ -1,13 +1,26 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class ApiErrorDetail {
+  @ApiProperty({ example: 'INTERNAL_ERROR' })
+  code!: string;
+
+  @ApiProperty({ example: 'Internal server error' })
+  message!: string;
+
+  @ApiPropertyOptional({ example: '/api/example' })
+  path?: string;
+}
+
 export class ApiError {
+  @ApiProperty({ enum: [false], example: false })
   success = false as const;
-  error!: {
-    code: string;
-    message: string;
-    path?: string;
-  };
+
+  @ApiProperty({ type: ApiErrorDetail })
+  error!: ApiErrorDetail;
+
+  @ApiPropertyOptional({ type: String, format: 'date-time' })
   timestamp?: string;
 
-  // ¿¹½Ã (Swagger example)
   static example: ApiError = {
     success: false,
     error: {
@@ -19,8 +32,24 @@ export class ApiError {
   };
 }
 
-export class ApiSuccess<T> {
+export class ApiSuccess<T = Record<string, unknown>> {
+  @ApiProperty({ enum: [true], example: true })
   success = true as const;
+
+  @ApiProperty({ type: 'object', additionalProperties: true })
   data!: T;
+
+  @ApiPropertyOptional()
   message?: string;
+}
+
+export class ApiPaginationMeta {
+  @ApiProperty({ minimum: 1, example: 1 })
+  page!: number;
+
+  @ApiProperty({ minimum: 1, example: 20 })
+  limit!: number;
+
+  @ApiProperty({ minimum: 0, example: 100 })
+  total!: number;
 }

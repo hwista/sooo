@@ -1,6 +1,6 @@
 # DMS 도메인 개념
 
-> 최종 업데이트: 2026-02-24
+> 최종 업데이트: 2026-07-22
 
 DMS의 핵심 도메인 개념과 운영 기준을 정의합니다.
 
@@ -17,26 +17,25 @@ DMS의 핵심 도메인 개념과 운영 기준을 정의합니다.
 ### 1.2 생성 입력 정본
 
 - 대상: AI 요약/생성에 투입되는 원본 파일
-- 정본: SharePoint 기본 (NAS/Local 선택 가능)
+- 정본: Local 기본 (NAS는 운영 mount/gateway 구성 후 선택 가능)
 
 ### 1.3 문서별 첨부 정본
 
 - 대상: 위키 문서에 연결되는 첨부 파일
-- 정본: SharePoint 기본 (NAS/Local 선택 가능)
+- 정본: Local 기본 (NAS는 운영 mount/gateway 구성 후 선택 가능)
 
 ---
 
 ## 2. 저장소 타입
 
 ```ts
-type StorageProvider = 'local' | 'sharepoint' | 'nas';
+type StorageProvider = 'local' | 'nas';
 ```
 
 - `local`: DMS 서버 로컬 경로
-- `sharepoint`: 사내 SharePoint
 - `nas`: 사내 NAS
 
-기본 저장소는 설정값으로 선택하고, 문서/첨부별 오버라이드를 허용합니다.
+기본 저장소는 `local`입니다. NAS는 실제 경로를 준비한 뒤 명시적으로 활성화한 경우에만 문서/첨부별 오버라이드를 허용합니다. 폐기된 SharePoint provider 또는 URI 요청은 지원하지 않습니다.
 
 ---
 
@@ -47,7 +46,6 @@ type StorageProvider = 'local' | 'sharepoint' | 'nas';
 예시:
 
 - `git://wiki/analysis/apps/App.md`
-- `sp://site/library/itemId`
 - `nas://share/path/file.pdf`
 - `local://root/path/file.xlsx`
 
@@ -112,5 +110,6 @@ type AIContextMode = 'wiki' | 'deep';
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-22 | 저장소 계약을 Local 기본 + NAS 선택형으로 정리하고 SharePoint 지원 폐기 반영 |
 | 2026-02-24 | 저장소/수집/세컨드브레인 정책 기준으로 도메인 개념 재작성 |
 | 2026-02-24 | 인라인 AI 작성/템플릿(개인·전역)/경로추천/연관성 경고 정책 반영 |

@@ -76,13 +76,14 @@ export function SsooMobileSidebarOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={label}
-      className={cn('md:hidden', className)}
+      className={cn('fixed inset-0 z-30 md:hidden', className)}
     >
       <Button
         variant="plain"
         size="plain"
         type="button"
-        aria-label="모바일 메뉴 닫기"
+        aria-hidden="true"
+        tabIndex={-1}
         className={cn(
           'fixed inset-0 z-30 block h-full w-full cursor-default p-0',
           POPUP_BACKDROP_TONE_CLASS

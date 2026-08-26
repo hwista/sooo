@@ -2,6 +2,7 @@ import type { DmsCrmQuoteLifecycleExecutionRequest } from '@ssoo/types/dms';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import type { FileCrudService } from '../file/file-crud.service.js';
 import type { StorageReference } from '../storage/storage-adapter.service.js';
+import { createDocxTemplateFromText } from '../templates/docx-template-renderer.js';
 import type { TemplateService } from '../templates/template.service.js';
 import {
   DmsCrmQuoteLifecycleService,
@@ -13,8 +14,9 @@ type FileCrudMock = Pick<FileCrudService, 'read' | 'write'> & {
   writeCalls: Parameters<FileCrudService['write']>[];
 };
 
-type TemplateServiceMock = Pick<TemplateService, 'get'> & {
+type TemplateServiceMock = Pick<TemplateService, 'get' | 'readDocxBinary'> & {
   getCalls: Parameters<TemplateService['get']>[];
+  readDocxBinaryCalls: Parameters<TemplateService['readDocxBinary']>[];
 };
 
 type StorageMock = DmsCrmQuoteLifecycleStorage & {
@@ -51,8 +53,10 @@ function createFileCrudMock(): FileCrudMock {
 
 function createTemplateServiceMock(status: 'active' | 'archived' = 'active'): TemplateServiceMock {
   const getCalls: Parameters<TemplateService['get']>[] = [];
+  const readDocxBinaryCalls: Parameters<TemplateService['readDocxBinary']>[] = [];
   return {
     getCalls,
+    readDocxBinaryCalls,
     get: async (...args) => {
       getCalls.push(args);
       return {
@@ -73,7 +77,20 @@ function createTemplateServiceMock(status: 'active' | 'archived' = 'active'): Te
         referenceDocuments: [],
         generation: { source: 'manual' },
         sourcePath: 'system/crm-quote-v1.md',
+        docxTemplate: {
+          fileName: 'crm-quote-v1.docx',
+          sourcePath: 'system/crm-quote-v1.docx',
+          size: 1,
+          checksum: 'template-checksum',
+          uploadedAt: '2026-07-10T00:00:00.000Z',
+          uploadedBy: 'system',
+          origin: 'generated',
+        },
       };
+    },
+    readDocxBinary: (...args) => {
+      readDocxBinaryCalls.push(args);
+      return createDocxTemplateFromText('# {견적번호} / {{customerName}}');
     },
   };
 }
@@ -171,6 +188,7 @@ describe('DmsCrmQuoteLifecycleService', () => {
     const result = await service.execute(createRequest(), currentUser);
 
     expect(templateService.getCalls).toEqual([['crm-quote-v1', 'global', 'system']]);
+    expect(templateService.readDocxBinaryCalls).toHaveLength(1);
     expect(fileCrud.readCalls[0]?.[0]).toBe('CRM/LS_Electric/quotes/Q-crm-opp-001-V3/Q-crm-opp-001-V3_quote-draft.md');
     expect(fileCrud.writeCalls.map((call) => call[0])).toEqual([
       '_generated/crm-quote-lifecycle/Q-crm-opp-001-V3/template-version.md',
@@ -199,7 +217,7 @@ describe('DmsCrmQuoteLifecycleService', () => {
     ]));
     expect(result.governance.templateVersion).toMatchObject({
       templateKey: 'crm-quote-v1',
-      sourcePath: 'system/crm-quote-v1.md',
+      sourcePath: 'system/crm-quote-v1.docx',
     });
     expect(result.boundaryNotice).toContain('DMS는 CRM 견적 handoff');
   });

@@ -9,6 +9,7 @@ import type {
   CrmContractStatus,
   CrmContractUpsertLine,
   CrmContractUpsertRequest,
+  CrmOpportunityOwnerLookupItem,
   CrmOpportunityDiscountType,
   CrmOpportunityLineCategory,
   CrmOpportunityServiceType,
@@ -26,6 +27,7 @@ import {
   TableRow,
   Textarea,
 } from '@ssoo/web-ui';
+import { useCrmCommonCodeOptions, withCurrentCodeOption } from '@/lib/crmCommonCodeOptions';
 
 interface BackendSuccessResponse<T> {
   success: true;
@@ -48,6 +50,8 @@ interface ContractHeaderDraft {
   customerName: string;
   contractName: string;
   ownerName: string;
+  clientContactName: string;
+  ownerUserId: string;
   businessType: string;
   industryLine: string;
   region: 'domestic' | 'overseas';
@@ -106,8 +110,14 @@ interface SplitOptions {
 export interface ContractUpsertPanelProps {
   selected: CrmContract | null;
   accessToken: string | null;
+  canWrite: boolean;
   onSaved: (contract: CrmContract) => void | Promise<void>;
   onDeleted: (contractId: string) => void | Promise<void>;
+  variant?: 'workspace' | 'source';
+  canConfirm?: boolean;
+  onWorkflow?: (action: 'confirm' | 'reopen') => void;
+  workflowPending?: boolean;
+  onCancel?: () => void;
 }
 
 let draftSequence = 0;
@@ -123,6 +133,8 @@ function createBlankHeader(): ContractHeaderDraft {
     customerName: '',
     contractName: '',
     ownerName: '',
+    clientContactName: '',
+    ownerUserId: '',
     businessType: '',
     industryLine: '',
     region: 'domestic',
@@ -213,6 +225,17 @@ function formatWon(value: number) {
   return `${Math.round(value).toLocaleString('ko-KR')}원`;
 }
 
+function formatSourceCompactWon(value: number) {
+  const rounded = Math.round(value);
+  if (Math.abs(rounded) >= 100000000) {
+    return `${(rounded / 100000000).toLocaleString('ko-KR', { maximumFractionDigits: 1 })}억`;
+  }
+  if (Math.abs(rounded) >= 10000) {
+    return `${Math.round(rounded / 10000).toLocaleString('ko-KR')}만`;
+  }
+  return rounded.toLocaleString('ko-KR');
+}
+
 function calculateLineAmount(line: { quantity: string; unitPrice: string; amount: string; truncUnit?: string }) {
   const quantity = parseNumber(line.quantity);
   const unitPrice = parseNumber(line.unitPrice);
@@ -248,6 +271,8 @@ function createHeaderFromContract(contract: CrmContract): ContractHeaderDraft {
     customerName: contract.customerName,
     contractName: contract.contractName,
     ownerName: contract.ownerName,
+    clientContactName: contract.clientContactName ?? '',
+    ownerUserId: contract.ownerUserId ?? '',
     businessType: contract.businessType,
     industryLine: contract.industryLine,
     region: contract.region,
@@ -322,7 +347,18 @@ function toUpsertLine(line: RevenueLineDraft | CostLineDraft): CrmContractUpsert
   return base;
 }
 
-export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted }: ContractUpsertPanelProps) {
+export function ContractUpsertPanel({
+  selected,
+  accessToken,
+  canWrite,
+  onSaved,
+  onDeleted,
+  variant = 'workspace',
+  canConfirm = false,
+  onWorkflow,
+  workflowPending = false,
+  onCancel,
+}: ContractUpsertPanelProps) {
   const [mode, setMode] = useState<'create' | 'edit'>('create');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [header, setHeader] = useState<ContractHeaderDraft>(() => createBlankHeader());
@@ -341,6 +377,44 @@ export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted 
   const [isDeleting, setIsDeleting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formMessage, setFormMessage] = useState<string | null>(null);
+  const [ownerLookupItems, setOwnerLookupItems] = useState<CrmOpportunityOwnerLookupItem[]>([]);
+  const [ownerLookupError, setOwnerLookupError] = useState<string | null>(null);
+  const [isOwnerLookupLoading, setIsOwnerLookupLoading] = useState(false);
+
+  useEffect(() => {
+    if (!accessToken || !canWrite) {
+      setOwnerLookupItems([]);
+      setOwnerLookupError(null);
+      return;
+    }
+
+    const abortController = new AbortController();
+    setIsOwnerLookupLoading(true);
+    setOwnerLookupError(null);
+    void fetch('/api/crm/opportunities/owners/lookup?limit=50', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal: abortController.signal,
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => null) as BackendSuccessResponse<CrmOpportunityOwnerLookupItem[]> | BackendErrorResponse | null;
+        if (!response.ok || !payload || payload.success !== true) {
+          throw new Error(getBackendErrorMessage(payload));
+        }
+        setOwnerLookupItems(payload.data);
+      })
+      .catch((error: unknown) => {
+        if (!abortController.signal.aborted) {
+          setOwnerLookupError(error instanceof Error ? error.message : '담당 사용자 목록을 불러오지 못했습니다.');
+        }
+      })
+      .finally(() => {
+        if (!abortController.signal.aborted) {
+          setIsOwnerLookupLoading(false);
+        }
+      });
+
+    return () => abortController.abort();
+  }, [accessToken, canWrite]);
 
   const totals = useMemo(() => {
     const revenueSubtotal = revenueLines.reduce((sum, line) => sum + calculateLineAmount(line), 0);
@@ -398,6 +472,12 @@ export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted 
     }
   }, [editingId, loadSelected, mode, selected]);
 
+  useEffect(() => {
+    if (variant === 'source' && selected && editingId !== selected.id) {
+      loadSelected();
+    }
+  }, [editingId, loadSelected, selected, variant]);
+
   const resetCreate = useCallback(() => {
     setMode('create');
     setEditingId(null);
@@ -415,6 +495,17 @@ export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted 
     setFormError(null);
     setFormMessage(null);
   }, []);
+
+  const setOwnerUserId = useCallback((ownerUserId: string) => {
+    const owner = ownerLookupItems.find((item) => item.userId === ownerUserId);
+    setHeader((current) => ({
+      ...current,
+      ownerUserId,
+      ownerName: owner ? (owner.displayName?.trim() || owner.userName) : current.ownerName,
+    }));
+    setFormError(null);
+    setFormMessage(null);
+  }, [ownerLookupItems]);
 
   const updateRevenueLine = useCallback((id: string, patch: Partial<RevenueLineDraft>) => {
     setRevenueLines((current) => current.map((line) => line.id === id ? { ...line, ...patch } : line));
@@ -497,6 +588,8 @@ export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted 
       customerName: header.customerName.trim(),
       contractName: header.contractName.trim(),
       ownerName: header.ownerName.trim(),
+      clientContactName: header.clientContactName.trim() || undefined,
+      ownerUserId: header.ownerUserId || undefined,
       businessType: header.businessType.trim(),
       industryLine: header.industryLine.trim(),
       region: header.region,
@@ -656,7 +749,105 @@ export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted 
     }
   }, [accessToken, editingId, mode, onDeleted, resetCreate, selected?.confirmed]);
 
-  const isReadOnly = mode === 'edit' && selected?.id === editingId && selected.confirmed;
+  const isReadOnly = !canWrite || (mode === 'edit' && selected?.id === editingId && selected.confirmed);
+
+  if (variant === 'source') {
+    const productRevenueLines = revenueLines.filter((line) => line.category === 'product');
+    const serviceRevenueLines = revenueLines.filter((line) => line.category === 'service');
+    const productCostLines = costLines.filter((line) => line.category === 'product');
+    const internalCostLines = costLines.filter((line) => line.category === 'internal-cost');
+    const externalCostLines = costLines.filter((line) => line.category === 'external-cost');
+    const sumLines = (lines: Array<RevenueLineDraft | CostLineDraft>) => lines.reduce((sum, line) => sum + calculateLineAmount(line), 0);
+
+    return (
+      <section>
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">{mode === 'edit' ? '계약 조회' : '계약 등록'}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {selected?.confirmed ? '확정된 계약입니다. 확정취소 후 수정할 수 있습니다.' : '계약 기본정보와 금액·청구계획을 입력합니다.'}
+          </p>
+        </div>
+
+        <div className="mt-6 rounded-xl border bg-card p-6">
+          {isReadOnly ? (
+            <div className="mb-5 flex items-center gap-2 rounded-md bg-ssoo-warning-bg px-4 py-3 text-sm text-ssoo-warning">
+              <AlertCircle className="h-4 w-4" />
+              {canWrite ? '확정된 계약입니다. 수정하려면 먼저 확정취소를 진행하세요.' : '계약 등록·수정 권한이 없어 조회 전용으로 표시합니다.'}
+            </div>
+          ) : null}
+          {formError ? (
+            <div className="mb-5 flex items-center gap-2 rounded-md bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger" role="alert">
+              <AlertCircle className="h-4 w-4" />{formError}
+            </div>
+          ) : null}
+          {formMessage ? (
+            <div className="mb-5 flex items-center gap-2 rounded-md bg-ssoo-success-bg px-4 py-3 text-sm text-ssoo-success" role="status">
+              <CheckCircle2 className="h-4 w-4" />{formMessage}
+            </div>
+          ) : null}
+
+          <SourceHeaderFields
+            header={header}
+            isReadOnly={isReadOnly}
+            ownerLookupItems={ownerLookupItems}
+            ownerLookupError={ownerLookupError}
+            isOwnerLookupLoading={isOwnerLookupLoading}
+            onChange={setHeaderField}
+            onOwnerUserIdChange={setOwnerUserId}
+          />
+
+          <div className="my-6 border-t" />
+          <div className="space-y-4">
+            <SourceLineSummary
+              title="매출액 *"
+              actions={[
+                { label: `상품매출 ${productRevenueLines.length} · ${formatSourceCompactWon(sumLines(productRevenueLines))}`, onClick: () => setRevenueLines((current) => [...current, createBlankRevenueLine({ category: 'product' })]) },
+                { label: `용역매출 ${serviceRevenueLines.length} · ${formatSourceCompactWon(sumLines(serviceRevenueLines))}`, onClick: () => setRevenueLines((current) => [...current, createBlankRevenueLine({ category: 'service' })]) },
+              ]}
+              disabled={isReadOnly}
+            />
+            <RevenueLineEditor lines={revenueLines} isReadOnly={isReadOnly} onAdd={() => setRevenueLines((current) => [...current, createBlankRevenueLine()])} onRemove={(id) => setRevenueLines((current) => current.filter((line) => line.id !== id))} onUpdate={updateRevenueLine} sourceCompatible />
+
+            <SourceLineSummary
+              title="원가"
+              actions={[
+                { label: `상품원가 ${productCostLines.length} · ${formatSourceCompactWon(sumLines(productCostLines))}`, onClick: () => setCostLines((current) => [...current, createBlankCostLine({ category: 'product' })]) },
+                { label: `내부용역원가 ${internalCostLines.length} · ${formatSourceCompactWon(sumLines(internalCostLines))}`, onClick: () => setCostLines((current) => [...current, createBlankCostLine({ category: 'internal-cost', serviceType: 'internal' })]) },
+                { label: `외부용역원가 ${externalCostLines.length}${externalCostLines.length ? ` · ${formatSourceCompactWon(sumLines(externalCostLines))}` : ''}`, onClick: () => setCostLines((current) => [...current, createBlankCostLine({ category: 'external-cost', serviceType: 'external' })]) },
+              ]}
+              disabled={isReadOnly}
+            />
+            <CostLineEditor lines={costLines} isReadOnly={isReadOnly} onAdd={() => setCostLines((current) => [...current, createBlankCostLine()])} onRemove={(id) => setCostLines((current) => current.filter((line) => line.id !== id))} onUpdate={updateCostLine} sourceCompatible />
+
+            <BillingLineEditor lines={billingLines} isReadOnly={isReadOnly} onAdd={() => setBillingLines((current) => [...current, createBlankBillingLine()])} onRemove={(id) => setBillingLines((current) => current.filter((line) => line.id !== id))} onUpdate={updateBillingLine} sourceCompatible />
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-5">
+            <div className="text-sm text-muted-foreground">최종 매출 {formatWon(totals.revenueTotal)} · 원가 {formatWon(totals.costTotal)} · 이익률 {totals.marginRate}%</div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" type="button" onClick={() => void previewSplit()} disabled={isPreviewLoading || isReadOnly}>
+                자동스플릿
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel ?? resetCreate}>취소</Button>
+              {selected?.confirmed ? (
+                <Button variant="outline" type="button" onClick={() => onWorkflow?.('reopen')} disabled={!canConfirm || workflowPending}>✕ 확정취소</Button>
+              ) : mode === 'edit' ? (
+                <Button variant="outline" type="button" onClick={() => onWorkflow?.('confirm')} disabled={!canConfirm || workflowPending}>확정</Button>
+              ) : null}
+              {!isReadOnly ? (
+                <Button type="button" onClick={() => void saveContract()} disabled={isSaving}>
+                  <Save className="mr-2 h-4 w-4" />{isSaving ? '저장 중' : '저장'}
+                </Button>
+              ) : null}
+              {mode === 'edit' && !isReadOnly ? (
+                <Button variant="outline" type="button" onClick={() => void deleteContract()} disabled={isDeleting}>{isDeleting ? '삭제 중' : '삭제'}</Button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-md border bg-card">
@@ -688,7 +879,7 @@ export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted 
       {isReadOnly ? (
         <div className="flex items-center gap-2 border-b bg-ssoo-warning-bg px-4 py-3 text-sm text-ssoo-warning">
           <AlertCircle className="h-4 w-4" />
-          확정된 계약입니다. 수정하려면 먼저 확정 해제를 진행하세요.
+          {canWrite ? '확정된 계약입니다. 수정하려면 먼저 확정 해제를 진행하세요.' : '계약 등록·수정 권한이 없어 조회 전용으로 표시합니다.'}
         </div>
       ) : null}
 
@@ -707,7 +898,15 @@ export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted 
 
       <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
-          <HeaderFields header={header} isReadOnly={isReadOnly} onChange={setHeaderField} />
+          <HeaderFields
+            header={header}
+            isReadOnly={isReadOnly}
+            ownerLookupItems={ownerLookupItems}
+            ownerLookupError={ownerLookupError}
+            isOwnerLookupLoading={isOwnerLookupLoading}
+            onChange={setHeaderField}
+            onOwnerUserIdChange={setOwnerUserId}
+          />
           <RevenueLineEditor lines={revenueLines} isReadOnly={isReadOnly} onAdd={() => setRevenueLines((current) => [...current, createBlankRevenueLine()])} onRemove={(id) => setRevenueLines((current) => current.filter((line) => line.id !== id))} onUpdate={updateRevenueLine} />
           <CostLineEditor lines={costLines} isReadOnly={isReadOnly} onAdd={() => setCostLines((current) => [...current, createBlankCostLine()])} onRemove={(id) => setCostLines((current) => current.filter((line) => line.id !== id))} onUpdate={updateCostLine} />
           <BillingLineEditor lines={billingLines} isReadOnly={isReadOnly} onAdd={() => setBillingLines((current) => [...current, createBlankBillingLine()])} onRemove={(id) => setBillingLines((current) => current.filter((line) => line.id !== id))} onUpdate={updateBillingLine} />
@@ -733,12 +932,24 @@ export function ContractUpsertPanel({ selected, accessToken, onSaved, onDeleted 
 function HeaderFields({
   header,
   isReadOnly,
+  ownerLookupItems,
+  ownerLookupError,
+  isOwnerLookupLoading,
   onChange,
+  onOwnerUserIdChange,
 }: {
   header: ContractHeaderDraft;
   isReadOnly: boolean;
+  ownerLookupItems: CrmOpportunityOwnerLookupItem[];
+  ownerLookupError: string | null;
+  isOwnerLookupLoading: boolean;
   onChange: <K extends keyof ContractHeaderDraft>(key: K, value: ContractHeaderDraft[K]) => void;
+  onOwnerUserIdChange: (ownerUserId: string) => void;
 }) {
+  const commonCodes = useCrmCommonCodeOptions(['biz_type', 'group_type', 'payment_term']);
+  const businessTypeOptions = withCurrentCodeOption(commonCodes.options.biz_type ?? [], header.businessType);
+  const groupTypeOptions = withCurrentCodeOption(commonCodes.options.group_type ?? [], header.industryLine);
+  const paymentOptions = withCurrentCodeOption(commonCodes.options.payment_term ?? [], header.paymentTermCode);
   return (
     <div className="rounded-md border p-4">
       <h3 className="text-sm font-semibold text-foreground">기본 정보</h3>
@@ -752,14 +963,38 @@ function HeaderFields({
         <Field label="담당자">
           <Input value={header.ownerName} disabled={isReadOnly} onChange={(event) => onChange('ownerName', event.currentTarget.value)} />
         </Field>
+        <Field label="담당 사용자">
+          <NativeSelect
+            value={header.ownerUserId}
+            disabled={isReadOnly || isOwnerLookupLoading}
+            data-testid="contract-owner-user"
+            onChange={(event) => onOwnerUserIdChange(event.currentTarget.value)}
+          >
+            <option value="">연결 안 함</option>
+            {header.ownerUserId && !ownerLookupItems.some((item) => item.userId === header.ownerUserId) ? (
+              <option value={header.ownerUserId}>{header.ownerName || `사용자 #${header.ownerUserId}`} · #{header.ownerUserId}</option>
+            ) : null}
+            {ownerLookupItems.map((item) => (
+              <option key={item.userId} value={item.userId}>
+                {item.displayName?.trim() || item.userName} · #{item.userId}
+              </option>
+            ))}
+          </NativeSelect>
+          {ownerLookupError ? <span className="text-xs text-destructive">{ownerLookupError}</span> : null}
+        </Field>
+        <Field label="고객사 계약 담당자">
+          <Input value={header.clientContactName} disabled={isReadOnly} onChange={(event) => onChange('clientContactName', event.currentTarget.value)} />
+        </Field>
         <Field label="원천 영업기회">
           <Input value={header.sourceOpportunityCode} disabled={isReadOnly} placeholder="crm-opp-..." onChange={(event) => onChange('sourceOpportunityCode', event.currentTarget.value)} />
         </Field>
         <Field label="사업구분">
-          <Input value={header.businessType} disabled={isReadOnly} onChange={(event) => onChange('businessType', event.currentTarget.value)} />
+          {businessTypeOptions.length ? <NativeSelect value={header.businessType} disabled={isReadOnly} onChange={(event) => onChange('businessType', event.currentTarget.value)} data-testid="contract-business-type-code"><option value="">선택</option>{businessTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</NativeSelect>
+            : <Input value={header.businessType} disabled={isReadOnly} onChange={(event) => onChange('businessType', event.currentTarget.value)} />}
         </Field>
         <Field label="계열/산업">
-          <Input value={header.industryLine} disabled={isReadOnly} onChange={(event) => onChange('industryLine', event.currentTarget.value)} />
+          {groupTypeOptions.length ? <NativeSelect value={header.industryLine} disabled={isReadOnly} onChange={(event) => onChange('industryLine', event.currentTarget.value)} data-testid="contract-group-type-code"><option value="">선택</option>{groupTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</NativeSelect>
+            : <Input value={header.industryLine} disabled={isReadOnly} onChange={(event) => onChange('industryLine', event.currentTarget.value)} />}
         </Field>
         <Field label="국내/해외">
           <NativeSelect value={header.region} disabled={isReadOnly} onChange={(event) => onChange('region', event.currentTarget.value as ContractHeaderDraft['region'])}>
@@ -785,7 +1020,8 @@ function HeaderFields({
           <Input value={header.wbsCode} disabled={isReadOnly} onChange={(event) => onChange('wbsCode', event.currentTarget.value)} />
         </Field>
         <Field label="수금조건">
-          <Input value={header.paymentTermCode} disabled={isReadOnly} placeholder="NET30" onChange={(event) => onChange('paymentTermCode', event.currentTarget.value)} />
+          {paymentOptions.length ? <NativeSelect value={header.paymentTermCode} disabled={isReadOnly} onChange={(event) => onChange('paymentTermCode', event.currentTarget.value)} data-testid="contract-payment-term-code"><option value="">선택</option>{paymentOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</NativeSelect>
+            : <Input value={header.paymentTermCode} disabled={isReadOnly} placeholder="NET30" onChange={(event) => onChange('paymentTermCode', event.currentTarget.value)} />}
         </Field>
         <Field label="Special DC 유형">
           <NativeSelect value={header.specialDiscountType} disabled={isReadOnly} onChange={(event) => onChange('specialDiscountType', event.currentTarget.value as CrmOpportunityDiscountType)}>
@@ -806,6 +1042,115 @@ function HeaderFields({
   );
 }
 
+function SourceHeaderFields({
+  header,
+  isReadOnly,
+  ownerLookupItems,
+  ownerLookupError,
+  isOwnerLookupLoading,
+  onChange,
+  onOwnerUserIdChange,
+}: {
+  header: ContractHeaderDraft;
+  isReadOnly: boolean;
+  ownerLookupItems: CrmOpportunityOwnerLookupItem[];
+  ownerLookupError: string | null;
+  isOwnerLookupLoading: boolean;
+  onChange: <K extends keyof ContractHeaderDraft>(key: K, value: ContractHeaderDraft[K]) => void;
+  onOwnerUserIdChange: (ownerUserId: string) => void;
+}) {
+  const commonCodes = useCrmCommonCodeOptions(['biz_type', 'group_type', 'payment_term']);
+  const businessTypeOptions = withCurrentCodeOption(commonCodes.options.biz_type ?? [], header.businessType);
+  const groupTypeOptions = withCurrentCodeOption(commonCodes.options.group_type ?? [], header.industryLine);
+  const paymentOptions = withCurrentCodeOption(commonCodes.options.payment_term ?? [], header.paymentTermCode);
+  return (
+    <div className="space-y-4">
+      <SourceField label="고객명 *" htmlFor="ct-customer"><Input id="ct-customer" value={header.customerName} placeholder="고객사명 입력" disabled={isReadOnly} onChange={(event) => onChange('customerName', event.currentTarget.value)} /></SourceField>
+      <SourceField label="고객사 담당자" htmlFor="ct-client-contact"><Input id="ct-client-contact" value={header.clientContactName} placeholder="고객사 담당자명 입력" disabled={isReadOnly} onChange={(event) => onChange('clientContactName', event.currentTarget.value)} /></SourceField>
+      <SourceField label="계약명 *" htmlFor="ct-name"><Input id="ct-name" value={header.contractName} placeholder="계약명 입력" disabled={isReadOnly} onChange={(event) => onChange('contractName', event.currentTarget.value)} /></SourceField>
+      <SourceField label="영업담당자 *" htmlFor="ct-owner">
+        <div className="flex gap-2">
+          <NativeSelect id="ct-owner" className="min-w-0 flex-1" value={header.ownerUserId} disabled={isReadOnly || isOwnerLookupLoading} onChange={(event) => onOwnerUserIdChange(event.currentTarget.value)}>
+            <option value="">{header.ownerName || '담당자를 선택하세요'}</option>
+            {header.ownerUserId && !ownerLookupItems.some((item) => item.userId === header.ownerUserId) ? <option value={header.ownerUserId}>{header.ownerName} · #{header.ownerUserId}</option> : null}
+            {ownerLookupItems.map((item) => <option key={item.userId} value={item.userId}>{item.displayName?.trim() || item.userName} · #{item.userId}</option>)}
+          </NativeSelect>
+          <Button variant="outline" type="button" disabled={isReadOnly} onClick={() => document.getElementById('ct-owner')?.focus()}>도움창</Button>
+        </div>
+        {ownerLookupError ? <span className="text-xs text-destructive">{ownerLookupError}</span> : null}
+      </SourceField>
+      <SourceField label="상태" htmlFor="ct-status">
+        <NativeSelect id="ct-status" value={header.status} disabled={isReadOnly} onChange={(event) => onChange('status', event.currentTarget.value as CrmContractStatus)}>
+          <option value="review">검토</option><option value="active">계약중</option><option value="completed">계약완료</option><option value="terminated">해지</option>
+        </NativeSelect>
+      </SourceField>
+      <SourceField label="수금조건" htmlFor="ct-payment">
+        <NativeSelect id="ct-payment" value={header.paymentTermCode} disabled={isReadOnly} onChange={(event) => onChange('paymentTermCode', event.currentTarget.value)}>
+          <option value="">선택</option>{paymentOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </NativeSelect>
+      </SourceField>
+      <SourceField label="WBS 코드" htmlFor="ct-wbs"><Input id="ct-wbs" value={header.wbsCode} placeholder="WBS 코드 입력 (선택)" disabled={isReadOnly} onChange={(event) => onChange('wbsCode', event.currentTarget.value)} /></SourceField>
+      <SourceField label="사업구분 *" htmlFor="ct-biz-type">
+        <NativeSelect id="ct-biz-type" value={header.businessType} disabled={isReadOnly} onChange={(event) => onChange('businessType', event.currentTarget.value)}>
+          <option value="">선택</option>{businessTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </NativeSelect>
+      </SourceField>
+      <SourceField label="계열구분" htmlFor="ct-group-type">
+        <NativeSelect id="ct-group-type" value={header.industryLine} disabled={isReadOnly} onChange={(event) => onChange('industryLine', event.currentTarget.value)}>
+          <option value="">선택</option>{groupTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </NativeSelect>
+      </SourceField>
+      <SourceField label="국내/해외" htmlFor="ct-domestic">
+        <NativeSelect id="ct-domestic" value={header.region} disabled={isReadOnly} onChange={(event) => onChange('region', event.currentTarget.value as ContractHeaderDraft['region'])}>
+          <option value="domestic">국내</option><option value="overseas">해외</option>
+        </NativeSelect>
+      </SourceField>
+      <fieldset>
+        <legend className="text-sm font-medium text-muted-foreground"><label>계약기간</label></legend>
+        <div className="mt-1 grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+          <Input id="ct-start" type="date" value={header.contractStartDate} disabled={isReadOnly} onChange={(event) => onChange('contractStartDate', event.currentTarget.value)} />
+          <span className="text-center text-muted-foreground">~</span>
+          <Input id="ct-end" type="date" value={header.contractEndDate} disabled={isReadOnly} onChange={(event) => onChange('contractEndDate', event.currentTarget.value)} />
+        </div>
+      </fieldset>
+      <div className="grid gap-2 sm:grid-cols-[180px_minmax(0,1fr)]">
+        <NativeSelect id="ct-dc-type" value={header.specialDiscountType} disabled={isReadOnly} onChange={(event) => onChange('specialDiscountType', event.currentTarget.value as CrmOpportunityDiscountType)}>
+          <option value="amount">Special DC 금액</option><option value="rate">Special DC 율</option>
+        </NativeSelect>
+        <Input id="ct-dc-value" value={header.specialDiscountValue} placeholder="0" disabled={isReadOnly} onChange={(event) => onChange('specialDiscountValue', normalizeNumericText(event.currentTarget.value, header.specialDiscountType === 'rate'))} />
+      </div>
+    </div>
+  );
+}
+
+function SourceField({ label, htmlFor, children }: { label: string; htmlFor: string; children: ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-muted-foreground">{label}</label>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
+function SourceLineSummary({
+  title,
+  actions,
+  disabled,
+}: {
+  title: string;
+  actions: Array<{ label: string; onClick: () => void }>;
+  disabled: boolean;
+}) {
+  return (
+    <div>
+      <h2 className="text-sm font-medium text-muted-foreground"><label>{title}</label></h2>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {actions.map((action) => <Button key={action.label} variant="outline" size="sm" type="button" disabled={disabled} onClick={action.onClick}>{action.label}</Button>)}
+      </div>
+    </div>
+  );
+}
+
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block text-sm font-medium text-muted-foreground">
@@ -821,15 +1166,17 @@ function RevenueLineEditor({
   onAdd,
   onRemove,
   onUpdate,
+  sourceCompatible = false,
 }: {
   lines: RevenueLineDraft[];
   isReadOnly: boolean;
   onAdd: () => void;
   onRemove: (id: string) => void;
   onUpdate: (id: string, patch: Partial<RevenueLineDraft>) => void;
+  sourceCompatible?: boolean;
 }) {
   return (
-    <LineSection title="매출 라인" onAdd={onAdd} isReadOnly={isReadOnly}>
+    <LineSection title="매출 라인" onAdd={onAdd} isReadOnly={isReadOnly} hideHeader={sourceCompatible}>
       <Table className="min-w-[1180px] text-sm">
         <TableHeader className="bg-ssoo-content-bg text-left text-muted-foreground">
           <TableRow>
@@ -855,11 +1202,11 @@ function RevenueLineEditor({
                   <option value="service">용역</option>
                 </NativeSelect>
               </TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.label} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { label: event.currentTarget.value })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.quantity} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { quantity: normalizeNumericText(event.currentTarget.value, true) })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.unitPrice} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { unitPrice: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.amount} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { amount: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.marginRate} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { marginRate: normalizeNumericText(event.currentTarget.value, true) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.label} placeholder="상품명" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { label: event.currentTarget.value })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.quantity} placeholder="0" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { quantity: normalizeNumericText(event.currentTarget.value, true) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.unitPrice} placeholder="0" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { unitPrice: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.amount} placeholder="0" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { amount: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.marginRate} placeholder="0" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { marginRate: normalizeNumericText(event.currentTarget.value, true) })} /></TableCell>
               <TableCell className="px-2 py-2"><Input value={line.truncUnit} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { truncUnit: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
               <TableCell className="px-2 py-2"><Input value={line.department} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { department: event.currentTarget.value })} /></TableCell>
               <TableCell className="px-2 py-2"><Input value={line.memberName} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { memberName: event.currentTarget.value })} /></TableCell>
@@ -883,15 +1230,17 @@ function CostLineEditor({
   onAdd,
   onRemove,
   onUpdate,
+  sourceCompatible = false,
 }: {
   lines: CostLineDraft[];
   isReadOnly: boolean;
   onAdd: () => void;
   onRemove: (id: string) => void;
   onUpdate: (id: string, patch: Partial<CostLineDraft>) => void;
+  sourceCompatible?: boolean;
 }) {
   return (
-    <LineSection title="원가 라인" onAdd={onAdd} isReadOnly={isReadOnly}>
+    <LineSection title="원가 라인" onAdd={onAdd} isReadOnly={isReadOnly} hideHeader={sourceCompatible}>
       <Table className="min-w-[1060px] text-sm">
         <TableHeader className="bg-ssoo-content-bg text-left text-muted-foreground">
           <TableRow>
@@ -926,10 +1275,10 @@ function CostLineEditor({
                   <option value="external-cost">외부용역</option>
                 </NativeSelect>
               </TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.label} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { label: event.currentTarget.value })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.quantity} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { quantity: normalizeNumericText(event.currentTarget.value, true) })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.unitPrice} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { unitPrice: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.amount} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { amount: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.label} placeholder="상품명" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { label: event.currentTarget.value })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.quantity} placeholder="0" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { quantity: normalizeNumericText(event.currentTarget.value, true) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.unitPrice} placeholder="0" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { unitPrice: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.amount} placeholder="매출단가" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { amount: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
               <TableCell className="px-2 py-2"><Input value={line.department} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { department: event.currentTarget.value })} /></TableCell>
               <TableCell className="px-2 py-2"><Input value={line.memberName} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { memberName: event.currentTarget.value })} /></TableCell>
               <TableCell className="px-2 py-2 text-right font-medium text-foreground">{formatWon(calculateLineAmount(line))}</TableCell>
@@ -952,15 +1301,17 @@ function BillingLineEditor({
   onAdd,
   onRemove,
   onUpdate,
+  sourceCompatible = false,
 }: {
   lines: BillingLineDraft[];
   isReadOnly: boolean;
   onAdd: () => void;
   onRemove: (id: string) => void;
   onUpdate: (id: string, patch: Partial<BillingLineDraft>) => void;
+  sourceCompatible?: boolean;
 }) {
   return (
-    <LineSection title="청구계획" onAdd={onAdd} isReadOnly={isReadOnly}>
+    <LineSection title={sourceCompatible ? '청구계획 (매출액·외부원가 합계가 계약금액과 일치해야 저장됩니다)' : '청구계획'} onAdd={onAdd} isReadOnly={isReadOnly}>
       <Table className="min-w-[680px] text-sm">
         <TableHeader className="bg-ssoo-content-bg text-left text-muted-foreground">
           <TableRow>
@@ -979,8 +1330,8 @@ function BillingLineEditor({
           {lines.map((line) => (
             <TableRow key={line.id}>
               <TableCell className="px-2 py-2"><Input value={line.billingYm} disabled={isReadOnly} placeholder="YYYY/MM" onChange={(event) => onUpdate(line.id, { billingYm: normalizeBillingYm(event.currentTarget.value) })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.revenueAmount} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { revenueAmount: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
-              <TableCell className="px-2 py-2"><Input value={line.externalCostAmount} disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { externalCostAmount: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.revenueAmount} placeholder="0" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { revenueAmount: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
+              <TableCell className="px-2 py-2"><Input value={line.externalCostAmount} placeholder="0" disabled={isReadOnly} onChange={(event) => onUpdate(line.id, { externalCostAmount: normalizeNumericText(event.currentTarget.value) })} /></TableCell>
               <TableCell className="px-2 py-2">
                 <Button variant="ghost" size="icon" type="button" onClick={() => onRemove(line.id)} disabled={isReadOnly}>
                   <Trash2 className="h-4 w-4" />
@@ -999,21 +1350,25 @@ function LineSection({
   children,
   onAdd,
   isReadOnly,
+  hideHeader = false,
 }: {
   title: string;
   children: ReactNode;
   onAdd: () => void;
   isReadOnly: boolean;
+  hideHeader?: boolean;
 }) {
   return (
     <div className="rounded-md border">
-      <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        <Button variant="outline" size="sm" type="button" onClick={onAdd} disabled={isReadOnly}>
-          <Plus className="mr-2 h-4 w-4" />
-          행 추가
-        </Button>
-      </div>
+      {!hideHeader ? (
+        <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+          <h3 className="text-sm font-semibold text-foreground"><label>{title}</label></h3>
+          <Button variant="outline" size="sm" type="button" onClick={onAdd} disabled={isReadOnly}>
+            <Plus className="mr-2 h-4 w-4" />
+            행 추가
+          </Button>
+        </div>
+      ) : null}
       <div className="overflow-auto">{children}</div>
     </div>
   );

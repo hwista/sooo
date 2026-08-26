@@ -129,6 +129,7 @@ function decodeEnvValue(rawValue) {
 function validateProductionEnv(env, validationOptions = {}) {
   const issues = [];
   const required = [
+    'SSOO_RELEASE_SHA',
     'POSTGRES_DB',
     'POSTGRES_USER',
     'POSTGRES_PASSWORD',
@@ -143,6 +144,13 @@ function validateProductionEnv(env, validationOptions = {}) {
     'JWT_REFRESH_SECRET',
     'AUTH_OAUTH_STATE_SIGNING_SECRET',
     'AUTH_CONFIG_ENCRYPTION_KEY',
+    'AUTH_EMAIL_OUTBOX_WORKER_ENABLED',
+    'AUTH_EMAIL_SMTP_HOST',
+    'AUTH_EMAIL_SMTP_PORT',
+    'AUTH_EMAIL_SMTP_SECURE',
+    'AUTH_EMAIL_SMTP_USERNAME',
+    'AUTH_EMAIL_SMTP_PASSWORD',
+    'AUTH_EMAIL_FROM_ADDRESS',
     'AUTH_SESSION_COOKIE_SECURE',
     'AUTH_SESSION_COOKIE_SAME_SITE',
     'ADMIN_NEXT_PUBLIC_API_URL',
@@ -158,8 +166,12 @@ function validateProductionEnv(env, validationOptions = {}) {
     'DMS_MARKDOWN_HOST_PATH',
     'DMS_INGEST_HOST_PATH',
     'DMS_STORAGE_LOCAL_HOST_PATH',
+    'DMS_BACKUP_ARCHIVE_ROOT',
+    'DMS_BACKUP_ARCHIVE_NAME',
+    'DMS_BACKUP_RETENTION_DAYS',
     'DMS_INSTANCE_ENV',
     'DMS_GIT_PROD_REMOTE_URL',
+    'DMS_AI_RAG_LAUNCH_MODE',
   ];
 
   for (const key of required) {
@@ -168,11 +180,21 @@ function validateProductionEnv(env, validationOptions = {}) {
     }
   }
 
+  if (getValue(env, 'SSOO_RELEASE_SHA') && !/^[0-9a-f]{40}$/u.test(getValue(env, 'SSOO_RELEASE_SHA'))) {
+    addIssue(issues, 'SSOO_RELEASE_SHA', 'must be the lowercase 40-character release commit SHA');
+  }
   validateBoolean(env, issues, 'AUTH_TRUST_FORWARD_HEADERS');
   validateExact(env, issues, 'AUTH_ALLOW_INSECURE_PRODUCTION_DEFAULTS', 'false');
   validateExact(env, issues, 'AUTH_SESSION_COOKIE_SECURE', 'true');
+  validateExact(env, issues, 'AUTH_EMAIL_OUTBOX_WORKER_ENABLED', 'true');
+  validateBoolean(env, issues, 'AUTH_EMAIL_SMTP_SECURE');
   validateChoice(env, issues, 'AUTH_SESSION_COOKIE_SAME_SITE', ['lax', 'strict', 'none']);
   validateExact(env, issues, 'DMS_INSTANCE_ENV', 'prod');
+  validateChoice(env, issues, 'DMS_AI_RAG_LAUNCH_MODE', ['exempted_external_provider', 'provider_ready']);
+  if (getValue(env, 'DMS_GO_LIVE_ALLOW_HTTP')) {
+    validateExact(env, issues, 'DMS_GO_LIVE_ALLOW_HTTP', 'false');
+  }
+  validateBackupPolicy(env, issues);
 
   const secretKeys = [
     'JWT_SECRET',
@@ -185,6 +207,15 @@ function validateProductionEnv(env, validationOptions = {}) {
   }
   validateDistinct(env, issues, secretKeys);
   validateSecret(env, issues, 'POSTGRES_PASSWORD', 24);
+  validateSecret(env, issues, 'AUTH_EMAIL_SMTP_PASSWORD', 16);
+
+  const smtpPort = Number(getValue(env, 'AUTH_EMAIL_SMTP_PORT'));
+  if (!Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
+    addIssue(issues, 'AUTH_EMAIL_SMTP_PORT', 'must be an integer TCP port');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(getValue(env, 'AUTH_EMAIL_FROM_ADDRESS'))) {
+    addIssue(issues, 'AUTH_EMAIL_FROM_ADDRESS', 'must be a valid email address');
+  }
 
   if (/(^|[_-])(dev|test|demo|sample)([_-]|$)/iu.test(getValue(env, 'POSTGRES_DB'))) {
     addIssue(issues, 'POSTGRES_DB', 'must use a production database name');
@@ -226,6 +257,12 @@ function validateProductionEnv(env, validationOptions = {}) {
   validateTlsCaFile(env, issues);
   validateGitRemote(env, issues);
   validateAzure(env, issues);
+  if (
+    getValue(env, 'DMS_AI_RAG_LAUNCH_MODE') === 'provider_ready'
+    && !getValue(env, 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT')
+  ) {
+    addIssue(issues, 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT', 'is required when DMS_AI_RAG_LAUNCH_MODE=provider_ready');
+  }
 
   return deduplicateIssues(issues);
 }
@@ -377,7 +414,12 @@ function validateCookieDomain(env, issues) {
 }
 
 function validateHostPaths(env, issues, allowMissingPaths) {
-  const keys = ['DMS_MARKDOWN_HOST_PATH', 'DMS_INGEST_HOST_PATH', 'DMS_STORAGE_LOCAL_HOST_PATH'];
+  const keys = [
+    'DMS_MARKDOWN_HOST_PATH',
+    'DMS_INGEST_HOST_PATH',
+    'DMS_STORAGE_LOCAL_HOST_PATH',
+    'DMS_BACKUP_ARCHIVE_ROOT',
+  ];
   const normalizedPaths = new Map();
   for (const key of keys) {
     const value = getValue(env, key);
@@ -404,12 +446,39 @@ function validateHostPaths(env, issues, allowMissingPaths) {
     }
   }
 
-  const uniquePaths = new Set(normalizedPaths.values());
-  if (uniquePaths.size !== normalizedPaths.size) {
-    for (const key of normalizedPaths.keys()) {
-      addIssue(issues, key, 'must use a distinct durable directory');
+  const entries = [...normalizedPaths.entries()];
+  for (let index = 0; index < entries.length; index += 1) {
+    for (let other = index + 1; other < entries.length; other += 1) {
+      const [leftKey, leftPath] = entries[index];
+      const [rightKey, rightPath] = entries[other];
+      if (isSameOrNested(leftPath, rightPath) || isSameOrNested(rightPath, leftPath)) {
+        addIssue(issues, leftKey, `must not equal, contain, or be contained by ${rightKey}`);
+        addIssue(issues, rightKey, `must not equal, contain, or be contained by ${leftKey}`);
+      }
     }
   }
+}
+
+function validateBackupPolicy(env, issues) {
+  const name = getValue(env, 'DMS_BACKUP_ARCHIVE_NAME');
+  if (name) {
+    if (path.basename(name) !== name || (!name.endsWith('.tar.gz') && !name.endsWith('.tgz'))) {
+      addIssue(issues, 'DMS_BACKUP_ARCHIVE_NAME', 'must be a safe basename ending in .tar.gz or .tgz');
+    }
+    if (hasPlaceholderMarker(name)) {
+      addIssue(issues, 'DMS_BACKUP_ARCHIVE_NAME', 'must be a unique launch evidence archive name, not a placeholder');
+    }
+  }
+
+  const retention = Number(getValue(env, 'DMS_BACKUP_RETENTION_DAYS'));
+  if (!Number.isInteger(retention) || retention < 7) {
+    addIssue(issues, 'DMS_BACKUP_RETENTION_DAYS', 'must be an integer of at least 7 days');
+  }
+}
+
+function isSameOrNested(parent, candidate) {
+  const relative = path.relative(parent, candidate);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
 function validateTlsCaFile(env, issues) {
@@ -558,6 +627,7 @@ function runSelfTest() {
     markdown: path.join(root, 'documents'),
     ingest: path.join(root, 'ingest'),
     storage: path.join(root, 'storage'),
+    backup: path.join(root, 'backup'),
   };
   for (const value of Object.values(paths)) fs.mkdirSync(value);
 
@@ -578,6 +648,12 @@ function runSelfTest() {
 
   const duplicateSecret = { ...valid, JWT_REFRESH_SECRET: valid.JWT_SECRET };
   assertHasIssue(validateProductionEnv(duplicateSecret), 'JWT_REFRESH_SECRET', 'duplicate auth secret');
+
+  const implicitAiSkip = { ...valid, DMS_AI_RAG_LAUNCH_MODE: '' };
+  assertHasIssue(validateProductionEnv(implicitAiSkip), 'DMS_AI_RAG_LAUNCH_MODE', 'implicit AI/RAG skip');
+
+  const nestedBackup = { ...valid, DMS_BACKUP_ARCHIVE_ROOT: path.join(paths.markdown, 'backup') };
+  assertHasIssue(validateProductionEnv(nestedBackup, { allowMissingPaths: true }), 'DMS_BACKUP_ARCHIVE_ROOT', 'nested backup root');
 
   const secretValues = [valid.JWT_SECRET, valid.JWT_REFRESH_SECRET, valid.POSTGRES_PASSWORD];
   const renderedIssues = JSON.stringify(validateProductionEnv({ ...valid, CORS_ORIGIN: 'not-a-url' }));
@@ -722,6 +798,32 @@ function verifyRepositoryContract() {
     'server runtime must consume the optional TLS CA from the Compose secret mount',
   );
   assertIncludes(
+    readRepoFile('docker/db-init.Dockerfile'),
+    'COPY scripts/verify-dms-backup-restore.mjs scripts/verify-dms-backup-restore.mjs',
+    'db-init operations image must contain the backup/restore verifier',
+  );
+  for (const dockerfile of [
+    'apps/server/Dockerfile',
+    'apps/web/admin/Dockerfile',
+    'apps/web/dms/Dockerfile',
+  ]) {
+    assertIncludes(
+      readRepoFile(dockerfile),
+      'ARG SSOO_RELEASE_SHA=',
+      `${dockerfile} must accept the release commit as a build argument`,
+    );
+    assertIncludes(
+      readRepoFile(dockerfile),
+      'ENV SSOO_RELEASE_SHA=${SSOO_RELEASE_SHA}',
+      `${dockerfile} must bake the release commit into the runtime artifact`,
+    );
+  }
+  assertIncludes(
+    readRepoFile('packages/web-shell/next-security-headers.cjs'),
+    "{ key: 'X-SSOO-Release-SHA', value: releaseSha }",
+    'shared Next.js security headers must expose the baked release commit',
+  );
+  assertIncludes(
     localCompose,
     'AUTH_ALLOW_INSECURE_PRODUCTION_DEFAULTS: "true"',
     'local compose must own the explicit localhost-only bypass',
@@ -731,8 +833,15 @@ function verifyRepositoryContract() {
     'env_file: !reset []',
     '127.0.0.1:4000:4000',
     'AUTH_SESSION_COOKIE_SECURE=true',
+    'AUTH_EMAIL_OUTBOX_WORKER_ENABLED:?Set AUTH_EMAIL_OUTBOX_WORKER_ENABLED=true',
+    'AUTH_EMAIL_SMTP_HOST:?Set AUTH_EMAIL_SMTP_HOST',
+    'AUTH_EMAIL_FROM_ADDRESS:?Set AUTH_EMAIL_FROM_ADDRESS',
     'DB_INIT_BASELINE_MODE: strict',
     'DMS_MARKDOWN_HOST_PATH:?Set absolute DMS_MARKDOWN_HOST_PATH',
+    'dms-restore-verify:',
+    'DMS_BACKUP_ARCHIVE_ROOT:?Set absolute DMS_BACKUP_ARCHIVE_ROOT',
+    'entrypoint: ["node", "scripts/verify-dms-backup-restore.mjs"]',
+    'SSOO_RELEASE_SHA:?Set SSOO_RELEASE_SHA to the release commit',
   ]) {
     assertIncludes(productionCompose, marker, `production compose contract must include ${marker}`);
   }
@@ -784,6 +893,7 @@ function createValidFixture(paths) {
     sns: 'https://sns.ssoo.internal',
   };
   return {
+    SSOO_RELEASE_SHA: '208acbe2c93b7218f2011820391234567890abcd',
     POSTGRES_DB: 'ssoo_prod',
     POSTGRES_USER: 'ssoo',
     POSTGRES_PASSWORD: postgresPassword,
@@ -798,6 +908,13 @@ function createValidFixture(paths) {
     JWT_REFRESH_SECRET: 'T4b9mZ1qV6xC8nL2sK7pR5wH3dF0yJGc',
     AUTH_OAUTH_STATE_SIGNING_SECRET: 'C7k2pW9rM4xT1vL8nQ5sZ3hB6dF0yJUa',
     AUTH_CONFIG_ENCRYPTION_KEY: 'V5m8qL2tR7xC1pK9sN4wZ6hB3dF0yJGc',
+    AUTH_EMAIL_OUTBOX_WORKER_ENABLED: 'true',
+    AUTH_EMAIL_SMTP_HOST: 'smtp.ssoo.internal',
+    AUTH_EMAIL_SMTP_PORT: '587',
+    AUTH_EMAIL_SMTP_SECURE: 'false',
+    AUTH_EMAIL_SMTP_USERNAME: 'ssoo-auth-mailer',
+    AUTH_EMAIL_SMTP_PASSWORD: 'Smtp7pQ2Lm9Vr4Tx8Nc6Hs3Kw5Za1Y',
+    AUTH_EMAIL_FROM_ADDRESS: 'no-reply@ssoo.internal',
     AUTH_SESSION_COOKIE_SECURE: 'true',
     AUTH_SESSION_COOKIE_SAME_SITE: 'lax',
     AUTH_SESSION_COOKIE_DOMAIN: '.ssoo.internal',
@@ -815,8 +932,12 @@ function createValidFixture(paths) {
     DMS_MARKDOWN_HOST_PATH: paths.markdown,
     DMS_INGEST_HOST_PATH: paths.ingest,
     DMS_STORAGE_LOCAL_HOST_PATH: paths.storage,
+    DMS_BACKUP_ARCHIVE_ROOT: paths.backup,
+    DMS_BACKUP_ARCHIVE_NAME: 'dms-launch-backup-20260813T120000Z.tar.gz',
+    DMS_BACKUP_RETENTION_DAYS: '30',
     DMS_INSTANCE_ENV: 'prod',
     DMS_GIT_PROD_REMOTE_URL: 'ssh://git@git.ssoo.internal/LSITC_WEB/LSWIKI_DOC.git',
+    DMS_AI_RAG_LAUNCH_MODE: 'exempted_external_provider',
     AZURE_USE_MANAGED_IDENTITY: 'false',
   };
 }

@@ -23,6 +23,9 @@ export type {
   AuthIdentityProviderKey,
   AuthRegistrationRequestStatus,
   AuthEmailDeliveryMode,
+  AuthEmailOutboxStatus,
+  AuthEmailDeliveryMessageSummary,
+  AuthEmailDeliveryStatus,
   AuthPublicActionLink,
   AuthPublicIdentityProvider,
   AuthPublicLoginConfig,
@@ -55,6 +58,14 @@ export type {
   PermissionEffectType,
   PermissionResolutionTrace,
 } from './access';
+
+// Launch readiness
+export type {
+  LaunchReadinessOwner,
+  LaunchReadinessSnapshot,
+  LaunchReadinessSource,
+  LaunchReadinessStatus,
+} from './launch-readiness';
 
 // Notification
 export type {

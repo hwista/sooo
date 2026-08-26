@@ -1,6 +1,6 @@
 # DMS 서비스 개요
 
-> 최종 업데이트: 2026-04-22
+> 최종 업데이트: 2026-07-22
 
 ---
 
@@ -11,7 +11,7 @@ DMS(Document Management System)는 위키 문서를 중심으로 문서를 생�
 핵심 원칙:
 
 - 위키 산출 문서는 markdown content(`.md`)는 Git 기반으로, metadata/control 정보는 DB projection 기반으로 관리
-- 정본/첨부 문서는 저장소 어댑터(Local/SharePoint/NAS)로 관리
+- 정본/첨부 문서는 저장소 어댑터(Local/NAS)로 관리
 - 기본 대화/검색과 세컨드브레인 딥리서치 모드를 분리 운영
 
 ---
@@ -21,13 +21,13 @@ DMS(Document Management System)는 위키 문서를 중심으로 문서를 생�
 ### 2.1 지원 저장소
 
 - `local`: DMS 서버 로컬 경로
-- `sharepoint`: 사내 SharePoint
 - `nas`: 사내 NAS
 
 ### 2.2 기본값 및 오버라이드
 
-- 기본 저장소: SharePoint
-- 오버라이드: 문서별 + 첨부별 모두 허용
+- 기본 저장소: Local
+- NAS: 실제 mount/gateway를 구성하고 명시적으로 활성화한 경우에만 오버라이드 허용
+- SharePoint provider/URI는 지원하지 않으며 API 요청 시 거부
 
 ### 2.3 자산 분류
 
@@ -195,6 +195,7 @@ AI 응답이 스트리밍으로 길어질 수 있는 화면은 공통 자동 스
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-07-22 | SharePoint 저장소 지원을 폐기하고 Local 기본 + NAS 선택형 비활성 계약, 시작 시 기본 저장소 읽기/쓰기 검증 기준으로 갱신 |
 | 2026-04-13 | same-origin proxy + apps/server DMS module 기준으로 API 현황을 갱신하고, raw/attachment auth proxy 및 다음 object ACL 우선순위를 반영 |
 | 2026-03-27 | CodeMirror 에디터 auto-scroll 구현을 `view.scrollDOM` listener + near-bottom ref + RAF 직접 DOM scroll 방식으로 보정해, 템플릿 변환/Doc Assist 스트리밍 중 follow가 끊기지 않도록 문서 갱신 |
 | 2026-03-27 | 템플릿 전환 pending 전달을 `get + clear`로 분리하고, strict mode 개발 환경에서 `/api/templates/convert` 요청이 유실되지 않도록 문서 갱신 |

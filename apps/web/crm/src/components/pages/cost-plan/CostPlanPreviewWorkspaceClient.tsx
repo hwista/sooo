@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, CheckCircle2, FileCheck2, RefreshCw, RotateCcw, Save, Search } from 'lucide-react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertCircle, CheckCircle2, FileCheck2, Plus, RefreshCw, RotateCcw, Save, Search, Trash2 } from 'lucide-react';
 import type {
   CrmCostPlanAccountingPaymentExecutionResult,
   CrmCostPlanAccountingPaymentHandoffResult,
@@ -9,25 +9,39 @@ import type {
   CrmCostPlanAmsExternalMonthlyInputResult,
   CrmCostPlanAmsExternalMonthlyWorkflowResult,
   CrmCostPlanAmsReadiness,
+  CrmCostPlanAmsSourceWorkspaceResult,
+  CrmCostPlanAmsSourceWorkspace,
   CrmCostPlanAmsVendorWbsMappingResult,
   CrmCostPlanInternalMonthlyInputResult,
   CrmCostPlanInternalMonthlyWorkflowResult,
+  CrmCostPlanInternalSourceGridResult,
   CrmCostPlanPreviewMonth,
-  CrmCostPlanPreviewQuery,
   CrmCostPlanPreviewRegion,
   CrmCostPlanPreviewResponse,
   CrmCostPlanPreviewRow,
 } from '@ssoo/types/crm';
-import { Badge, Button, Input, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
+import { Badge, Button, Checkbox, Input, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { useAuthStore } from '@/stores/auth.store';
-
-export interface CostPlanPreviewWorkspaceQuery {
-  year: number;
-  businessType: string;
-  industryLine: string;
-  region: CrmCostPlanPreviewRegion;
-  search: string;
-}
+import { useCrmBusinessYearOptions } from '@/lib/crmCommonCodeOptions';
+import { useCrmDomainAccess } from '@/lib/useCrmDomainAccess';
+import {
+  applyInternalCostSourceGridPaste,
+  sanitizeInternalCostSourceInput,
+  sumInternalCostSourceValues,
+  toInternalCostSourceGridDraft,
+  toInternalCostSourceGridRequest,
+  type InternalCostSourceGridDraftItem,
+} from './internalCostSourceGrid';
+import {
+  applyAmsSourceGridPaste,
+  sanitizeAmsSourceInput,
+  sumAmsSourceValues,
+  toAmsSourceExternalCostRequest,
+  toAmsSourceGridDrafts,
+  type AmsSourceGridDraftRow,
+} from './amsSourceGrid';
+import type { CostPlanPreviewWorkspaceQuery } from './costPlanPreviewQuery';
 
 interface BackendSuccessResponse<T> {
   success: true;
@@ -200,6 +214,9 @@ export function CostPlanPreviewWorkspaceClient({
   query: CostPlanPreviewWorkspaceQuery;
 }) {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { access: domainAccess, error: domainAccessError } = useCrmDomainAccess(accessToken);
+  const canWriteCostPlan = domainAccess?.features.canWriteCostPlan === true;
+  const canConfirmCostPlan = domainAccess?.features.canConfirmCostPlan === true;
   const [currentData, setCurrentData] = useState(data);
   const [isReloading, setIsReloading] = useState(data.rows.length === 0);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -210,12 +227,21 @@ export function CostPlanPreviewWorkspaceClient({
   const [isSavingInternalWorkflow, setIsSavingInternalWorkflow] = useState(false);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [internalSourceDrafts, setInternalSourceDrafts] = useState<InternalCostSourceGridDraftItem[]>(() => toInternalCostSourceGridDraft(data.internalCostSourceGrid));
+  const [isSavingInternalSource, setIsSavingInternalSource] = useState(false);
+  const [internalSourceNotice, setInternalSourceNotice] = useState<string | null>(null);
+  const [internalSourceError, setInternalSourceError] = useState<string | null>(null);
   const [selectedAmsRowKey, setSelectedAmsRowKey] = useState(() => getAmsMappingRows(data.rows)[0]?.key ?? '');
   const [amsVendorName, setAmsVendorName] = useState(() => getAmsMappingRows(data.rows)[0]?.amsVendorName ?? '');
   const [amsVendorContractNo, setAmsVendorContractNo] = useState(() => getAmsMappingRows(data.rows)[0]?.amsVendorContractNo ?? '');
   const [isSavingAmsMapping, setIsSavingAmsMapping] = useState(false);
   const [amsSaveNotice, setAmsSaveNotice] = useState<string | null>(null);
   const [amsSaveError, setAmsSaveError] = useState<string | null>(null);
+  const [amsSourceVendorName, setAmsSourceVendorName] = useState('');
+  const [amsSourceDrafts, setAmsSourceDrafts] = useState<AmsSourceGridDraftRow[]>(() => toAmsSourceGridDrafts(data.amsSourceWorkspace));
+  const [isSavingAmsSource, setIsSavingAmsSource] = useState(false);
+  const [amsSourceNotice, setAmsSourceNotice] = useState<string | null>(null);
+  const [amsSourceError, setAmsSourceError] = useState<string | null>(null);
   const [selectedAmsExternalRowKey, setSelectedAmsExternalRowKey] = useState(() => getAmsExternalInputRows(data.rows)[0]?.key ?? '');
   const [amsExternalMonthlyPlanAmounts, setAmsExternalMonthlyPlanAmounts] = useState<number[]>(() => getAmsExternalPlanDefaults(getAmsExternalInputRows(data.rows)[0]));
   const [amsExternalMonthlyActualAmounts, setAmsExternalMonthlyActualAmounts] = useState<number[]>(() => getAmsExternalActualDefaults(getAmsExternalInputRows(data.rows)[0]));
@@ -231,7 +257,8 @@ export function CostPlanPreviewWorkspaceClient({
   const [accountingPaymentError, setAccountingPaymentError] = useState<string | null>(null);
   const apiHref = useMemo(() => buildApiHref(query), [query]);
   const accountingPaymentApiHref = useMemo(() => buildAccountingPaymentApiHref(query), [query]);
-  const yearOptions = useMemo(() => getYearOptions(query.year), [query.year]);
+  const businessYears = useCrmBusinessYearOptions(query.year, getYearOptions(query.year));
+  const yearOptions = businessYears.years;
   const amsMappingRows = useMemo(() => getAmsMappingRows(currentData.rows), [currentData.rows]);
   const amsExternalRows = useMemo(() => getAmsExternalInputRows(currentData.rows), [currentData.rows]);
   const selectedInternalRow = useMemo(
@@ -257,6 +284,14 @@ export function CostPlanPreviewWorkspaceClient({
       setIsReloading(false);
     }
   }, [data]);
+
+  useEffect(() => {
+    setInternalSourceDrafts(toInternalCostSourceGridDraft(currentData.internalCostSourceGrid));
+  }, [currentData.internalCostSourceGrid]);
+
+  useEffect(() => {
+    setAmsSourceDrafts(toAmsSourceGridDrafts(currentData.amsSourceWorkspace));
+  }, [currentData.amsSourceWorkspace]);
 
   useEffect(() => {
     if (currentData.rows.length === 0) {
@@ -386,6 +421,175 @@ export function CostPlanPreviewWorkspaceClient({
     const amount = Math.max(0, Math.round(Number(value) || 0));
     setAmsExternalMonthlyActualAmounts((current) => current.map((item, itemIndex) => itemIndex === index ? amount : item));
   }, []);
+
+  const updateInternalSourceAmount = useCallback((itemIndex: number, type: 'plan' | 'actual', monthIndex: number, value: string) => {
+    const normalized = sanitizeInternalCostSourceInput(value);
+    setInternalSourceDrafts((current) => current.map((item, index) => {
+      if (index !== itemIndex) return item;
+      const key = type === 'plan' ? 'planValues' : 'actualValues';
+      return { ...item, [key]: item[key].map((amount, amountIndex) => amountIndex === monthIndex ? normalized : amount) };
+    }));
+  }, []);
+
+  const pasteInternalSourceAmounts = useCallback((itemIndex: number, type: 'plan' | 'actual', monthIndex: number, clipboardText: string) => {
+    setInternalSourceDrafts((current) => {
+      const applied = applyInternalCostSourceGridPaste(current, itemIndex, type, monthIndex, clipboardText);
+      if (applied.invalidCellCount > 0) {
+        setInternalSourceNotice(null);
+        setInternalSourceError('붙여넣을 수 없는 값입니다.');
+        return current;
+      }
+      setInternalSourceNotice(`${applied.pastedCellCount}개 셀이 붙여넣기 되었습니다.`);
+      setInternalSourceError(null);
+      return applied.drafts;
+    });
+  }, []);
+
+  const saveInternalSourceGrid = useCallback(async () => {
+    if (!accessToken) return;
+    setIsSavingInternalSource(true);
+    setInternalSourceNotice(null);
+    setInternalSourceError(null);
+    try {
+      const response = await fetch('/api/crm/cost-plan/internal-cost/source-grid', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(toInternalCostSourceGridRequest(currentData.summary.year, internalSourceDrafts)),
+      });
+      const payload = await response.json().catch(() => null) as BackendSuccessResponse<CrmCostPlanInternalSourceGridResult> | BackendErrorResponse | null;
+      if (!response.ok || payload?.success !== true) {
+        throw new Error(getBackendErrorMessage(payload));
+      }
+      setCurrentData((current) => ({ ...current, internalCostSourceGrid: payload.data.grid }));
+      setInternalSourceNotice(`${payload.data.grid.targetYear}년 내부원가가 저장되었습니다.`);
+    } catch (error) {
+      setInternalSourceError(error instanceof Error ? error.message : '원본 호환 내부원가 저장에 실패했습니다.');
+    } finally {
+      setIsSavingInternalSource(false);
+    }
+  }, [accessToken, currentData.summary.year, internalSourceDrafts]);
+
+  const applyAmsSourceWorkspaceResult = useCallback((result: CrmCostPlanAmsSourceWorkspaceResult) => {
+    setCurrentData((current) => ({ ...current, amsSourceWorkspace: result.workspace }));
+  }, []);
+
+  const runAmsSourceRequest = useCallback(async (href: string, init: RequestInit) => {
+    if (!accessToken) return null;
+    const response = await fetch(href, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+        ...init.headers,
+      },
+    });
+    const payload = await response.json().catch(() => null) as BackendSuccessResponse<CrmCostPlanAmsSourceWorkspaceResult> | BackendErrorResponse | null;
+    if (!response.ok || payload?.success !== true) throw new Error(getBackendErrorMessage(payload));
+    applyAmsSourceWorkspaceResult(payload.data);
+    return payload.data;
+  }, [accessToken, applyAmsSourceWorkspaceResult]);
+
+  const createAmsSourceVendor = useCallback(async () => {
+    const vendorName = amsSourceVendorName.trim();
+    if (!vendorName) {
+      setAmsSourceError('공급업체명을 입력해 주세요.');
+      return;
+    }
+    setIsSavingAmsSource(true);
+    setAmsSourceNotice(null);
+    setAmsSourceError(null);
+    try {
+      await runAmsSourceRequest('/api/crm/cost-plan/ams/source/vendors', {
+        method: 'POST',
+        body: JSON.stringify({ targetYear: currentData.summary.year, vendorName }),
+      });
+      setAmsSourceVendorName('');
+      setAmsSourceNotice('공급업체가 추가되었습니다.');
+    } catch (error) {
+      setAmsSourceError(error instanceof Error ? error.message : '공급업체 추가에 실패했습니다.');
+    } finally {
+      setIsSavingAmsSource(false);
+    }
+  }, [amsSourceVendorName, currentData.summary.year, runAmsSourceRequest]);
+
+  const deleteAmsSourceVendor = useCallback(async (vendorId: string, vendorName: string) => {
+    if (!window.confirm(`"${vendorName}"을 삭제하시겠습니까?\n연관된 외부원가도 모두 삭제됩니다.`)) return;
+    setIsSavingAmsSource(true);
+    setAmsSourceNotice(null);
+    setAmsSourceError(null);
+    try {
+      await runAmsSourceRequest(`/api/crm/cost-plan/ams/source/vendors/${encodeURIComponent(vendorId)}?year=${currentData.summary.year}`, { method: 'DELETE' });
+      setAmsSourceNotice('삭제되었습니다.');
+    } catch (error) {
+      setAmsSourceError(error instanceof Error ? error.message : '공급업체 삭제에 실패했습니다.');
+    } finally {
+      setIsSavingAmsSource(false);
+    }
+  }, [currentData.summary.year, runAmsSourceRequest]);
+
+  const toggleAmsSourceVendorWbs = useCallback(async (vendorId: string, wbsCode: string, checked: boolean) => {
+    const vendor = currentData.amsSourceWorkspace.vendors.find((item) => item.id === vendorId);
+    if (!vendor) return;
+    const currentCodes = vendor.wbs.map((item) => item.wbsCode);
+    const wbsCodes = checked ? [...new Set([...currentCodes, wbsCode])] : currentCodes.filter((code) => code !== wbsCode);
+    setIsSavingAmsSource(true);
+    setAmsSourceNotice(null);
+    setAmsSourceError(null);
+    try {
+      await runAmsSourceRequest(`/api/crm/cost-plan/ams/source/vendors/${encodeURIComponent(vendorId)}/wbs`, {
+        method: 'PUT',
+        body: JSON.stringify({ targetYear: currentData.summary.year, wbsCodes }),
+      });
+      setAmsSourceNotice('WBS 매핑이 저장되었습니다.');
+    } catch (error) {
+      setAmsSourceError(error instanceof Error ? error.message : 'WBS 매핑 저장에 실패했습니다.');
+    } finally {
+      setIsSavingAmsSource(false);
+    }
+  }, [currentData.amsSourceWorkspace.vendors, currentData.summary.year, runAmsSourceRequest]);
+
+  const updateAmsSourceAmount = useCallback((rowIndex: number, type: 'plan' | 'actual', monthIndex: number, value: string) => {
+    const normalized = sanitizeAmsSourceInput(value);
+    setAmsSourceDrafts((current) => current.map((row, index) => {
+      if (index !== rowIndex) return row;
+      const key = type === 'plan' ? 'planValues' : 'actualValues';
+      return { ...row, [key]: row[key].map((amount, amountIndex) => amountIndex === monthIndex ? normalized : amount) };
+    }));
+  }, []);
+
+  const pasteAmsSourceAmounts = useCallback((rowIndex: number, type: 'plan' | 'actual', monthIndex: number, text: string) => {
+    setAmsSourceDrafts((current) => {
+      const applied = applyAmsSourceGridPaste(current, rowIndex, type, monthIndex, text);
+      if (applied.invalidCellCount > 0) {
+        setAmsSourceNotice(null);
+        setAmsSourceError('붙여넣을 수 없는 값입니다.');
+        return current;
+      }
+      setAmsSourceNotice(`${applied.pastedCellCount}개 셀 붙여넣기 완료`);
+      setAmsSourceError(null);
+      return applied.drafts;
+    });
+  }, []);
+
+  const saveAmsSourceExternalCost = useCallback(async () => {
+    setIsSavingAmsSource(true);
+    setAmsSourceNotice(null);
+    setAmsSourceError(null);
+    try {
+      await runAmsSourceRequest('/api/crm/cost-plan/ams/source/external-cost', {
+        method: 'POST',
+        body: JSON.stringify(toAmsSourceExternalCostRequest(currentData.summary.year, amsSourceDrafts)),
+      });
+      setAmsSourceNotice(`${currentData.summary.year}년 외부원가가 저장되었습니다.`);
+    } catch (error) {
+      setAmsSourceError(error instanceof Error ? error.message : 'AMS 연간 외부원가 저장에 실패했습니다.');
+    } finally {
+      setIsSavingAmsSource(false);
+    }
+  }, [amsSourceDrafts, currentData.summary.year, runAmsSourceRequest]);
 
   const saveInternalMonthlyInput = useCallback(async () => {
     if (!accessToken || !selectedInternalRow) {
@@ -675,6 +879,86 @@ export function CostPlanPreviewWorkspaceClient({
     return () => abortController.abort();
   }, [loadAccountingPaymentPreview]);
 
+  if (query.sourceSurface === 'internal-cost') {
+    return (
+      <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="internal-cost">
+        <div className="mx-auto max-w-[1180px]">
+          <h1 className="text-xl font-semibold text-foreground">내부원가 등록</h1>
+          <p className="mt-1 text-sm text-muted-foreground">년도별 월간 내부원가를 입력합니다.</p>
+          <SourceCostYearForm id="ic-year" label="년도 *" year={query.year} yearOptions={yearOptions} sourceSurface="internal-cost" />
+          <section className="mt-5 overflow-hidden rounded-xl border bg-card">
+            <InternalCostSourceGridPanel
+              canWrite={canWriteCostPlan}
+              targetYear={currentData.summary.year}
+              boundaryNotice={currentData.internalCostSourceGrid.boundaryNotice}
+              drafts={internalSourceDrafts}
+              isSaving={isSavingInternalSource}
+              notice={internalSourceNotice}
+              error={internalSourceError}
+              onChange={updateInternalSourceAmount}
+              onPaste={pasteInternalSourceAmounts}
+              onSave={() => void saveInternalSourceGrid()}
+              sourceCompatible
+            />
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (query.sourceSurface === 'ams-vendor') {
+    return (
+      <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="ams-vendor">
+        <div className="mx-auto max-w-[1180px]">
+          <h1 className="text-xl font-semibold text-foreground">공급업체 관리</h1>
+          <p className="mt-1 text-sm text-muted-foreground">사업년도별 AMS 공급업체와 WBS를 관리합니다.</p>
+          <SourceCostYearForm id="av-year" label="사업년도 *" year={query.year} yearOptions={yearOptions} sourceSurface="ams-vendor" />
+          <section className="mt-5 overflow-hidden rounded-xl border bg-card">
+            <AmsSourceVendorPanel
+              canWrite={canWriteCostPlan}
+              workspace={currentData.amsSourceWorkspace}
+              vendorName={amsSourceVendorName}
+              isSaving={isSavingAmsSource}
+              notice={amsSourceNotice}
+              error={amsSourceError}
+              onChangeVendorName={setAmsSourceVendorName}
+              onCreate={() => void createAmsSourceVendor()}
+              onDelete={(vendorId, vendorName) => void deleteAmsSourceVendor(vendorId, vendorName)}
+              onToggleWbs={(vendorId, wbsCode, checked) => void toggleAmsSourceVendorWbs(vendorId, wbsCode, checked)}
+              sourceCompatible
+            />
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (query.sourceSurface === 'ams-cost') {
+    return (
+      <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="ams-cost">
+        <div className="mx-auto max-w-[1180px]">
+          <h1 className="text-xl font-semibold text-foreground">연간 외부원가</h1>
+          <p className="mt-1 text-sm text-muted-foreground">공급업체·WBS별 월간 계획과 실적을 입력합니다.</p>
+          <SourceCostYearForm id="ac-year" label="사업년도 *" year={query.year} yearOptions={yearOptions} sourceSurface="ams-cost" />
+          <section className="mt-5 overflow-hidden rounded-xl border bg-card">
+            <AmsSourceExternalCostPanel
+              canWrite={canWriteCostPlan}
+              targetYear={currentData.summary.year}
+              drafts={amsSourceDrafts}
+              isSaving={isSavingAmsSource}
+              notice={amsSourceNotice}
+              error={amsSourceError}
+              onChange={updateAmsSourceAmount}
+              onPaste={pasteAmsSourceAmounts}
+              onSave={() => void saveAmsSourceExternalCost()}
+              sourceCompatible
+            />
+          </section>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col bg-ssoo-content-bg">
       <header className="border-b bg-card px-5 py-4">
@@ -743,7 +1027,7 @@ export function CostPlanPreviewWorkspaceClient({
             </label>
             <label className="min-w-[220px] flex-1 text-sm font-medium text-muted-foreground">
               검색
-              <Input name="search" defaultValue={query.search} placeholder="고객, 건명, 담당자, WBS" className="mt-1" />
+              <SsooSearchInput id="crm-cost-plan-search-input" name="search" ariaLabel="원가 계획 검색" intent="data-filter" defaultValue={query.search} placeholder="고객, 건명, 담당자, WBS" className="mt-1" />
             </label>
             <Button type="submit">
               <Search className="mr-2 h-4 w-4" />
@@ -757,12 +1041,32 @@ export function CostPlanPreviewWorkspaceClient({
               {loadError}
             </div>
           ) : null}
+          {domainAccess && !canWriteCostPlan ? (
+            <div className="border-b bg-ssoo-warning-bg px-4 py-3 text-sm text-ssoo-warning">원가·AMS 변경 권한이 없어 조회 전용으로 표시합니다.</div>
+          ) : null}
+          {domainAccessError ? (
+            <div className="border-b bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger">{domainAccessError}</div>
+          ) : null}
 
           <div className="border-b px-4 py-2 text-xs text-muted-foreground">
             단위: 억원 · 내부원가는 영업기회/계약 라인 후보와 월별 입력 원장, 외부원가는 확정 계약 청구계획/실적 read model 및 AMS 월별 입력 원장 기준
           </div>
           <MonthlyCostSummary months={currentData.months} />
+          <InternalCostSourceGridPanel
+            canWrite={canWriteCostPlan}
+            targetYear={currentData.summary.year}
+            boundaryNotice={currentData.internalCostSourceGrid.boundaryNotice}
+            drafts={internalSourceDrafts}
+            isSaving={isSavingInternalSource}
+            notice={internalSourceNotice}
+            error={internalSourceError}
+            onChange={updateInternalSourceAmount}
+            onPaste={pasteInternalSourceAmounts}
+            onSave={() => void saveInternalSourceGrid()}
+          />
           <InternalMonthlyInputPanel
+            canWrite={canWriteCostPlan}
+            canConfirm={canConfirmCostPlan}
             rows={currentData.rows}
             selectedRow={selectedInternalRow}
             selectedRowKey={selectedInternalRowKey}
@@ -781,7 +1085,31 @@ export function CostPlanPreviewWorkspaceClient({
             onConfirm={() => void runInternalCostWorkflow('confirm')}
             onReopen={() => void runInternalCostWorkflow('reopen')}
           />
+          <AmsSourceVendorPanel
+            canWrite={canWriteCostPlan}
+            workspace={currentData.amsSourceWorkspace}
+            vendorName={amsSourceVendorName}
+            isSaving={isSavingAmsSource}
+            notice={amsSourceNotice}
+            error={amsSourceError}
+            onChangeVendorName={setAmsSourceVendorName}
+            onCreate={() => void createAmsSourceVendor()}
+            onDelete={(vendorId, vendorName) => void deleteAmsSourceVendor(vendorId, vendorName)}
+            onToggleWbs={(vendorId, wbsCode, checked) => void toggleAmsSourceVendorWbs(vendorId, wbsCode, checked)}
+          />
+          <AmsSourceExternalCostPanel
+            canWrite={canWriteCostPlan}
+            targetYear={currentData.summary.year}
+            drafts={amsSourceDrafts}
+            isSaving={isSavingAmsSource}
+            notice={amsSourceNotice}
+            error={amsSourceError}
+            onChange={updateAmsSourceAmount}
+            onPaste={pasteAmsSourceAmounts}
+            onSave={() => void saveAmsSourceExternalCost()}
+          />
           <AmsVendorMappingPanel
+            canWrite={canWriteCostPlan}
             rows={amsMappingRows}
             selectedRow={selectedAmsRow}
             selectedRowKey={selectedAmsRowKey}
@@ -796,6 +1124,8 @@ export function CostPlanPreviewWorkspaceClient({
             onSave={() => void saveAmsVendorMapping()}
           />
           <AmsExternalMonthlyInputPanel
+            canWrite={canWriteCostPlan}
+            canConfirm={canConfirmCostPlan}
             rows={amsExternalRows}
             selectedRow={selectedAmsExternalRow}
             selectedRowKey={selectedAmsExternalRowKey}
@@ -815,6 +1145,7 @@ export function CostPlanPreviewWorkspaceClient({
             onReopen={() => void runAmsExternalWorkflow('reopen')}
           />
           <AccountingPaymentHandoffPanel
+            canConfirm={canConfirmCostPlan}
             preview={accountingPaymentPreview}
             isLoading={isLoadingAccountingPayment}
             isSaving={isSavingAccountingPayment}
@@ -832,6 +1163,179 @@ export function CostPlanPreviewWorkspaceClient({
       </main>
     </div>
   );
+}
+
+function SourceCostYearForm({
+  id,
+  label,
+  year,
+  yearOptions,
+  sourceSurface,
+}: {
+  id: string;
+  label: string;
+  year: number;
+  yearOptions: number[];
+  sourceSurface: 'internal-cost' | 'ams-vendor' | 'ams-cost';
+}) {
+  return (
+    <form action="/cost-plan" className="mt-6 flex flex-wrap items-end gap-3">
+      <Input type="hidden" name="sourceSurface" value={sourceSurface} />
+      <div className="w-[160px]">
+        <label className="mb-1 block text-sm text-muted-foreground">{label}</label>
+        <NativeSelect id={id} name="year" defaultValue={String(year)}>{yearOptions.map((option) => <option key={option} value={option}>{option}년</option>)}</NativeSelect>
+      </div>
+      <Button type="submit" variant="outline">조회</Button>
+    </form>
+  );
+}
+
+function InternalCostSourceGridPanel({
+  canWrite,
+  targetYear,
+  boundaryNotice,
+  drafts,
+  isSaving,
+  notice,
+  error,
+  onChange,
+  onPaste,
+  onSave,
+  sourceCompatible = false,
+}: {
+  canWrite: boolean;
+  targetYear: number;
+  boundaryNotice: string;
+  drafts: InternalCostSourceGridDraftItem[];
+  isSaving: boolean;
+  notice: string | null;
+  error: string | null;
+  onChange: (itemIndex: number, type: 'plan' | 'actual', monthIndex: number, value: string) => void;
+  onPaste: (itemIndex: number, type: 'plan' | 'actual', monthIndex: number, text: string) => void;
+  onSave: () => void;
+  sourceCompatible?: boolean;
+}) {
+  const monthlyPlanTotals = Array.from({ length: 12 }, (_, monthIndex) => (
+    drafts.reduce((sum, item) => sum + sumInternalCostSourceValues([item.planValues[monthIndex] ?? '']), 0)
+  ));
+  const monthlyActualTotals = Array.from({ length: 12 }, (_, monthIndex) => (
+    drafts.reduce((sum, item) => sum + sumInternalCostSourceValues([item.actualValues[monthIndex] ?? '']), 0)
+  ));
+  const planTotal = monthlyPlanTotals.reduce((sum, amount) => sum + amount, 0);
+  const actualTotal = monthlyActualTotals.reduce((sum, amount) => sum + amount, 0);
+
+  return (
+    <div className="border-b p-4" data-testid="internal-cost-source-grid">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">{sourceCompatible ? '내부원가 등록' : `${targetYear}년 내부원가 등록 · 원본 5개 항목`}</h2>
+          {!sourceCompatible ? <p className="mt-1 text-xs text-muted-foreground">{boundaryNotice}</p> : null}
+          <p className="mt-1 text-xs text-muted-foreground">엑셀의 탭/줄바꿈 셀을 선택한 월부터 붙여넣을 수 있습니다. 행 순서는 각 항목의 계획, 실적입니다.</p>
+        </div>
+        <Button type="button" onClick={onSave} disabled={!canWrite || isSaving}>
+          <Save className="mr-2 h-4 w-4" />
+          {isSaving ? '저장 중' : sourceCompatible ? '저장' : '원본 5개 항목 저장'}
+        </Button>
+      </div>
+
+      {notice ? <div className="mt-3 text-sm text-ssoo-info">{notice}</div> : null}
+      {error ? (
+        <div className="mt-3 flex items-center gap-2 text-sm text-ssoo-danger">
+          <AlertCircle className="h-4 w-4" />
+          {error}
+        </div>
+      ) : null}
+
+      <div className="mt-4 overflow-x-auto rounded-md border">
+        <Table className="min-w-[1480px] border-collapse text-xs">
+          <TableHeader className="bg-muted/60 text-muted-foreground">
+            {sourceCompatible ? <TableRow><TableHead colSpan={15} className="border-b px-3 py-1 text-right text-xs font-normal">단위: 원</TableHead></TableRow> : null}
+            <TableRow>
+              <TableHead className="sticky left-0 z-20 w-[132px] border-b border-r bg-muted px-3 py-2 text-left">항목</TableHead>
+              <TableHead className="sticky left-[132px] z-20 w-[64px] border-b border-r bg-muted px-2 py-2 text-left">구분</TableHead>
+              {Array.from({ length: 12 }, (_, index) => <TableHead key={index} className="min-w-[92px] border-b border-r px-2 py-2 text-right">{index + 1}월</TableHead>)}
+              <TableHead className="min-w-[112px] border-b px-3 py-2 text-right">합계</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {drafts.flatMap((item, itemIndex) => (['plan', 'actual'] as const).map((type) => {
+              const values = type === 'plan' ? item.planValues : item.actualValues;
+              const rowTotal = sumInternalCostSourceValues(values);
+              return (
+                <TableRow key={`${item.itemCode}-${type}`} className={type === 'actual' ? 'border-b bg-muted/20' : ''}>
+                  {type === 'plan' ? (
+                    <TableHead rowSpan={2} className="sticky left-0 z-10 border-r border-b bg-card px-3 py-2 text-left font-semibold text-foreground">{item.itemName}</TableHead>
+                  ) : null}
+                  <TableHead className="sticky left-[132px] z-10 border-r bg-card px-2 py-2 text-left font-medium text-muted-foreground">{type === 'plan' ? '계획' : '실적'}</TableHead>
+                  {values.map((value, monthIndex) => (
+                    <TableCell key={monthIndex} className="border-r p-1">
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        aria-label={`${item.itemName} ${type === 'plan' ? '계획' : '실적'} ${monthIndex + 1}월`}
+                        value={value}
+                        placeholder="0"
+                        disabled={!canWrite || isSaving}
+                        className="h-8 text-right tabular-nums"
+                        onChange={(event) => onChange(itemIndex, type, monthIndex, event.target.value)}
+                        onPaste={(event) => {
+                          event.preventDefault();
+                          onPaste(itemIndex, type, monthIndex, event.clipboardData.getData('text'));
+                        }}
+                      />
+                    </TableCell>
+                  ))}
+                  <TableCell className="px-3 py-2 text-right font-semibold tabular-nums">{formatInternalSourceAmount(rowTotal)}</TableCell>
+                </TableRow>
+              );
+            }))}
+            <InternalCostSourceSummaryRow label="소계" typeLabel="계획" values={monthlyPlanTotals} total={planTotal} />
+            <InternalCostSourceSummaryRow label="" typeLabel="실적" values={monthlyActualTotals} total={actualTotal} />
+            <InternalCostSourceSummaryRow
+              label="차이"
+              typeLabel="계획-실적"
+              values={monthlyPlanTotals.map((amount, index) => amount - monthlyActualTotals[index])}
+              total={planTotal - actualTotal}
+              difference
+            />
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function InternalCostSourceSummaryRow({
+  label,
+  typeLabel,
+  values,
+  total,
+  difference = false,
+}: {
+  label: string;
+  typeLabel: string;
+  values: number[];
+  total: number;
+  difference?: boolean;
+}) {
+  return (
+    <TableRow className={difference ? 'border-t-2 bg-ssoo-info-bg font-semibold' : 'border-t bg-muted/40 font-semibold'}>
+      <TableHead className="sticky left-0 z-10 border-r bg-inherit px-3 py-2 text-left">{label}</TableHead>
+      <TableHead className="sticky left-[132px] z-10 border-r bg-inherit px-2 py-2 text-left">{typeLabel}</TableHead>
+      {values.map((value, index) => (
+        <TableCell key={index} className={`border-r px-2 py-2 text-right tabular-nums ${difference ? internalSourceDifferenceTone(value) : ''}`}>{formatInternalSourceAmount(value)}</TableCell>
+      ))}
+      <TableCell className={`px-3 py-2 text-right tabular-nums ${difference ? internalSourceDifferenceTone(total) : ''}`}>{formatInternalSourceAmount(total)}</TableCell>
+    </TableRow>
+  );
+}
+
+function formatInternalSourceAmount(value: number) {
+  return value === 0 ? '-' : Math.round(value).toLocaleString('ko-KR');
+}
+
+function internalSourceDifferenceTone(value: number) {
+  return value > 0 ? 'text-ssoo-info' : value < 0 ? 'text-ssoo-danger' : 'text-muted-foreground';
 }
 
 function Metric({ label, value, sub }: { label: string; value: string; sub: string }) {
@@ -876,6 +1380,8 @@ function MonthlyCostSummary({ months }: { months: CrmCostPlanPreviewMonth[] }) {
 }
 
 function InternalMonthlyInputPanel({
+  canWrite,
+  canConfirm,
   rows,
   selectedRow,
   selectedRowKey,
@@ -894,6 +1400,8 @@ function InternalMonthlyInputPanel({
   onConfirm,
   onReopen,
 }: {
+  canWrite: boolean;
+  canConfirm: boolean;
   rows: CrmCostPlanPreviewRow[];
   selectedRow: CrmCostPlanPreviewRow | undefined;
   selectedRowKey: string;
@@ -939,18 +1447,18 @@ function InternalMonthlyInputPanel({
           <InputMetric label="Gap" value={formatEok(gapTotal)} tone={gapTotal < 0 ? 'danger' : 'info'} />
           <InputMetric label="상태" value={selectedRow ? internalInputStatusLabels[selectedRow.internalCostInputStatus] : '-'} tone={isConfirmed ? 'info' : undefined} />
         </div>
-        <Button type="button" onClick={onSave} disabled={!selectedRow || isConfirmed || isSaving || isWorkflowBusy}>
+        <Button type="button" onClick={onSave} disabled={!canWrite || !selectedRow || isConfirmed || isSaving || isWorkflowBusy}>
           <Save className="mr-2 h-4 w-4" />
           {isSaving ? '저장 중' : '내부원가 월별 저장'}
         </Button>
         {selectedRow?.internalCostInputId ? (
           isConfirmed ? (
-            <Button variant="outline" type="button" onClick={onReopen} disabled={isSaving || isWorkflowBusy}>
+            <Button variant="outline" type="button" onClick={onReopen} disabled={!canConfirm || isSaving || isWorkflowBusy}>
               <RotateCcw className="mr-2 h-4 w-4" />
               {isWorkflowBusy ? '처리 중' : '확정 해제'}
             </Button>
           ) : (
-            <Button variant="outline" type="button" onClick={onConfirm} disabled={isSaving || isWorkflowBusy}>
+            <Button variant="outline" type="button" onClick={onConfirm} disabled={!canConfirm || isSaving || isWorkflowBusy}>
               <CheckCircle2 className="mr-2 h-4 w-4" />
               {isWorkflowBusy ? '처리 중' : '내부원가 확정'}
             </Button>
@@ -977,7 +1485,7 @@ function InternalMonthlyInputPanel({
                 min={0}
                 value={planAmount}
                 className="mt-1"
-                disabled={!selectedRow || isConfirmed || isSaving || isWorkflowBusy}
+                disabled={!canWrite || !selectedRow || isConfirmed || isSaving || isWorkflowBusy}
                 onChange={(event) => onChangePlan(index, event.target.value)}
               />
             </label>
@@ -988,7 +1496,7 @@ function InternalMonthlyInputPanel({
                 min={0}
                 value={monthlyActualAmounts[index] ?? 0}
                 className="mt-1"
-                disabled={!selectedRow || isConfirmed || isSaving || isWorkflowBusy}
+                disabled={!canWrite || !selectedRow || isConfirmed || isSaving || isWorkflowBusy}
                 onChange={(event) => onChangeActual(index, event.target.value)}
               />
             </label>
@@ -999,7 +1507,240 @@ function InternalMonthlyInputPanel({
   );
 }
 
+function AmsSourceVendorPanel({
+  canWrite,
+  workspace,
+  vendorName,
+  isSaving,
+  notice,
+  error,
+  onChangeVendorName,
+  onCreate,
+  onDelete,
+  onToggleWbs,
+  sourceCompatible = false,
+}: {
+  canWrite: boolean;
+  workspace: CrmCostPlanAmsSourceWorkspace;
+  vendorName: string;
+  isSaving: boolean;
+  notice: string | null;
+  error: string | null;
+  onChangeVendorName: (value: string) => void;
+  onCreate: () => void;
+  onDelete: (vendorId: string, vendorName: string) => void;
+  onToggleWbs: (vendorId: string, wbsCode: string, checked: boolean) => void;
+  sourceCompatible?: boolean;
+}) {
+  return (
+    <div className="border-b p-4" data-testid="ams-source-vendor-panel">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">{sourceCompatible ? '공급업체 관리' : `${workspace.targetYear}년 AMS 공급업체 관리 · 원본 다중 WBS`}</h2>
+          {!sourceCompatible ? <p className="mt-1 text-xs text-muted-foreground">{workspace.boundaryNotice}</p> : null}
+        </div>
+        <div className="flex min-w-[320px] gap-2">
+          <Input
+            aria-label="AMS 공급업체명"
+            value={vendorName}
+            maxLength={200}
+            placeholder="공급업체명"
+            disabled={!canWrite || isSaving}
+            onChange={(event) => onChangeVendorName(event.target.value)}
+          />
+          <Button type="button" onClick={onCreate} disabled={!canWrite || isSaving}>
+            {!sourceCompatible ? <Plus className="mr-2 h-4 w-4" /> : null}{sourceCompatible ? '+ 업체 추가' : '업체 추가'}
+          </Button>
+        </div>
+      </div>
+
+      {notice ? <div className="mt-3 text-sm text-ssoo-info">{notice}</div> : null}
+      {error ? <div className="mt-3 flex items-center gap-2 text-sm text-ssoo-danger"><AlertCircle className="h-4 w-4" />{error}</div> : null}
+
+      {workspace.vendors.length === 0 ? (
+        <div className="mt-4 rounded-md border bg-muted/20 px-4 py-5 text-sm text-muted-foreground">등록된 공급업체가 없습니다. &quot;+ 업체 추가&quot;로 추가하세요.</div>
+      ) : (
+        <div className="mt-4 grid gap-3 xl:grid-cols-2">
+          {workspace.vendors.map((vendor) => {
+            const selected = new Set(vendor.wbs.map((mapping) => mapping.wbsCode));
+            return (
+              <div key={vendor.id} className="rounded-md border p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-foreground">{vendor.vendorName}</span>
+                  <Button variant="outline" size="sm" type="button" disabled={!canWrite || isSaving} onClick={() => onDelete(vendor.id, vendor.vendorName)}>
+                    <Trash2 className="mr-2 h-4 w-4" />삭제
+                  </Button>
+                </div>
+                <div className="mt-3 text-xs font-medium text-muted-foreground">WBS코드 선택 (AMS 확정 계약)</div>
+                {workspace.eligibleWbs.length === 0 ? (
+                  <div className="mt-2 text-xs text-muted-foreground">확정된 AMS 계약의 WBS코드가 없습니다.</div>
+                ) : (
+                  <div className="mt-2 grid gap-2">
+                    {workspace.eligibleWbs.map((wbs) => (
+                      <label key={wbs.wbsCode} className="flex cursor-pointer items-start gap-2 text-sm text-foreground">
+                        <Checkbox
+                          aria-label={`${vendor.vendorName} ${wbs.wbsCode} 매핑`}
+                          checked={selected.has(wbs.wbsCode)}
+                          disabled={!canWrite || isSaving}
+                          onCheckedChange={(checked) => onToggleWbs(vendor.id, wbs.wbsCode, checked === true)}
+                        />
+                        <span>{wbs.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AmsSourceExternalCostPanel({
+  canWrite,
+  targetYear,
+  drafts,
+  isSaving,
+  notice,
+  error,
+  onChange,
+  onPaste,
+  onSave,
+  sourceCompatible = false,
+}: {
+  canWrite: boolean;
+  targetYear: number;
+  drafts: AmsSourceGridDraftRow[];
+  isSaving: boolean;
+  notice: string | null;
+  error: string | null;
+  onChange: (rowIndex: number, type: 'plan' | 'actual', monthIndex: number, value: string) => void;
+  onPaste: (rowIndex: number, type: 'plan' | 'actual', monthIndex: number, text: string) => void;
+  onSave: () => void;
+  sourceCompatible?: boolean;
+}) {
+  const vendorRowCounts = new Map<string, number>();
+  drafts.forEach((row) => vendorRowCounts.set(row.vendorId, (vendorRowCounts.get(row.vendorId) ?? 0) + 1));
+  const firstVendorRows = new Set<string>();
+  return (
+    <div className="border-b p-4" data-testid="ams-source-external-grid">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">{sourceCompatible ? '연간 외부원가' : `${targetYear}년 AMS 연간 외부원가 · 업체×WBS`}</h2>
+          <p className="mt-1 text-xs text-muted-foreground">월별 계획·실적을 입력하면 차이(실적-계획)가 자동 계산됩니다. 붙여넣기는 선택한 계획/실적 유형을 유지해 다음 업체-WBS 행으로 이어집니다.</p>
+        </div>
+        <Button type="button" disabled={!canWrite || isSaving || drafts.length === 0} onClick={onSave}>
+          <Save className="mr-2 h-4 w-4" />{isSaving ? '저장 중' : sourceCompatible ? '저장' : 'AMS 연간 외부원가 저장'}
+        </Button>
+      </div>
+      {notice ? <div className="mt-3 text-sm text-ssoo-info">{notice}</div> : null}
+      {error ? <div className="mt-3 flex items-center gap-2 text-sm text-ssoo-danger"><AlertCircle className="h-4 w-4" />{error}</div> : null}
+      {drafts.length === 0 ? (
+        <div className="mt-4 rounded-md border bg-muted/20 px-4 py-5 text-sm text-muted-foreground">공급업체 관리에서 먼저 업체와 WBS를 등록하세요.</div>
+      ) : (
+        <div className="mt-4 overflow-x-auto rounded-md border">
+          <Table className="min-w-[3420px] border-collapse text-xs">
+            <TableHeader className="bg-muted/60 text-muted-foreground">
+              <TableRow>
+                <TableHead rowSpan={2} className="sticky left-0 z-30 min-w-[120px] border-b border-r bg-muted px-3 py-2">공급업체</TableHead>
+                <TableHead rowSpan={2} className="sticky left-[120px] z-30 min-w-[100px] border-b border-r-2 bg-muted px-3 py-2">WBS코드</TableHead>
+                {Array.from({ length: 12 }, (_, index) => <TableHead key={index} colSpan={3} className="min-w-[240px] border-b border-r px-2 py-2">{index + 1}월</TableHead>)}
+                <TableHead colSpan={3} className="min-w-[240px] border-b px-2 py-2">합계</TableHead>
+              </TableRow>
+              <TableRow>
+                {Array.from({ length: 13 }, (_, index) => (
+                  <Fragment key={index}>
+                    <TableHead className="min-w-[80px] border-b border-r px-2 py-2 text-right">계획</TableHead>
+                    <TableHead className="min-w-[80px] border-b border-r px-2 py-2 text-right">실적</TableHead>
+                    <TableHead className="min-w-[80px] border-b border-r px-2 py-2 text-right text-ssoo-info">차이</TableHead>
+                  </Fragment>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {drafts.map((row, rowIndex) => {
+                const firstForVendor = !firstVendorRows.has(row.vendorId);
+                firstVendorRows.add(row.vendorId);
+                const planTotal = sumAmsSourceValues(row.planValues);
+                const actualTotal = sumAmsSourceValues(row.actualValues);
+                return (
+                  <TableRow key={`${row.vendorId}-${row.wbsCode}`} className="border-b">
+                    {firstForVendor ? (
+                      <TableHead rowSpan={vendorRowCounts.get(row.vendorId)} className="sticky left-0 z-20 border-r bg-card px-3 py-2 text-center font-semibold">{row.vendorName}</TableHead>
+                    ) : null}
+                    <TableHead className="sticky left-[120px] z-20 border-r-2 bg-card px-3 py-2 font-mono text-caption-2xs">{row.wbsCode}</TableHead>
+                    {Array.from({ length: 12 }, (_, monthIndex) => {
+                      const plan = row.planValues[monthIndex] ?? '';
+                      const actual = row.actualValues[monthIndex] ?? '';
+                      const difference = sumAmsSourceValues([actual]) - sumAmsSourceValues([plan]);
+                      return (
+                        <Fragment key={monthIndex}>
+                          <AmsSourceAmountCell row={row} rowIndex={rowIndex} type="plan" monthIndex={monthIndex} value={plan} isSaving={!canWrite || isSaving} onChange={onChange} onPaste={onPaste} />
+                          <AmsSourceAmountCell row={row} rowIndex={rowIndex} type="actual" monthIndex={monthIndex} value={actual} isSaving={!canWrite || isSaving} onChange={onChange} onPaste={onPaste} actual />
+                          <TableCell className={`border-r bg-ssoo-warning-bg px-2 py-2 text-right tabular-nums ${internalSourceDifferenceTone(difference)}`}>{formatInternalSourceAmount(difference)}</TableCell>
+                        </Fragment>
+                      );
+                    })}
+                    <TableCell className="border-r bg-muted/30 px-2 py-2 text-right font-semibold tabular-nums">{formatInternalSourceAmount(planTotal)}</TableCell>
+                    <TableCell className="border-r bg-muted/30 px-2 py-2 text-right font-semibold tabular-nums">{formatInternalSourceAmount(actualTotal)}</TableCell>
+                    <TableCell className={`bg-ssoo-warning-bg px-2 py-2 text-right font-semibold tabular-nums ${internalSourceDifferenceTone(actualTotal - planTotal)}`}>{formatInternalSourceAmount(actualTotal - planTotal)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+      <div className="mt-2 text-xs text-muted-foreground">{new Set(drafts.map((row) => row.vendorId)).size}개 업체 · {drafts.length}개 WBS</div>
+    </div>
+  );
+}
+
+function AmsSourceAmountCell({
+  row,
+  rowIndex,
+  type,
+  monthIndex,
+  value,
+  isSaving,
+  onChange,
+  onPaste,
+  actual = false,
+}: {
+  row: AmsSourceGridDraftRow;
+  rowIndex: number;
+  type: 'plan' | 'actual';
+  monthIndex: number;
+  value: string;
+  isSaving: boolean;
+  onChange: (rowIndex: number, type: 'plan' | 'actual', monthIndex: number, value: string) => void;
+  onPaste: (rowIndex: number, type: 'plan' | 'actual', monthIndex: number, text: string) => void;
+  actual?: boolean;
+}) {
+  return (
+    <TableCell className={`border-r p-1 ${actual ? 'bg-ssoo-info-bg' : ''}`}>
+      <Input
+        type="text"
+        inputMode="numeric"
+        aria-label={`${row.vendorName} ${row.wbsCode} ${type === 'plan' ? '계획' : '실적'} ${monthIndex + 1}월`}
+        value={value}
+        placeholder="0"
+        disabled={isSaving}
+        className="h-8 border-transparent bg-transparent text-right text-xs tabular-nums"
+        onChange={(event) => onChange(rowIndex, type, monthIndex, event.target.value)}
+        onPaste={(event) => {
+          event.preventDefault();
+          onPaste(rowIndex, type, monthIndex, event.clipboardData.getData('text'));
+        }}
+      />
+    </TableCell>
+  );
+}
+
 function AmsVendorMappingPanel({
+  canWrite,
   rows,
   selectedRow,
   selectedRowKey,
@@ -1013,6 +1754,7 @@ function AmsVendorMappingPanel({
   onChangeVendorContractNo,
   onSave,
 }: {
+  canWrite: boolean;
   rows: CrmCostPlanPreviewRow[];
   selectedRow: CrmCostPlanPreviewRow | undefined;
   selectedRowKey: string;
@@ -1051,7 +1793,7 @@ function AmsVendorMappingPanel({
             value={vendorName}
             className="mt-1"
             maxLength={200}
-            disabled={!selectedRow || isSaving}
+            disabled={!canWrite || !selectedRow || isSaving}
             onChange={(event) => onChangeVendorName(event.target.value)}
           />
         </label>
@@ -1061,7 +1803,7 @@ function AmsVendorMappingPanel({
             value={vendorContractNo}
             className="mt-1"
             maxLength={120}
-            disabled={!selectedRow || isSaving}
+            disabled={!canWrite || !selectedRow || isSaving}
             onChange={(event) => onChangeVendorContractNo(event.target.value)}
           />
         </label>
@@ -1069,7 +1811,7 @@ function AmsVendorMappingPanel({
           <InputMetric label="매핑" value={selectedRow ? amsMappingLabels[selectedRow.amsMappingStatus] : '-'} />
           <InputMetric label="Ready" value={selectedRow ? amsReadinessLabels[selectedRow.amsReadiness] : '-'} />
         </div>
-        <Button type="button" onClick={onSave} disabled={!selectedRow || !selectedRow.wbsCode || isSaving}>
+        <Button type="button" onClick={onSave} disabled={!canWrite || !selectedRow || !selectedRow.wbsCode || isSaving}>
           <Save className="mr-2 h-4 w-4" />
           {isSaving ? '저장 중' : 'AMS 업체 매핑 저장'}
         </Button>
@@ -1087,6 +1829,8 @@ function AmsVendorMappingPanel({
 }
 
 function AmsExternalMonthlyInputPanel({
+  canWrite,
+  canConfirm,
   rows,
   selectedRow,
   selectedRowKey,
@@ -1105,6 +1849,8 @@ function AmsExternalMonthlyInputPanel({
   onConfirm,
   onReopen,
 }: {
+  canWrite: boolean;
+  canConfirm: boolean;
   rows: CrmCostPlanPreviewRow[];
   selectedRow: CrmCostPlanPreviewRow | undefined;
   selectedRowKey: string;
@@ -1153,18 +1899,18 @@ function AmsExternalMonthlyInputPanel({
         <div className="flex flex-wrap gap-2">
           {selectedRow?.amsExternalCostInputId ? (
             isConfirmed ? (
-              <Button type="button" variant="outline" onClick={onReopen} disabled={isSaving || isWorkflowBusy}>
+              <Button type="button" variant="outline" onClick={onReopen} disabled={!canConfirm || isSaving || isWorkflowBusy}>
                 <RotateCcw className="mr-2 h-4 w-4" />
                 {isWorkflowBusy ? '처리 중' : '정산 확정 해제'}
               </Button>
             ) : (
-              <Button type="button" variant="outline" onClick={onConfirm} disabled={isSaving || isWorkflowBusy}>
+              <Button type="button" variant="outline" onClick={onConfirm} disabled={!canConfirm || isSaving || isWorkflowBusy}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />
                 {isWorkflowBusy ? '처리 중' : 'AMS 정산 확정'}
               </Button>
             )
           ) : null}
-          <Button type="button" onClick={onSave} disabled={!selectedRow || !selectedRow.wbsCode || !selectedRow.amsVendorName || isSaving || isWorkflowBusy || isConfirmed}>
+          <Button type="button" onClick={onSave} disabled={!canWrite || !selectedRow || !selectedRow.wbsCode || !selectedRow.amsVendorName || isSaving || isWorkflowBusy || isConfirmed}>
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? '저장 중' : 'AMS 외부원가 월별 저장'}
           </Button>
@@ -1190,7 +1936,7 @@ function AmsExternalMonthlyInputPanel({
                 min={0}
                 value={planAmount}
                 className="mt-1"
-                disabled={!selectedRow || isSaving || isWorkflowBusy || isConfirmed}
+                disabled={!canWrite || !selectedRow || isSaving || isWorkflowBusy || isConfirmed}
                 onChange={(event) => onChangePlan(index, event.target.value)}
               />
             </label>
@@ -1201,7 +1947,7 @@ function AmsExternalMonthlyInputPanel({
                 min={0}
                 value={monthlyActualAmounts[index] ?? 0}
                 className="mt-1"
-                disabled={!selectedRow || isSaving || isWorkflowBusy || isConfirmed}
+                disabled={!canWrite || !selectedRow || isSaving || isWorkflowBusy || isConfirmed}
                 onChange={(event) => onChangeActual(index, event.target.value)}
               />
             </label>
@@ -1213,6 +1959,7 @@ function AmsExternalMonthlyInputPanel({
 }
 
 function AccountingPaymentHandoffPanel({
+  canConfirm,
   preview,
   isLoading,
   isSaving,
@@ -1222,6 +1969,7 @@ function AccountingPaymentHandoffPanel({
   onSave,
   onExecute,
 }: {
+  canConfirm: boolean;
   preview: CrmCostPlanAccountingPaymentPreview | null;
   isLoading: boolean;
   isSaving: boolean;
@@ -1232,9 +1980,9 @@ function AccountingPaymentHandoffPanel({
   onExecute: () => void;
 }) {
   const visibleLines = preview?.lines.slice(0, 6) ?? [];
-  const canSave = Boolean(preview && preview.readiness === 'ready' && !isSaving && !isLoading);
+  const canSave = Boolean(canConfirm && preview && preview.readiness === 'ready' && !isSaving && !isLoading);
   const latestEvidence = preview?.latestHandoff?.executionEvidence ?? [];
-  const canRecordEvidence = Boolean(preview?.latestHandoff && !isRecordingEvidence && !isLoading);
+  const canRecordEvidence = Boolean(canConfirm && preview?.latestHandoff && !isRecordingEvidence && !isLoading);
   return (
     <div className="border-b p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1443,46 +2191,4 @@ function CostPlanRow({ row }: { row: CrmCostPlanPreviewRow }) {
       <TableCell className="px-2 py-2 text-muted-foreground">{row.blockedReasons.length > 0 ? row.blockedReasons.join(', ') : '-'}</TableCell>
     </TableRow>
   );
-}
-
-export function normalizeCostPlanPreviewQuery(path: string): CostPlanPreviewWorkspaceQuery {
-  const [, queryString = ''] = path.split('?');
-  const searchParams = new URLSearchParams(queryString);
-  const year = Number(searchParams.get('year') ?? new Date().getFullYear());
-  const region = searchParams.get('region') as CrmCostPlanPreviewRegion | null;
-  return {
-    year: Number.isFinite(year) && year >= 2000 ? Math.trunc(year) : new Date().getFullYear(),
-    businessType: (searchParams.get('businessType') ?? '').trim(),
-    industryLine: (searchParams.get('industryLine') ?? '').trim(),
-    region: region && ['all', 'domestic', 'overseas'].includes(region) ? region : 'all',
-    search: (searchParams.get('search') ?? '').trim(),
-  };
-}
-
-export function toRequiredCostPlanPreviewQuery(query: CostPlanPreviewWorkspaceQuery): Required<CrmCostPlanPreviewQuery> {
-  return {
-    year: query.year,
-    businessType: query.businessType,
-    industryLine: query.industryLine,
-    region: query.region,
-    search: query.search,
-  };
-}
-
-export function normalizeCostPlanPreviewQueryRecord(
-  query: Record<string, string | string[] | undefined> = {},
-): CostPlanPreviewWorkspaceQuery {
-  const value = (key: string) => {
-    const raw = query[key];
-    return Array.isArray(raw) ? raw[0] ?? '' : raw ?? '';
-  };
-  const year = Number(value('year') || new Date().getFullYear());
-  const region = value('region') as CrmCostPlanPreviewRegion;
-  return {
-    year: Number.isFinite(year) && year >= 2000 ? Math.trunc(year) : new Date().getFullYear(),
-    businessType: value('businessType').trim(),
-    industryLine: value('industryLine').trim(),
-    region: ['all', 'domestic', 'overseas'].includes(region) ? region : 'all',
-    search: value('search').trim(),
-  };
 }

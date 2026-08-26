@@ -64,8 +64,12 @@ export class DocumentRecordService {
     const revisionSeq = extractRevisionSeq(canonicalMetadata) ?? 1;
     const contentHash = extractContentHash(canonicalMetadata) ?? buildContentHash(content);
     const metadataJson = JSON.parse(JSON.stringify(canonicalMetadata)) as Prisma.InputJsonValue;
+    const reconciledAt = new Date();
 
     if (existing) {
+      const lastSyncedAt = metadataOverride
+        ? this.resolveContentChangeAt(canonicalMetadata, reconciledAt)
+        : existing.lastSyncedAt ?? reconciledAt;
       const updated = await this.db.client.dmsDocument.update({
         where: { documentId: existing.documentId },
         data: {
@@ -77,9 +81,9 @@ export class DocumentRecordService {
           revisionSeq,
           contentHash,
           metadataJson,
-          lastScannedAt: new Date(),
-          lastSyncedAt: existing.lastSyncedAt ?? new Date(),
-          lastReconciledAt: new Date(),
+          lastScannedAt: reconciledAt,
+          lastSyncedAt,
+          lastReconciledAt: reconciledAt,
           updatedBy: owner.userId,
           lastSource: ACTIVE_REQUEST_SOURCE,
           lastActivity: ACTIVE_REQUEST_ACTIVITY,
@@ -111,9 +115,9 @@ export class DocumentRecordService {
         contentHash,
         latestGitCommitHash: null,
         metadataJson,
-        lastScannedAt: new Date(),
-        lastSyncedAt: new Date(),
-        lastReconciledAt: new Date(),
+        lastScannedAt: reconciledAt,
+        lastSyncedAt: this.resolveContentChangeAt(canonicalMetadata, reconciledAt),
+        lastReconciledAt: reconciledAt,
         createdBy: owner.userId,
         updatedBy: owner.userId,
         lastSource: ACTIVE_REQUEST_SOURCE,
@@ -296,6 +300,18 @@ export class DocumentRecordService {
       undefined,
       { defaultRevisionSeq: 1 },
     );
+  }
+
+  private resolveContentChangeAt(
+    metadata: Record<string, unknown>,
+    fallback: Date,
+  ): Date {
+    const candidate = typeof metadata['updatedAt'] === 'string'
+      ? new Date(metadata['updatedAt'])
+      : null;
+    return candidate && !Number.isNaN(candidate.getTime())
+      ? candidate
+      : fallback;
   }
 
   private async resolveRepairOwnerUserId(): Promise<bigint | null> {

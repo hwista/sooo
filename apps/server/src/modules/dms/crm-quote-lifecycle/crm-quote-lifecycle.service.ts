@@ -1,4 +1,3 @@
-import { createRequire } from 'module';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import type {
   DmsCrmQuoteLifecycleArtifact,
@@ -14,15 +13,8 @@ import type {
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import { FileCrudService } from '../file/file-crud.service.js';
 import { storageAdapterService, type StorageReference } from '../storage/storage-adapter.service.js';
+import { renderDocxTemplate } from '../templates/docx-template-renderer.js';
 import { TemplateService } from '../templates/template.service.js';
-
-const nodeRequire = createRequire(import.meta.url);
-type AdmZipArchive = {
-  addFile(fileName: string, content: Buffer): void;
-  toBuffer(): Buffer;
-};
-type AdmZipConstructor = new () => AdmZipArchive;
-const AdmZip = nodeRequire('adm-zip') as AdmZipConstructor;
 
 export const DMS_CRM_QUOTE_LIFECYCLE_STORAGE = Symbol('DMS_CRM_QUOTE_LIFECYCLE_STORAGE');
 
@@ -68,6 +60,7 @@ export class DmsCrmQuoteLifecycleService {
     const storageRelativeDir = `_assets/crm-quote-lifecycle/${safeQuoteNumber}`;
     const artifactBaseName = this.toSafePathPart(normalized.documentTitle || normalized.quoteNumber);
     const templateVersion = this.toTemplateVersionSnapshot(template, normalized.templateKey, executedAt);
+    const templateBinary = this.templateService.readDocxBinary(template);
 
     const templateVersionPath = await this.writeMarkdownArtifact(
       `${documentRelativeDir}/template-version.md`,
@@ -81,7 +74,7 @@ export class DmsCrmQuoteLifecycleService {
     );
     const wordArtifact = this.storage.upload({
       fileName: `${artifactBaseName}.docx`,
-      content: this.renderDocxArtifact(normalized, draft, executedAt),
+      content: renderDocxTemplate(templateBinary, this.toDocxVariables(normalized, draft, executedAt)),
       relativePath: storageRelativeDir,
       origin: 'manual',
       status: 'published',
@@ -228,7 +221,11 @@ export class DmsCrmQuoteLifecycleService {
       templateKey,
       templateName: template.name || templateKey,
       status: template.status ?? 'unknown',
-      ...(template.sourcePath?.trim() ? { sourcePath: template.sourcePath.trim() } : {}),
+      ...(template.docxTemplate?.sourcePath?.trim()
+        ? { sourcePath: template.docxTemplate.sourcePath.trim() }
+        : template.sourcePath?.trim()
+          ? { sourcePath: template.sourcePath.trim() }
+          : {}),
       versionId: `${templateKey}@${template.updatedAt ?? capturedAt}`,
       capturedAt,
     };
@@ -306,55 +303,26 @@ export class DmsCrmQuoteLifecycleService {
     ].filter((line) => line !== '').join('\n');
   }
 
-  private renderDocxArtifact(
+  private toDocxVariables(
     request: DmsCrmQuoteLifecycleExecutionRequest,
     draft: string,
     executedAt: string,
-  ): Buffer {
-    const zip = new AdmZip();
-    zip.addFile('[Content_Types].xml', Buffer.from(
-      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-      + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
-      + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
-      + '<Default Extension="xml" ContentType="application/xml"/>'
-      + '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
-      + '</Types>',
-      'utf-8',
-    ));
-    zip.addFile('_rels/.rels', Buffer.from(
-      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-      + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
-      + '</Relationships>',
-      'utf-8',
-    ));
-    zip.addFile('word/document.xml', Buffer.from(this.renderDocxDocumentXml(request, draft, executedAt), 'utf-8'));
-    return zip.toBuffer();
-  }
-
-  private renderDocxDocumentXml(
-    request: DmsCrmQuoteLifecycleExecutionRequest,
-    draft: string,
-    executedAt: string,
-  ): string {
-    const paragraphs = [
-      request.documentTitle,
-      `Quote: ${request.quoteNumber}`,
-      `Opportunity: ${request.opportunityCode}`,
-      `Template: ${request.templateKey}`,
-      `Exported at: ${executedAt}`,
-      '',
-      ...draft.split(/\r?\n/),
-    ].slice(0, 240);
-    return [
-      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
-      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">',
-      '<w:body>',
-      ...paragraphs.map((paragraph) => `<w:p><w:r><w:t xml:space="preserve">${this.escapeXml(paragraph)}</w:t></w:r></w:p>`),
-      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>',
-      '</w:body>',
-      '</w:document>',
-    ].join('');
+  ): Record<string, string> {
+    const variables: Record<string, string> = {
+      documentTitle: request.documentTitle,
+      quoteNumber: request.quoteNumber,
+      opportunityCode: request.opportunityCode,
+      templateKey: request.templateKey,
+      executedAt,
+      draft,
+    };
+    for (const variable of request.variables) {
+      variables[variable.key] = variable.value;
+      if (variable.label) {
+        variables[variable.label] = variable.value;
+      }
+    }
+    return variables;
   }
 
   private renderPdfArtifact(
@@ -445,15 +413,6 @@ export class DmsCrmQuoteLifecycleService {
   private toSafePathPart(value: string): string {
     const safe = value.trim().replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_').slice(0, 96);
     return safe || 'crm-quote';
-  }
-
-  private escapeXml(value: string): string {
-    return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
   }
 
   private toPdfSafeLine(value: string): string {

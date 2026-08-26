@@ -1,0 +1,25 @@
+{
+  "title": "연간 외부원가",
+  "sections": [
+    "연간 외부원가",
+    "연간 외부원가"
+  ],
+  "fields": [
+    {
+      "id": "ac-year",
+      "name": "year",
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "조회",
+    "저장"
+  ],
+  "labels": [
+    "사업년도 *"
+  ]
+}

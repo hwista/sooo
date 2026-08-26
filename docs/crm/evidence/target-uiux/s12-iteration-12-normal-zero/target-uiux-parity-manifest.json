@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-audit",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T06:07:28.140Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-audit",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-02"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-02",
+      "sourcePage": "list",
+      "status": "partial",
+      "ownerSurface": "CRM /?sourceSurface=list",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=list",
+      "capturedAt": "2026-08-20T06:07:28.140Z",
+      "audit": {
+        "normalStateId": "seeded-list",
+        "sourceScreenshot": "ux-02-list.png",
+        "targetDesktopScreenshot": "ux-02-list--audit-desktop.png",
+        "targetMobileScreenshot": "ux-02-list--audit-mobile.png",
+        "differenceScreenshot": "ux-02-list--audit-difference.png",
+        "targetDomManifest": "ux-02-list--audit.dom.json",
+        "missingStateIds": [
+          "filtered-empty",
+          "previous-version-expanded",
+          "row-drilldown"
+        ],
+        "structureDiff": {
+          "missingSections": [],
+          "missingFields": [],
+          "missingColumns": [],
+          "missingActions": [],
+          "missingLabels": [],
+          "renamedMeaning": [],
+          "reorderedWorkflow": [],
+          "defaultBehaviorDifferences": [],
+          "unclassified": [
+            "audit-only exact text diff requires human classification"
+          ],
+          "defects": [],
+          "classifiedDifferences": []
+        },
+        "desktopBrowserGate": {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "mobileBrowserGate": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "pageErrors": [],
+          "consoleErrors": [],
+          "unexpectedHttpFailures": [],
+          "documentOverflowPx": 0
+        },
+        "evidenceSha256": {
+          "source": "dcf9996346430206e1cec713d5bd4d916b55b8ac06b485e6e54c5c9514ccc53f",
+          "targetDesktop": "237070da05ee2f05b516bd191c39c61c78d8b8f623c1f3f3da40d5ed63a66b8b",
+          "targetMobile": "288b93a6dee9cd5656601069578a3835e301e7dd5246696886ea782e8c686116",
+          "difference": "6e26ce7823184e6152ab72fd10a03beed9415a4ee227bc4404d56c305c4b24b0",
+          "targetDom": "ab506623b74dd09b8051a5ec6c3df2ad4ab1c69e4682b27eb4a5b1fc81c598d1"
+        }
+      }
+    }
+  ]
+}

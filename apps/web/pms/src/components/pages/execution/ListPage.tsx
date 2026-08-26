@@ -148,7 +148,7 @@ export function ExecutionListPage() {
       header={{
         collapsible: true,
         filters: [
-          { key: 'projectName', type: 'text', placeholder: '프로젝트명' },
+          { key: 'projectName', type: 'text', id: 'pms-execution-project-search-input', name: 'pms-execution-project-search-query', ariaLabel: '수행 프로젝트명 검색', placeholder: '프로젝트명' },
           { key: 'customerId', type: 'select', placeholder: '고객사', options: customerOptions, width: '240px' },
           { key: 'stageCode', type: 'select', placeholder: '단계', options: stageOptions },
         ],

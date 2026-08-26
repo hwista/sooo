@@ -48,5 +48,24 @@ export const crmDashboardFallback: CrmDashboardResponse = {
     { key: 'dms-document', label: 'DMS 문서 패킷', count: 0, readyCount: 0, blockedCount: 0, amountTotal: 0, href: '/contracts', state: 'blocked', description: '계약서 생성 전 입력 변수와 공급자 정보 readiness' },
   ],
   nextActions: [],
+  sourceCompatibility: {
+    calculationBasis: 'latest-version-canonical-total',
+    calculationNotice: '원천 화면의 최신차수·확정 분모를 유지하되, 금액은 DC·절사를 반영한 SSOO 정본 합계를 사용합니다.',
+    confirmedSummary: {
+      totalGroupCount: 0,
+      confirmedLatestCount: 0,
+      revenueTotal: 0,
+      costTotal: 0,
+      marginTotal: 0,
+      marginRate: 0,
+    },
+    statusDistribution: [
+      { status: '진행중', count: 0, percentage: 0 },
+      { status: '검토중', count: 0, percentage: 0 },
+      { status: '계약완료', count: 0, percentage: 0 },
+      { status: '실패', count: 0, percentage: 0 },
+    ],
+    recentOpportunities: [],
+  },
   unimplementedIntegrations: ['견적 생성', 'DMS 계약서 저장', 'PMS 프로젝트 생성'],
 };

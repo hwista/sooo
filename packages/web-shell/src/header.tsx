@@ -1,7 +1,8 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import type { ButtonHTMLAttributes, FocusEventHandler, KeyboardEventHandler, ReactNode } from 'react';
 import { cn } from './cn';
-import { Button, Input } from '@ssoo/web-ui';
+import { Button } from '@ssoo/web-ui';
+import { SsooSearchInput } from './search-input';
 
 export type SsooHeaderMode = 'primary' | 'neutral' | 'transparent';
 
@@ -116,13 +117,14 @@ export const SsooHeaderIconButton = forwardRef<HTMLButtonElement, SsooHeaderIcon
 });
 
 export interface SsooHeaderSearchBoxProps {
+  id?: string;
   placeholder?: string;
   iconSlot?: ReactNode;
   disabled?: boolean;
   readOnly?: boolean;
   value?: string;
   name?: string;
-  autoComplete?: string;
+  ariaLabel?: string;
   onChange?: (value: string) => void;
   onFocus?: FocusEventHandler<HTMLInputElement>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
@@ -133,13 +135,14 @@ export interface SsooHeaderSearchBoxProps {
 export const SSOO_HEADER_SEARCH_PLACEHOLDER = '무엇이든 찾아드릴게요! 무엇이 필요하신가요?';
 
 export function SsooHeaderSearchBox({
+  id = 'ssoo-global-search-input',
   placeholder = SSOO_HEADER_SEARCH_PLACEHOLDER,
   iconSlot,
   disabled = false,
   readOnly = false,
   value,
-  name = 'ssoo-global-search',
-  autoComplete = 'off',
+  name = 'ssoo-global-search-query',
+  ariaLabel = '통합 검색',
   onChange,
   onFocus,
   onKeyDown,
@@ -147,21 +150,22 @@ export function SsooHeaderSearchBox({
   inputClassName,
 }: SsooHeaderSearchBoxProps) {
   return (
-    <div className={cn('relative w-full', className)}>
+    <div role="search" aria-label={ariaLabel} className={cn('relative w-full', className)}>
       {iconSlot ? (
         <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-primary-foreground/50 [&>svg]:h-4 [&>svg]:w-4">
           {iconSlot}
         </div>
       ) : null}
-      <Input
-        type="search"
+      <SsooSearchInput
+        id={id}
         name={name}
-        autoComplete={autoComplete}
+        ariaLabel={ariaLabel}
+        intent="global-search"
         placeholder={placeholder}
         disabled={disabled}
         readOnly={readOnly}
         value={value}
-        onChange={(event) => onChange?.(event.target.value)}
+        onChange={(event) => onChange?.(event.currentTarget.value)}
         onFocus={onFocus}
         onKeyDown={onKeyDown}
         className={cn(

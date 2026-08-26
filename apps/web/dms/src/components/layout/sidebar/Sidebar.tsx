@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ChevronDown,
@@ -34,6 +35,7 @@ import {
   HOME_TAB,
 } from '@/stores';
 import { useOpenTabWithConfirm } from '@/hooks';
+import { APP_HOME_PATH } from '@/lib/constants/routes';
 import {
   SETTING_SECTIONS,
   SETTINGS_SECTION_GROUP_LABELS,
@@ -60,6 +62,7 @@ interface SidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   variant?: 'workspace' | 'settings';
+  toggleLabel?: string;
 }
 
 /**
@@ -70,12 +73,13 @@ interface SidebarProps {
  * - 책갈피 / 현재 열린 페이지 / 전체 파일
  * - 하단 카피라이트
  */
-export function Sidebar({ isCollapsed, onToggleCollapse, variant = 'workspace' }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggleCollapse, variant = 'workspace', toggleLabel }: SidebarProps) {
   if (variant === 'settings') {
     return (
       <SettingsSidebar
         isCollapsed={isCollapsed}
         onToggleCollapse={onToggleCollapse}
+        toggleLabel={toggleLabel}
       />
     );
   }
@@ -84,11 +88,12 @@ export function Sidebar({ isCollapsed, onToggleCollapse, variant = 'workspace' }
     <WorkspaceSidebar
       isCollapsed={isCollapsed}
       onToggleCollapse={onToggleCollapse}
+      toggleLabel={toggleLabel}
     />
   );
 }
 
-function WorkspaceSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
+function WorkspaceSidebar({ isCollapsed, onToggleCollapse, toggleLabel }: SidebarProps) {
   const {
     expandedSections,
     isFileTreeOpen,
@@ -131,8 +136,12 @@ function WorkspaceSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
       expanded={!isCollapsed}
       onToggleCollapse={onToggleCollapse}
       toggleIcon={Menu}
+      toggleLabel={toggleLabel}
       brandTitle={DMS_APP_IDENTITY.brandTitle}
       search={{
+        inputId: 'ssoo-dms-workspace-navigation-search-input',
+        inputName: 'ssoo-dms-workspace-navigation-search-query',
+        ariaLabel: 'DMS 문서 목록 검색',
         value: scopedSearchQuery,
         disabled: !canReadDocuments,
         onChange: (value) => {
@@ -225,7 +234,9 @@ const SETTINGS_GROUP_ICON_MAP = {
 
 const SETTINGS_RUNTIME_SECTION_IDS = new Set(['git', 'storage-runtime', 'ingest-runtime', 'templates-runtime']);
 
-function SettingsSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
+function SettingsSidebar({ isCollapsed, onToggleCollapse, toggleLabel }: SidebarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const access = useSettingsStore((state) => state.access);
   const isSettingsLoading = useSettingsStore((state) => state.isLoading);
   const loadSettings = useSettingsStore((state) => state.loadSettings);
@@ -319,6 +330,9 @@ function SettingsSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
   const handleExitSettings = () => {
     exitSettings();
     activateTab(HOME_TAB.id);
+    if (pathname === '/settings' || pathname.startsWith('/settings/')) {
+      router.replace(APP_HOME_PATH);
+    }
   };
 
   const handleSelectSearchResult = (result: SettingSearchEntry) => {
@@ -416,6 +430,7 @@ function SettingsSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
       expanded={!isCollapsed}
       onToggleCollapse={onToggleCollapse}
       toggleIcon={Menu}
+      toggleLabel={toggleLabel}
       brandTitle="설정"
       brandAction={{
         label: '설정 닫기',
@@ -423,6 +438,9 @@ function SettingsSidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
         onClick: handleExitSettings,
       }}
       search={{
+        inputId: 'ssoo-dms-settings-navigation-search-input',
+        inputName: 'ssoo-dms-settings-navigation-search-query',
+        ariaLabel: 'DMS 설정 검색',
         value: settingsSearchQuery,
         onChange: setSettingsSearchQuery,
         onClear: () => setSettingsSearchQuery(''),

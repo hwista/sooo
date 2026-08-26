@@ -1,13 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsBoolean, MaxLength } from 'class-validator';
 
 export class CreateCodeDto {
   @ApiProperty({ description: '코드 그룹' })
   @IsString()
+  @MaxLength(100)
   codeGroup!: string;
 
   @ApiProperty({ description: '코드 값' })
   @IsString()
+  @MaxLength(100)
   codeValue!: string;
 
   @ApiPropertyOptional({ description: '상위 코드' })
@@ -36,6 +38,18 @@ export class CreateCodeDto {
 }
 
 export class UpdateCodeDto {
+  @ApiPropertyOptional({ description: '코드 그룹' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  codeGroup?: string;
+
+  @ApiPropertyOptional({ description: '코드 값' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  codeValue?: string;
+
   @ApiPropertyOptional({ description: '상위 코드' })
   @IsString()
   @IsOptional()

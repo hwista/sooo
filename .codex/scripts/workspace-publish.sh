@@ -31,6 +31,13 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
+if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then
+  echo "[workspace-publish] refusing to publish a dirty worktree."
+  echo "[workspace-publish] commit the verified release candidate first, then sync and publish."
+  echo "[workspace-publish] this prevents uncommitted files that passed local gates from being omitted from the deployed commit."
+  exit 1
+fi
+
 GL_USER_VALUE="${GL_USER:-$(git config --local --get codex.gitlabUser || true)}"
 GL_TOKEN_VALUE="${GL_TOKEN:-$(git config --local --get codex.gitlabToken || true)}"
 

@@ -1,6 +1,7 @@
 export type CrmBusinessPlanPreviewRegion = 'all' | 'domestic' | 'overseas';
 export type CrmBusinessPlanPreviewSource = 'pipeline' | 'contract-plan' | 'contract-actual';
 export type CrmBusinessPlanPerformanceSource = 'confirmed-plan' | 'pipeline' | 'contract' | 'confirmed-cost' | 'manual-actual' | 'mixed';
+export type CrmBusinessPlanPerformanceMode = 'extended-actual' | 'source-compatible';
 export type CrmBusinessPlanStatus = 'draft' | 'confirmed';
 export type CrmBusinessPlanMonthlyPlanInputMode = 'distributed' | 'manual';
 
@@ -19,6 +20,9 @@ export interface CrmBusinessPlanPreviewYear {
   contractActualAmount: number;
   planCandidateAmount: number;
   actualGapAmount: number;
+  planExternalCostAmount?: number;
+  monthlyPlanRevenueAmounts?: number[];
+  monthlyPlanExternalCostAmounts?: number[];
 }
 
 export interface CrmBusinessPlanPreviewRow {
@@ -32,6 +36,8 @@ export interface CrmBusinessPlanPreviewRow {
   contractActualAmount: number;
   planCandidateAmount: number;
   actualGapAmount: number;
+  businessName?: string;
+  wbsCode?: string;
   years: CrmBusinessPlanPreviewYear[];
 }
 
@@ -61,18 +67,48 @@ export interface CrmBusinessPlanPreviewResponse {
 export interface CrmBusinessPlanLine {
   id: string;
   lineCode: string;
+  rowCode: string;
   targetYear: number;
   businessType: string;
   industryLine: string;
   ownerName: string;
   region: Exclude<CrmBusinessPlanPreviewRegion, 'all'>;
+  businessName: string;
+  wbsCode?: string;
   pipelineAmount: number;
   contractPlanAmount: number;
   contractActualAmount: number;
   planCandidateAmount: number;
+  planExternalCostAmount: number;
+  planMarginAmount: number;
   monthlyPlanRevenueAmounts: number[];
+  monthlyPlanExternalCostAmounts: number[];
   monthlyPlanInputMode: CrmBusinessPlanMonthlyPlanInputMode;
+  monthlyPlanExternalCostInputMode: CrmBusinessPlanMonthlyPlanInputMode;
   actualGapAmount: number;
+}
+
+export interface CrmBusinessPlanRowYear {
+  lineId: string;
+  targetYear: number;
+  revenueAmount: number;
+  externalCostAmount: number;
+  marginAmount: number;
+  monthlyRevenueAmounts: number[];
+  monthlyExternalCostAmounts: number[];
+  monthlyRevenueInputMode: CrmBusinessPlanMonthlyPlanInputMode;
+  monthlyExternalCostInputMode: CrmBusinessPlanMonthlyPlanInputMode;
+}
+
+export interface CrmBusinessPlanRow {
+  rowCode: string;
+  businessType: string;
+  industryLine: string;
+  ownerName: string;
+  region: Exclude<CrmBusinessPlanPreviewRegion, 'all'>;
+  businessName: string;
+  wbsCode?: string;
+  years: CrmBusinessPlanRowYear[];
 }
 
 export interface CrmBusinessPlan {
@@ -89,9 +125,12 @@ export interface CrmBusinessPlan {
   contractPlanAmountTotal: number;
   contractActualAmountTotal: number;
   planCandidateAmountTotal: number;
+  planExternalCostAmountTotal: number;
+  planMarginAmountTotal: number;
   actualGapAmountTotal: number;
   rowCount: number;
   lines: CrmBusinessPlanLine[];
+  rows: CrmBusinessPlanRow[];
   memo?: string;
   updatedAt: string;
 }
@@ -130,6 +169,7 @@ export interface CrmBusinessPlanCarryForwardRequest extends CrmBusinessPlanSnaps
 
 export interface CrmBusinessPlanMonthlyPlanInputRequest {
   monthlyRevenueAmounts: number[];
+  monthlyExternalCostAmounts?: number[];
   memo?: string;
 }
 
@@ -139,8 +179,42 @@ export interface CrmBusinessPlanMonthlyPlanInputResult {
   boundaryNotice: string;
 }
 
+export interface CrmBusinessPlanRowUpsertRequest {
+  businessType: string;
+  industryLine: string;
+  ownerName: string;
+  region: Exclude<CrmBusinessPlanPreviewRegion, 'all'>;
+  businessName: string;
+  wbsCode?: string;
+  monthlyRevenueAmounts: number[];
+  monthlyExternalCostAmounts: number[];
+  nextYearRevenueAmount: number;
+  nextYearExternalCostAmount: number;
+  followingYearRevenueAmount: number;
+  followingYearExternalCostAmount: number;
+  memo?: string;
+}
+
+export interface CrmBusinessPlanRowWbsUpdateRequest {
+  wbsCode?: string;
+}
+
+export interface CrmBusinessPlanRowMutationResult {
+  plan: CrmBusinessPlan;
+  rowCode: string;
+}
+
+export interface CrmBusinessPlanDeleteResult {
+  deletedPlanId: string;
+  deletedPlanCode: string;
+  baseYear: number;
+  previousPlanId?: string;
+  previousPlanCode?: string;
+}
+
 export interface CrmBusinessPlanPerformanceQuery {
   year?: number;
+  mode?: CrmBusinessPlanPerformanceMode;
   businessType?: string;
   industryLine?: string;
   region?: CrmBusinessPlanPreviewRegion;
@@ -175,6 +249,7 @@ export interface CrmBusinessPlanPerformanceRow {
 
 export interface CrmBusinessPlanPerformanceSummary {
   year: number;
+  mode: CrmBusinessPlanPerformanceMode;
   rowCount: number;
   planRevenueTotal: number;
   planCostTotal: number;
@@ -189,6 +264,7 @@ export interface CrmBusinessPlanPerformanceSummary {
   businessTypeOptions: string[];
   industryLineOptions: string[];
   planBasisLabel: string;
+  actualBasisLabel: string;
   costBasisLabel: string;
   confirmedCostInputCount: number;
   confirmedInternalCostInputCount: number;

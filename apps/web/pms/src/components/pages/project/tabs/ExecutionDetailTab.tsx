@@ -20,6 +20,7 @@ import {
 import { Pencil, Save, X } from 'lucide-react';
 import type { Project, ProjectExecutionDetail } from '@/lib/api/endpoints/projects';
 import { formatPmsAmount, formatPmsDate } from '@/lib/pms-format';
+import { SsooSearchInput } from '@ssoo/web-shell';
 
 type ExecutionEditableInput = Pick<UpsertExecutionDetailInput, 'deliveryMethodCode' | 'nextProjectId' | 'memo'>;
 
@@ -198,7 +199,11 @@ export function ExecutionDetailTab({ projectId, detail, onSaved }: Props) {
         </FormField>
         <div className="col-span-2 lg:col-span-2 grid grid-cols-1 gap-3 md:grid-cols-[minmax(180px,0.8fr),minmax(240px,1.2fr)]">
           <FormField label="프로젝트 검색">
-            <Input
+            <SsooSearchInput
+              id="pms-execution-next-project-lookup-input"
+              name="pms-execution-next-project-lookup-query"
+              ariaLabel="후속 프로젝트 검색"
+              intent="entity-lookup"
               placeholder="프로젝트명 또는 번호"
               value={projectSearch}
               onChange={(event) => setProjectSearch(event.target.value)}

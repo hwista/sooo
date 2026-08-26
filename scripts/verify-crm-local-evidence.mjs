@@ -4,12 +4,21 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {
+  createRepositoryWorktreeIdentity,
+  REPOSITORY_WORKTREE_IDENTITY_EXCLUDED_PREFIXES,
+  sameRepositoryWorktreeIdentity,
+} from './repository-worktree-identity.mjs';
+
+const repoRoot = process.cwd();
 
 const argv = process.argv.slice(2);
 const config = {
   help: argv.includes('--help'),
   reportPath: readOption('report-path', 'CRM_LOCAL_VERIFICATION_REPORT_PATH', ''),
 };
+assertReportPathDoesNotAffectIdentity(config.reportPath);
+const worktreeIdentity = createRepositoryWorktreeIdentity({ repoRoot });
 
 const CRM_SERVER_TEST_TARGETS = [
   'src/modules/crm',
@@ -55,10 +64,25 @@ if (config.help) {
 
 const startedAt = new Date();
 const results = checks.map(runCheck);
+const completedWorktreeIdentity = createRepositoryWorktreeIdentity({ repoRoot });
+const worktreeUnchanged = sameRepositoryWorktreeIdentity(worktreeIdentity, completedWorktreeIdentity);
+results.push({
+  id: 'worktree-identity-unchanged',
+  requirement: 'Repository file contents remain unchanged throughout CRM local verification.',
+  command: 'internal repository worktree identity comparison',
+  status: worktreeUnchanged ? 'passed' : 'failed',
+  exitCode: worktreeUnchanged ? 0 : 1,
+  durationMs: 0,
+  evidence: {
+    started: worktreeIdentity,
+    completed: completedWorktreeIdentity,
+  },
+});
 const finishedAt = new Date();
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   status: results.every((result) => result.status === 'passed') ? 'passed' : 'failed',
+  worktreeIdentity,
   startedAt: startedAt.toISOString(),
   finishedAt: finishedAt.toISOString(),
   durationMs: finishedAt.getTime() - startedAt.getTime(),
@@ -153,6 +177,18 @@ function writeReport(reportPath, report) {
   console.log(`Wrote CRM local verification report: ${absolutePath}`);
 }
 
+function assertReportPathDoesNotAffectIdentity(reportPath) {
+  if (!reportPath) return;
+  const absolutePath = path.resolve(reportPath);
+  const relativePath = path.relative(repoRoot, absolutePath).split(path.sep).join('/');
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) return;
+  if (REPOSITORY_WORKTREE_IDENTITY_EXCLUDED_PREFIXES.some((prefix) => relativePath.startsWith(prefix))) return;
+  throw new Error(
+    'CRM local verification report must be outside the repository or under an excluded evidence path '
+      + `(${REPOSITORY_WORKTREE_IDENTITY_EXCLUDED_PREFIXES.join(', ')}) so it cannot invalidate its own worktree identity`,
+  );
+}
+
 function printSummary(report) {
   console.log(`CRM local verification: ${report.status}`);
   for (const check of report.checks) {
@@ -189,7 +225,7 @@ Runs the local CRM migration verification pack:
 - pnpm build:web-crm
 
 Options:
-  --report-path <path>  Write a JSON report. Also supported by CRM_LOCAL_VERIFICATION_REPORT_PATH.
+  --report-path <path>  Write a JSON report outside the repository or under output/. Also supported by CRM_LOCAL_VERIFICATION_REPORT_PATH.
   --help               Show this help.
 `);
 }

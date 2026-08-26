@@ -1,6 +1,32 @@
 export type { FileNode } from './file-tree';
 
 export type {
+  DmsHomeSectionStatus,
+  DmsHomeSection,
+  DmsHomeDocumentItem,
+  DmsHomeActionKind,
+  DmsHomeActionTarget,
+  DmsHomeActionItem,
+  DmsHomeOperationalExceptionKind,
+  DmsHomeOperationalSeverity,
+  DmsHomeOperationalExceptionItem,
+  DmsHomeMetrics,
+  DmsHomeSummary,
+  DmsRecordDocumentVisitPayload,
+  DmsRecordDocumentVisitResult,
+  DmsAcknowledgeHomeSeenPayload,
+  DmsAcknowledgeHomeSeenResult,
+} from './home';
+
+export type {
+  DmsCrmOpportunityContractLifecycleArtifact,
+  DmsCrmOpportunityContractLifecycleExecutionRequest,
+  DmsCrmOpportunityContractLifecycleExecutionResult,
+  DmsCrmOpportunityContractLifecycleTemplateVersion,
+  DmsCrmOpportunityContractLifecycleVariable,
+} from './crm-opportunity-contract-lifecycle';
+
+export type {
   DocumentAcl,
   DocumentVisibilityScope,
   DocumentVisibility,
@@ -35,6 +61,7 @@ export type {
   TemplateReferenceDoc,
   TemplateGeneration,
   TemplateReviewConfirmation,
+  TemplateDocxBinary,
   ScrapeEntry,
   UserTemplateManifest,
   TemplateItem,

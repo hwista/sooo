@@ -1,11 +1,13 @@
 'use client';
 
 import type { CommonSearchResult } from '@ssoo/types/common';
+import { useRouter } from 'next/navigation';
 import { useCommonGlobalSearchAdapter } from '@ssoo/web-auth';
 import { SsooGlobalSearchPage } from '@ssoo/web-shell';
 import { useTabStore } from '@/stores/tab.store';
 
 export function CrmGlobalSearchPage({ path }: { path?: string }) {
+  const router = useRouter();
   const openTab = useTabStore((state) => state.openTab);
   const globalSearch = useCommonGlobalSearchAdapter({
     currentApp: 'crm',
@@ -18,6 +20,7 @@ export function CrmGlobalSearchPage({ path }: { path?: string }) {
         closable: true,
         activate: true,
       });
+      router.push(result.target.path);
     },
   });
 

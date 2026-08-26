@@ -76,9 +76,12 @@ function prepareCreateData<T>(data: T, modelName: string): T {
     createdAt: record.createdAt ?? now,
     updatedBy: ctx.userId ?? record.updatedBy,
     updatedAt: now,
-    lastSource: ctx.source ?? 'API',
-    lastActivity: `${modelName}.create`,
-    transactionId: ctx.transactionId,
+    lastSource: record.lastSource ?? ctx.source ?? 'API',
+    lastActivity: record.lastActivity ?? `${modelName}.create`,
+    // Domain workflows may intentionally carry one correlation across multiple
+    // HTTP requests (for example an operation retry chain). Preserve that
+    // explicit value and use the request transaction only as the default.
+    transactionId: record.transactionId ?? ctx.transactionId,
   } as T;
 }
 
@@ -98,9 +101,9 @@ function prepareUpdateData<T>(
     ...record,
     updatedBy: ctx.userId ?? record.updatedBy,
     updatedAt: now,
-    lastSource: ctx.source ?? 'API',
-    lastActivity: `${modelName}.${action}`,
-    transactionId: ctx.transactionId,
+    lastSource: record.lastSource ?? ctx.source ?? 'API',
+    lastActivity: record.lastActivity ?? `${modelName}.${action}`,
+    transactionId: record.transactionId ?? ctx.transactionId,
   } as T;
 }
 

@@ -2,9 +2,9 @@
 
 import { Table as ReactTable } from '@tanstack/react-table';
 import { ChevronDown } from 'lucide-react';
+import { SsooSearchInput } from '@ssoo/web-shell';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -41,7 +41,11 @@ export function Toolbar<TData>({
     <div className="flex items-center justify-between">
       {/* 검색 */}
       {enableSearch && searchField ? (
-        <Input
+        <SsooSearchInput
+          id={`pms-data-grid-${searchField.replace(/[^a-zA-Z0-9_-]/g, '-')}-filter`}
+          name={`pms-data-grid-${searchField.replace(/[^a-zA-Z0-9_-]/g, '-')}-query`}
+          ariaLabel={searchPlaceholder}
+          intent="data-filter"
           placeholder={searchPlaceholder}
           value={(table.getColumn(searchField)?.getFilterValue() as string) ?? ''}
           onChange={(event) =>

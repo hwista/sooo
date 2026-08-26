@@ -195,17 +195,47 @@ export class AuthPolicyService {
   }
 
   private isMicrosoftRuntimeReady(record: AuthProviderSettingRecord): boolean {
-    return Boolean(
-      record.microsoftTenantId
-      && record.microsoftClientId
-      && record.microsoftRedirectUri
-      && this.decryptMicrosoftClientSecret(record)
-      && (
-        !isBroadMicrosoftTenant(record.microsoftTenantId)
-        || record.allowedTenantIds.length > 0
-        || record.allowedEmailDomains.length > 0
-      ),
-    );
+    try {
+      return Boolean(
+        record.microsoftTenantId
+        && record.microsoftClientId
+        && record.microsoftRedirectUri
+        && this.decryptMicrosoftClientSecret(record)
+        && (
+          !isBroadMicrosoftTenant(record.microsoftTenantId)
+          || record.allowedTenantIds.length > 0
+          || record.allowedEmailDomains.length > 0
+        ),
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  private assertActivationSafety(record: AuthProviderSettingRecord): void {
+    if (record.internalSsoEnabled && !record.internalSsoLoginUrl) {
+      throw new BadRequestException('사내 SSO를 활성화하려면 시작 URL이 필요합니다.');
+    }
+
+    if (record.selfSignupEnabled) {
+      throw new BadRequestException('셀프 회원가입은 현재 지원하지 않습니다. Microsoft 가입 신청 또는 관리자 사용자 생성을 사용하세요.');
+    }
+
+    if (
+      (record.microsoftLoginEnabled || record.microsoftSignupRequestEnabled)
+      && !this.isMicrosoftRuntimeReady(record)
+    ) {
+      throw new BadRequestException(
+        'Microsoft 인증을 활성화하려면 tenant, client, redirect URI, 암호화된 client secret과 broad tenant allowlist가 모두 필요합니다.',
+      );
+    }
+
+    const hasInteractiveLogin = record.passwordLoginEnabled
+      || (record.internalSsoEnabled && Boolean(record.internalSsoLoginUrl))
+      || (record.microsoftLoginEnabled && this.isMicrosoftRuntimeReady(record));
+    if (!hasInteractiveLogin) {
+      throw new BadRequestException('모든 로그인 방식을 비활성화할 수 없습니다. 최소 하나의 준비된 로그인 방식을 유지하세요.');
+    }
   }
 
   toPublicLoginConfig(record: AuthProviderSettingRecord, apiBaseUrl: string): AuthPublicLoginConfig {
@@ -309,6 +339,11 @@ export class AuthPolicyService {
     }
 
     const existing = await this.getOrCreateSettings();
+    const candidate = {
+      ...existing,
+      ...updateData,
+    } as AuthProviderSettingRecord;
+    this.assertActivationSafety(candidate);
     const updated = await this.db.client.authProviderSetting.update({
       where: { settingKey: existing.settingKey },
       data: {

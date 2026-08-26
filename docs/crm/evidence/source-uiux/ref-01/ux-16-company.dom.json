@@ -1,0 +1,94 @@
+{
+  "title": "회사 정보",
+  "sections": [
+    "회사 정보"
+  ],
+  "fields": [
+    {
+      "id": "co-name",
+      "name": null,
+      "type": "text",
+      "label": "회사명 *",
+      "placeholder": "회사명 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "co-ceo",
+      "name": null,
+      "type": "text",
+      "label": "대표이사",
+      "placeholder": "대표이사명 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "co-reg",
+      "name": null,
+      "type": "text",
+      "label": "사업자번호",
+      "placeholder": "000-00-00000",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "co-addr",
+      "name": null,
+      "type": "text",
+      "label": "회사 주소",
+      "placeholder": "회사 주소 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "co-tel",
+      "name": null,
+      "type": "text",
+      "label": "대표 전화",
+      "placeholder": "02-0000-0000",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "co-fax",
+      "name": null,
+      "type": "text",
+      "label": "팩스",
+      "placeholder": "02-0000-0000",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "co-web",
+      "name": null,
+      "type": "text",
+      "label": "웹사이트",
+      "placeholder": "https://www.company.com",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "co-ci",
+      "name": null,
+      "type": "text",
+      "label": "CI 이미지 경로",
+      "placeholder": "assets/images/ci.png",
+      "disabled": false,
+      "readOnly": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "저장"
+  ],
+  "labels": [
+    "회사명 *",
+    "대표이사",
+    "사업자번호",
+    "회사 주소",
+    "대표 전화",
+    "팩스",
+    "웹사이트",
+    "CI 이미지 경로"
+  ]
+}

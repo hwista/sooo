@@ -1,6 +1,6 @@
 # DMS 문서
 
-> 최종 업데이트: 2026-06-17
+> 최종 업데이트: 2026-08-20
 > 정본 위치: `docs/dms/`
 
 Document Management System(DMS) 문서의 단일 정본 인덱스입니다.
@@ -40,11 +40,16 @@ docs/dms/
 | [상태 관리](./explanation/architecture/state-management.md) | 스토어/상태 흐름 |
 | [디자인 시스템](./explanation/design/design-system.md) | UI 디자인 기준 |
 | [API 가이드](./guides/api.md) | API 명세/사용 예시 |
+| [Docker 배포와 런타임 프로필](./guides/deployment.md) | dev 사용자 인수 테스트, local-test 자동검증, prod 공개 배포 경계와 인계 절차 |
 | [컴포넌트 가이드](./guides/components.md) | 컴포넌트 구성 |
 | [훅 가이드](./guides/hooks.md) | 커스텀 훅 설명 |
 | [골든 이그잼플 가이드](./guides/golden-example.md) | 구조 기준선 / 레이어 판정 / 검증 규칙 |
 | [로드맵](./planning/roadmap.md) | 계획/단계 |
 | [백로그](./planning/backlog.md) | 작업 항목 |
+| [홈 워크 허브 Ralph 계획](./planning/2026-08-20-home-work-hub-ralph-plan.md) | 개인화 최근 문서·변경·처리함·운영 예외의 데이터/API/UI/Ralph 수용 기준 |
+| [DMS·Admin 운영 완결성 Launch Ralph 계획](./planning/2026-08-14-operational-launch-ralph-plan.md) | 이전 운영 goal을 포함한 기능·설정·제어·진단·복구 100% 수용 기준과 브라우저 명세 |
+| [프로덕션 Go-live Ralph 계획](./planning/2026-08-13-production-go-live-ralph-plan.md) | 프로덕션 인프라·복구·릴리즈와 Admin/DMS 운영을 포함한 다섯 트랙의 최종 Go/No-Go 명세 |
+| [프로덕션 Go-live Ralph 핸드오프](./planning/2026-08-13-production-go-live-ralph-handoff.md) | 2026-08-13 당시 구현·검증 상태와 재개 지점(현행 기준은 2026-08-14 계획) |
 | [협업/권한/알림/댓글 런칭 핸드오프](./planning/2026-05-29-launch-collaboration-handoff.md) | 2026-05-29 런칭 closeout 인계 |
 | [PRD 템플릿](./planning/prd-template.md) | 작업 요청 입력 형식 |
 | [변경 이력](./planning/changelog.md) | 변경 기록 |
@@ -62,6 +67,8 @@ docs/dms/
 - 서버/DMS 타입·빌드 기준선: `pnpm --filter server exec tsc --noEmit`, `pnpm --filter web-dms exec tsc --noEmit`, `pnpm build:server`, `pnpm build:web-dms`
 - DMS 계약 기준선: `pnpm -C apps/web/dms run check:user-scope-contract`, `pnpm -C apps/web/dms run check:golden-example`, `pnpm -C apps/web/dms run check:shell-body-contract`
 - 런타임 접근 기준선: `pnpm verify:access-dms`
+- 프로덕션 설정/복구/공개 endpoint self-test: `pnpm run docker:production:verify-env:self-test`, `pnpm run verify:dms-backup-restore:self-test`, `pnpm run verify:dms-public-endpoints:self-test`
+- 최종 Go gate: 운영값과 동일 SHA 이미지를 배포한 뒤 `pnpm run verify:dms-go-live`
 
 ## Backlog
 
@@ -73,6 +80,10 @@ docs/dms/
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-20 | 정적 홈을 실제 사용자별 문서 활동·콘텐츠 변경 시계·처리함·운영 예외 기반 워크 허브로 전환하고 dev Docker 관리자/일반 사용자/모바일/부분 장애 Ralph 증거 연결 |
+| 2026-08-19 | 실제 로컬 Docker 사용자 인수 테스트는 dev, local-test는 자동 회귀 전용이라는 프로필 선택·인계 기준을 배포 가이드에 연결 |
+| 2026-08-14 | Admin/DMS 운영 기능 전체를 프로덕션 네 트랙과 결합한 운영 완결성 Launch Ralph 계획을 정본 인덱스에 연결 |
+| 2026-08-13 | 프로덕션 Go-live Ralph 계획/핸드오프와 네 트랙 최종 gate를 핵심 문서·검증 기준선에 연결 |
 | 2026-06-17 | SSOO 내부 페이지 조립 표준을 핵심 문서에 연결하고 DMS 문서 페이지를 골든 이그잼플 기준으로 명시 |
 | 2026-06-10 | DMS 설정/제어/운영 책임 경계 정본을 추가하고 Admin/platform vs DMS/domain-specific ownership 기준을 핵심 문서에 연결 |
 | 2026-06-05 | DMS의 역할을 PMS/CRM 도메인 기능 안에서 산출물 파일, 문서 뷰어, 문서 허브, 첨부, 검토 상태를 연결하는 문서 자산 계층으로 정정 |

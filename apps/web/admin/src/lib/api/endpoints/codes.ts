@@ -31,6 +31,8 @@ export interface CreateCodeRequest {
 }
 
 export interface UpdateCodeRequest {
+  codeGroup?: string;
+  codeValue?: string;
   parentCode?: string;
   displayNameKo?: string;
   displayNameEn?: string;
@@ -64,6 +66,11 @@ export const codesApi = {
 
   deactivate: async (id: string): Promise<ApiResponse<CodeItem>> => {
     const response = await apiClient.delete<ApiResponse<CodeItem>>(`/codes/${id}`);
+    return response.data;
+  },
+
+  removePermanently: async (id: string): Promise<ApiResponse<{ id: string }>> => {
+    const response = await apiClient.delete<ApiResponse<{ id: string }>>(`/codes/${id}/permanent`);
     return response.data;
   },
 };

@@ -1,0 +1,323 @@
+{
+  "title": "사업계획 등록",
+  "sections": [
+    "사업계획 등록"
+  ],
+  "fields": [
+    {
+      "id": "bp-year",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "bp-version",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "bp-wbs-bp1",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "WBS코드",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "bp-rev-bp1-1",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-1",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-2",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-2",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-3",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-3",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-4",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-4",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-5",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-5",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-6",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-6",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-7",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-7",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-8",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-8",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-9",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-9",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-10",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-10",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-11",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-11",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-12",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-12",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-13",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-13",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-rev-bp1-14",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    },
+    {
+      "id": "bp-ext-bp1-14",
+      "name": null,
+      "type": "number",
+      "label": null,
+      "placeholder": "0.00",
+      "disabled": false,
+      "readOnly": true
+    }
+  ],
+  "columns": [
+    "사업구분",
+    "계열구분",
+    "국내/해외",
+    "사업명",
+    "WBS코드",
+    "2026년 (월별)",
+    "2026년 합계",
+    "2027년 (연간)",
+    "2028년 (연간)",
+    "1월",
+    "2월",
+    "3월",
+    "4월",
+    "5월",
+    "6월",
+    "7월",
+    "8월",
+    "9월",
+    "10월",
+    "11월",
+    "12월",
+    "2027년 합계",
+    "2028년 합계",
+    "매출",
+    "외부원가",
+    "손익"
+  ],
+  "actions": [
+    "조회",
+    "↩ 전년이월실적 불러오기",
+    "+ 차수 추가",
+    "확정해제"
+  ],
+  "labels": [
+    "사업년도 *",
+    "차수"
+  ]
+}

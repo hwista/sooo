@@ -10,9 +10,13 @@ import {
   Query,
   Req,
   Res,
-  UseGuards } from '@nestjs/common';
+  UploadedFile,
+  UseGuards,
+  UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
+  ApiConsumes,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
@@ -32,6 +36,17 @@ import { RequireDmsFeature } from '../access/require-dms-feature.decorator.js';
 import { contentService } from '../runtime/content.service.js';
 import { TemplateConvertService } from './template-convert.service.js';
 import { TemplateService } from './template.service.js';
+
+const DocxTemplateFileInterceptor = FileInterceptor('file', {
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
+
+interface UploadedDocxTemplateFile {
+  buffer: Buffer;
+  originalname: string;
+  mimetype: string;
+  size: number;
+}
 
 function getRequestUserId(request: ExpressRequest): string {
   const user = request.user as Partial<TokenPayload> | undefined;
@@ -197,6 +212,35 @@ export class TemplatesController {
         ? body.generation as TemplateItem['generation']
         : undefined }, userId, currentUser.loginId, currentUser);
 
+    return success(this.sanitizeTemplate(saved, currentUser));
+  }
+
+  @Post(':id/docx')
+  @UseInterceptors(DocxTemplateFileInterceptor)
+  @ApiOperation({ summary: 'DMS 템플릿 실제 DOCX binary 업로드' })
+  @ApiConsumes('multipart/form-data')
+  @ApiOkResponse({ description: 'DOCX binary가 연결된 템플릿 반환' })
+  async uploadDocxBinary(
+    @Param('id') id: string,
+    @UploadedFile() file: UploadedDocxTemplateFile | undefined,
+    @Body('scope') scopeValue: string | undefined,
+    @CurrentUser() currentUser: TokenPayload,
+    @Req() request: ExpressRequest,
+  ) {
+    const scope = scopeValue === 'global' ? 'global' : scopeValue === 'personal' ? 'personal' : null;
+    if (!id.trim() || !scope || !file) {
+      throw new BadRequestException('id/scope/file은 필수입니다.');
+    }
+    if (!file.originalname.toLowerCase().endsWith('.docx')) {
+      throw new BadRequestException('.docx 파일만 업로드할 수 있습니다.');
+    }
+    const saved = await this.templateService.saveDocxBinary(
+      id.trim(),
+      scope,
+      getRequestUserId(request),
+      { buffer: file.buffer, originalName: file.originalname },
+      currentUser,
+    );
     return success(this.sanitizeTemplate(saved, currentUser));
   }
 

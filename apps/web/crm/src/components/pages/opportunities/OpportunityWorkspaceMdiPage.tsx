@@ -1,6 +1,6 @@
 'use client';
 
-import type { CrmOpportunityListResponse, CrmOpportunitySort, CrmOpportunityStatus } from '@ssoo/types/crm';
+import type { CrmOpportunityListResponse, CrmOpportunitySort, CrmOpportunityStatus, CrmSourceOpportunityStatus } from '@ssoo/types/crm';
 import { OpportunityWorkspaceClient, type OpportunityWorkspaceQuery } from './OpportunityWorkspaceClient';
 import { crmDashboardFallback } from './dashboardFallback';
 
@@ -26,13 +26,20 @@ function normalizeQuery(path: string): OpportunityWorkspaceQuery {
   const [, queryString = ''] = path.split('?');
   const searchParams = new URLSearchParams(queryString);
   const status = searchParams.get('status') as CrmOpportunityStatus | 'all' | null;
+  const sourceStatus = searchParams.get('sourceStatus') as CrmSourceOpportunityStatus | 'all' | null;
   const sort = searchParams.get('sort') as CrmOpportunitySort | null;
+  const sourceSurface = searchParams.get('sourceSurface');
 
   return {
     search: (searchParams.get('search') ?? '').trim(),
     status: status && ['draft', 'qualified', 'proposal', 'won', 'lost', 'hold'].includes(status) ? status : 'all',
-    sort: sort && ['revenue-desc', 'margin-desc'].includes(sort) ? sort : 'updated-desc',
+    sourceStatus: sourceStatus && ['진행중', '검토중', '계약완료', '실패'].includes(sourceStatus) ? sourceStatus : 'all',
+    sort: sort && ['customer-asc', 'updated-desc', 'revenue-desc', 'profit-desc', 'margin-desc'].includes(sort) ? sort : 'customer-asc',
     selected: searchParams.get('selected') ?? '',
+    sourceSurface: sourceSurface && ['dashboard', 'list', 'form', 'contract-document'].includes(sourceSurface)
+      ? sourceSurface as OpportunityWorkspaceQuery['sourceSurface']
+      : 'workspace',
+    create: searchParams.get('create') === 'opportunity',
   };
 }
 

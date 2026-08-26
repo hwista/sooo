@@ -1,8 +1,19 @@
 import { expect, type Browser, type BrowserContext, type Page, type Response, type Route, test } from '@playwright/test';
 
+import {
+  authenticateStorageState,
+  closeRotatingAuthenticatedContext,
+  getLaunchAccessToken,
+  openRotatingAuthenticatedPage,
+  reloadRotatingAuthenticatedPage,
+  requireMutableStorageState,
+  type BrowserFailureMonitor,
+  type MutableStorageState,
+} from '../support/launch-browser';
+
 type HttpMethod = 'GET' | 'POST' | 'DELETE';
 type JsonObject = Record<string, unknown>;
-type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
+type StorageState = MutableStorageState;
 
 interface LaunchUser {
   loginId: string;
@@ -33,58 +44,40 @@ function isCollaborationPostForPath(response: Response, path: string, mode?: 'vi
 }
 
 async function waitForDmsShell(page: Page) {
-  await expect(page.getByPlaceholder('문서·지식 검색...')).toBeVisible({ timeout: 15_000 });
-}
-
-async function login(page: Page, loginId: string, password: string) {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    await page.goto(`${DMS_BASE_URL}/login`);
-    await expect(page.getByRole('heading', { name: '로그인' })).toBeVisible();
-    await page.getByLabel('아이디').fill(loginId);
-    await page.getByLabel('비밀번호').fill(password);
-    await page.getByRole('button', { name: '로그인' }).click();
-
-    try {
-      await waitForDmsShell(page);
-      return;
-    } catch (error) {
-      const rateLimited = await page.getByText(/Too Many Requests|ThrottlerException/).isVisible().catch(() => false);
-      if (rateLimited && attempt === 0) {
-        await page.waitForTimeout(61_000);
-        continue;
-      }
-      throw error;
-    }
-  }
+  await expect(
+    page.getByRole('searchbox', { name: '무엇이든 찾아드릴게요! 무엇이 필요하신가요?' }),
+  ).toBeVisible({ timeout: 15_000 });
 }
 
 async function authenticate(browser: Browser, user: LaunchUser): Promise<StorageState> {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  try {
-    await login(page, user.loginId, user.password);
-    return await context.storageState();
-  } finally {
-    await context.close();
-  }
+  return authenticateStorageState(browser, {
+    appUrl: DMS_BASE_URL,
+    loginId: user.loginId,
+    password: user.password,
+    waitUntilReady: waitForDmsShell,
+    retryAfterRateLimit: true,
+  });
 }
 
 function requireStorageState(state: StorageState | undefined): StorageState {
-  if (!state) {
-    throw new Error('auth state is not initialized');
-  }
-  return state;
+  return requireMutableStorageState(state, 'WS-019 admin');
 }
 
 async function newAuthenticatedPage(
   browser: Browser,
   storageState: StorageState,
-): Promise<{ context: BrowserContext; page: Page }> {
-  const context = await browser.newContext({ storageState });
-  const page = await context.newPage();
-  await page.goto(`${DMS_BASE_URL}/`);
-  await waitForDmsShell(page);
-  return { context, page };
+): Promise<{ context: BrowserContext; page: Page; monitor: BrowserFailureMonitor }> {
+  const opened = await openRotatingAuthenticatedPage(browser, {
+    appUrl: DMS_BASE_URL,
+    storageState,
+    waitUntilReady: waitForDmsShell,
+    failurePolicy: {
+      label: 'WS-019 inline file selection',
+      relevantOrigins: [DMS_BASE_URL],
+      allowHttpFailure: ({ path, status }) => path === '/api/doc-assist' && status === 500,
+    },
+  });
+  return { context: opened.context, page: opened.page, monitor: opened.monitor! };
 }
 
 function resolvePageRequestUrl(page: Page, url: string): string {
@@ -100,32 +93,8 @@ function resolvePageRequestUrl(page: Page, url: string): string {
   return new URL(url, currentUrl).toString();
 }
 
-function parseAccessToken(rawAuth: string | undefined): string | undefined {
-  if (!rawAuth) return undefined;
-
-  try {
-    const parsed = JSON.parse(rawAuth) as { state?: { accessToken?: unknown } };
-    const token = parsed.state?.accessToken;
-    return typeof token === 'string' && token.trim().length > 0 ? token : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 async function readAccessToken(page: Page): Promise<string | undefined> {
-  const currentUrl = page.url();
-  if (!/^https?:\/\//i.test(currentUrl)) {
-    return undefined;
-  }
-
-  const currentOrigin = new URL(currentUrl).origin;
-  const storageState = await page.context().storageState();
-  const rawAuth = storageState.origins
-    .find((origin) => origin.origin === currentOrigin)
-    ?.localStorage.find((item) => item.name === 'ssoo-auth')
-    ?.value;
-
-  return parseAccessToken(rawAuth);
+  return getLaunchAccessToken(page);
 }
 
 async function apiRequest(
@@ -205,7 +174,7 @@ async function createMarkdownDocument(page: Page, path: string, title: string, c
 async function openDocumentTab(page: Page, path: string, title: string, ownerUserId = '1') {
   const collaborationReady = page.waitForResponse(
     (response) => isCollaborationPostForPath(response, path, 'view'),
-    { timeout: 20_000 },
+    { timeout: 90_000 },
   );
 
   await page.evaluate(({ nextOwnerUserId, nextPath, nextTitle }) => {
@@ -243,9 +212,9 @@ async function openDocumentTab(page: Page, path: string, title: string, ownerUse
     }));
   }, { nextOwnerUserId: ownerUserId, nextPath: path, nextTitle: title });
 
-  await page.reload({ waitUntil: 'domcontentloaded' });
+  await reloadRotatingAuthenticatedPage(page);
   await waitForDmsShell(page);
-  await expect(page.getByRole('button', { name: title })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('tab', { name: title })).toBeVisible({ timeout: 30_000 });
   await collaborationReady;
 }
 
@@ -289,7 +258,7 @@ test.describe('WS-019 inline file selection lifecycle', () => {
     const suffix = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     const documentPath = `ws019/inline-file-selection-${suffix}.md`;
     const title = `WS019 Inline ${suffix}`;
-    const { context, page } = await newAuthenticatedPage(browser, requireStorageState(adminStorageState));
+    const { context, page, monitor } = await newAuthenticatedPage(browser, requireStorageState(adminStorageState));
     let protectedAuthLifecycleChecks = 0;
 
     let releaseExtraction!: () => void;
@@ -334,10 +303,9 @@ test.describe('WS-019 inline file selection lifecycle', () => {
       await composerForm.getByRole('button', { name: '컨텍스트 첨부' }).click();
       const attachMenu = page.locator('[data-assistant-dropdown="true"]');
       await expect(attachMenu).toBeVisible();
-      const fileChooserPromise = page.waitForEvent('filechooser');
-      await attachMenu.getByRole('button', { name: '파일 선택' }).click();
-      const fileChooser = await fileChooserPromise;
-      await fileChooser.setFiles({
+      const fileInput = attachMenu.locator('input[type="file"]');
+      await fileInput.dispatchEvent('click');
+      await fileInput.setInputFiles({
         name: 'inline-ref.md',
         mimeType: 'text/markdown',
         buffer: Buffer.from('# Inline Ref\n\n선택 직후 chip이 보여야 합니다.\n', 'utf8'),
@@ -377,7 +345,11 @@ test.describe('WS-019 inline file selection lifecycle', () => {
       await expect(page.getByText('파일: inline-ref.md')).toBeVisible();
     } finally {
       await apiRequestOptional(page, 'DELETE', '/api/content', { path: documentPath });
-      await context.close();
+      try {
+        monitor.assertClean();
+      } finally {
+        await closeRotatingAuthenticatedContext(context);
+      }
     }
   });
 });

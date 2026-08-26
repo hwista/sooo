@@ -2,6 +2,7 @@
 
 import { useAdminStats } from '@/hooks/queries/useStats';
 import { Button } from '@ssoo/web-ui';
+import { LaunchReadinessPanel } from './LaunchReadinessPanel';
 
 export default function DashboardPage() {
   const { data: statsResponse, isLoading, error, refetch } = useAdminStats();
@@ -27,6 +28,8 @@ export default function DashboardPage() {
         <StatCard title="조직" value={isLoading ? '…' : String(stats?.organizations ?? '—')} description="등록된 조직" />
         <StatCard title="권한" value={isLoading ? '…' : String(stats?.permissions ?? '—')} description="등록된 권한" />
       </div>
+
+      <LaunchReadinessPanel />
     </div>
   );
 }

@@ -1,0 +1,5933 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/crm/access/me": {
+      "get": {
+        "operationId": "CrmAccessController_myAccess",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "공용 permission resolution 기반 CRM 도메인 접근 스냅샷"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약·계획·원가·보고·공급자 설정 전역 접근 스냅샷",
+        "tags": [
+          "crm-access"
+        ]
+      }
+    },
+    "/api/crm/opportunities": {
+      "get": {
+        "operationId": "OpportunityController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CRM 영업기회 목록과 요약",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ],
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 영업기회 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 현황 데모 목록",
+        "tags": [
+          "crm-opportunities"
+        ]
+      },
+      "post": {
+        "operationId": "OpportunityController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmOpportunityUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "생성된 CRM 영업기회"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 생성",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/access/me": {
+      "get": {
+        "operationId": "OpportunityController_myAccess",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CRM 영업기회 전역 접근 스냅샷"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 전역 접근 스냅샷",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/owners/lookup": {
+      "get": {
+        "operationId": "OpportunityController_ownerLookup",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CRM 영업기회 담당자 후보 사용자 목록"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 영업기회 생성 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 담당자 공용 사용자 조회",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/access": {
+      "get": {
+        "operationId": "OpportunityController_access",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CRM 영업기회 접근 스냅샷"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 접근 스냅샷",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/quote-preview": {
+      "get": {
+        "operationId": "OpportunityController_quotePreview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "영업기회 원장 기반 읽기 전용 견적 후보"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 견적 후보 미리보기",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/contract-document-preview": {
+      "get": {
+        "operationId": "OpportunityController_contractDocumentPreview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "원천 데모 호환 계약서 변수·DMS 템플릿·lifecycle 준비 상태"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "확정 영업기회 원천 22개 변수 계약서 미리보기",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/contract-document-sample": {
+      "get": {
+        "operationId": "OpportunityController_downloadContractDocumentSample",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 계약서 샘플 DOCX 템플릿 다운로드",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/contract-document-draft": {
+      "post": {
+        "operationId": "OpportunityController_createContractDocumentDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmOpportunityContractDocumentDraftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CRM 영업기회 계약서 DMS draft handoff snapshot"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "확정 영업기회 원천 22개 변수 DMS 초안 저장",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/contract-document-lifecycle-execution": {
+      "post": {
+        "operationId": "OpportunityController_executeContractDocumentLifecycle",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmOpportunityContractDocumentLifecycleExecutionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DMS DOCX 산출과 CRM artifact evidence handoff 결과"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "DMS 영업기회 계약서 DOCX lifecycle 실행",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/contract-document-artifact": {
+      "get": {
+        "operationId": "OpportunityController_downloadContractDocumentArtifact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "완료된 CRM 영업기회 계약서 DOCX 다운로드",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/quote-dms-document-draft": {
+      "post": {
+        "operationId": "OpportunityController_createQuoteDmsDocumentDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmQuoteDmsDocumentDraftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "견적 DMS draft handoff snapshot"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 견적 DMS markdown 초안 저장",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/quote-dms-document-execution-evidence": {
+      "post": {
+        "operationId": "OpportunityController_recordQuoteDmsDocumentExecutionEvidence",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmQuoteDmsDocumentExecutionEvidenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "견적 DMS lifecycle evidence가 반영된 handoff snapshot"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 견적 DMS execution evidence 수신",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/quote-dms-document-lifecycle-execution": {
+      "post": {
+        "operationId": "OpportunityController_executeQuoteDmsDocumentLifecycle",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmQuoteDmsDocumentLifecycleExecutionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DMS 견적 artifact 생성과 CRM evidence snapshot 반영 결과"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 견적 handoff 기반 DMS lifecycle artifact 실행",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/quote-dms-artifacts/{kind}": {
+      "get": {
+        "operationId": "OpportunityController_downloadQuoteDmsArtifact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "완료된 CRM 견적 DMS DOCX/PDF 산출물 다운로드",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/quote-workflow": {
+      "put": {
+        "operationId": "OpportunityController_updateQuoteWorkflow",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmOpportunityQuoteWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "견적 상태가 반영된 영업기회 견적 후보"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 견적 상태 저장",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}": {
+      "get": {
+        "operationId": "OpportunityController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CRM 영업기회 상세"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 상세",
+        "tags": [
+          "crm-opportunities"
+        ]
+      },
+      "put": {
+        "operationId": "OpportunityController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmOpportunityUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "수정된 CRM 영업기회"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 수정",
+        "tags": [
+          "crm-opportunities"
+        ]
+      },
+      "delete": {
+        "operationId": "OpportunityController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "삭제된 영업기회와 삭제 후 선택 가능한 이전 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 최신 미확정 영업기회 삭제",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/confirm": {
+      "post": {
+        "operationId": "OpportunityController_confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정된 CRM 영업기회"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 확정",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/reopen": {
+      "post": {
+        "operationId": "OpportunityController_reopen",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정 해제된 CRM 영업기회"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 확정 해제(연결 계약이 있으면 함께 회수)",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/revoke-contract": {
+      "post": {
+        "operationId": "OpportunityController_revokeContract",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "연결 계약이 회수되고 확정 상태로 복원된 CRM 영업기회"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 연결 계약 회수 후 확정 상태 복원",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/convert-contract": {
+      "post": {
+        "operationId": "OpportunityController_convertContract",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmOpportunityContractConversionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "계약으로 전환된 영업기회와 생성된 CRM 계약"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 계약 전환",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/versions": {
+      "get": {
+        "operationId": "OpportunityController_versions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "영업기회 차수 목록"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 차수 목록",
+        "tags": [
+          "crm-opportunities"
+        ]
+      },
+      "post": {
+        "operationId": "OpportunityController_addVersion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "추가된 CRM 영업기회 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 차수 추가",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/opportunities/{id}/history": {
+      "get": {
+        "operationId": "OpportunityController_history",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "영업기회 변경 이력"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 영업기회 변경 이력",
+        "tags": [
+          "crm-opportunities"
+        ]
+      }
+    },
+    "/api/crm/contracts": {
+      "get": {
+        "operationId": "ContractController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CRM 계약 목록과 요약"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 계약 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 현황 목록",
+        "tags": [
+          "crm-contracts"
+        ]
+      },
+      "post": {
+        "operationId": "ContractController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmContractUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "생성된 CRM 계약"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 생성",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/billing-split-preview": {
+      "post": {
+        "operationId": "ContractController_billingSplitPreview",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmBillingSplitPreviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "계약 기간과 총액 기준 청구계획 분할 후보"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 청구계획 자동 분할 미리보기",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/monthly-performance": {
+      "get": {
+        "operationId": "ContractController_monthlyPerformance",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "사업년도",
+            "schema": {
+              "default": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "businessType",
+            "required": false,
+            "in": "query",
+            "description": "사업구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryLine",
+            "required": false,
+            "in": "query",
+            "description": "계열/산업 구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "required": false,
+            "in": "query",
+            "description": "국내/해외",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "domestic",
+                "overseas"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "계약명/고객사/WBS 검색어",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정 계약 기준 월별 청구계획/실적/차이"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약대비실적 월별 조회",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/billing-actual": {
+      "get": {
+        "operationId": "ContractController_billingActual",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "계약 청구계획 대비 실적"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 청구실적 조회",
+        "tags": [
+          "crm-contracts"
+        ]
+      },
+      "put": {
+        "operationId": "ContractController_updateBillingActual",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmContractBillingActualUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "저장된 계약 청구실적"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 청구실적 저장",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/pms-handoff-preview": {
+      "get": {
+        "operationId": "ContractController_pmsHandoffPreview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PMS 실행 프로젝트 생성을 수행하지 않는 읽기용 계약 스냅샷"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 기반 PMS 인계 후보 미리보기",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/dms-document-preview": {
+      "get": {
+        "operationId": "ContractController_dmsDocumentPreview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DMS 저장 전 계약서 입력 패킷"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 기반 DMS 계약서 문서 패킷 미리보기",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/dms-document-draft": {
+      "post": {
+        "operationId": "ContractController_createDmsDocumentDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmContractDmsDocumentDraftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DMS markdown 초안 저장 결과"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 DMS markdown 초안 저장",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/dms-document-execution-evidence": {
+      "post": {
+        "operationId": "ContractController_recordDmsDocumentExecutionEvidence",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmContractDmsDocumentExecutionEvidenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DMS 실행 evidence가 반영된 계약 문서 handoff snapshot"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 DMS lifecycle 실행 evidence 기록",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/dms-document-lifecycle-execution": {
+      "post": {
+        "operationId": "ContractController_executeDmsDocumentLifecycle",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmContractDmsDocumentLifecycleExecutionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DMS artifact 생성과 CRM evidence snapshot 반영 결과"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 handoff 기반 DMS lifecycle artifact 실행",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/dms-document-artifacts/{kind}": {
+      "get": {
+        "operationId": "ContractController_downloadDmsDocumentArtifact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "완료된 CRM 계약 DMS DOCX/PDF 산출물 다운로드",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}": {
+      "get": {
+        "operationId": "ContractController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CRM 계약 상세"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 상세",
+        "tags": [
+          "crm-contracts"
+        ]
+      },
+      "put": {
+        "operationId": "ContractController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmContractUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "수정된 CRM 계약"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 수정",
+        "tags": [
+          "crm-contracts"
+        ]
+      },
+      "delete": {
+        "operationId": "ContractController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "삭제된 CRM 계약"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 삭제",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/confirm": {
+      "post": {
+        "operationId": "ContractController_confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정된 CRM 계약"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 확정",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/contracts/{id}/reopen": {
+      "post": {
+        "operationId": "ContractController_reopen",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정 해제된 CRM 계약"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 계약 확정 해제",
+        "tags": [
+          "crm-contracts"
+        ]
+      }
+    },
+    "/api/crm/customers": {
+      "get": {
+        "operationId": "CustomerController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "고객명/담당자/업종/다음 행동 검색어",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "고객 상태",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "prospect",
+                "active",
+                "partner",
+                "inactive",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "정렬",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "updated-desc",
+                "activity-desc",
+                "name-asc"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "최대 조회 건수",
+            "schema": {
+              "minimum": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CRM 고객 원장 목록과 요약",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ],
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 고객 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객 원장 목록",
+        "tags": [
+          "crm-customers"
+        ]
+      },
+      "post": {
+        "operationId": "CustomerController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCustomerUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "생성된 CRM 고객 원장"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객 원장 생성",
+        "tags": [
+          "crm-customers"
+        ]
+      }
+    },
+    "/api/crm/customers/access/me": {
+      "get": {
+        "operationId": "CustomerController_myAccess",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CRM 고객/활동 전역 접근 스냅샷"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객/활동 전역 접근 스냅샷",
+        "tags": [
+          "crm-customers"
+        ]
+      }
+    },
+    "/api/crm/customers/ai-index/backfill": {
+      "post": {
+        "operationId": "CustomerController_queueAiIndexBackfill",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCustomerAiIndexBackfillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CRM customer/activity AI index backfill queue summary"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "시스템 override 권한 필요"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객/활동 AI 인덱스 backfill job 등록",
+        "tags": [
+          "crm-customers"
+        ]
+      }
+    },
+    "/api/crm/customers/{id}/access": {
+      "get": {
+        "operationId": "CustomerController_access",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CRM 고객/활동 접근 스냅샷"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객/활동 접근 스냅샷",
+        "tags": [
+          "crm-customers"
+        ]
+      }
+    },
+    "/api/crm/customers/{id}": {
+      "get": {
+        "operationId": "CustomerController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CRM 고객 원장 상세"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객 원장 상세",
+        "tags": [
+          "crm-customers"
+        ]
+      },
+      "put": {
+        "operationId": "CustomerController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCustomerUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "수정된 CRM 고객 원장"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객 원장 수정",
+        "tags": [
+          "crm-customers"
+        ]
+      }
+    },
+    "/api/crm/customers/{id}/activities": {
+      "get": {
+        "operationId": "CustomerController_activities",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "활동 유형",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "call",
+                "meeting",
+                "email",
+                "proposal",
+                "contract",
+                "support",
+                "opportunity-next-action",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "최대 조회 건수",
+            "schema": {
+              "minimum": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CRM 고객 활동 원장 목록"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객 활동 원장 목록",
+        "tags": [
+          "crm-customers"
+        ]
+      },
+      "post": {
+        "operationId": "CustomerController_addActivity",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCustomerActivityCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "생성된 CRM 고객 활동"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 고객 활동 등록",
+        "tags": [
+          "crm-customers"
+        ]
+      }
+    },
+    "/api/crm/quote-seller-profile": {
+      "get": {
+        "operationId": "QuoteSettingsController_sellerProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "견적서에 표시할 공급자 회사 정보"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 영업기회 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 견적서 공급자 표시 정보 조회",
+        "tags": [
+          "crm-quote-settings"
+        ]
+      },
+      "put": {
+        "operationId": "QuoteSettingsController_updateSellerProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmQuoteSellerProfileUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "저장된 견적서 공급자 회사 정보"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 영업기회 수정 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 견적서 공급자 표시 정보 저장",
+        "tags": [
+          "crm-quote-settings"
+        ]
+      }
+    },
+    "/api/crm/quote-seller-profile/ci": {
+      "get": {
+        "operationId": "QuoteSettingsController_sellerCi",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "검증된 공급자 CI 이미지 binary"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 견적/계약 공급자 CI 이미지 조회",
+        "tags": [
+          "crm-quote-settings"
+        ]
+      },
+      "post": {
+        "operationId": "QuoteSettingsController_uploadSellerCi",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "검증된 DMS CI 저장소 참조"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "견적/계약 공급자 CI 이미지 업로드",
+        "tags": [
+          "crm-quote-settings"
+        ]
+      }
+    },
+    "/api/crm/dashboard": {
+      "get": {
+        "operationId": "DashboardController_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "영업기회, 계약, PMS/DMS 읽기용 준비 상태 요약"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 홈 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 홈 업무 요약",
+        "tags": [
+          "crm-dashboard"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans": {
+      "get": {
+        "operationId": "BusinessPlanController_plans",
+        "parameters": [
+          {
+            "name": "baseYear",
+            "required": false,
+            "in": "query",
+            "description": "사업계획 기준년도. 생략하면 전체 연도",
+            "schema": {
+              "default": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "사업계획 상태",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "draft",
+                "confirmed"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "차수명/코드/필터 검색어",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "저장된 사업계획 차수와 확정 상태"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 사업계획 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획 차수 원장 목록",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/snapshot": {
+      "post": {
+        "operationId": "BusinessPlanController_snapshot",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmBusinessPlanSnapshotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "저장된 사업계획 draft 차수"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 사업계획 저장 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획 preview를 차수 원장으로 저장",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/carry-forward": {
+      "post": {
+        "operationId": "BusinessPlanController_carryForward",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmBusinessPlanCarryForwardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "전년 이월로 저장된 사업계획 draft 차수"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 사업계획 저장 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "전년도 확정 사업계획을 새 기준년도 draft 차수로 이월",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/{id}/versions": {
+      "post": {
+        "operationId": "BusinessPlanController_createVersion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "복사 생성된 다음 사업계획 draft 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "최신 확정 CRM 사업계획을 다음 draft 차수로 복사",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/{id}/rows": {
+      "post": {
+        "operationId": "BusinessPlanController_createRow",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmBusinessPlanRowUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "행 추가가 반영된 사업계획 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "최신 draft 사업계획 행 추가",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/{id}/rows/{rowCode}": {
+      "put": {
+        "operationId": "BusinessPlanController_updateRow",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rowCode",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmBusinessPlanRowUpsertDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "행 수정이 반영된 사업계획 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "최신 draft 사업계획 행 수정",
+        "tags": [
+          "crm-business-plan"
+        ]
+      },
+      "delete": {
+        "operationId": "BusinessPlanController_deleteRow",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rowCode",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "행 삭제가 반영된 사업계획 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "최신 draft 사업계획 행 삭제",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/{id}/rows/{rowCode}/wbs": {
+      "put": {
+        "operationId": "BusinessPlanController_updateRowWbs",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rowCode",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmBusinessPlanRowWbsUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "WBS 코드가 반영된 사업계획 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획 행 WBS 코드 수정. 확정·이전 차수에서도 허용",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/{id}": {
+      "delete": {
+        "operationId": "BusinessPlanController_deletePlan",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "삭제된 차수와 이전 선택 후보"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "관리자용 최신 미확정 CRM 사업계획 차수 삭제",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/{id}/lines/{lineId}/monthly-plan": {
+      "post": {
+        "operationId": "BusinessPlanController_updateMonthlyPlan",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmBusinessPlanMonthlyPlanInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "월별 계획 입력이 반영된 사업계획 차수"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 사업계획 저장 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획 draft line 월별 계획 매출 직접 입력",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/performance-actual/monthly": {
+      "post": {
+        "operationId": "BusinessPlanController_savePerformanceActual",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmBusinessPlanPerformanceActualInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "월별 실적 직접 입력이 반영된 조정 원장"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 사업계획대비실적 직접 입력 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획대비실적 월별 실적 직접 입력",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/{id}/confirm": {
+      "post": {
+        "operationId": "BusinessPlanController_confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정된 사업계획 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획 차수 확정",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/plans/{id}/reopen": {
+      "post": {
+        "operationId": "BusinessPlanController_reopen",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정 해제된 사업계획 차수"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획 차수 확정 해제",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/preview": {
+      "get": {
+        "operationId": "BusinessPlanController_preview",
+        "parameters": [
+          {
+            "name": "baseYear",
+            "required": false,
+            "in": "query",
+            "description": "3개년 preview 시작 사업년도",
+            "schema": {
+              "default": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "businessType",
+            "required": false,
+            "in": "query",
+            "description": "사업구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryLine",
+            "required": false,
+            "in": "query",
+            "description": "계열/산업 구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "required": false,
+            "in": "query",
+            "description": "국내/해외",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "domestic",
+                "overseas"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "영업기회 pipeline과 확정 계약 청구계획/실적 기반 읽기용 사업계획 후보"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 사업계획 preview 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획 3개년 preview",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/business-plan/performance-preview": {
+      "get": {
+        "operationId": "BusinessPlanController_performancePreview",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "사업계획대비실적 preview 기준 사업년도",
+            "schema": {
+              "default": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "mode",
+            "required": false,
+            "in": "query",
+            "description": "실적 의미. source-compatible은 원천 데모처럼 확정 계약 청구계획을 실적으로 사용",
+            "schema": {
+              "default": "extended-actual",
+              "type": "string",
+              "enum": [
+                "extended-actual",
+                "source-compatible"
+              ]
+            }
+          },
+          {
+            "name": "businessType",
+            "required": false,
+            "in": "query",
+            "description": "사업구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryLine",
+            "required": false,
+            "in": "query",
+            "description": "계열/산업 구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "required": false,
+            "in": "query",
+            "description": "국내/해외",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "domestic",
+                "overseas"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "원천 호환 확정 사업계획 대 확정 계약 청구계획 또는 SSOO 확장 청구실적 기반 월별 사업계획대비실적"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 사업계획대비실적 preview 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 사업계획대비실적 월별 preview",
+        "tags": [
+          "crm-business-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/preview": {
+      "get": {
+        "operationId": "CostPlanController_preview",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "사업년도",
+            "schema": {
+              "default": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "businessType",
+            "required": false,
+            "in": "query",
+            "description": "사업구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryLine",
+            "required": false,
+            "in": "query",
+            "description": "계열/산업 구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "required": false,
+            "in": "query",
+            "description": "국내/해외",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "domestic",
+                "overseas"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "영업기회/계약 원가 라인과 확정 계약 외부원가 계획/실적 기반 읽기용 원가 후보"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS preview 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원가/AMS preview",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/accounting-payment-preview": {
+      "get": {
+        "operationId": "CostPlanController_accountingPaymentPreview",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "사업년도",
+            "schema": {
+              "default": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "businessType",
+            "required": false,
+            "in": "query",
+            "description": "사업구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryLine",
+            "required": false,
+            "in": "query",
+            "description": "계열/산업 구분",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "required": false,
+            "in": "query",
+            "description": "국내/해외",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "domestic",
+                "overseas"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정 내부원가와 AMS 정산 확정 row 기반 회계·지급 handoff 후보"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS handoff preview 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원가 확정 row 회계·지급 handoff preview",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/accounting-payment-handoff": {
+      "post": {
+        "operationId": "CostPlanController_createAccountingPaymentHandoff",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanAccountingPaymentHandoffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CRM 회계·지급 handoff snapshot 기록 결과"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS handoff 기록 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원가 확정 row 회계·지급 handoff snapshot 기록",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/accounting-payment-handoffs/{id}/execute": {
+      "post": {
+        "operationId": "CostPlanController_executeAccountingPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanAccountingPaymentExecutionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "회계·지급 실행 evidence가 반영된 CRM handoff snapshot"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS handoff 실행 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 회계·지급 handoff 실행 evidence 생성",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/accounting-payment-handoffs/{id}/execution-evidence": {
+      "post": {
+        "operationId": "CostPlanController_recordAccountingPaymentExecutionEvidence",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanAccountingPaymentExecutionEvidenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "외부 회계·지급 실행 evidence가 반영된 CRM handoff snapshot"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS handoff 실행 evidence 기록 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 회계·지급 handoff 외부 실행 evidence 수신",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/internal-cost/monthly": {
+      "post": {
+        "operationId": "CostPlanController_saveInternalMonthly",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanInternalMonthlyInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "저장된 내부원가 월별 계획/실적 입력"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS 저장 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 내부원가 월별 계획/실적 입력 저장",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/internal-cost/source-grid": {
+      "post": {
+        "operationId": "CostPlanController_saveInternalSourceGrid",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanInternalSourceGridDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "저장된 원본 호환 내부원가 5개 항목 그리드"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS 저장 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원본 호환 내부원가 5개 항목 계획/실적 저장",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/internal-cost/monthly/{id}/confirm": {
+      "post": {
+        "operationId": "CostPlanController_confirmInternalMonthlyInput",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정된 내부원가 월별 입력"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS 확정 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 내부원가 월별 입력 확정",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/internal-cost/monthly/{id}/reopen": {
+      "post": {
+        "operationId": "CostPlanController_reopenInternalMonthlyInput",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정 해제된 내부원가 월별 입력"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS 확정 해제 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 내부원가 월별 입력 확정 해제",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/ams/source/vendors": {
+      "post": {
+        "operationId": "CostPlanController_createAmsSourceVendor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanAmsSourceVendorCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원본 호환 AMS 공급업체 추가",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/ams/source/vendors/{id}": {
+      "delete": {
+        "operationId": "CostPlanController_deleteAmsSourceVendor",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원본 호환 AMS 공급업체와 연관 원가 삭제",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/ams/source/vendors/{id}/wbs": {
+      "put": {
+        "operationId": "CostPlanController_saveAmsSourceVendorWbs",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanAmsSourceVendorWbsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원본 호환 AMS 공급업체 복수 WBS 매핑 전체 교체",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/ams/source/external-cost": {
+      "post": {
+        "operationId": "CostPlanController_saveAmsSourceExternalCost",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanAmsSourceExternalCostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원본 호환 AMS 업체-WBS 연간 외부원가 저장",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/ams/vendor-wbs": {
+      "post": {
+        "operationId": "CostPlanController_saveAmsVendorWbsMapping",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanAmsVendorWbsMappingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "저장된 AMS 업체-WBS 매핑"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS 저장 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM AMS 업체-WBS 매핑 저장",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/ams/external-cost/monthly": {
+      "post": {
+        "operationId": "CostPlanController_saveAmsExternalMonthlyInput",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmCostPlanAmsExternalMonthlyInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "저장된 AMS 외부원가 월별 계획/실적 입력"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS 저장 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM AMS 외부원가 월별 계획/실적 입력 저장",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/ams/external-cost/monthly/{id}/confirm": {
+      "post": {
+        "operationId": "CostPlanController_confirmAmsExternalMonthlyInput",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "정산 확정된 AMS 외부원가 월별 입력"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS 정산 확정 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM AMS 외부원가 월별 입력 정산 확정",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/cost-plan/ams/external-cost/monthly/{id}/reopen": {
+      "post": {
+        "operationId": "CostPlanController_reopenAmsExternalMonthlyInput",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "정산 확정 해제된 AMS 외부원가 월별 입력"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 원가/AMS 정산 확정 해제 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM AMS 외부원가 월별 입력 정산 확정 해제",
+        "tags": [
+          "crm-cost-plan"
+        ]
+      }
+    },
+    "/api/crm/operations/preview": {
+      "get": {
+        "operationId": "OperationsController_preview",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "운영 기준 preview 기준 사업년도",
+            "schema": {
+              "default": 2026,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "원천 데모 시스템 관리 항목을 SSOO 공용 Admin/Auth/DMS 경계로 재해석한 읽기용 preview"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 운영 기준 preview 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 운영 기준 preview",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/operations/access": {
+      "get": {
+        "operationId": "OperationsController_access",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 운영 권한 snapshot",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/operations/overview": {
+      "get": {
+        "operationId": "OperationsController_overview",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "운영 기준 preview 기준 사업년도",
+            "schema": {
+              "default": 2026,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 런칭 운영 overview",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/operations/readiness": {
+      "get": {
+        "operationId": "OperationsController_readiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM live launch readiness",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/operations/launch-readiness": {
+      "get": {
+        "operationId": "OperationsController_launchReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM owner launch readiness snapshot",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/operations/data-quality": {
+      "get": {
+        "operationId": "OperationsController_dataQuality",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 원장 데이터 품질 진단",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/operations/attempts": {
+      "get": {
+        "operationId": "OperationsController_attempts",
+        "parameters": [
+          {
+            "name": "target",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dms",
+                "pms",
+                "accounting"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "queued",
+                "running",
+                "succeeded",
+                "failed",
+                "cancelled"
+              ]
+            }
+          },
+          {
+            "name": "sourceEntityId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 운영 attempt 원장 조회",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/operations/attempts/{id}": {
+      "get": {
+        "operationId": "OperationsController_attempt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 운영 attempt 상세 조회",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/operations/attempts/{id}/retry": {
+      "post": {
+        "operationId": "OperationsController_retryAttempt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "실패한 CRM 운영 attempt 안전 재시도",
+        "tags": [
+          "crm-operations"
+        ]
+      }
+    },
+    "/api/crm/settings": {
+      "get": {
+        "operationId": "CrmSettingsController_getSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "비밀정보가 없는 CRM 도메인 설정과 provenance 반환"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 시스템 설정 조회",
+        "tags": [
+          "crm-settings"
+        ]
+      },
+      "put": {
+        "operationId": "CrmSettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCrmSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 시스템 설정 갱신",
+        "tags": [
+          "crm-settings"
+        ]
+      }
+    },
+    "/api/crm/settings/history": {
+      "get": {
+        "operationId": "CrmSettingsController_history",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 시스템 설정 변경 이력 조회",
+        "tags": [
+          "crm-settings"
+        ]
+      }
+    },
+    "/api/crm/reports/preview": {
+      "get": {
+        "operationId": "ReportsController_preview",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "조회 사업년도",
+            "schema": {
+              "minimum": 2000,
+              "maximum": 2100,
+              "example": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "businessType",
+            "required": false,
+            "in": "query",
+            "description": "사업구분 필터",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "industryLine",
+            "required": false,
+            "in": "query",
+            "description": "계열/산업 필터",
+            "schema": {
+              "maxLength": 120,
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "required": false,
+            "in": "query",
+            "description": "국내/해외 필터",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "domestic",
+                "overseas"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "사업구분/담당자/WBS별 pipeline과 계약 계획/실적 요약"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 보고 조회 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 보고 지표 Preview",
+        "tags": [
+          "crm-reports"
+        ]
+      }
+    },
+    "/api/crm/reports/confirm": {
+      "post": {
+        "operationId": "ReportsController_confirm",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmReportsConfirmDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "확정된 CRM 보고 snapshot"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 보고 확정 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 보고 Preview snapshot 확정",
+        "tags": [
+          "crm-reports"
+        ]
+      }
+    },
+    "/api/crm/reports/confirmations/{id}/reopen": {
+      "post": {
+        "operationId": "ReportsController_reopen",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "확정 해제된 CRM 보고 snapshot"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "CRM 보고 확정 해제 권한 없음"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CRM 보고 snapshot 확정 해제",
+        "tags": [
+          "crm-reports"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "SSOO CRM API",
+    "description": "CRM module API reference",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "CrmOpportunityContractDocumentDraftDto": {
+        "type": "object",
+        "properties": {
+          "templateKey": {
+            "type": "string",
+            "description": "선택한 DMS 영업기회 계약서 DOCX 템플릿 key",
+            "maxLength": 120
+          },
+          "memo": {
+            "type": "string",
+            "description": "원천 22개 변수 DMS 초안 저장 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmOpportunityContractDocumentLifecycleExecutionDto": {
+        "type": "object",
+        "properties": {
+          "memo": {
+            "type": "string",
+            "description": "DMS 영업기회 계약서 DOCX 산출 실행 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmQuoteDmsDocumentDraftDto": {
+        "type": "object",
+        "properties": {
+          "templateKey": {
+            "type": "string",
+            "description": "선택한 DMS 견적 DOCX 템플릿 key",
+            "maxLength": 120
+          },
+          "memo": {
+            "type": "string",
+            "description": "견적 DMS markdown 초안 저장 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmQuoteDmsDocumentExecutionEvidenceStepDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "DMS 견적 lifecycle 단계",
+            "enum": [
+              "template-review",
+              "word-export",
+              "pdf-export"
+            ]
+          },
+          "evidencePath": {
+            "type": "string",
+            "description": "DMS 산출 evidence 경로",
+            "maxLength": 1000
+          },
+          "evidenceLabel": {
+            "type": "string",
+            "description": "DMS 산출 evidence 라벨",
+            "maxLength": 200
+          },
+          "note": {
+            "type": "string",
+            "description": "DMS 산출 evidence 메모",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "key",
+          "evidencePath"
+        ]
+      },
+      "CrmQuoteDmsDocumentExecutionEvidenceDto": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "description": "DMS 견적 lifecycle execution evidence",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmQuoteDmsDocumentExecutionEvidenceStepDto"
+            }
+          },
+          "memo": {
+            "type": "string",
+            "description": "DMS 견적 execution evidence 기록 메모",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "steps"
+        ]
+      },
+      "CrmQuoteDmsDocumentLifecycleExecutionDto": {
+        "type": "object",
+        "properties": {
+          "memo": {
+            "type": "string",
+            "description": "DMS 견적 lifecycle artifact 실행 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmOpportunityQuoteWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "견적 업무 상태",
+            "enum": [
+              "draft",
+              "review",
+              "approved",
+              "sent",
+              "accepted",
+              "rejected",
+              "void"
+            ]
+          },
+          "clientContactName": {
+            "type": "string",
+            "description": "견적 수신 고객 담당자명",
+            "maxLength": 120
+          },
+          "quoteMemo": {
+            "type": "string",
+            "description": "견적 상태 메모",
+            "maxLength": 1000
+          },
+          "issuedAt": {
+            "type": "string",
+            "description": "견적 발행 기준일(YYYY-MM-DD)"
+          },
+          "validUntil": {
+            "type": "string",
+            "description": "견적 유효기한(YYYY-MM-DD)"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CrmOpportunityUpsertLineDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "클라이언트 라인 식별자"
+          },
+          "category": {
+            "type": "string",
+            "description": "라인 분류",
+            "enum": [
+              "product",
+              "service",
+              "internal-cost",
+              "external-cost"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "description": "라인명",
+            "maxLength": 300
+          },
+          "quantity": {
+            "type": "number",
+            "description": "수량 또는 M/M"
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "단가"
+          },
+          "amount": {
+            "type": "number",
+            "description": "직접 입력 금액. 수량/단가가 있으면 서버가 재계산합니다."
+          },
+          "marginRate": {
+            "type": "number",
+            "description": "원가 대비 매출 이익률"
+          },
+          "truncUnit": {
+            "type": "number",
+            "description": "금액 절사 단위"
+          },
+          "department": {
+            "type": "string",
+            "description": "소속/부서",
+            "maxLength": 120
+          },
+          "memberName": {
+            "type": "string",
+            "description": "성명 또는 수행 그룹",
+            "maxLength": 120
+          },
+          "grade": {
+            "type": "string",
+            "description": "등급",
+            "maxLength": 80
+          },
+          "serviceType": {
+            "type": "string",
+            "description": "용역 구분",
+            "enum": [
+              "internal",
+              "external"
+            ]
+          },
+          "revenueLinked": {
+            "type": "boolean",
+            "description": "매출 연동 여부"
+          },
+          "linkedCostLineId": {
+            "type": "string",
+            "description": "연동된 원가 라인 식별자",
+            "maxLength": 80
+          },
+          "revenueUnitPrice": {
+            "type": "number",
+            "description": "매출 연동 단가"
+          }
+        },
+        "required": [
+          "category",
+          "label"
+        ]
+      },
+      "CrmOpportunityUpsertDto": {
+        "type": "object",
+        "properties": {
+          "customerName": {
+            "type": "string",
+            "description": "고객사명",
+            "maxLength": 200
+          },
+          "opportunityName": {
+            "type": "string",
+            "description": "영업기회명",
+            "maxLength": 300
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자명",
+            "maxLength": 100
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "SSOO 공용 사용자 담당자 ID",
+            "maxLength": 40
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "domestic",
+              "overseas"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "영업상태",
+            "enum": [
+              "draft",
+              "qualified",
+              "proposal",
+              "won",
+              "lost",
+              "hold"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "description": "우선순위",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "paymentTermCode": {
+            "type": "string",
+            "description": "수금조건 코드",
+            "maxLength": 80
+          },
+          "specialDiscountType": {
+            "type": "string",
+            "description": "특별할인 유형",
+            "enum": [
+              "amount",
+              "rate"
+            ],
+            "default": "amount"
+          },
+          "specialDiscountValue": {
+            "type": "number",
+            "description": "특별할인 값"
+          },
+          "expectedStartDate": {
+            "type": "string",
+            "description": "예상 시작일(YYYY-MM-DD)"
+          },
+          "expectedEndDate": {
+            "type": "string",
+            "description": "예상 종료일(YYYY-MM-DD)"
+          },
+          "clientContactName": {
+            "type": "string",
+            "description": "견적 수신 고객 담당자명",
+            "maxLength": 120
+          },
+          "nextAction": {
+            "type": "string",
+            "description": "다음 행동",
+            "maxLength": 1000
+          },
+          "revenueLines": {
+            "description": "매출 라인",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmOpportunityUpsertLineDto"
+            }
+          },
+          "costLines": {
+            "description": "원가 라인",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmOpportunityUpsertLineDto"
+            }
+          }
+        },
+        "required": [
+          "customerName",
+          "opportunityName",
+          "ownerName",
+          "businessType",
+          "industryLine",
+          "region",
+          "status",
+          "priority",
+          "nextAction",
+          "revenueLines",
+          "costLines"
+        ]
+      },
+      "CrmOpportunityContractConversionDto": {
+        "type": "object",
+        "properties": {
+          "contractStartDate": {
+            "type": "string",
+            "description": "계약 시작일(YYYY-MM-DD). 미입력 시 영업기회 예상 시작일을 사용합니다."
+          },
+          "contractEndDate": {
+            "type": "string",
+            "description": "계약 종료일(YYYY-MM-DD). 미입력 시 영업기회 예상 종료일을 사용합니다."
+          },
+          "wbsCode": {
+            "type": "string",
+            "description": "계약 WBS 코드",
+            "maxLength": 80
+          },
+          "nextAction": {
+            "type": "string",
+            "description": "계약 전환 후 다음 행동",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmBillingSplitPreviewDto": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "description": "계약 시작일(YYYY-MM-DD)"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "계약 종료일(YYYY-MM-DD)"
+          },
+          "totalRevenue": {
+            "type": "number",
+            "description": "분할 대상 매출 총액"
+          },
+          "totalExternalCost": {
+            "type": "number",
+            "description": "분할 대상 외부원가 총액"
+          },
+          "target": {
+            "type": "string",
+            "description": "분할 대상",
+            "enum": [
+              "revenue",
+              "external-cost",
+              "both"
+            ],
+            "default": "both"
+          },
+          "periodMonths": {
+            "type": "number",
+            "description": "분할 주기(월)",
+            "default": 1
+          },
+          "truncUnit": {
+            "type": "number",
+            "description": "절사 단위",
+            "default": 1
+          },
+          "includeLastMonth": {
+            "type": "boolean",
+            "description": "종료월 강제 포함 여부",
+            "default": true
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate",
+          "totalRevenue",
+          "totalExternalCost"
+        ]
+      },
+      "CrmContractUpsertLineDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "클라이언트 라인 식별자"
+          },
+          "category": {
+            "type": "string",
+            "description": "라인 분류",
+            "enum": [
+              "product",
+              "service",
+              "internal-cost",
+              "external-cost"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "description": "라인명",
+            "maxLength": 300
+          },
+          "quantity": {
+            "type": "number",
+            "description": "수량 또는 M/M"
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "단가"
+          },
+          "amount": {
+            "type": "number",
+            "description": "직접 입력 금액. 수량/단가가 있으면 서버가 재계산합니다."
+          },
+          "marginRate": {
+            "type": "number",
+            "description": "원가 대비 매출 이익률"
+          },
+          "truncUnit": {
+            "type": "number",
+            "description": "금액 절사 단위"
+          },
+          "department": {
+            "type": "string",
+            "description": "소속/부서",
+            "maxLength": 120
+          },
+          "memberName": {
+            "type": "string",
+            "description": "성명 또는 수행 그룹",
+            "maxLength": 120
+          },
+          "grade": {
+            "type": "string",
+            "description": "등급",
+            "maxLength": 80
+          },
+          "serviceType": {
+            "type": "string",
+            "description": "용역 구분",
+            "enum": [
+              "internal",
+              "external"
+            ]
+          },
+          "revenueLinked": {
+            "type": "boolean",
+            "description": "매출 연동 여부"
+          },
+          "linkedCostLineId": {
+            "type": "string",
+            "description": "연동된 원가 라인 식별자",
+            "maxLength": 80
+          },
+          "revenueUnitPrice": {
+            "type": "number",
+            "description": "매출 연동 단가"
+          }
+        },
+        "required": [
+          "category",
+          "label"
+        ]
+      },
+      "CrmContractBillingPlanUpsertLineDto": {
+        "type": "object",
+        "properties": {
+          "billingYm": {
+            "type": "string",
+            "description": "청구 예정월(YYYY/MM)",
+            "maxLength": 7
+          },
+          "revenueAmount": {
+            "type": "number",
+            "description": "매출 청구계획 금액"
+          },
+          "externalCostAmount": {
+            "type": "number",
+            "description": "외부원가 계획 금액"
+          }
+        },
+        "required": [
+          "billingYm"
+        ]
+      },
+      "CrmContractUpsertDto": {
+        "type": "object",
+        "properties": {
+          "sourceOpportunityId": {
+            "type": "string",
+            "description": "전환 원천 영업기회 ID"
+          },
+          "sourceOpportunityCode": {
+            "type": "string",
+            "description": "전환 원천 영업기회 코드"
+          },
+          "customerName": {
+            "type": "string",
+            "description": "고객사명",
+            "maxLength": 200
+          },
+          "contractName": {
+            "type": "string",
+            "description": "계약명",
+            "maxLength": 300
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자명",
+            "maxLength": 100
+          },
+          "clientContactName": {
+            "type": "string",
+            "description": "고객사 계약 담당자명",
+            "maxLength": 120
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "SSOO 공용 사용자 담당자 ID",
+            "maxLength": 40
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "domestic",
+              "overseas"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "계약 상태",
+            "enum": [
+              "review",
+              "active",
+              "completed",
+              "terminated"
+            ],
+            "default": "review"
+          },
+          "contractStartDate": {
+            "type": "string",
+            "description": "계약 시작일(YYYY-MM-DD)"
+          },
+          "contractEndDate": {
+            "type": "string",
+            "description": "계약 종료일(YYYY-MM-DD)"
+          },
+          "wbsCode": {
+            "type": "string",
+            "description": "WBS 코드",
+            "maxLength": 80
+          },
+          "paymentTermCode": {
+            "type": "string",
+            "description": "수금조건 코드",
+            "maxLength": 80
+          },
+          "specialDiscountType": {
+            "type": "string",
+            "description": "특별할인 유형",
+            "enum": [
+              "amount",
+              "rate"
+            ],
+            "default": "amount"
+          },
+          "specialDiscountValue": {
+            "type": "number",
+            "description": "특별할인 값"
+          },
+          "revenueLines": {
+            "description": "매출 라인",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmContractUpsertLineDto"
+            }
+          },
+          "costLines": {
+            "description": "원가 라인",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmContractUpsertLineDto"
+            }
+          },
+          "billingPlan": {
+            "description": "청구계획",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmContractBillingPlanUpsertLineDto"
+            }
+          },
+          "nextAction": {
+            "type": "string",
+            "description": "다음 행동",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "customerName",
+          "contractName",
+          "ownerName",
+          "businessType",
+          "industryLine",
+          "region",
+          "contractStartDate",
+          "contractEndDate",
+          "revenueLines",
+          "costLines"
+        ]
+      },
+      "CrmContractBillingActualUpsertLineDto": {
+        "type": "object",
+        "properties": {
+          "billingYm": {
+            "type": "string",
+            "description": "청구 실적월(YYYY/MM)",
+            "maxLength": 7
+          },
+          "revenueAmount": {
+            "type": "number",
+            "description": "매출 청구실적 금액"
+          },
+          "externalCostAmount": {
+            "type": "number",
+            "description": "외부원가 실적 금액"
+          }
+        },
+        "required": [
+          "billingYm"
+        ]
+      },
+      "CrmContractBillingActualUpsertDto": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "description": "청구실적 라인",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmContractBillingActualUpsertLineDto"
+            }
+          }
+        },
+        "required": [
+          "lines"
+        ]
+      },
+      "CrmContractDmsDocumentDraftDto": {
+        "type": "object",
+        "properties": {
+          "templateKey": {
+            "type": "string",
+            "description": "선택한 DMS 계약 DOCX 템플릿 key",
+            "maxLength": 120
+          },
+          "memo": {
+            "type": "string",
+            "description": "DMS markdown 초안 저장 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmContractDmsDocumentExecutionEvidenceStepDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "DMS가 완료 증거를 남길 lifecycle step",
+            "enum": [
+              "template-review",
+              "attachment-confirmation",
+              "word-export",
+              "pdf-export",
+              "approval"
+            ]
+          },
+          "evidencePath": {
+            "type": "string",
+            "description": "DMS 실행 결과 evidence path 또는 artifact reference",
+            "maxLength": 800
+          },
+          "evidenceLabel": {
+            "type": "string",
+            "description": "Evidence label override",
+            "maxLength": 160
+          },
+          "note": {
+            "type": "string",
+            "description": "DMS 실행 결과 메모",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "key",
+          "evidencePath"
+        ]
+      },
+      "CrmContractDmsDocumentExecutionEvidenceDto": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "description": "DMS lifecycle 실행 evidence step 목록",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmContractDmsDocumentExecutionEvidenceStepDto"
+            }
+          },
+          "memo": {
+            "type": "string",
+            "description": "DMS execution evidence 기록 메모",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "steps"
+        ]
+      },
+      "CrmContractDmsDocumentLifecycleExecutionDto": {
+        "type": "object",
+        "properties": {
+          "memo": {
+            "type": "string",
+            "description": "DMS lifecycle 실행 메모"
+          }
+        }
+      },
+      "CrmCustomerAiIndexBackfillDto": {
+        "type": "object",
+        "properties": {
+          "customerIds": {
+            "description": "재색인할 CRM 고객 ID 목록",
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "activityIds": {
+            "description": "재색인할 CRM 고객 활동 ID 목록",
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "limit": {
+            "type": "number",
+            "description": "엔티티 타입별 최대 선택 건수",
+            "minimum": 1,
+            "maximum": 500
+          },
+          "includeInactive": {
+            "type": "boolean",
+            "description": "비활성 고객/활동 포함 여부"
+          },
+          "reasonCode": {
+            "type": "string",
+            "description": "AI 인덱스 재색인 요청 사유 코드",
+            "maxLength": 120
+          }
+        }
+      },
+      "CrmCustomerUpsertDto": {
+        "type": "object",
+        "properties": {
+          "customerName": {
+            "type": "string",
+            "description": "고객사명",
+            "maxLength": 200
+          },
+          "type": {
+            "type": "string",
+            "description": "고객 상태",
+            "enum": [
+              "prospect",
+              "active",
+              "partner",
+              "inactive"
+            ]
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "domestic",
+              "overseas"
+            ]
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자명",
+            "maxLength": 100
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "SSOO 공용 사용자 담당자 ID",
+            "maxLength": 40
+          },
+          "contactName": {
+            "type": "string",
+            "description": "고객 담당자명",
+            "maxLength": 120
+          },
+          "contactEmail": {
+            "type": "string",
+            "description": "고객 담당자 e-Mail",
+            "maxLength": 200
+          },
+          "contactPhone": {
+            "type": "string",
+            "description": "고객 담당자 전화번호",
+            "maxLength": 80
+          },
+          "sourceOpportunityId": {
+            "type": "string",
+            "description": "원천 영업기회 ID",
+            "maxLength": 40
+          },
+          "latestOpportunityCode": {
+            "type": "string",
+            "description": "최신 영업기회 코드",
+            "maxLength": 80
+          },
+          "lastInteractionSummary": {
+            "type": "string",
+            "description": "최근 상호작용 요약",
+            "maxLength": 1000
+          },
+          "nextAction": {
+            "type": "string",
+            "description": "다음 행동",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "customerName",
+          "industryLine",
+          "region",
+          "ownerName",
+          "nextAction"
+        ]
+      },
+      "CrmCustomerActivityCreateDto": {
+        "type": "object",
+        "properties": {
+          "sourceOpportunityId": {
+            "type": "string",
+            "description": "원천 영업기회 ID",
+            "maxLength": 40
+          },
+          "sourceOpportunityCode": {
+            "type": "string",
+            "description": "원천 영업기회 코드",
+            "maxLength": 80
+          },
+          "type": {
+            "type": "string",
+            "description": "활동 유형",
+            "enum": [
+              "call",
+              "meeting",
+              "email",
+              "proposal",
+              "contract",
+              "support",
+              "opportunity-next-action"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "활동 상태",
+            "enum": [
+              "planned",
+              "done",
+              "cancelled"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "description": "활동 제목",
+            "maxLength": 300
+          },
+          "occurredAt": {
+            "type": "string",
+            "description": "활동 일시(ISO 또는 YYYY-MM-DD)"
+          },
+          "dueAt": {
+            "type": "string",
+            "description": "후속 예정 일시(ISO 또는 YYYY-MM-DD)"
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자명",
+            "maxLength": 100
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "SSOO 공용 사용자 담당자 ID",
+            "maxLength": 40
+          },
+          "summary": {
+            "type": "string",
+            "description": "활동 요약",
+            "maxLength": 1000
+          },
+          "nextAction": {
+            "type": "string",
+            "description": "다음 행동",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "type",
+          "subject",
+          "ownerName",
+          "summary"
+        ]
+      },
+      "CrmQuoteSellerProfileUpsertDto": {
+        "type": "object",
+        "properties": {
+          "companyName": {
+            "type": "string",
+            "description": "견적서에 표시할 공급자 회사명",
+            "maxLength": 200
+          },
+          "ceoName": {
+            "type": "string",
+            "description": "대표이사명",
+            "maxLength": 120
+          },
+          "businessRegistrationNo": {
+            "type": "string",
+            "description": "사업자등록번호",
+            "maxLength": 80
+          },
+          "address": {
+            "type": "string",
+            "description": "회사 주소",
+            "maxLength": 500
+          },
+          "tel": {
+            "type": "string",
+            "description": "대표 전화번호",
+            "maxLength": 80
+          },
+          "fax": {
+            "type": "string",
+            "description": "팩스 번호",
+            "maxLength": 80
+          },
+          "website": {
+            "type": "string",
+            "description": "웹사이트",
+            "maxLength": 200
+          },
+          "email": {
+            "type": "string",
+            "description": "대표 이메일",
+            "maxLength": 200
+          },
+          "ciStatus": {
+            "type": "string",
+            "description": "CI 연결 상태",
+            "enum": [
+              "not-configured",
+              "dms-planned",
+              "configured"
+            ]
+          },
+          "ciStorageRef": {
+            "type": "string",
+            "description": "CI 파일 저장소 참조. 업로드는 DMS가 소유하고 계약 DMS 문서 패킷에서 참조를 검증합니다.",
+            "maxLength": 300
+          },
+          "memo": {
+            "type": "string",
+            "description": "관리 메모"
+          }
+        },
+        "required": [
+          "companyName"
+        ]
+      },
+      "CrmBusinessPlanSnapshotDto": {
+        "type": "object",
+        "properties": {
+          "baseYear": {
+            "type": "number",
+            "description": "3개년 preview 시작 사업년도",
+            "default": 2026
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "all",
+              "domestic",
+              "overseas"
+            ],
+            "default": "all"
+          },
+          "search": {
+            "type": "string",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "maxLength": 200
+          },
+          "planName": {
+            "type": "string",
+            "description": "저장할 사업계획 차수명",
+            "maxLength": 200
+          },
+          "memo": {
+            "type": "string",
+            "description": "차수 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmBusinessPlanCarryForwardDto": {
+        "type": "object",
+        "properties": {
+          "baseYear": {
+            "type": "number",
+            "description": "3개년 preview 시작 사업년도",
+            "default": 2026
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "all",
+              "domestic",
+              "overseas"
+            ],
+            "default": "all"
+          },
+          "search": {
+            "type": "string",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "maxLength": 200
+          },
+          "planName": {
+            "type": "string",
+            "description": "저장할 사업계획 차수명",
+            "maxLength": 200
+          },
+          "memo": {
+            "type": "string",
+            "description": "차수 메모",
+            "maxLength": 1000
+          },
+          "sourceBaseYear": {
+            "type": "number",
+            "description": "이월 원천 사업계획 기준년도. 생략하면 baseYear - 1",
+            "default": 2025
+          }
+        }
+      },
+      "CrmBusinessPlanRowUpsertDto": {
+        "type": "object",
+        "properties": {
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자",
+            "maxLength": 100
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "domestic",
+              "overseas"
+            ]
+          },
+          "businessName": {
+            "type": "string",
+            "description": "사업명",
+            "maxLength": 200
+          },
+          "wbsCode": {
+            "type": "string",
+            "description": "WBS 코드",
+            "maxLength": 120
+          },
+          "monthlyRevenueAmounts": {
+            "description": "기준년도 1~12월 계획 매출",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "monthlyExternalCostAmounts": {
+            "description": "기준년도 1~12월 계획 외부원가",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "nextYearRevenueAmount": {
+            "type": "number",
+            "description": "차년도 연간 계획 매출"
+          },
+          "nextYearExternalCostAmount": {
+            "type": "number",
+            "description": "차년도 연간 계획 외부원가"
+          },
+          "followingYearRevenueAmount": {
+            "type": "number",
+            "description": "차차년도 연간 계획 매출"
+          },
+          "followingYearExternalCostAmount": {
+            "type": "number",
+            "description": "차차년도 연간 계획 외부원가"
+          },
+          "memo": {
+            "type": "string",
+            "description": "행 메모",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "businessType",
+          "industryLine",
+          "ownerName",
+          "region",
+          "businessName",
+          "monthlyRevenueAmounts",
+          "monthlyExternalCostAmounts",
+          "nextYearRevenueAmount",
+          "nextYearExternalCostAmount",
+          "followingYearRevenueAmount",
+          "followingYearExternalCostAmount"
+        ]
+      },
+      "CrmBusinessPlanRowWbsUpdateDto": {
+        "type": "object",
+        "properties": {
+          "wbsCode": {
+            "type": "string",
+            "description": "확정 여부와 무관하게 갱신 가능한 WBS 코드",
+            "maxLength": 120
+          }
+        }
+      },
+      "CrmBusinessPlanMonthlyPlanInputDto": {
+        "type": "object",
+        "properties": {
+          "monthlyRevenueAmounts": {
+            "description": "1월부터 12월까지의 직접 입력 계획 매출",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "monthlyExternalCostAmounts": {
+            "description": "1월부터 12월까지의 직접 입력 계획 외부원가",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "memo": {
+            "type": "string",
+            "description": "월별 입력 메모",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "monthlyExternalCostAmounts"
+        ]
+      },
+      "CrmBusinessPlanPerformanceActualInputDto": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "number",
+            "description": "사업계획대비실적 직접 입력 기준년도",
+            "default": 2026
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자",
+            "maxLength": 120
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "domestic",
+              "overseas"
+            ],
+            "default": "domestic"
+          },
+          "wbsCode": {
+            "type": "string",
+            "description": "WBS 코드",
+            "maxLength": 120
+          },
+          "monthlyRevenueAmounts": {
+            "description": "1월부터 12월까지의 직접 입력 실적 매출",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "monthlyCostAmounts": {
+            "description": "1월부터 12월까지의 직접 입력 실적 원가",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "memo": {
+            "type": "string",
+            "description": "직접 실적 입력 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmCostPlanAccountingPaymentHandoffDto": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "number",
+            "description": "사업년도",
+            "default": 2026
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "all",
+              "domestic",
+              "overseas"
+            ],
+            "default": "all"
+          },
+          "search": {
+            "type": "string",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "maxLength": 200
+          },
+          "memo": {
+            "type": "string",
+            "description": "회계·지급 handoff snapshot 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmCostPlanAccountingPaymentExecutionDto": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "description": "회계·지급 실행 모드. 기본값은 CRM demo evidence 생성이며, external-api는 provider 환경 설정 시 외부 ERP/API로 전송한다.",
+            "enum": [
+              "demo",
+              "external-api"
+            ],
+            "default": "demo"
+          },
+          "memo": {
+            "type": "string",
+            "description": "회계·지급 실행 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CrmCostPlanAccountingPaymentExecutionEvidenceStepDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "외부 회계·지급 실행 evidence 단계",
+            "enum": [
+              "accounting-voucher",
+              "payment-request",
+              "payment-execution",
+              "external-system-sync"
+            ]
+          },
+          "evidencePath": {
+            "type": "string",
+            "description": "외부 회계·지급 시스템 산출물 경로 또는 참조 키",
+            "maxLength": 500
+          },
+          "evidenceLabel": {
+            "type": "string",
+            "description": "evidence 표시명",
+            "maxLength": 120
+          },
+          "note": {
+            "type": "string",
+            "description": "evidence 메모",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "key",
+          "evidencePath"
+        ]
+      },
+      "CrmCostPlanAccountingPaymentExecutionEvidenceDto": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "description": "외부 회계·지급 시스템에서 완료한 실행 evidence 목록",
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmCostPlanAccountingPaymentExecutionEvidenceStepDto"
+            }
+          },
+          "memo": {
+            "type": "string",
+            "description": "회계·지급 실행 evidence 수신 메모",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "steps"
+        ]
+      },
+      "CrmCostPlanInternalMonthlyInputDto": {
+        "type": "object",
+        "properties": {
+          "targetYear": {
+            "type": "number",
+            "description": "입력 대상 사업년도",
+            "minimum": 2000
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자",
+            "maxLength": 100
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "domestic",
+              "overseas"
+            ]
+          },
+          "wbsCode": {
+            "type": "string",
+            "description": "WBS 코드",
+            "maxLength": 80
+          },
+          "monthlyPlanAmounts": {
+            "description": "12개월 내부원가 계획 입력 금액",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "monthlyActualAmounts": {
+            "description": "12개월 내부원가 실적 입력 금액",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "memo": {
+            "type": "string",
+            "description": "메모",
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "targetYear",
+          "businessType",
+          "industryLine",
+          "ownerName",
+          "region",
+          "monthlyPlanAmounts",
+          "monthlyActualAmounts"
+        ]
+      },
+      "CrmCostPlanInternalSourceItemInputDto": {
+        "type": "object",
+        "properties": {
+          "itemCode": {
+            "type": "string",
+            "description": "원본 내부원가 고정 항목 코드",
+            "enum": [
+              "labor",
+              "other",
+              "dept_adj",
+              "svc",
+              "dept_common"
+            ]
+          },
+          "monthlyPlanAmounts": {
+            "description": "12개월 내부원가 항목 계획 금액(음수 허용)",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "monthlyActualAmounts": {
+            "description": "12개월 내부원가 항목 실적 금액(음수 허용)",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "itemCode",
+          "monthlyPlanAmounts",
+          "monthlyActualAmounts"
+        ]
+      },
+      "CrmCostPlanInternalSourceGridDto": {
+        "type": "object",
+        "properties": {
+          "targetYear": {
+            "type": "number",
+            "description": "입력 대상 사업년도",
+            "minimum": 2000
+          },
+          "items": {
+            "description": "원본 고정 순서의 내부원가 5개 항목",
+            "minItems": 5,
+            "maxItems": 5,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmCostPlanInternalSourceItemInputDto"
+            }
+          }
+        },
+        "required": [
+          "targetYear",
+          "items"
+        ]
+      },
+      "CrmCostPlanAmsSourceVendorCreateDto": {
+        "type": "object",
+        "properties": {
+          "targetYear": {
+            "type": "number",
+            "description": "공급업체 대상 사업년도",
+            "minimum": 2000
+          },
+          "vendorName": {
+            "type": "string",
+            "description": "공급업체명",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "targetYear",
+          "vendorName"
+        ]
+      },
+      "CrmCostPlanAmsSourceVendorWbsDto": {
+        "type": "object",
+        "properties": {
+          "targetYear": {
+            "type": "number",
+            "description": "공급업체 대상 사업년도",
+            "minimum": 2000
+          },
+          "wbsCodes": {
+            "description": "확정 AMS 계약 WBS 코드 목록",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "targetYear",
+          "wbsCodes"
+        ]
+      },
+      "CrmCostPlanAmsSourceExternalCostRowDto": {
+        "type": "object",
+        "properties": {
+          "vendorId": {
+            "type": "string",
+            "description": "AMS 공급업체 ID"
+          },
+          "wbsCode": {
+            "type": "string",
+            "description": "WBS 코드",
+            "maxLength": 80
+          },
+          "monthlyPlanAmounts": {
+            "description": "12개월 계획 금액(음수 허용)",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "monthlyActualAmounts": {
+            "description": "12개월 실적 금액(음수 허용)",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "vendorId",
+          "wbsCode",
+          "monthlyPlanAmounts",
+          "monthlyActualAmounts"
+        ]
+      },
+      "CrmCostPlanAmsSourceExternalCostDto": {
+        "type": "object",
+        "properties": {
+          "targetYear": {
+            "type": "number",
+            "description": "외부원가 대상 사업년도",
+            "minimum": 2000
+          },
+          "rows": {
+            "description": "현재 업체-WBS 매핑 전체의 외부원가 행",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmCostPlanAmsSourceExternalCostRowDto"
+            }
+          }
+        },
+        "required": [
+          "targetYear",
+          "rows"
+        ]
+      },
+      "CrmCostPlanAmsVendorWbsMappingDto": {
+        "type": "object",
+        "properties": {
+          "targetYear": {
+            "type": "number",
+            "description": "매핑 대상 사업년도",
+            "minimum": 2000
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자",
+            "maxLength": 100
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "domestic",
+              "overseas"
+            ]
+          },
+          "wbsCode": {
+            "type": "string",
+            "description": "WBS 코드",
+            "maxLength": 80
+          },
+          "vendorName": {
+            "type": "string",
+            "description": "AMS 업체명",
+            "maxLength": 200
+          },
+          "vendorContractNo": {
+            "type": "string",
+            "description": "업체 계약/발주 번호",
+            "maxLength": 120
+          },
+          "memo": {
+            "type": "string",
+            "description": "메모",
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "targetYear",
+          "businessType",
+          "industryLine",
+          "ownerName",
+          "region",
+          "wbsCode",
+          "vendorName"
+        ]
+      },
+      "CrmCostPlanAmsExternalMonthlyInputDto": {
+        "type": "object",
+        "properties": {
+          "targetYear": {
+            "type": "number",
+            "description": "입력 대상 사업년도",
+            "minimum": 2000
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 구분",
+            "maxLength": 120
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "담당자",
+            "maxLength": 100
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외",
+            "enum": [
+              "domestic",
+              "overseas"
+            ]
+          },
+          "wbsCode": {
+            "type": "string",
+            "description": "WBS 코드",
+            "maxLength": 80
+          },
+          "vendorName": {
+            "type": "string",
+            "description": "AMS 업체명",
+            "maxLength": 200
+          },
+          "vendorContractNo": {
+            "type": "string",
+            "description": "업체 계약/발주 번호",
+            "maxLength": 120
+          },
+          "monthlyPlanAmounts": {
+            "description": "12개월 AMS 외부원가 계획 입력 금액",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "monthlyActualAmounts": {
+            "description": "12개월 AMS 외부원가 실적 입력 금액",
+            "minItems": 12,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "memo": {
+            "type": "string",
+            "description": "메모",
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "targetYear",
+          "businessType",
+          "industryLine",
+          "ownerName",
+          "region",
+          "wbsCode",
+          "vendorName",
+          "monthlyPlanAmounts",
+          "monthlyActualAmounts"
+        ]
+      },
+      "UpdateCrmSettingsDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "number",
+            "minimum": 1,
+            "description": "마지막으로 조회한 설정 revision"
+          },
+          "quoteTemplateKey": {
+            "type": "string",
+            "description": "DMS 견적 DOCX 템플릿 key",
+            "example": "crm-quote-v1"
+          },
+          "contractTemplateKey": {
+            "type": "string",
+            "description": "DMS 계약 DOCX 템플릿 key",
+            "example": "crm-contract-v1"
+          },
+          "dmsHandoffEnabled": {
+            "type": "boolean"
+          },
+          "pmsHandoffEnabled": {
+            "type": "boolean"
+          },
+          "accountingHandoffEnabled": {
+            "type": "boolean"
+          },
+          "accountingProviderMode": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "external-api"
+            ]
+          },
+          "stalledAfterMinutes": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 1440
+          },
+          "attemptRetentionDays": {
+            "type": "number",
+            "minimum": 7,
+            "maximum": 3650
+          },
+          "memo": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "quoteTemplateKey",
+          "contractTemplateKey",
+          "dmsHandoffEnabled",
+          "pmsHandoffEnabled",
+          "accountingHandoffEnabled",
+          "accountingProviderMode",
+          "stalledAfterMinutes",
+          "attemptRetentionDays"
+        ]
+      },
+      "CrmReportsConfirmDto": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "number",
+            "description": "조회 사업년도",
+            "example": 2026,
+            "minimum": 2000,
+            "maximum": 2100
+          },
+          "businessType": {
+            "type": "string",
+            "description": "사업구분 필터",
+            "maxLength": 120
+          },
+          "industryLine": {
+            "type": "string",
+            "description": "계열/산업 필터",
+            "maxLength": 120
+          },
+          "region": {
+            "type": "string",
+            "description": "국내/해외 필터",
+            "enum": [
+              "all",
+              "domestic",
+              "overseas"
+            ],
+            "default": "all"
+          },
+          "search": {
+            "type": "string",
+            "description": "고객/건명/담당자/WBS 검색어",
+            "maxLength": 200
+          },
+          "memo": {
+            "type": "string",
+            "description": "보고 확정 메모",
+            "maxLength": 1000
+          }
+        }
+      },
+      "UpdateRolePermissionsDto": {
+        "type": "object",
+        "properties": {
+          "permissionCodes": {
+            "description": "역할에 활성화할 전체 permission code 집합",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "permissionCodes"
+        ]
+      },
+      "CreateOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "orgCode": {
+            "type": "string",
+            "example": "PLATFORM-DEV"
+          },
+          "orgName": {
+            "type": "string",
+            "example": "플랫폼개발팀"
+          },
+          "orgType": {
+            "type": "string",
+            "enum": [
+              "company",
+              "division",
+              "department",
+              "team",
+              "external"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "external"
+            ],
+            "default": "internal"
+          },
+          "levelType": {
+            "type": "string"
+          },
+          "parentOrgId": {
+            "type": "object",
+            "description": "상위 조직 ID"
+          },
+          "memo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "orgCode",
+          "orgName",
+          "orgType"
+        ]
+      },
+      "UpdateOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "orgName": {
+            "type": "string"
+          },
+          "orgType": {
+            "type": "string",
+            "enum": [
+              "company",
+              "division",
+              "department",
+              "team",
+              "external"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "external"
+            ]
+          },
+          "levelType": {
+            "type": "string"
+          },
+          "parentOrgId": {
+            "type": "object",
+            "description": "상위 조직 ID. null이면 최상위로 이동"
+          },
+          "memo": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

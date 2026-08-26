@@ -24,7 +24,7 @@ export interface ReferenceFile {
   size?: number;
   url?: string;
   storageUri?: string;
-  provider?: 'local' | 'sharepoint' | 'nas' | string;
+  provider?: 'local' | 'nas';
   versionId?: string;
   etag?: string;
   checksum?: string;

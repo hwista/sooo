@@ -1,9 +1,6 @@
 import type { CrmCostPlanPreviewResponse } from '@ssoo/types/crm';
-import {
-  CostPlanPreviewWorkspaceClient,
-  normalizeCostPlanPreviewQueryRecord,
-  toRequiredCostPlanPreviewQuery,
-} from './CostPlanPreviewWorkspaceClient';
+import { CostPlanPreviewWorkspaceClient } from './CostPlanPreviewWorkspaceClient';
+import { normalizeCostPlanPreviewQueryRecord, toRequiredCostPlanPreviewQuery } from './costPlanPreviewQuery';
 import { costPlanPreviewFallback } from './costPlanPreviewFallback';
 
 const API_BASE_URL = process.env.CRM_SERVER_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';

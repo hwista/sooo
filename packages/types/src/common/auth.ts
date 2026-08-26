@@ -92,6 +92,36 @@ export type AuthRegistrationRequestStatus = 'pending' | 'approved' | 'rejected' 
 
 export type AuthEmailDeliveryMode = 'outbox' | 'disabled';
 
+export type AuthEmailOutboxStatus = 'pending' | 'processing' | 'sent' | 'failed' | 'superseded' | 'consumed';
+
+export interface AuthEmailDeliveryMessageSummary {
+  messageId: string;
+  recipient: string;
+  templateCode: string;
+  statusCode: AuthEmailOutboxStatus | string;
+  createdAt: string;
+  updatedAt: string;
+  sentAt?: string | null;
+  failedAt?: string | null;
+  failReason?: string | null;
+}
+
+export interface AuthEmailDeliveryStatus {
+  state: 'ready' | 'blocked' | 'disabled';
+  reason: string;
+  workerEnabled: boolean;
+  configured: boolean;
+  transportVerified: boolean;
+  running: boolean;
+  intervalMs: number;
+  batchLimit: number;
+  lastStartedAt?: string;
+  lastFinishedAt?: string;
+  lastErrorMessage?: string;
+  counts: Record<string, number>;
+  recent: AuthEmailDeliveryMessageSummary[];
+}
+
 export interface AuthPublicActionLink {
   href: string;
   label: string;

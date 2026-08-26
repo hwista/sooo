@@ -1,0 +1,237 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-parity",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T06:45:01.160Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-parity",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-06"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-06",
+      "sourcePage": "contract-form",
+      "status": "complete",
+      "ownerSurface": "CRM /contracts?sourceSurface=form",
+      "targetUrl": "http://127.0.0.1:3105/contracts?sourceSurface=form",
+      "capturedAt": "2026-08-20T06:45:01.160Z",
+      "structureDiff": {
+        "missingSections": [],
+        "missingFields": [],
+        "missingColumns": [],
+        "missingActions": [],
+        "missingLabels": [],
+        "renamedMeaning": [],
+        "reorderedWorkflow": [],
+        "defaultBehaviorDifferences": [],
+        "unclassified": [],
+        "defects": [],
+        "classifiedDifferences": [
+          {
+            "classification": "platform-required",
+            "area": "공용 애플리케이션 셸",
+            "rationale": "SSOO 공용 인증·MDI·내비게이션 셸을 유지하고 원천 업무 화면의 정보구조와 동작을 콘텐츠 영역에 이식했습니다."
+          }
+        ]
+      },
+      "states": [
+        {
+          "id": "new-empty",
+          "sourceScreenshot": "ux-06-contract-form--new-empty.png",
+          "targetDesktopScreenshot": "ux-06-contract-form--new-empty--desktop.png",
+          "targetMobileScreenshot": "ux-06-contract-form--new-empty--mobile.png",
+          "differenceScreenshot": "ux-06-contract-form--new-empty--difference.png",
+          "evidenceSha256": {
+            "source": "5ffb5ff87ca6d328ca79352807734cbda75a283c5509063fdb9c2624f858fd51",
+            "targetDesktop": "332a3937f51f37913f30a04a7dbc502d19eab709c16b9e19bacac4f5bcbb93df",
+            "targetMobile": "85e8a8348a375d685b72335a4269d7d40ce4af824572f2f245cd740ef16753f2",
+            "difference": "ab0991f802c4debbe5de28a63726b2505c420e5366a26d9b11e29bbfda891cca"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "edit-seeded",
+          "sourceScreenshot": "ux-06-contract-form.png",
+          "targetDesktopScreenshot": "ux-06-contract-form--edit-seeded--desktop.png",
+          "targetMobileScreenshot": "ux-06-contract-form--edit-seeded--mobile.png",
+          "differenceScreenshot": "ux-06-contract-form--edit-seeded--difference.png",
+          "evidenceSha256": {
+            "source": "545cf46e078f336be8f810420a523eb4e8fa858c36c9af748a9de0c2fa98e211",
+            "targetDesktop": "ae16915110f95ebe66752f527533243dcdece0b22da8a8e3deba958879c5da63",
+            "targetMobile": "073494cd1368a380d37f52a568762f3f34b5feb5d81b7bf265b0fa34293c3d1a",
+            "difference": "bbbc86615d2498224e05607f70af7353f1b4fe87d1a79a4879d58acced98cd44"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "required-validation",
+          "sourceScreenshot": "ux-06-contract-form--required-validation.png",
+          "targetDesktopScreenshot": "ux-06-contract-form--required-validation--desktop.png",
+          "targetMobileScreenshot": "ux-06-contract-form--required-validation--mobile.png",
+          "differenceScreenshot": "ux-06-contract-form--required-validation--difference.png",
+          "evidenceSha256": {
+            "source": "6f74dcbc334fd9148ff40a9489d99cbf5dcdaa788d29fa3759d6c0ad9f0b6359",
+            "targetDesktop": "162dad7cbfd184a444665a39748f763dbf9ad90928ae1a0f02ed7ec1602eb42c",
+            "targetMobile": "47b0b7ca121ceacce0a35efdda06675bcea3b16d151f68b5787a1e2e0ccb9ead",
+            "difference": "717bbc6767064e5be7e6d1a1e38a5c4d4038c46279ad2b7c1ad036b24b2c58a7"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "confirmed-locked",
+          "sourceScreenshot": "ux-06-contract-form--confirmed-locked.png",
+          "targetDesktopScreenshot": "ux-06-contract-form--confirmed-locked--desktop.png",
+          "targetMobileScreenshot": "ux-06-contract-form--confirmed-locked--mobile.png",
+          "differenceScreenshot": "ux-06-contract-form--confirmed-locked--difference.png",
+          "evidenceSha256": {
+            "source": "545cf46e078f336be8f810420a523eb4e8fa858c36c9af748a9de0c2fa98e211",
+            "targetDesktop": "e62f5eeb5fba93af56b70030f6b8fd05055fdddb8cb5979f6860e0b4a0d10ec9",
+            "targetMobile": "073494cd1368a380d37f52a568762f3f34b5feb5d81b7bf265b0fa34293c3d1a",
+            "difference": "96d0d41fa12319eb526c5713bd27794faa17d99be563e0b62f28eb3a6bea1399"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "confirm-unconfirm-delete",
+          "sourceScreenshot": "ux-06-contract-form--confirm-unconfirm-delete.png",
+          "targetDesktopScreenshot": "ux-06-contract-form--confirm-unconfirm-delete--desktop.png",
+          "targetMobileScreenshot": "ux-06-contract-form--confirm-unconfirm-delete--mobile.png",
+          "differenceScreenshot": "ux-06-contract-form--confirm-unconfirm-delete--difference.png",
+          "evidenceSha256": {
+            "source": "97cc2afda3b813e9d28aae196c9cd378f5c9705a30e11335424a9da7bac6df62",
+            "targetDesktop": "26e123c01bf29a5ae80e4c33ee7ab47eb6155d89cff67b5f8f82241cca88ad07",
+            "targetMobile": "9ebcca586a344d1f1d10bc13c5cccbb89db57e6e75e2af5b8a36a03f904ff1c0",
+            "difference": "2c0273840264971779b9eac23828ee4ce7c1ff68f3fa5a18fc74960ae4843928"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        }
+      ]
+    }
+  ]
+}

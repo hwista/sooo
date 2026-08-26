@@ -1,0 +1,74 @@
+{
+  "contract": "BT-24",
+  "status": "PASS_CLEANED",
+  "startedAt": "2026-08-21T06:43:46.607Z",
+  "completedAt": "2026-08-21T06:44:00.454Z",
+  "credentialsStored": false,
+  "isolation": {
+    "sourceDatabasePattern": "ssoo_baseline_verify_*",
+    "restoreDatabasePattern": "ssoo_baseline_verify_*_restore",
+    "databaseResidue": 0
+  },
+  "migration": {
+    "cleanDeploy": true,
+    "migrationCount": 10,
+    "populatedBackfill": true,
+    "previousApplicationWriteCompatible": true,
+    "foreignKeyAndDeletePolicy": true,
+    "failedMigrationPartialObjectResidue": 0
+  },
+  "rollbackRestore": {
+    "settingsRollbackExact": true,
+    "populatedRestoreSignatureExact": true,
+    "restoredRuntimeContract": true,
+    "sourceSignature": {
+      "tables": {
+        "crm_business_plan_h": 0,
+        "crm_business_plan_line_d": 6,
+        "crm_business_plan_m": 1,
+        "crm_business_plan_performance_actual_d": 0,
+        "crm_config_h": 0,
+        "crm_config_m": 1,
+        "crm_contract_billing_actual_d": 6,
+        "crm_contract_billing_plan_d": 37,
+        "crm_contract_dms_handoff_m": 0,
+        "crm_contract_h": 11,
+        "crm_contract_line_d": 48,
+        "crm_contract_m": 8,
+        "crm_cost_plan_accounting_handoff_m": 0,
+        "crm_cost_plan_ams_external_monthly_d": 0,
+        "crm_cost_plan_ams_source_external_monthly_d": 1,
+        "crm_cost_plan_ams_source_vendor_m": 1,
+        "crm_cost_plan_ams_source_vendor_wbs_r": 1,
+        "crm_cost_plan_ams_vendor_wbs_r": 0,
+        "crm_cost_plan_internal_item_monthly_d": 0,
+        "crm_cost_plan_internal_monthly_d": 0,
+        "crm_customer_activity_d": 7,
+        "crm_customer_activity_h": 0,
+        "crm_customer_h": 0,
+        "crm_customer_m": 6,
+        "crm_operation_attempt_h": 0,
+        "crm_operation_attempt_m": 0,
+        "crm_opportunity_contract_dms_handoff_m": 0,
+        "crm_opportunity_h": 0,
+        "crm_opportunity_line_d": 59,
+        "crm_opportunity_line_h": 0,
+        "crm_opportunity_m": 9,
+        "crm_quote_dms_handoff_m": 0,
+        "crm_quote_seller_profile_h": 0,
+        "crm_quote_seller_profile_m": 1,
+        "crm_report_confirmation_m": 0
+      },
+      "migrationCount": 10,
+      "triggerCount": 82,
+      "opportunityLedger": "50e876ed64ad9db82e2a8dacc7454a85",
+      "contractLedger": "bd58ed9483ca022b8a7de1f193599c1c",
+      "settingsLedger": "15f585f723f727ba4f43bbf3a71514e3",
+      "sellerLedger": "356e502af6d3c0c257cd41d1b097559d"
+    }
+  },
+  "databaseContract": {
+    "schemaDrift": 0,
+    "applicationTriggers": 82
+  }
+}

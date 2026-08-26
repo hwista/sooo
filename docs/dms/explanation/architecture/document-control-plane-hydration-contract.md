@@ -105,7 +105,7 @@
 이유:
 - `storage/open` 정책 검증
 - source file / attachment / reference / ingest 연동
-- local/sharepoint/nas provider 별 open/resync 정책
+- local/nas provider 별 open/resync 정책
 
 #### D. path history
 정본 테이블:

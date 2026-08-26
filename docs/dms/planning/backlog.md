@@ -1,6 +1,6 @@
 # DMS 백로그
 
-> 최종 업데이트: 2026-07-10 (CRM 견적 lifecycle artifact 실행 + 계약 governance evidence 반영)
+> 최종 업데이트: 2026-08-20 (홈 워크 허브 구현·Ralph 검증 반영)
 
 ---
 
@@ -20,6 +20,7 @@
 | DMS-TEST-D2 | collaboration unit/integration spec | P2 | - | ✅ 완료 (110 tests / 6 suites) |
 | DMS-AUTH-01 | `DocumentMetadata.acl` 기반 문서 object policy(server/web/search/binary) 연결 | P1 | - | ✅ 완료: file/content read-write-metadata + search/ask + template/doc-assist source hint + creator owner default + 기본 UI affordance + upload inheritance + local storage/open + validation matrix 적용 |
 | DMS-AUTH-02 | shared session/auth/access/raw/attachment/upload 검증 시나리오 정리 | P1 | - | ✅ 완료: DMS 접근 검증 통과, 저장/원본 이미지/첨부/검색/권한 경계/설정 계약 포함 |
+| DMS-HOME-HUB-01 | 실제 데이터 기반 홈 워크 허브 | P0 | - | ✅ 완료: 사용자별 영속 최근 문서, `lastSyncedAt` 기반 방문 후 변경, read-only 처리함, 관리자 운영 예외, section 장애 격리/복구, 모바일 390px·일반 사용자 권한·실제 dev Docker Ralph 및 필수 gate 통과 |
 | DMS-NOTIF-01 | 공통 알림 모듈 + DMS 헤더 알림/SSE 연결 | P1 | - | ✅ 완료: common notification DB/API/types/SSE, DMS same-origin proxy, 헤더 알림 패널/토스트, SNS bridge 적용 |
 | DMS-SESSION-01 | 로그인 사용자별 DMS client state isolation | P1 | - | ✅ 완료: tab/file tree/sidebar/editor/settings/query cache 사용자 스코프 분리, user-scope contract 검증 추가 |
 | DMS-PERM-UX-05 | 권한 요청 취소 + 수신자 알림 정리 | P1 | - | ✅ 완료: pending 요청 취소, owner 알림 archive/read 처리, SSE 기반 알림 패널 갱신 |
@@ -35,9 +36,15 @@
 | DMS-COMMENT-01 | 댓글 DB relation 분리와 실시간 알림/삭제 이력 | P1 | - | ✅ 완료: 댓글 API 분리, 작성/삭제/복원 권한, 알림 SSE, tombstone/감사 정보 표시 |
 | DMS-COLLAB-01 | WebSocket soft lock 과 잠금 해제 요청 승인 lifecycle | P1 | - | ✅ 완료: 편집 중 전용 lock renew, 사용자+세션 기준 lock 소유 판정, 비소유 편집자의 본문 저장/메타데이터 플러시 분리, 저장/메타데이터 변경 lock 세션 fencing, 접속 중 사용자 기준 유령 잠금 제거, stale 편집 presence 만료, 편집 진입 lock 검증, 소유자/편집자 양방향 lock 전파, 열린 탭 복원 기반 첫 로드 문서 구독, 문서 화면 직접 WebSocket 구독 요청, 구독 확인 후 현재 스냅샷 재조회, 문서 방 구독 시 서버 읽기 권한 재검사, 인증/권한 부트스트랩 이후 WebSocket 연결, 토큰 교체 시 재연결/재구독, lock 획득 후 편집 상태 전환 순서 고정, 해제 요청/승인/거절, pending 복원과 중복 요청 방지, 요청 수신 화면 안정화, 거절 중복 다이얼로그 방지, 승인 전 미저장 초안 저장, 요청자 최신 본문 재로드, 만료된 해제 요청에서도 보유자 lock 유지, 미저장 승인창 단일화, 다른 사용자 저장 시 활성 문서만 알림 표시 및 안전한 최신 본문 자동 반영 |
 | DMS-AI-SUMMARY-02 | AI 요약 새 문서 첨부 유지와 링크 라우팅 복구 | P1 | - | ✅ 완료: 요약 원본 파일 첨부 보존, 내부 문서/외부 URL 라우팅 판별 보정 |
-| DMS-LAUNCH-SMOKE-01 | 최종 브라우저 연속 스모크 | P1 | - | 🔄 확대 완료: 로그인, 잠긴 검색 결과, 권한 요청/승인, 승인 후 하드 새로고침, 댓글 작성/삭제/복원, 댓글 작성 시 기존 댓글 보존, 답글 작성자 알림, 답글 대상 멘션 표시, 댓글 실시간 갱신 fallback, 댓글/AI 대화 최신 위치 자동 추적, AI 대화 메시지 복사/재전송 액션 정렬과 응답 복사, 계정 기준 AI 채팅 기록 DB 자동 저장/조회, 권한 거절/회수, 내부/외부 링크 라우팅, soft lock takeover 거절/승인, 해제 요청 수신/거절 중복/승인 전 저장/요청자 최신 본문 보존, 비소유 편집 권한자 본문 저장 흐름, 활성 문서 저장 자동 반영/비활성 열린 문서 토스트 억제, 새로고침 직후 열린 탭 문서의 협업 구독 보강, 만료 토큰/세션 복구 뒤 WebSocket 재연결, 첫 접속 파일 트리 안정화, 검증 문서 publish 격리와 일반 런타임 사용자 표면 격리, 책갈피 문서 중복 탭 차단 통과. 만료 시 보유자 lock 유지는 서버 회귀로 고정. AI 요약 첨부 확인은 외부 모델 의존 잔여 |
-| DMS-STO-01 | 저장소 어댑터 3종(Local/SharePoint/NAS) 구현 | P1 | - | 🔄 1차 완료: 어댑터+API 도입, 라우팅 고도화 필요 |
-| DMS-ING-01 | 자동 수집 큐 + 컨펌 후 게시 플로우 | P1 | - | 🔄 1차 완료: 큐+confirm API 구현, 채널 어댑터 연동 필요 |
+| DMS-LAUNCH-SMOKE-01 | 최종 브라우저 연속 스모크 | P1 | - | 🔄 핵심 회귀 확대 완료. 기존 협업/권한/댓글/링크/세션/파일 트리 흐름은 통과했고, 공개 배포 최종 readiness/ingest/Admin AI disposition은 `DMS-LAUNCH-RALPH-01`로 분리. AI 요약 첨부는 `exempted_external_provider` post-launch acceptance로 유지 |
+| DMS-STO-01 | 저장소 어댑터 2종(Local/NAS) 구현 | P1 | - | ✅ 완료: Local 기본, NAS 선택형 비활성, 레거시 설정 정규화, startup root 검증 적용 |
+| DMS-ING-01 | 자동 수집 큐 + 컨펌 후 게시 플로우 | P1 | - | ✅ 운영 큐 완료: atomic JSON queue, confirm/retry/cancel/retention cleanup, metrics, 동시 처리 한도, commit→publish→path parity 이후에만 완료하는 Git 원자 게시, binary-safe discard, DMS 운영 UI와 회귀/격리 브라우저 테스트. Teams/네트워크 드라이브 adapter는 `DMS-ING-01-A`로 분리 |
+| DMS-LAUNCH-OPS-01 | settings/Git/control-plane/runtime readiness fail-closed | P0 | - | ✅ 완료: DB persistence fail-closed, suspicious bulk deactivation guard, inactive document reactivation, DB readiness, path R/W probe, DMS aggregate readiness를 구현하고 격리 PostgreSQL/Git/runtime path의 실제 Firefox에서 설정 영속성, 9개 probe Ready, Git 정상 게시·장애 재시도·취소, console error/warning 0건을 확인 |
+| DMS-ADMIN-OPS-01 | 런칭용 공통 Admin 운영 제어 | P0 | - | ✅ 완료: account/session recovery, real organization hierarchy, role permission grants, audit feed, AI readiness/queue/scheduler bridge를 구현하고 실제 Firefox에서 세션 회수·계정 비활성/복구·마지막 admin 보호·조직 계층 보존·grant 변경/복원·감사 기록·AI 차단 사유와 source/queue 상태를 확인. MFA/SSO unlink와 AI provider 정책 편집은 런칭 구현으로 주장하지 않음 |
+| DMS-LAUNCH-INFRA-01 | 프로덕션 env·공개 endpoint·release SHA fail-closed gate | P0 | - | ✅ 자동화 완료: backup policy, AI disposition, production URL/secret/path, TLS/HSTS/보안 헤더/secure cookie, API·DMS readiness, server/DMS/Admin baked SHA verifier와 self-test 구현. 실제 public endpoint evidence는 최종 배포 단계에서 생성 |
+| DMS-LAUNCH-RECOVERY-01 | PostgreSQL + 세 runtime root backup→isolated restore 증명 | P0 | - | ✅ 자동화/실드릴 완료: mode 0600 archive, manifest/hash, Git/ingest contract, 임시 DB restore와 canonical runtime verifier 구현. PostgreSQL 16에서 launch migration 7개, trigger 81개, schema drift 0 통과. 운영 host evidence는 최종 gate에서 재생성 |
+| DMS-LAUNCH-RELEASE-01 | clean release와 GitHub/GitLab SHA 정합성 gate | P0 | - | ✅ 자동화 완료: dirty publish 차단과 local/GitHub main/GitLab development/last-published SHA 완전 일치 verifier 구현. 실제 clean commit·publish는 승인된 릴리즈 SHA 확정 후 수행 |
+| DMS-LAUNCH-RALPH-01 | 공개 DMS/Admin 최종 Ralph와 통합 Go report | P0 | - | 🟡 로컬 acceptance 완료 / 공개 GO 대기: `stage2-isolated-final`에서 Admin 운영·DMS smoke/설정·desktop/mobile·WS 회귀 17/17과 별도 Playwright CLI 증거를 통과. release SHA/run ID atomic evidence를 포함하는 다섯 트랙 통합 gate 구현 완료. 사용자 수동 테스트 뒤 clean release/원격 정합성, 승인 production 입력, backup→restore와 실제 공개 URL 증거 잔여 |
 | DMS-AI-01 | AI 모드 분리(wiki/deep) + 세컨드브레인 UI | P1 | - | 🔄 1차 완료: API 분기/응답 확장, 화면 표시 강화 필요 |
 
 ---
@@ -65,10 +72,10 @@
 |----|------|----------|------|
 | DMS-AUTH-03 | storage open 정책 + object ACL validation matrix 확장 | P1 | ✅ 완료: local storage/open linked-source 정책과 object ACL validation matrix 확정 |
 | DMS-STO-02 | 정본/첨부 열기(Open)/경로복사/재동기화 UI | P1 | 🔄 1차 완료: metadata panel 액션 추가, 오류 표준화/실동기화 필요 |
-| DMS-QA-01 | 저장소/수집/딥리서치/auth-access 시나리오 테스트 자동화 | P1 | 통합/e2e 스크립트 추가 필요. DMS access live gate는 복구 완료 |
+| DMS-QA-01 | 저장소/수집/딥리서치/auth-access 시나리오 테스트 자동화 | P1 | 수집 큐 fail-closed/retry/cancel/cleanup/concurrency 단위 시나리오와 DMS access live gate 완료. 최종 DMS/Admin Ralph는 `DMS-LAUNCH-RALPH-01`, provider-ready AI는 명시적 post-launch acceptance로 분리 |
 | DMS-TEST-D3 | controller HTTP 통합 테스트 (file/collaboration/content/access) | P1 | C-3·C-4 회귀 안전망 강화. 7 slices 후속 |
 | DMS-QA-02 | hard refresh client-side error live 재현 자동화 | P1 | 현재 CLI/HTTP/build 기준 문제 없음. 브라우저에서 재현 시 console 첫 오류를 기준으로 regression case 추가 |
-| DMS-AI-RAG-01 | 공용 AI/RAG runtime smoke + DMS vector/RAG capability gate | P1 | `AI-RAG-10A`와 연동. provider readiness 기반 capability gate, placeholder deployment unavailable guard, Docker Postgres provider-unavailable smoke, runtime runbook, `DB_INIT_PRISMA_PUSH_MODE=auto` legacy DB init guard, preflight/push-guard 정적 AI/RAG verifier 통합, provider-ready env precheck, retrieval log item audit coverage, provider-ready run-source audit coverage, provider-ready legacy/common comparison assertion, runtime smoke JSON report, `verify:ai-rag-runtime-report` 검증, Markdown evidence summary, artifact upload, provider mode-separated `.github/workflows/ai-rag-runtime.yml` 수동 CI/운영 gate는 완료. 남은 항목은 실제 Azure embedding deployment로 provider-ready vector/RAG workflow green 결과와 검증된 `ai-rag-runtime-smoke-ready.md` summary artifact 확인 |
+| DMS-AI-RAG-01 | 공용 AI/RAG runtime smoke + DMS vector/RAG capability gate | P1 | 런칭 disposition `exempted_external_provider`. provider readiness 기반 capability gate, placeholder unavailable guard, provider-unavailable smoke와 provider-ready 검증 도구는 완료. 실제 Azure embedding deployment의 green report는 post-launch provider acceptance이며 다른 네 개 Go-live 트랙을 면제하지 않음 |
 | DMS-AI-RAG-02 | legacy `dms_document_embeddings` store 이관 계획 | P1 | 기준 문서화 완료. `docs/common/guides/ai-rag-runtime-runbook.md`의 `Legacy DMS Vector Store Transition`에 병행/전환/rollback/금지 기준을 고정했다. 실제 전환 실행은 provider-ready workflow green과 검증된 legacy/common retrieval artifact 이후 진행 |
 | DMS-FE-versionHistory | git commit history 기반 versionHistory 자동 채움 + UI 표시 | P3 | 2026-04-30 dead code 제거 후 backlog 등재. 향후 `gitService.getFileHistory()` 기반 on-demand projection 으로 재구현 |
 | DMS-REF-C5 | `DocumentPage.tsx` 1997줄 분해 | P2 | C-1 트랙 후속 (frontend god component) |
@@ -115,14 +122,14 @@
 
 | ID | 잔여 항목 | 상태 | 비고 |
 |----|-----------|------|------|
-| DMS-STO-01-A | 수동 업로드/첨부 전 경로에 기본 저장소 + 문서/첨부 오버라이드 관통 적용 | ⬜ 대기 | 기존 파일 생성/첨부 플로우와 완전 통합 필요 |
-| DMS-STO-02-A | SharePoint/NAS Open 실패 사유 표준화(권한/경로/만료) 및 사용자 메시지 정교화 | ⬜ 대기 | 현재는 URL 위임 중심 |
-| DMS-STO-02-B | Resync 요청 이후 DB metadata projection 실제 갱신 파이프라인 연결 | ⬜ 대기 | 현재는 작업 등록 중심 |
-| DMS-ING-01-A | Teams/네트워크 드라이브/수집폴더 입력 채널 어댑터 연결 | ⬜ 대기 | ingest API는 구현 완료 |
+| DMS-STO-01-A | 수동 업로드/첨부 전 경로에 기본 저장소 + 문서/첨부 오버라이드 관통 적용 | ✅ 완료 | `system-default`/개인 Local·NAS 선호와 항목별 override를 attachment/reference/image upload에 연결하고, 문서 저장 시 upload 실패를 숨기지 않도록 보강. 격리 브라우저에서 NAS 기본·Local override·일반 사용자 Local 선호를 실제 파일 업로드로 검증 |
+| DMS-STO-02-A | NAS Open 실패 사유 표준화(권한/경로/만료) 및 사용자 메시지 정교화 | ✅ 완료 | 비활성 provider 400, 잘못된 containment 400, missing file 404, 문서 미연결/권한 없음 403으로 구분. 외부 gateway 만료 계약은 gateway 채택 시 별도 integration 범위 |
+| DMS-STO-02-B | Resync 요청 이후 DB metadata projection 실제 갱신 파이프라인 연결 | ✅ 완료 | 저장소 파일을 다시 읽어 checksum/version/etag을 갱신하고 sidecar 없는 DB document/source-file projection을 같은 요청에서 동기화 |
+| DMS-ING-01-A | Teams/네트워크 드라이브/수집폴더 입력 채널 어댑터 연결 | ⏸ 외부 integration 입력 | 직접 submit/confirm/retry/cancel/cleanup/metrics와 ingest queue runtime은 런칭 범위 완료. Teams/네트워크 드라이브 adapter는 승인된 공통 integration 계약 전에는 지원으로 표시하지 않음 |
 | DMS-AI-01-A | Ask/Search 화면에 citations/confidence 표시 | ⬜ 대기 | API 응답 확장 완료 |
-| DMS-AI-RAG-01-A | DMS common AI index smoke | 🔄 부분 완료 | placeholder deployment 환경의 unavailable/stale/fallback은 Docker Postgres에서 통과. 확인 범위는 DMS 저장 지점 common projection, chunk/state stale, zero common embedding, retrieval log header/item, Ask conversation/run audit다. provider 설정 환경의 `cm_ai_embedding_m` vector retrieval, Ask context assembly, legacy/common retrieval 비교는 smoke assertion, report verifier, Markdown summary artifact로 추가됐고, 실제 Azure 환경에서 green 결과 확보는 잔여 |
+| DMS-AI-RAG-01-A | DMS common AI index smoke | ⏸ 외부 provider 예외 | unavailable/stale/fallback은 Docker PostgreSQL에서 통과. 실제 Azure vector/RAG green report는 `exempted_external_provider` post-launch acceptance에서 수행 |
 | DMS-AI-RAG-01-B | DMS adapter capability 정합화 | ✅ 완료 | `DmsAiIndexAdapter`의 `semantic`/`vector`/`ragContext` capability는 embedding provider readiness를 따른다. provider unavailable 또는 placeholder deployment는 false/stale/fallback, provider configured는 true/vector retrieval 대상으로 고정 |
-| DMS-QA-01 | 저장소/수집/딥리서치 7개 시나리오 테스트 자동화 | ⬜ 대기 | 통합/e2e 스크립트 추가 필요. 런칭 권한/댓글/링크/soft lock 브라우저 스모크 5건은 별도 추가 완료 |
+| DMS-QA-01 | 저장소/수집/딥리서치 7개 시나리오 테스트 자동화 | ✅ 런칭 범위 완료 | 저장소·설정·ingest·권한·댓글·링크·soft lock·운영 readiness를 server spec과 Playwright gate에 통합. provider-backed AI/RAG만 명시적 외부 provider disposition으로 분리 |
 | DMS-QA-03-A | 숨김 검증 문서와 DMS access live gate 계약 정렬 | ✅ 완료 | 사용자 표면 제외 prefix 아래 probe 문서는 파일 트리/검색 비노출을 정상으로 검증하고, 직접 파일/본문/첨부 권한 검증은 계속 수행 |
 | DMS-PERM-UX-01-A | Search/Ask 전체 차단 소스 수와 제외 사유 요약 표시 | ✅ 완료 | 검색/Ask 응답과 스트리밍 이벤트, 검색 화면/어시스턴트 대화 UI에 반영 |
 | DMS-PERM-UX-07-A | Unreadable 검색 결과 카드의 원문 스니펫/키워드 제거 또는 preview-only 제한 | ✅ 완료 | AI 요약은 유지하고 원문 기반 발췌/스니펫은 서버 응답에서 제거 |
@@ -131,8 +138,8 @@
 | DMS-COLLAB-01-A | 소유자/편집 권한자 양방향 soft lock 차단 상태 전파 | ✅ 완료 | lock 소유자 판정을 사용자 ID 기준으로 정렬하고 열린 문서 전체와 현재 문서 화면을 WebSocket 구독 대상으로 확장. 서버/브라우저 문서 경로 정규화, 구독 확인 후 현재 스냅샷 재조회, lock 획득 후 편집 상태 전환 순서 고정, 2.5초 즉시 차단 회귀 기준으로 경합 누락을 차단 |
 | DMS-LAUNCH-SMOKE-01-C | 첫 접속 파일 트리 안정화 | ✅ 완료 | 서버 부팅 중 문서 control-plane 선동기화, missing/deleted 문서 목록 제외, 사용자 파일 트리 초기화 전 로딩 상태 유지 |
 | DMS-LAUNCH-SMOKE-01-D | 검증 문서 publish 격리 | ✅ 완료 | local-only 검증 prefix 를 Docker 기본값으로 제외하고, 생성 직후 삭제된 미추적 markdown 경로는 Git pathspec 실패 알림 대신 no-op 처리 |
-| DMS-LAUNCH-SMOKE-01-B | AI 요약 첨부 freeze 확인 | ⬜ 대기 | 외부 모델/API 설정이 준비된 런칭 환경에서 새 문서 저장과 첨부 유지 확인 필요 |
-| DMS-QA-02-A | hard refresh Application error 브라우저 재현 케이스 확보 | ⬜ 대기 | 현재 `build:web-dms`, DMS root HTTP 200, server/DMS logs 기준 재현 없음 |
+| DMS-LAUNCH-SMOKE-01-B | AI 요약 첨부 freeze 확인 | ⏸ 외부 provider 예외 | 외부 모델/API 준비 후 post-launch provider acceptance에서 새 문서 저장과 첨부 유지를 확인. 현재 런칭 disposition은 `exempted_external_provider` |
+| DMS-QA-02-A | hard refresh Application error 브라우저 재현 케이스 확보 | ✅ 완료 | production build에서 문서 hard refresh와 settings deep-link reload를 자동화하고, page lifecycle에 취소된 file-tree 요청을 운영 오류로 오기록하지 않도록 회귀 고정 |
 
 ---
 
@@ -140,6 +147,7 @@
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-13 | 프로덕션 env/endpoint, backup→isolated restore, Git SHA 정합성 자동화를 완료 항목으로 등록하고 실제 공개 DMS/Admin Ralph를 P0 최종 실행 항목으로 분리. AI/RAG provider-ready 증거는 명시적 외부 provider 예외와 post-launch acceptance로 재분류 |
 | 2026-07-10 | DMS 설정에 `CRM 계약 산출 정책` section을 추가해 `system.crmContractExportPolicy`의 policy key/version, organization scope, markdown record root, Word/PDF storage artifact root를 편집하도록 연결. DMS CRM 계약 lifecycle은 이 정책으로 `export-policy.md`와 `dmsExecution.governance.exportPolicy`를 생성하며, markdown evidence와 DOCX/PDF artifact를 조직 scope별 경로 아래 산출 |
 | 2026-07-10 | DMS 설정에 `CRM 계약 결재선` section을 추가해 `system.crmContractApprovalRoute`의 route key/name, policy version, organization scope, required roles를 편집하도록 연결. DMS CRM 계약 lifecycle은 이 정책으로 승인 route evidence와 결재선 원장 sync evidence를 생성 |
 | 2026-07-10 | DMS 템플릿 metadata에 `reviewConfirmation`을 추가하고, `POST /dms/templates/:id/review-confirmation`과 DMS 설정 관리자 템플릿 목록에서 `crm-quote-v1` 검토 확정 상태/확정자/확정일을 기록하도록 연결 |

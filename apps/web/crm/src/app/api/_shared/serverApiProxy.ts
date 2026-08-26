@@ -7,6 +7,7 @@ const {
   createServerApiUrl,
   buildServerApiProxyHeaders,
   createServerApiProxyInit,
+  proxySessionBackedBinaryResponse,
   proxySessionBackedStreamResponse,
 } = createServerApiProxyHelpers({
   resolveServerApiBaseUrl: () => (
@@ -25,5 +26,6 @@ export {
   createServerApiUrl,
   buildServerApiProxyHeaders,
   createServerApiProxyInit,
+  proxySessionBackedBinaryResponse,
   proxySessionBackedStreamResponse,
 };

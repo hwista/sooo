@@ -1,0 +1,141 @@
+{
+  "states": [
+    {
+      "name": "new-empty",
+      "captured": true,
+      "screenshot": "ux-06-contract-form--new-empty.png",
+      "screenshotSha256": "5ffb5ff87ca6d328ca79352807734cbda75a283c5509063fdb9c2624f858fd51",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract.js"
+    },
+    {
+      "name": "edit-seeded",
+      "captured": true,
+      "screenshot": "ux-06-contract-form.png",
+      "screenshotSha256": "aa8a77a06b9fc987b7ed2c665f2122f3b208f2d05d00bbc53fc2955a3d27c5dc",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract.js"
+    },
+    {
+      "name": "required-validation",
+      "captured": true,
+      "screenshot": "ux-06-contract-form--required-validation.png",
+      "screenshotSha256": "6f74dcbc334fd9148ff40a9489d99cbf5dcdaa788d29fa3759d6c0ad9f0b6359",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract.js"
+    },
+    {
+      "name": "confirmed-locked",
+      "captured": true,
+      "screenshot": "ux-06-contract-form--confirmed-locked.png",
+      "screenshotSha256": "aa8a77a06b9fc987b7ed2c665f2122f3b208f2d05d00bbc53fc2955a3d27c5dc",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract.js"
+    },
+    {
+      "name": "confirm-unconfirm-delete",
+      "captured": true,
+      "screenshot": "ux-06-contract-form--confirm-unconfirm-delete.png",
+      "screenshotSha256": "97cc2afda3b813e9d28aae196c9cd378f5c9705a30e11335424a9da7bac6df62",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "new-empty",
+      "behavior": "new empty",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract.js"
+      ]
+    },
+    {
+      "id": "edit-seeded",
+      "behavior": "edit seeded",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract.js"
+      ]
+    },
+    {
+      "id": "required-validation",
+      "behavior": "required validation",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract.js"
+      ]
+    },
+    {
+      "id": "confirmed-locked",
+      "behavior": "confirmed locked",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract.js"
+      ]
+    },
+    {
+      "id": "confirm-unconfirm-delete",
+      "behavior": "confirm unconfirm delete",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract.js"
+      ]
+    }
+  ]
+}

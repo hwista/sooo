@@ -14,6 +14,7 @@ const baselineName = '0_launch_baseline';
 const expectedMigrationNames = new Set([
   baselineName,
   '20260720010000_add_launch_native_constraints',
+  '20260722090000_remove_sharepoint_storage_provider',
 ]);
 const databaseUrl = process.env.DATABASE_URL;
 

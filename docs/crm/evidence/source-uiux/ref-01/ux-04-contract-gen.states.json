@@ -1,0 +1,168 @@
+{
+  "states": [
+    {
+      "name": "no-template",
+      "captured": true,
+      "screenshot": "ux-04-contract-gen.png",
+      "screenshotSha256": "ecdaa7fb7187cb184b7c3ac227f63ba8c523de1e7682cf4a74d10fafb2667bf2",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract_gen.js"
+    },
+    {
+      "name": "template-ready",
+      "captured": true,
+      "screenshot": "ux-04-contract-gen--template-ready.png",
+      "screenshotSha256": "d8512ff42807b9a5f37192893d713a36ac6c064cbcc2ac94b6f5857e853d38e4",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract_gen.js"
+    },
+    {
+      "name": "opportunity-selected",
+      "captured": true,
+      "screenshot": "ux-04-contract-gen--opportunity-selected.png",
+      "screenshotSha256": "59db9d39d42ea5c85d625ccfd15d4f9f6fb748a7024cf3a90ff1bebf5de45003",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract_gen.js"
+    },
+    {
+      "name": "preview-ready",
+      "captured": true,
+      "screenshot": "ux-04-contract-gen--preview-ready.png",
+      "screenshotSha256": "b1cb3b48d829c640ff5fb26ceb7bd96e6ba97c78bfc14601ff61bb22b1d72e79",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract_gen.js"
+    },
+    {
+      "name": "generation-download-success",
+      "captured": true,
+      "screenshot": "ux-04-contract-gen--generation-download-success.png",
+      "screenshotSha256": "781993796f3c74c16f50eb264e571eb121517ecf9334077c7320d53f10056eae",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract_gen.js"
+    },
+    {
+      "name": "generation-error",
+      "captured": true,
+      "screenshot": "ux-04-contract-gen--generation-error.png",
+      "screenshotSha256": "dc38ceb2e93125389f70bf9c351850ba785eb125ae8f58af517db36f0b2d1fd1",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.contract_gen.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "no-template",
+      "behavior": "no template",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract_gen.js"
+      ]
+    },
+    {
+      "id": "template-ready",
+      "behavior": "template ready",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract_gen.js"
+      ]
+    },
+    {
+      "id": "opportunity-selected",
+      "behavior": "opportunity selected",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract_gen.js"
+      ]
+    },
+    {
+      "id": "preview-ready",
+      "behavior": "preview ready",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract_gen.js"
+      ]
+    },
+    {
+      "id": "generation-download-success",
+      "behavior": "generation download success",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract_gen.js"
+      ]
+    },
+    {
+      "id": "generation-error",
+      "behavior": "generation error",
+      "sourceAnchors": [
+        "index.html",
+        "app.contract_gen.js"
+      ]
+    }
+  ]
+}

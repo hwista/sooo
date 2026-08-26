@@ -12,7 +12,6 @@ import {
 import type { Project, ProjectRelationItem } from '@/lib/api/endpoints/projects';
 import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -21,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useConfirmStore } from '@/stores/confirm.store';
+import { SsooSearchInput } from '@ssoo/web-shell';
 
 const PROJECT_RELATION_COMPAT_SOURCE = 'pms-project-relation-compat';
 
@@ -182,7 +182,11 @@ export function RelationsSection({ projectId }: RelationsSectionProps) {
           <div className="grid gap-3 sm:grid-cols-[minmax(180px,1fr),minmax(240px,1.35fr),auto]">
             <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground">프로젝트 검색</label>
-              <Input
+              <SsooSearchInput
+                id="pms-project-relation-lookup-input"
+                name="pms-project-relation-lookup-query"
+                ariaLabel="연결 프로젝트 검색"
+                intent="entity-lookup"
                 placeholder="프로젝트명 또는 번호"
                 value={projectSearch}
                 onChange={(event) => {

@@ -65,8 +65,35 @@ jobs:
       - name: Codex Preflight
         run: pnpm run codex:preflight
 
+      - name: DMS Launch Contract
+        run: pnpm run verify:dms-launch-contract
+
+      - name: CRM Go-Live Contract Self-Test
+        run: pnpm run verify:crm-go-live:self-test
+
+      - name: CRM Final Browser Evidence Contract Self-Test
+        run: pnpm run verify:crm-go-live:final:self-test
+
+      - name: CRM Worktree Evidence Identity Self-Test
+        run: pnpm run verify:crm-worktree-identity:self-test
+
+      - name: CRM UIUX Evidence Contract Self-Test
+        run: pnpm run verify:crm-uiux-parity:self-test
+
+      - name: CRM Current Demo Strict Gate Self-Test
+        run: pnpm run verify:crm-current-demo:self-test
+
+      - name: DMS Launch Types
+        run: pnpm run verify:dms-launch-types
+
+      - name: Prisma Deepmerge Security Contract
+        run: pnpm run verify:prisma-deepmerge-security
+
       - name: SSOO Frame Verify
         run: pnpm run verify:ssoo-frame -- --skip-runtime
+
+      - name: Input Intent and Autofill Contract
+        run: pnpm run verify:input-intent
 
       - name: Codex Push Guard
         run: pnpm run codex:push-guard
@@ -199,6 +226,7 @@ jobs:
           done
 
           curl -fsS http://127.0.0.1:4000/api/health >/dev/null
+          pnpm verify:openapi-contract -- --runtime-url=http://127.0.0.1:4000/api/openapi.json
           pnpm verify:access-ci
 
   # 변경 범위 분석

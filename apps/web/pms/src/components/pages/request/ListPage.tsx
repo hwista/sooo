@@ -273,7 +273,7 @@ export function RequestListPage() {
           },
         ],
         filters: [
-          { key: 'projectName', type: 'text', placeholder: '프로젝트명' },
+          { key: 'projectName', type: 'text', id: 'pms-request-project-search-input', name: 'pms-request-project-search-query', ariaLabel: '요청 프로젝트명 검색', placeholder: '프로젝트명' },
           { key: 'customerId', type: 'select', placeholder: '고객사', options: customerOptions, width: '240px' },
           { key: 'stageCode', type: 'select', placeholder: '단계', options: stageOptions },
         ],

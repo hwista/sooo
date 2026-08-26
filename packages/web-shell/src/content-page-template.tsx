@@ -228,6 +228,10 @@ export function SsooContentPageTemplate({
     && effectiveLeftSubContentSlot
     && !effectiveRightSubContentSlot
   );
+  const shouldHideSettingsIndex = Boolean(
+    isSettingsGroupedLayout
+    && (compactMode || (hasMeasured && shellWidth < 720))
+  );
   const settingsGroupGapPx = 10;
 
   useEffect(() => {
@@ -329,7 +333,9 @@ export function SsooContentPageTemplate({
                   data-ssoo-content-page-settings-group
                 >
                   <div className="flex h-full min-w-0 flex-1 overflow-hidden" style={settingsContentGroupStyle}>
-                    {renderSubContentLane(effectiveLeftSubContentSlot, 'left', SSOO_CONTENT_PAGE_METRICS.subContentWidthPx, 'settings')}
+                    {shouldHideSettingsIndex
+                      ? null
+                      : renderSubContentLane(effectiveLeftSubContentSlot, 'left', SSOO_CONTENT_PAGE_METRICS.subContentWidthPx, 'settings')}
 
                     <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden" data-ssoo-content-page-slot="main-content">
                       <div className="flex h-full overflow-hidden">

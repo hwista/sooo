@@ -1,0 +1,134 @@
+{
+  "title": "대시보드",
+  "sections": [
+    "견적 설정"
+  ],
+  "fields": [
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "회사명",
+      "placeholder": "회사명 입력",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "대표이사",
+      "placeholder": "대표이사명",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "사업자번호",
+      "placeholder": "000-00-00000",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "대표 전화",
+      "placeholder": "02-0000-0000",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "팩스",
+      "placeholder": "02-0000-0000",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "대표 이메일",
+      "placeholder": "sales@example.com",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "회사 주소",
+      "placeholder": "회사 주소",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "웹사이트",
+      "placeholder": "https://www.company.com",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "select",
+      "label": "CI 상태미설정DMS 연결 예정설정됨",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "CI 저장소 참조",
+      "placeholder": "DMS 연결 예정",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "file",
+      "label": "CI 이미지 선택·업로드",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "textarea",
+      "label": null,
+      "placeholder": "견적서 표시 정보 관리 메모",
+      "disabled": false,
+      "readOnly": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "새로고침",
+    "저장",
+    "선택된 CI 없음"
+  ],
+  "labels": [
+    "회사명",
+    "대표이사",
+    "사업자번호",
+    "대표 전화",
+    "팩스",
+    "대표 이메일",
+    "회사 주소",
+    "웹사이트",
+    "CI 상태미설정DMS 연결 예정설정됨",
+    "CI 저장소 참조",
+    "CI 이미지 선택·업로드"
+  ]
+}

@@ -9,6 +9,8 @@ import { AuthPolicyService } from './auth-policy.service.js';
 import { AuthRegistrationService } from './auth-registration.service.js';
 import { MicrosoftIdentityService } from './microsoft-identity.service.js';
 import { PasswordResetService } from './password-reset.service.js';
+import { AuthAdminOperationsService } from './auth-admin-operations.service.js';
+import { AuthEmailOutboxWorkerService } from './auth-email-outbox-worker.service.js';
 import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { UserModule } from '../user/user.module.js';
 import { AccessFoundationModule } from '../access/access-foundation.module.js';
@@ -40,6 +42,8 @@ import { getRequiredJwtExpiry, getRequiredJwtSecret } from './jwt-config.js';
     AuthRegistrationService,
     MicrosoftIdentityService,
     PasswordResetService,
+    AuthAdminOperationsService,
+    AuthEmailOutboxWorkerService,
     JwtStrategy,
   ],
   exports: [AuthService, JwtModule],

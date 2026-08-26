@@ -1,6 +1,6 @@
 # DMS 컴포넌트 가이드
 
-> 최종 업데이트: 2026-03-11
+> 최종 업데이트: 2026-08-20
 
 DMS 프로젝트의 React 컴포넌트 구조와 사용법에 대한 가이드입니다.
 
@@ -54,6 +54,19 @@ src/components/
 - **폴더가 컨텍스트를 제공하므로 접두어를 제거**합니다.
 - 예: `common/viewer/Toolbar.tsx`, `common/viewer/Content.tsx`
 - 예외: 전역 공유 컴포넌트는 이름 충돌을 피하도록 명확한 이름 사용
+
+### 홈 워크 허브 구성
+
+`pages/home/DashboardPage.tsx`는 데이터 조회와 기존 탭 동작만 조정하고, 표시 책임은 `_components/`로 분리합니다.
+
+| 컴포넌트 | 책임 |
+|----------|------|
+| `QuickAccessSection` | 기존 새 문서·통합 검색과 현재 기기 책갈피 진입점 |
+| `DocumentSection` | 이어서 작업/변경 문서 공용 목록과 empty/degraded 상태 |
+| `AttentionSection` | 접근 요청·복구 필요 문서 처리함 |
+| `OperationsSection` | 관리자 전용 readiness/publish/ingest 예외 |
+
+홈의 문서/처리 항목은 클릭 가능한 일반 `div`가 아니라 공용 `Button`을 사용합니다. 카드형 버튼은 `flex-col items-start whitespace-normal text-left`를 명시해 공용 버튼의 단일행 기본값이 제목과 설명을 붙이지 않도록 합니다. 문서 목록은 제목과 별도로 실제 상대 경로를 한 줄 표시해 제목이 같은 문서도 구분합니다.
 
 ---
 

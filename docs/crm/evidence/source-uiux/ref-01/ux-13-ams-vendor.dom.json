@@ -1,0 +1,25 @@
+{
+  "title": "공급업체 관리",
+  "sections": [
+    "공급업체 관리"
+  ],
+  "fields": [
+    {
+      "id": "av-year",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "조회",
+    "+ 업체 추가",
+    "삭제"
+  ],
+  "labels": [
+    "사업년도 *"
+  ]
+}

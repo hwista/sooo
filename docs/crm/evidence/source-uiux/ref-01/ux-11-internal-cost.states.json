@@ -1,0 +1,114 @@
+{
+  "states": [
+    {
+      "name": "seeded-grid",
+      "captured": true,
+      "screenshot": "ux-11-internal-cost.png",
+      "screenshotSha256": "c5ac231fda3d283f92c696a4773d239ed6fb3cd0ae0e5050aa13717610ba5432",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.internal_cost.js"
+    },
+    {
+      "name": "paste",
+      "captured": true,
+      "screenshot": "ux-11-internal-cost--paste.png",
+      "screenshotSha256": "1c62e7d55401d1fc15153e5395830a6a238fd02b89d354bcf9b490cb59142923",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.internal_cost.js"
+    },
+    {
+      "name": "save-success",
+      "captured": true,
+      "screenshot": "ux-11-internal-cost--save-success.png",
+      "screenshotSha256": "c025bc01b3485e60387b1fe21101f347437a1b9018af54e1ebd1d34a13d2bc2b",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.internal_cost.js"
+    },
+    {
+      "name": "invalid-paste",
+      "captured": true,
+      "screenshot": "ux-11-internal-cost--invalid-paste.png",
+      "screenshotSha256": "73aa60166506825bda04233b19720f4e2b788d32afb827678777a385aca7bd3e",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.internal_cost.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-grid",
+      "behavior": "seeded grid",
+      "sourceAnchors": [
+        "index.html",
+        "app.internal_cost.js"
+      ]
+    },
+    {
+      "id": "paste",
+      "behavior": "paste",
+      "sourceAnchors": [
+        "index.html",
+        "app.internal_cost.js"
+      ]
+    },
+    {
+      "id": "save-success",
+      "behavior": "save success",
+      "sourceAnchors": [
+        "index.html",
+        "app.internal_cost.js"
+      ]
+    },
+    {
+      "id": "invalid-paste",
+      "behavior": "invalid paste",
+      "sourceAnchors": [
+        "index.html",
+        "app.internal_cost.js"
+      ]
+    }
+  ]
+}

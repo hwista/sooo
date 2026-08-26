@@ -1,0 +1,141 @@
+{
+  "states": [
+    {
+      "name": "loaded-company",
+      "captured": true,
+      "screenshot": "ux-16-company.png",
+      "screenshotSha256": "06cec651f33d6d5c93b26343acde393046721446b84274fd018258abfb53cce4",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "empty-company",
+      "captured": true,
+      "screenshot": "ux-16-company--empty-company.png",
+      "screenshotSha256": "40aab4114c6dc4715c9a48f96fdc02b4e9f44b2e6bf8ea3e9b7a1fd2067456da",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "ci-reference",
+      "captured": true,
+      "screenshot": "ux-16-company--ci-reference.png",
+      "screenshotSha256": "411a29b251f06030216af25019f011a02cedc92dfa9e64931d33d5532efe482a",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "save-success",
+      "captured": true,
+      "screenshot": "ux-16-company--save-success.png",
+      "screenshotSha256": "a080e49f4667b41edc892ea14640db5472246aeae75185645124e334088b2467",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    },
+    {
+      "name": "save-error",
+      "captured": true,
+      "screenshot": "ux-16-company--save-error.png",
+      "screenshotSha256": "61a4f3f0c7038897e9d24156f98302802a006ee064c6c0d9eddd37798c85be2b",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.system.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "loaded-company",
+      "behavior": "loaded company",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "empty-company",
+      "behavior": "empty company",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "ci-reference",
+      "behavior": "ci reference",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "save-success",
+      "behavior": "save success",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    },
+    {
+      "id": "save-error",
+      "behavior": "save error",
+      "sourceAnchors": [
+        "index.html",
+        "app.system.js"
+      ]
+    }
+  ]
+}

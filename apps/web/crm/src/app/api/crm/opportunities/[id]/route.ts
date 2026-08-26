@@ -44,3 +44,16 @@ export async function PUT(
 
   return forwardResponse(response);
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const response = await fetch(
+    createServerApiUrl(`/crm/opportunities/${encodeURIComponent(id)}`),
+    createServerApiProxyInit(req, { method: 'DELETE' }),
+  );
+
+  return forwardResponse(response);
+}

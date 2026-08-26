@@ -1,6 +1,6 @@
 # DMS API 가이드
 
-> 최종 업데이트: 2026-05-29
+> 최종 업데이트: 2026-08-20
 
 DMS 프로젝트의 same-origin Next Route Handler 및 `apps/server` DMS module API에 대한 가이드입니다.
 
@@ -27,6 +27,9 @@ DMS는 Next.js App Router의 Route Handlers를 브라우저 진입점으로 사�
 | 카테고리 | 엔드포인트 | 설명 |
 |----------|-----------|------|
 | **파일 관리** | `/api/file` | 단일 파일 CRUD |
+| **홈 워크 허브** | `/api/home` | 사용자별 최근 문서·변경·처리함·운영 예외 집계 |
+| | `/api/home/visits` | 읽기 권한 확인을 통과한 문서의 성공 열람 기록 |
+| | `/api/home/seen` | 렌더한 홈 snapshot의 확인 시각 기록 |
 | | `/api/files` | 파일 트리 조회 |
 | | `/api/file/raw` | storage-backed 이미지 바이너리 서빙 (GET, 로그인 세션 기반) |
 | | `/api/file/upload-image` | 이미지 업로드 (POST, 10MB, non-Git storage provider 기준) |
@@ -39,6 +42,9 @@ DMS는 Next.js App Router의 Route Handlers를 브라우저 진입점으로 사�
 | | `/api/chat-sessions` | AI 채팅 세션 조회/저장/삭제 |
 | **템플릿** | `/api/templates` | 전역/개인 템플릿 CRUD |
 | **운영** | `/api/settings` | 시스템/개인 설정 + Git binding observability snapshot |
+| | Backend `/api/dms/settings/readiness` | DB/settings/Git/control-plane/runtime path 운영 readiness (admin) |
+| | Backend `/api/health` | 프로세스 liveness |
+| | Backend `/api/health/readiness` | DB + DMS 런타임 통합 트래픽 readiness (`503` fail-closed) |
 | | `/api/collaboration` | 문서별 collaboration / publish / isolation snapshot |
 | | `/api/collaboration/takeover` | 편집 soft lock 이동 요청 또는 비활성 잠금 획득 |
 | | `/api/collaboration/takeover/pending` | 현재 사용자 기준 미처리 soft lock 이동 요청 조회 |
@@ -46,30 +52,68 @@ DMS는 Next.js App Router의 Route Handlers를 브라우저 진입점으로 사�
 | **댓글** | `/api/comments` | 문서 댓글 목록 조회/작성 |
 | | `/api/comments/:commentId` | 댓글 삭제 |
 | | `/api/comments/:commentId/restore` | 댓글 복원 |
-| **저장소** | `/api/storage/upload` | 저장소(Local/SharePoint/NAS) 업로드 |
+| **저장소** | `/api/storage/upload` | 저장소(Local/NAS) 업로드. provider 생략 시 Local |
 | | `/api/storage/open` | 문서에 연결된 source file 열기/다운로드 (`documentPath` 필수, 로그인 세션 기반) |
 | **수집** | `/api/ingest/submit` | 자동 수집 작업 등록 |
 | | `/api/ingest/jobs` | 수집 작업 조회 |
 | | `/api/ingest/jobs/:id/confirm` | 수집 결과 게시 승인 |
+| | `/api/ingest/jobs/metrics` | 상태별 큐 수, 처리 한도, 보존 정책 조회 |
+| | `/api/ingest/jobs/:id/retry` | 실패 작업 재시도 |
+| | `/api/ingest/jobs/:id/cancel` | 대기/실패 작업 취소 |
+| | `/api/ingest/jobs/cleanup` | 보존 기간이 지난 게시/취소 이력 정리 |
+
+---
+
+## 홈 워크 허브 API
+
+- 브라우저는 same-origin `/api/home*`만 호출하며 Next Route Handler가 Nest `/api/dms/home*`로 세션을 전달합니다.
+- `GET /api/home`의 각 section은 `{ status: 'ready'|'empty'|'degraded', items, reason? }` 계약을 사용합니다. 선택 데이터 소스 하나가 실패해도 전체 응답을 `500`으로 만들지 않습니다.
+- 최근 문서는 `dm_user_document_activity_m`의 현재 사용자 행만 조회한 뒤 파일 존재와 현재 ACL을 다시 확인합니다. 열린 탭이나 파일 `atime`은 최근 문서 정본이 아닙니다.
+- 방문 후 변경은 앱의 실제 콘텐츠/메타데이터 mutation에서 전진하는 `dm_document_m.last_synced_at`을 사용합니다. 서버 재기동·파일 목록 reconcile도 갱신하는 generic `updated_at`은 변경 정본으로 사용하지 않습니다.
+- 처리함의 pending 접근 요청은 이미 동기화된 control-plane을 읽는 snapshot 경로로 조회합니다. 홈 GET 자체는 문서 레코드 reconcile write를 시작하지 않습니다.
+- `POST /api/home/visits`는 successful content load 뒤 비차단으로 호출합니다. 잠긴 미리보기, 실패한 로드, containment/ACL 검증 실패는 기록하지 않습니다.
+- `POST /api/home/seen`은 `GET` 응답의 `generatedAt`을 저장하며, multi-tab 응답 순서가 뒤바뀌어도 기존 값보다 과거로 되돌리지 않습니다.
+- 운영 예외는 `canManageSettings=true`일 때만 readiness/publish/ingest를 probe합니다. runtime path, remote credential, queue file path는 홈 응답에 포함하지 않습니다.
 
 ---
 
 ## 설정 / 협업 운영 snapshot
 
-- `GET /api/settings` 는 기본적으로 persisted config 를 반환하고, `?includeRuntime=1` 을 붙였을 때 `runtime.git` + `runtime.paths` snapshot 도 함께 반환합니다.
+- `GET /api/settings` 는 기본적으로 persisted config 를 반환하고, `?includeRuntime=1` 을 붙였을 때 `runtime.git` + `runtime.paths` + `runtime.readiness` snapshot 도 함께 반환합니다.
 - `runtime.git` 에는 configured root input, resolved configured root, actual Git root, actual remote URL, actual branch, sync state, ahead/behind count, parity 결과, reconcile-needed 사유가 포함됩니다.
-- `runtime.paths` 는 markdown root / ingest queue / provider별 storage roots 의 configured value, effective input, resolved path, env override 여부, 존재 여부를 노출합니다. 템플릿은 markdown root 의 `_templates/` 하위에 포함되므로 별도 template root 항목은 불필요합니다.
+- `runtime.paths` 는 markdown root / ingest queue / provider별 storage roots / 파생 template root 의 configured value, effective input, resolved path, env override 여부, 실제 directory/readable/writable/status/reason을 노출합니다.
 - 상대 경로 `git.repositoryPath`, `storage.*.basePath`, `ingest.queuePath` 는 process cwd 가 아니라 `apps/web/dms` app root 기준으로 해석됩니다.
 - Docker/배포 환경에서는 `DMS_MARKDOWN_ROOT`, `DMS_INGEST_QUEUE_PATH`, `DMS_STORAGE_LOCAL_BASE_PATH` 같은 env override 가 actual runtime path 로 우선할 수 있습니다. 템플릿은 `DMS_MARKDOWN_ROOT/_templates/` 에서 자동으로 제공됩니다.
 - settings `POST /api/settings` 는 markdown root 자체를 변경하지 않습니다. markdown working tree root 는 deploy/runtime-managed 경로이고, settings 에서는 runtime snapshot 으로 관측합니다.
 - admin 도 settings surface 에서 `bootstrapRemoteUrl`, `bootstrapBranch`, `autoInit` 같은 Git bootstrap binding 은 관측만 합니다. 해당 값은 deploy/runtime config 가 소유합니다.
 - Git bootstrap/sync 는 app build-time 이 아니라 server runtime bootstrap/reconcile 단계에서 수행됩니다.
+- DB persistence가 초기화된 뒤 settings read/write가 실패하면 업데이트는 실패하고 메모리 캐시를 교체하지 않습니다. 알 수 없는 nested 설정값과 범위를 벗어난 숫자는 DTO validation에서 거부합니다.
+- Git control-plane reconcile은 스캔 결과가 0인데 활성 DB 문서가 있거나, 활성 문서 10건 이상이면서 50% 이상 누락되는 suspicious bulk drop이면 어떤 문서도 비활성화하기 전에 중단합니다.
 - `GET /api/collaboration?path=...` 는 문서 단위 presence, publish 상태, soft lock, path isolation reason 을 반환합니다.
 - `POST /api/collaboration` 은 문서 입장/모드 전환 요청입니다. `mode=edit` 은 서버 soft lock 획득이 성공해야만 통과하며, 다른 사용자의 활성 lock 이 있으면 편집 진입을 거부합니다.
 - `POST /api/collaboration/takeover` 는 다른 사용자의 활성 lock 을 즉시 탈취하지 않고 현재 편집자에게 이동 요청을 보냅니다. lock 보유자가 비활성 상태이거나 같은 사용자인 경우에는 즉시 획득 결과를 반환할 수 있습니다.
 - `GET /api/collaboration/takeover/pending?path=...` 는 현재 사용자 기준으로 요청자 관점의 미처리 요청과 현재 lock 보유자 관점의 처리할 요청을 반환합니다. 새로고침 후 요청자의 `요청 중` 상태와 보유자의 처리 다이얼로그 복원에 사용합니다.
 - `POST /api/collaboration/takeover/respond` 는 현재 lock 보유자가 요청을 승인하거나 거절할 때 사용합니다. 승인 시 soft lock 이 요청자에게 이동하고 WebSocket 문서 방으로 collaboration snapshot 이 전파됩니다.
 - soft lock 이동 요청과 승인/거절 결과는 각각 `dms.document-soft-lock.*` 알림으로도 저장됩니다. 알림 primary action 은 대상 문서를 열고, 해당 문서가 이미 열려 있으면 SSE 알림 이벤트가 처리 다이얼로그나 요청 결과 notice 를 복원합니다.
+
+## Liveness / readiness
+
+- `GET /api/health`는 프로세스가 HTTP 요청을 받을 수 있는지만 확인하는 liveness입니다.
+- `GET /api/health/readiness`는 DB에 `SELECT 1`을 실행한 뒤 DMS aggregate readiness를 확인합니다. DB 실패는 `503 PLATFORM_NOT_READY`, DMS settings persistence·Git binding/parity·control-plane sync·markdown/ingest/storage/template path 중 하나라도 준비되지 않으면 `503 DMS_RUNTIME_NOT_READY`입니다.
+- DMS admin은 상세 원인 확인에 `GET /api/dms/settings/readiness` 또는 same-origin `GET /api/settings?includeRuntime=1`의 `runtime.readiness`를 사용합니다. 공개 health 응답은 runtime path나 remote 상세를 노출하지 않습니다.
+- public traffic 전환과 Compose server healthcheck는 liveness `200`이 아니라 통합 readiness `200`을 기준으로 합니다.
+
+## 수집 큐 운영 API
+
+- 큐 정본은 external runtime path의 `jobs.json`이며 임시 파일 작성 후 rename하는 방식으로 원자적으로 갱신합니다.
+- JSON 손상은 `503`으로 노출되고 원본을 보존합니다. 손상 파일을 빈 큐로 간주하거나 다음 쓰기로 덮어쓰지 않습니다.
+- 상태는 `pending_confirm → processing → published|failed`이며 실패는 `retry`, 대기/실패는 `cancel`할 수 있습니다. 서버 재시작 시 남은 `processing`은 실패로 표시되어 명시적 재시도가 가능합니다.
+- 게시 승인은 remote parity 사전 확인, Markdown 저장, Git commit, 현재 branch publish, 게시 경로 parity 확인, control-plane 반영 순으로 직렬화합니다. 모든 단계가 성공한 경우에만 `published`로 전환하고 `docPath`, `commitHash`, `publishedBranch`, `publishedAt`을 반환합니다.
+- Git commit/publish/path parity 중 하나라도 실패하면 작업은 오류 사유와 함께 `failed`로 남고 `retry`로 같은 운영 흐름을 다시 실행할 수 있습니다. commit 이후 publish가 실패한 재시도는 대상 경로의 기존 commit을 재사용해 중복 commit 없이 publish/parity부터 복구합니다. `published` 이력의 commit/branch는 운영 UI와 API에서 대조할 수 있습니다.
+- `system.ingest.maxConcurrentJobs`는 실제 처리 슬롯 한도이고, `system.ingest.retentionDays`는 `cleanup`이 게시/취소 이력을 제거할 기준입니다. cleanup은 게시된 문서 파일을 삭제하지 않습니다.
+- DMS 설정의 `수집 큐 상태` 화면에서 동일 API를 사용해 smoke 작업 등록, 승인, 재시도, 취소, 정리를 수행합니다.
+
+문서 Git의 전체 변경 폐기는 Markdown 경로만 reset/checkout/clean 대상으로 삼습니다. 같은 document root에 존재하는 DOCX/PDF와 storage-backed binary는 해당 동작으로 삭제하지 않습니다.
 
 ## 문서 댓글 API (`/api/comments`)
 
@@ -131,9 +175,10 @@ Request:
 
 핵심:
 
-- 저장소 3종(Local/SharePoint/NAS) 어댑터 기반
-- 기본 저장소는 설정값(`storage.defaultProvider`)으로 선택
-- 문서/첨부별 오버라이드 지원
+- 저장소 2종(Local/NAS) 어댑터 기반
+- 기본 저장소는 Local이며 서버 시작 시 root 읽기/쓰기 가능 여부를 검증
+- NAS는 실제 mount/gateway 구성 후 명시적으로 활성화한 경우에만 문서/첨부별 오버라이드 지원
+- 폐기된 SharePoint provider 요청은 `400`으로 거부
 - GitLab binding 은 markdown working tree 에만 적용하고, attachment/reference/image 는 non-Git storage root 로 관리
 - 기본 챗봇/검색은 위키 중심, 딥리서치는 별도 UI 진입 시만 활성
 

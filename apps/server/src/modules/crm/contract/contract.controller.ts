@@ -1,12 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import type { CrmContractListQuery } from '@ssoo/types/crm';
+import type { Response as ExpressResponse } from 'express';
 import { success } from '../../../common/index.js';
 import { CurrentUser } from '../../common/auth/decorators/current-user.decorator.js';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
-import { CrmOpportunityFeatureGuard } from '../access/crm-opportunity-feature.guard.js';
-import { RequireCrmOpportunityFeature } from '../access/require-crm-opportunity-feature.decorator.js';
+import { formatContentDisposition } from '../../dms/file/file.constants.js';
+import { CrmDomainFeatureGuard } from '../access/crm-domain-feature.guard.js';
+import { RequireCrmDomainFeature } from '../access/require-crm-domain-feature.decorator.js';
 import { ContractService } from './contract.service.js';
 import {
   CrmBillingSplitPreviewDto,
@@ -21,12 +23,12 @@ import {
 @ApiTags('crm-contracts')
 @ApiBearerAuth()
 @Controller('crm/contracts')
-@UseGuards(RolesGuard, CrmOpportunityFeatureGuard)
+@UseGuards(RolesGuard, CrmDomainFeatureGuard)
 export class ContractController {
   constructor(private readonly contractService: ContractService) {}
 
   @Get()
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadContract')
   @ApiOperation({ summary: 'CRM 계약 현황 목록' })
   @ApiOkResponse({ description: 'CRM 계약 목록과 요약' })
   @ApiUnauthorizedResponse({ description: '인증 필요' })
@@ -36,7 +38,7 @@ export class ContractController {
   }
 
   @Post('billing-split-preview')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadContract')
   @ApiOperation({ summary: 'CRM 계약 청구계획 자동 분할 미리보기' })
   @ApiBody({ type: CrmBillingSplitPreviewDto })
   @ApiOkResponse({ description: '계약 기간과 총액 기준 청구계획 분할 후보' })
@@ -45,7 +47,7 @@ export class ContractController {
   }
 
   @Post()
-  @RequireCrmOpportunityFeature('canCreateOpportunity')
+  @RequireCrmDomainFeature('canWriteContract')
   @ApiOperation({ summary: 'CRM 계약 생성' })
   @ApiBody({ type: CrmContractUpsertDto })
   @ApiOkResponse({ description: '생성된 CRM 계약' })
@@ -54,7 +56,7 @@ export class ContractController {
   }
 
   @Get('monthly-performance')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadContract')
   @ApiOperation({ summary: 'CRM 계약대비실적 월별 조회' })
   @ApiOkResponse({ description: '확정 계약 기준 월별 청구계획/실적/차이' })
   async monthlyPerformance(@Query() query: CrmContractPerformanceQueryDto) {
@@ -62,7 +64,7 @@ export class ContractController {
   }
 
   @Get(':id/billing-actual')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadContract')
   @ApiOperation({ summary: 'CRM 계약 청구실적 조회' })
   @ApiOkResponse({ description: '계약 청구계획 대비 실적' })
   async billingActual(@Param('id') id: string) {
@@ -70,7 +72,7 @@ export class ContractController {
   }
 
   @Put(':id/billing-actual')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteContract')
   @ApiOperation({ summary: 'CRM 계약 청구실적 저장' })
   @ApiBody({ type: CrmContractBillingActualUpsertDto })
   @ApiOkResponse({ description: '저장된 계약 청구실적' })
@@ -83,7 +85,7 @@ export class ContractController {
   }
 
   @Get(':id/pms-handoff-preview')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadContract')
   @ApiOperation({ summary: 'CRM 계약 기반 PMS 인계 후보 미리보기' })
   @ApiOkResponse({ description: 'PMS 실행 프로젝트 생성을 수행하지 않는 읽기용 계약 스냅샷' })
   async pmsHandoffPreview(@Param('id') id: string) {
@@ -91,7 +93,7 @@ export class ContractController {
   }
 
   @Get(':id/dms-document-preview')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadContract')
   @ApiOperation({ summary: 'CRM 계약 기반 DMS 계약서 문서 패킷 미리보기' })
   @ApiOkResponse({ description: 'DMS 저장 전 계약서 입력 패킷' })
   async dmsDocumentPreview(@Param('id') id: string) {
@@ -99,7 +101,7 @@ export class ContractController {
   }
 
   @Post(':id/dms-document-draft')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteContract')
   @ApiOperation({ summary: 'CRM 계약 DMS markdown 초안 저장' })
   @ApiBody({ type: CrmContractDmsDocumentDraftDto })
   @ApiOkResponse({ description: 'DMS markdown 초안 저장 결과' })
@@ -112,7 +114,7 @@ export class ContractController {
   }
 
   @Post(':id/dms-document-execution-evidence')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteContract')
   @ApiOperation({ summary: 'CRM 계약 DMS lifecycle 실행 evidence 기록' })
   @ApiBody({ type: CrmContractDmsDocumentExecutionEvidenceDto })
   @ApiOkResponse({ description: 'DMS 실행 evidence가 반영된 계약 문서 handoff snapshot' })
@@ -125,7 +127,7 @@ export class ContractController {
   }
 
   @Post(':id/dms-document-lifecycle-execution')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteContract')
   @ApiOperation({ summary: 'CRM 계약 handoff 기반 DMS lifecycle artifact 실행' })
   @ApiBody({ type: CrmContractDmsDocumentLifecycleExecutionDto })
   @ApiOkResponse({ description: 'DMS artifact 생성과 CRM evidence snapshot 반영 결과' })
@@ -133,12 +135,35 @@ export class ContractController {
     @Param('id') id: string,
     @Body() body: CrmContractDmsDocumentLifecycleExecutionDto,
     @CurrentUser() currentUser: TokenPayload,
+    @Headers('x-idempotency-key') idempotencyKey?: string,
   ) {
-    return success(await this.contractService.executeDmsDocumentLifecycle(id, body, currentUser));
+    return success(await this.contractService.executeDmsDocumentLifecycle(
+      id,
+      body,
+      currentUser,
+      { idempotencyKey },
+    ));
+  }
+
+  @Get(':id/dms-document-artifacts/:kind')
+  @RequireCrmDomainFeature('canReadContract')
+  @ApiOperation({ summary: '완료된 CRM 계약 DMS DOCX/PDF 산출물 다운로드' })
+  async downloadDmsDocumentArtifact(
+    @Param('id') id: string,
+    @Param('kind') kind: string,
+    @Res() response: ExpressResponse,
+  ) {
+    const artifact = await this.contractService.readDmsDocumentArtifact(id, kind);
+    response.setHeader('Content-Type', artifact.contentType);
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Content-Length', String(artifact.buffer.length));
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader('Content-Disposition', formatContentDisposition('attachment', artifact.fileName));
+    response.status(200).send(artifact.buffer);
   }
 
   @Get(':id')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadContract')
   @ApiOperation({ summary: 'CRM 계약 상세' })
   @ApiOkResponse({ description: 'CRM 계약 상세' })
   async detail(@Param('id') id: string) {
@@ -146,7 +171,7 @@ export class ContractController {
   }
 
   @Put(':id')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteContract')
   @ApiOperation({ summary: 'CRM 계약 수정' })
   @ApiBody({ type: CrmContractUpsertDto })
   @ApiOkResponse({ description: '수정된 CRM 계약' })
@@ -159,7 +184,7 @@ export class ContractController {
   }
 
   @Post(':id/confirm')
-  @RequireCrmOpportunityFeature('canConfirmOpportunity')
+  @RequireCrmDomainFeature('canConfirmContract')
   @ApiOperation({ summary: 'CRM 계약 확정' })
   @ApiOkResponse({ description: '확정된 CRM 계약' })
   async confirm(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
@@ -167,7 +192,7 @@ export class ContractController {
   }
 
   @Post(':id/reopen')
-  @RequireCrmOpportunityFeature('canConfirmOpportunity')
+  @RequireCrmDomainFeature('canConfirmContract')
   @ApiOperation({ summary: 'CRM 계약 확정 해제' })
   @ApiOkResponse({ description: '확정 해제된 CRM 계약' })
   async reopen(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
@@ -175,7 +200,7 @@ export class ContractController {
   }
 
   @Delete(':id')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteContract')
   @ApiOperation({ summary: 'CRM 계약 삭제' })
   @ApiOkResponse({ description: '삭제된 CRM 계약' })
   async delete(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {

@@ -1,0 +1,195 @@
+{
+  "states": [
+    {
+      "name": "empty-plan",
+      "captured": true,
+      "screenshot": "ux-09-biz-plan--empty-plan.png",
+      "screenshotSha256": "3d647e569938d5a445f5376f92af8a0201b3e4648aaf91ab15aec4aa24247bdd",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.biz_plan.js"
+    },
+    {
+      "name": "seeded-plan",
+      "captured": true,
+      "screenshot": "ux-09-biz-plan.png",
+      "screenshotSha256": "78c8f1e5185c80e6107f25319c12d46600cdcb51b73560b3348177ed530ae292",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.biz_plan.js"
+    },
+    {
+      "name": "paste",
+      "captured": true,
+      "screenshot": "ux-09-biz-plan--paste.png",
+      "screenshotSha256": "af5d1d918a4449010bd0a45cf6f3aa7a6cecdafaabd596e47dd9a34e272961d2",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.biz_plan.js"
+    },
+    {
+      "name": "version-add-delete",
+      "captured": true,
+      "screenshot": "ux-09-biz-plan--version-add-delete.png",
+      "screenshotSha256": "497973db958e3c801a4f0979716845359ed9b8680890121a54b13ee93fe3159d",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.biz_plan.js"
+    },
+    {
+      "name": "confirm-unconfirm",
+      "captured": true,
+      "screenshot": "ux-09-biz-plan--confirm-unconfirm.png",
+      "screenshotSha256": "c3feb9b4cab765efa27ee1fa437b9c62fe717bba8cf66357cae206cef4a29c75",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.biz_plan.js"
+    },
+    {
+      "name": "carry-forward",
+      "captured": true,
+      "screenshot": "ux-09-biz-plan--carry-forward.png",
+      "screenshotSha256": "0f7fb9edfe13ec1f789581d49f2be052cff46f4eeaa5a2fd770d8936187305db",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.biz_plan.js"
+    },
+    {
+      "name": "confirmed-locked",
+      "captured": true,
+      "screenshot": "ux-09-biz-plan--confirmed-locked.png",
+      "screenshotSha256": "38cd32bc0e76cb14a07918dd7c0ab26af94dc2daa2b35706fac3f7859c6a98ee",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.biz_plan.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "empty-plan",
+      "behavior": "empty plan",
+      "sourceAnchors": [
+        "index.html",
+        "app.biz_plan.js"
+      ]
+    },
+    {
+      "id": "seeded-plan",
+      "behavior": "seeded plan",
+      "sourceAnchors": [
+        "index.html",
+        "app.biz_plan.js"
+      ]
+    },
+    {
+      "id": "paste",
+      "behavior": "paste",
+      "sourceAnchors": [
+        "index.html",
+        "app.biz_plan.js"
+      ]
+    },
+    {
+      "id": "version-add-delete",
+      "behavior": "version add delete",
+      "sourceAnchors": [
+        "index.html",
+        "app.biz_plan.js"
+      ]
+    },
+    {
+      "id": "confirm-unconfirm",
+      "behavior": "confirm unconfirm",
+      "sourceAnchors": [
+        "index.html",
+        "app.biz_plan.js"
+      ]
+    },
+    {
+      "id": "carry-forward",
+      "behavior": "carry forward",
+      "sourceAnchors": [
+        "index.html",
+        "app.biz_plan.js"
+      ]
+    },
+    {
+      "id": "confirmed-locked",
+      "behavior": "confirmed locked",
+      "sourceAnchors": [
+        "index.html",
+        "app.biz_plan.js"
+      ]
+    }
+  ]
+}

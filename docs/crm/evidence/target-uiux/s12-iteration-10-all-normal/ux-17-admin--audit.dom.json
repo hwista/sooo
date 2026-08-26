@@ -1,0 +1,85 @@
+{
+  "title": "계정 관리",
+  "sections": [
+    "계정 관리"
+  ],
+  "fields": [
+    {
+      "id": "admin-search",
+      "name": "admin-user-directory-search-query",
+      "type": "search",
+      "label": null,
+      "placeholder": "아이디, 이름, 부서 검색",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "admin-filter-dept",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "admin-filter-status",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "columns": [
+    "아이디",
+    "이름",
+    "부서",
+    "역할",
+    "상태",
+    "최근 로그인",
+    "연락처",
+    "이메일",
+    "계정 유형",
+    "작업"
+  ],
+  "actions": [
+    "+ 신규 계정 등록",
+    "수정",
+    "비밀번호 초기화",
+    "비활성화",
+    "계정·세션 운영",
+    "수정",
+    "비밀번호 초기화",
+    "비활성화",
+    "계정·세션 운영",
+    "수정",
+    "비밀번호 초기화",
+    "비활성화",
+    "계정·세션 운영",
+    "수정",
+    "비밀번호 초기화",
+    "비활성화",
+    "계정·세션 운영",
+    "수정",
+    "비밀번호 초기화",
+    "비활성화",
+    "계정·세션 운영",
+    "수정",
+    "비밀번호 초기화",
+    "비활성화",
+    "계정·세션 운영",
+    "수정",
+    "비밀번호 초기화",
+    "비활성화",
+    "계정·세션 운영",
+    "수정",
+    "비밀번호 초기화",
+    "계정·세션 운영"
+  ],
+  "labels": [
+    "전체 계정",
+    "활성 계정",
+    "비활성 계정",
+    "관리자 계정"
+  ]
+}

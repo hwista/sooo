@@ -5,7 +5,7 @@ import type {
   MutateDmsDocumentCommentPayload,
 } from '@ssoo/types/dms';
 
-export class CreateCommentDto implements CreateDmsDocumentCommentPayload {
+export class DmsCreateCommentDto implements CreateDmsDocumentCommentPayload {
   @ApiProperty({ description: '댓글을 작성할 문서 경로' })
   @IsString()
   @MinLength(1)
@@ -24,7 +24,7 @@ export class CreateCommentDto implements CreateDmsDocumentCommentPayload {
   parentId?: string;
 }
 
-export class MutateCommentDto implements MutateDmsDocumentCommentPayload {
+export class DmsMutateCommentDto implements MutateDmsDocumentCommentPayload {
   @ApiProperty({ description: '댓글이 속한 문서 경로' })
   @IsString()
   @MinLength(1)

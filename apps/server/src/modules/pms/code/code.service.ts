@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../../../database/database.service.js';
 import type { CreateCodeDto, UpdateCodeDto } from './dto/code.dto.js';
 
@@ -37,12 +37,18 @@ export class CodeService {
    * 코드 생성
    */
   async create(dto: CreateCodeDto) {
+    const codeGroup = this.requireText(dto.codeGroup, '코드 유형');
+    const codeValue = this.requireText(dto.codeValue, '코드값');
+    const displayNameKo = this.requireText(dto.displayNameKo, '코드명');
+
+    await this.assertUniqueCode(codeGroup, codeValue);
+
     return this.db.client.cmCode.create({
       data: {
-        codeGroup: dto.codeGroup,
-        codeValue: dto.codeValue,
+        codeGroup,
+        codeValue,
         parentCode: dto.parentCode ?? null,
-        displayNameKo: dto.displayNameKo,
+        displayNameKo,
         displayNameEn: dto.displayNameEn ?? null,
         description: dto.description ?? null,
         sortOrder: dto.sortOrder ?? 0,
@@ -57,9 +63,22 @@ export class CodeService {
     const existing = await this.db.client.cmCode.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException(`Code ${id} not found`);
 
+    const codeGroup = dto.codeGroup === undefined
+      ? existing.codeGroup
+      : this.requireText(dto.codeGroup, '코드 유형');
+    const codeValue = dto.codeValue === undefined
+      ? existing.codeValue
+      : this.requireText(dto.codeValue, '코드값');
+
+    if (codeGroup !== existing.codeGroup || codeValue !== existing.codeValue) {
+      await this.assertUniqueCode(codeGroup, codeValue, id);
+    }
+
     return this.db.client.cmCode.update({
       where: { id },
       data: {
+        ...(dto.codeGroup !== undefined && { codeGroup }),
+        ...(dto.codeValue !== undefined && { codeValue }),
         ...(dto.displayNameKo !== undefined && { displayNameKo: dto.displayNameKo }),
         ...(dto.displayNameEn !== undefined && { displayNameEn: dto.displayNameEn }),
         ...(dto.description !== undefined && { description: dto.description }),
@@ -81,5 +100,43 @@ export class CodeService {
       where: { id },
       data: { isActive: false },
     });
+  }
+
+  /**
+   * 원본 CRM의 명시적 삭제 동작. 기존 DELETE /codes/:id 비활성화 계약은
+   * 호환성을 위해 유지하고, 비활성 코드만 별도 경로에서 영구 삭제한다.
+   */
+  async removePermanently(id: bigint) {
+    const existing = await this.db.client.cmCode.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException(`Code ${id} not found`);
+    if (existing.isActive) {
+      throw new BadRequestException('활성 코드는 먼저 비활성화한 뒤 삭제해야 합니다.');
+    }
+
+    await this.db.client.cmCode.delete({ where: { id } });
+    return { id: id.toString() };
+  }
+
+  private requireText(value: string, label: string): string {
+    const normalized = value.trim();
+    if (!normalized) {
+      throw new BadRequestException(`${label}은 필수입니다.`);
+    }
+    return normalized;
+  }
+
+  private async assertUniqueCode(codeGroup: string, codeValue: string, excludingId?: bigint) {
+    const duplicate = await this.db.client.cmCode.findFirst({
+      where: {
+        codeGroup,
+        codeValue,
+        ...(excludingId ? { id: { not: excludingId } } : {}),
+      },
+      select: { id: true },
+    });
+
+    if (duplicate) {
+      throw new ConflictException('동일한 코드 유형과 코드값이 이미 존재합니다.');
+    }
   }
 }

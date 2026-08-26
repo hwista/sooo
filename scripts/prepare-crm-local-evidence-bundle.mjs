@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createRepositoryWorktreeIdentity } from './repository-worktree-identity.mjs';
 
 const LOCAL_VERIFICATION_REPORT_FILE_NAME = 'crm-local-verification-report.json';
 const LOCAL_VERIFICATION_SOURCE_FILE_NAME = 'crm-local-verification-report.source.json';
@@ -395,9 +396,11 @@ function assertSelfTest() {
 }
 
 function createSelfTestLocalVerificationReport() {
+  const worktreeIdentity = createRepositoryWorktreeIdentity({ repoRoot: process.cwd() });
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     status: 'passed',
+    worktreeIdentity,
     startedAt: '2026-07-10T00:00:00.000Z',
     finishedAt: '2026-07-10T00:01:00.000Z',
     durationMs: 60000,
@@ -425,6 +428,13 @@ function createSelfTestLocalVerificationReport() {
         requirement: 'web-crm production build passes with route generation and type checks.',
         status: 'passed',
         durationMs: 5000,
+      },
+      {
+        id: 'worktree-identity-unchanged',
+        requirement: 'Repository file contents remain unchanged throughout CRM local verification.',
+        status: 'passed',
+        durationMs: 0,
+        evidence: { started: worktreeIdentity, completed: worktreeIdentity },
       },
     ],
   };

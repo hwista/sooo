@@ -1,0 +1,120 @@
+{
+  "title": "계약대비실적 (월별)",
+  "sections": [
+    "계약대비실적 (월별)"
+  ],
+  "fields": [
+    {
+      "id": "rpt-year",
+      "name": "year",
+      "type": "select",
+      "label": "사업년도 *",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "rpt-biz-type",
+      "name": "businessType",
+      "type": "select",
+      "label": "사업구분",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "rpt-group-type",
+      "name": "industryLine",
+      "type": "select",
+      "label": "계열구분",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "rpt-domestic",
+      "name": "region",
+      "type": "select",
+      "label": "국내/해외",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "rpt-search",
+      "name": "search",
+      "type": "search",
+      "label": "사업명",
+      "placeholder": "계약명 검색",
+      "disabled": false,
+      "readOnly": false
+    }
+  ],
+  "columns": [
+    "사업구분",
+    "계열구분",
+    "국내/해외",
+    "사업명",
+    "WBS코드",
+    "계약기간",
+    "구분",
+    "1월",
+    "2월",
+    "3월",
+    "4월",
+    "5월",
+    "6월",
+    "7월",
+    "8월",
+    "9월",
+    "10월",
+    "11월",
+    "12월",
+    "합계",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익",
+    "매출",
+    "외부원가",
+    "손익"
+  ],
+  "actions": [
+    "조회"
+  ],
+  "labels": [
+    "사업년도 *",
+    "사업구분",
+    "계열구분",
+    "국내/해외",
+    "사업명"
+  ]
+}

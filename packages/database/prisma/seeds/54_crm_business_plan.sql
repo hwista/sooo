@@ -35,7 +35,7 @@ WITH upsert_plan AS (
     240000000,
     1320000000,
     -1080000000,
-    6,
+    2,
     'CRM 원천 데모 이식 검증용 사업계획 seed',
     'crm.business-plan.seed',
     'seed'
@@ -59,6 +59,7 @@ WITH upsert_plan AS (
 INSERT INTO crm.crm_business_plan_line_d (
   business_plan_id,
   line_code,
+  row_code,
   target_year,
   business_type,
   industry_line,
@@ -76,6 +77,7 @@ INSERT INTO crm.crm_business_plan_line_d (
 SELECT
   upsert_plan.business_plan_id,
   seed.line_code,
+  seed.row_code,
   seed.target_year,
   seed.business_type,
   seed.industry_line,
@@ -92,14 +94,15 @@ SELECT
 FROM upsert_plan
 CROSS JOIN (
   VALUES
-    ('demo-2026-si-power', 2026, 'SI 구축', '전력/제조', '김민준', 'domestic', 700000000, 200000000, 180000000, 900000000, -720000000, 10),
-    ('demo-2027-si-power', 2027, 'SI 구축', '전력/제조', '김민준', 'domestic', 300000000, 120000000, 60000000, 420000000, -360000000, 20),
-    ('demo-2028-si-power', 2028, 'SI 구축', '전력/제조', '김민준', 'domestic', 0, 0, 0, 0, 0, 30),
-    ('demo-2026-cloud-public', 2026, 'Cloud MSP', '공공/서비스', '이서연', 'domestic', 0, 0, 0, 0, 0, 40),
-    ('demo-2027-cloud-public', 2027, 'Cloud MSP', '공공/서비스', '이서연', 'domestic', 0, 0, 0, 0, 0, 50),
-    ('demo-2028-cloud-public', 2028, 'Cloud MSP', '공공/서비스', '이서연', 'domestic', 0, 0, 0, 0, 0, 60)
+    ('demo-2026-si-power', 'demo-si-power', 2026, 'SI 구축', '전력/제조', '김민준', 'domestic', 700000000, 200000000, 180000000, 900000000, -720000000, 10),
+    ('demo-2027-si-power', 'demo-si-power', 2027, 'SI 구축', '전력/제조', '김민준', 'domestic', 300000000, 120000000, 60000000, 420000000, -360000000, 20),
+    ('demo-2028-si-power', 'demo-si-power', 2028, 'SI 구축', '전력/제조', '김민준', 'domestic', 0, 0, 0, 0, 0, 30),
+    ('demo-2026-cloud-public', 'demo-cloud-public', 2026, 'Cloud MSP', '공공/서비스', '이서연', 'domestic', 0, 0, 0, 0, 0, 40),
+    ('demo-2027-cloud-public', 'demo-cloud-public', 2027, 'Cloud MSP', '공공/서비스', '이서연', 'domestic', 0, 0, 0, 0, 0, 50),
+    ('demo-2028-cloud-public', 'demo-cloud-public', 2028, 'Cloud MSP', '공공/서비스', '이서연', 'domestic', 0, 0, 0, 0, 0, 60)
 ) AS seed(
   line_code,
+  row_code,
   target_year,
   business_type,
   industry_line,
@@ -113,7 +116,8 @@ CROSS JOIN (
   sort_order
 )
 ON CONFLICT (business_plan_id, line_code) DO UPDATE
-   SET target_year = EXCLUDED.target_year,
+   SET row_code = EXCLUDED.row_code,
+       target_year = EXCLUDED.target_year,
        business_type = EXCLUDED.business_type,
        industry_line = EXCLUDED.industry_line,
        owner_name = EXCLUDED.owner_name,

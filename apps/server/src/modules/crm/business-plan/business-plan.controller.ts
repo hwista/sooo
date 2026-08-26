@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { success } from '../../../common/index.js';
 import { CurrentUser } from '../../common/auth/decorators/current-user.decorator.js';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
-import { CrmOpportunityFeatureGuard } from '../access/crm-opportunity-feature.guard.js';
-import { RequireCrmOpportunityFeature } from '../access/require-crm-opportunity-feature.decorator.js';
+import { CrmDomainFeatureGuard } from '../access/crm-domain-feature.guard.js';
+import { RequireCrmDomainFeature } from '../access/require-crm-domain-feature.decorator.js';
 import { BusinessPlanService } from './business-plan.service.js';
 import {
   CrmBusinessPlanCarryForwardDto,
@@ -14,18 +14,20 @@ import {
   CrmBusinessPlanPerformanceActualInputDto,
   CrmBusinessPlanPerformanceQueryDto,
   CrmBusinessPlanPreviewQueryDto,
+  CrmBusinessPlanRowUpsertDto,
+  CrmBusinessPlanRowWbsUpdateDto,
   CrmBusinessPlanSnapshotDto,
 } from './dto/business-plan.dto.js';
 
 @ApiTags('crm-business-plan')
 @ApiBearerAuth()
 @Controller('crm/business-plan')
-@UseGuards(RolesGuard, CrmOpportunityFeatureGuard)
+@UseGuards(RolesGuard, CrmDomainFeatureGuard)
 export class BusinessPlanController {
   constructor(private readonly businessPlanService: BusinessPlanService) {}
 
   @Get('plans')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadBusinessPlan')
   @ApiOperation({ summary: 'CRM 사업계획 차수 원장 목록' })
   @ApiOkResponse({ description: '저장된 사업계획 차수와 확정 상태' })
   @ApiUnauthorizedResponse({ description: '인증 필요' })
@@ -35,7 +37,7 @@ export class BusinessPlanController {
   }
 
   @Post('plans/snapshot')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
   @ApiOperation({ summary: 'CRM 사업계획 preview를 차수 원장으로 저장' })
   @ApiBody({ type: CrmBusinessPlanSnapshotDto })
   @ApiOkResponse({ description: '저장된 사업계획 draft 차수' })
@@ -46,7 +48,7 @@ export class BusinessPlanController {
   }
 
   @Post('plans/carry-forward')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
   @ApiOperation({ summary: '전년도 확정 사업계획을 새 기준년도 draft 차수로 이월' })
   @ApiBody({ type: CrmBusinessPlanCarryForwardDto })
   @ApiOkResponse({ description: '전년 이월로 저장된 사업계획 draft 차수' })
@@ -56,8 +58,82 @@ export class BusinessPlanController {
     return success(await this.businessPlanService.createCarryForwardSnapshot(body, BigInt(currentUser.userId)));
   }
 
+  @Post('plans/:id/versions')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
+  @ApiOperation({ summary: '최신 확정 CRM 사업계획을 다음 draft 차수로 복사' })
+  @ApiOkResponse({ description: '복사 생성된 다음 사업계획 draft 차수' })
+  async createVersion(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
+    return success(await this.businessPlanService.createPlanVersion(id, BigInt(currentUser.userId)));
+  }
+
+  @Post('plans/:id/rows')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
+  @ApiOperation({ summary: '최신 draft 사업계획 행 추가' })
+  @ApiBody({ type: CrmBusinessPlanRowUpsertDto })
+  @ApiOkResponse({ description: '행 추가가 반영된 사업계획 차수' })
+  async createRow(
+    @Param('id') id: string,
+    @Body() body: CrmBusinessPlanRowUpsertDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    return success(await this.businessPlanService.createPlanRow(id, body, BigInt(currentUser.userId)));
+  }
+
+  @Put('plans/:id/rows/:rowCode')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
+  @ApiOperation({ summary: '최신 draft 사업계획 행 수정' })
+  @ApiBody({ type: CrmBusinessPlanRowUpsertDto })
+  @ApiOkResponse({ description: '행 수정이 반영된 사업계획 차수' })
+  async updateRow(
+    @Param('id') id: string,
+    @Param('rowCode') rowCode: string,
+    @Body() body: CrmBusinessPlanRowUpsertDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    return success(await this.businessPlanService.updatePlanRow(id, rowCode, body, BigInt(currentUser.userId)));
+  }
+
+  @Put('plans/:id/rows/:rowCode/wbs')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
+  @ApiOperation({ summary: 'CRM 사업계획 행 WBS 코드 수정. 확정·이전 차수에서도 허용' })
+  @ApiBody({ type: CrmBusinessPlanRowWbsUpdateDto })
+  @ApiOkResponse({ description: 'WBS 코드가 반영된 사업계획 차수' })
+  async updateRowWbs(
+    @Param('id') id: string,
+    @Param('rowCode') rowCode: string,
+    @Body() body: CrmBusinessPlanRowWbsUpdateDto,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    return success(await this.businessPlanService.updatePlanRowWbs(
+      id,
+      rowCode,
+      body.wbsCode,
+      BigInt(currentUser.userId),
+    ));
+  }
+
+  @Delete('plans/:id/rows/:rowCode')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
+  @ApiOperation({ summary: '최신 draft 사업계획 행 삭제' })
+  @ApiOkResponse({ description: '행 삭제가 반영된 사업계획 차수' })
+  async deleteRow(
+    @Param('id') id: string,
+    @Param('rowCode') rowCode: string,
+    @CurrentUser() currentUser: TokenPayload,
+  ) {
+    return success(await this.businessPlanService.deletePlanRow(id, rowCode, BigInt(currentUser.userId)));
+  }
+
+  @Delete('plans/:id')
+  @RequireCrmDomainFeature('canDeleteBusinessPlan')
+  @ApiOperation({ summary: '관리자용 최신 미확정 CRM 사업계획 차수 삭제' })
+  @ApiOkResponse({ description: '삭제된 차수와 이전 선택 후보' })
+  async deletePlan(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
+    return success(await this.businessPlanService.deletePlan(id, BigInt(currentUser.userId)));
+  }
+
   @Post('plans/:id/lines/:lineId/monthly-plan')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
   @ApiOperation({ summary: 'CRM 사업계획 draft line 월별 계획 매출 직접 입력' })
   @ApiBody({ type: CrmBusinessPlanMonthlyPlanInputDto })
   @ApiOkResponse({ description: '월별 계획 입력이 반영된 사업계획 차수' })
@@ -78,7 +154,7 @@ export class BusinessPlanController {
   }
 
   @Post('performance-actual/monthly')
-  @RequireCrmOpportunityFeature('canEditOpportunity')
+  @RequireCrmDomainFeature('canWriteBusinessPlan')
   @ApiOperation({ summary: 'CRM 사업계획대비실적 월별 실적 직접 입력' })
   @ApiBody({ type: CrmBusinessPlanPerformanceActualInputDto })
   @ApiOkResponse({ description: '월별 실적 직접 입력이 반영된 조정 원장' })
@@ -95,7 +171,7 @@ export class BusinessPlanController {
   }
 
   @Post('plans/:id/confirm')
-  @RequireCrmOpportunityFeature('canConfirmOpportunity')
+  @RequireCrmDomainFeature('canConfirmBusinessPlan')
   @ApiOperation({ summary: 'CRM 사업계획 차수 확정' })
   @ApiOkResponse({ description: '확정된 사업계획 차수' })
   async confirm(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
@@ -103,7 +179,7 @@ export class BusinessPlanController {
   }
 
   @Post('plans/:id/reopen')
-  @RequireCrmOpportunityFeature('canConfirmOpportunity')
+  @RequireCrmDomainFeature('canConfirmBusinessPlan')
   @ApiOperation({ summary: 'CRM 사업계획 차수 확정 해제' })
   @ApiOkResponse({ description: '확정 해제된 사업계획 차수' })
   async reopen(@Param('id') id: string, @CurrentUser() currentUser: TokenPayload) {
@@ -111,7 +187,7 @@ export class BusinessPlanController {
   }
 
   @Get('preview')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadBusinessPlan')
   @ApiOperation({ summary: 'CRM 사업계획 3개년 preview' })
   @ApiOkResponse({ description: '영업기회 pipeline과 확정 계약 청구계획/실적 기반 읽기용 사업계획 후보' })
   @ApiUnauthorizedResponse({ description: '인증 필요' })
@@ -121,9 +197,9 @@ export class BusinessPlanController {
   }
 
   @Get('performance-preview')
-  @RequireCrmOpportunityFeature('canViewOpportunity')
+  @RequireCrmDomainFeature('canReadBusinessPlan')
   @ApiOperation({ summary: 'CRM 사업계획대비실적 월별 preview' })
-  @ApiOkResponse({ description: '영업기회 pipeline 후보와 확정 계약 월별 계획/실적 기반 읽기용 사업계획대비실적 후보' })
+  @ApiOkResponse({ description: '원천 호환 확정 사업계획 대 확정 계약 청구계획 또는 SSOO 확장 청구실적 기반 월별 사업계획대비실적' })
   @ApiUnauthorizedResponse({ description: '인증 필요' })
   @ApiForbiddenResponse({ description: 'CRM 사업계획대비실적 preview 조회 권한 없음' })
   async performancePreview(@Query() query: CrmBusinessPlanPerformanceQueryDto) {

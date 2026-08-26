@@ -1,7 +1,7 @@
 # SSOO Settings / Admin / AI Control Plane Boundary
 
 > Status: launch architecture baseline
-> Last updated: 2026-07-06
+> Last updated: 2026-08-14
 > Scope: SSOO-wide settings, account/auth, profile, organization admin, AI control plane, and domain app settings responsibility boundaries.
 
 ## Decision summary
@@ -62,6 +62,8 @@ Owns:
 
 SNS consumes the common auth runtime for login identity, password, MFA, and session controls. It owns the user-facing placement of profile/account settings, but not the underlying security implementation. SNS does not own role assignment or organization administration.
 
+Ownership is not an implementation claim. As of 2026-08-12, operator session revocation, account unlock, and password-reset request are implemented; MFA enrollment/reset is not implemented and must not be presented as launch-ready.
+
 ### 3. Admin / Organization
 
 Owner: Admin app and common access/admin services.
@@ -74,7 +76,9 @@ Owns:
 - Audit logs and operator policies
 - Organization-level SSO policy
 - Microsoft Entra ID / Azure AD tenant configuration
-- Microsoft 365 / Teams / SharePoint organization integration policy
+- Microsoft 365 / Teams organization integration policy
+
+The launch implementation distinguishes these two responsibilities. Admin `/auth` implements the Entra login/signup-request provider policy (tenant/client/redirect URI, encrypted client secret, scopes, tenant/domain allowlists, runtime readiness) and password-reset SMTP delivery operations. Broader Microsoft 365/Teams organization integration policy is not implemented and is not presented as ready.
 
 Admin consumes Account/Auth for session identity and may expose operator actions for account recovery, but it does not become a personal profile editor and does not absorb domain-internal system settings. Domain-specific operations such as DMS repository/storage/search/index/template/document-runtime control remain in the domain app. Admin can expose platform-wide summaries or links when an operator needs orientation, but DMS-owned diagnostics and controls live in DMS.
 
@@ -92,6 +96,8 @@ Owns:
 - Quotas, rate limits, safety policies, logging, evaluation, observability
 
 Secrets, tokens, API keys, and connection strings are never stored in domain settings documents. They stay in environment/secret storage and are only referenced by masked metadata.
+
+The current Admin `/ai-operations` surface is an operations bridge, not a provider configuration console. It exposes secret-free provider readiness, registered index sources, queue metrics, scheduler state, and bounded manual worker execution. Provider endpoints, deployments, and credentials remain deployment-secret managed. Model routing, personas, agent definitions, quotas, and eval policy remain future control-plane scope.
 
 ### 5. Domain System Settings
 
@@ -119,6 +125,7 @@ Owner: each app, scoped to the current user.
 DMS personal settings own DMS-only preferences such as:
 
 - DMS author display fallback for Git attribution when applicable
+- Default storage preference for manual attachment/reference/image uploads (`system-default`, Local, or enabled NAS)
 - Viewer zoom
 - Sidebar section defaults
 
@@ -144,7 +151,7 @@ The DMS settings surface is organized into these groups:
 - DMS settings must not add a second account/profile/security settings surface; user-facing profile/account settings open the shared user surface tab, backed by SNS Profile APIs plus common auth runtime.
 - DMS settings must not become the organization admin console.
 - DMS settings must not store or show unmasked AI/Microsoft/SSO secrets.
-- Microsoft 365 / Teams / SharePoint organization policy belongs to Admin/Organization. DMS may only keep DMS-specific ingest/drop/storage mapping when the common integration exists.
+- Microsoft 365 / Teams organization policy belongs to Admin/Organization. DMS may only keep DMS-specific ingest/drop mapping when the common integration exists; SharePoint storage integration is not supported.
 - AI provider/model/persona/soul/prompt/agent ownership belongs to AI Control Plane. DMS may only select or display the DMS capability mapping that the common control plane exposes.
 - Domain apps open common surfaces through semantic actions instead of copying their forms. User profile/settings open inside the current app frame tab; true operator/admin surfaces may still switch to their owning app.
 
@@ -154,18 +161,20 @@ The DMS split creates follow-up work for `apps/web/admin`, but those surfaces mu
 
 | Surface | Target owner / route | Required elements | Current status |
 | --- | --- | --- | --- |
-| Account / Auth operator bridge | Admin user operations + common auth runtime | Account recovery action, force logout/session revocation, password reset trigger, MFA reset trigger, SSO link status visibility | Not implemented. Admin currently has user management and shared login only. User-facing account/profile settings belong to SNS/Profile. |
-| Organization settings | Admin `/organizations` and future `/settings/organization` | Company, organization, department, position, hierarchy, invitation policy, deactivation/suspension policy | Partially implemented through users/organizations/roles pages; policy settings are not yet a dedicated settings surface. |
-| Roles / permissions / app grants | Admin `/roles` and user access operations | Role baseline, permission catalog, app access grants, role-menu overrides, access inspect / exceptions visibility | Partially implemented; must stay under Admin, not DMS/PMS/CRM/SNS settings. |
-| Microsoft tenant / M365 / Teams / SharePoint policy | Admin future `/settings/integrations/microsoft` | Entra ID tenant metadata, allowed tenants/domains, SharePoint site/library policy, Teams org integration policy, secret reference metadata only | Not implemented. Removed from DMS-owned editable settings; DMS may later consume DMS-specific ingest/drop mappings only after common integration exists. |
-| AI Control Plane | Admin future `/settings/ai` | Provider references, model catalog/routing, feature capability mapping, prompt templates, personas/souls, agent definitions, tool permissions, quotas, safety/logging/eval policy | Not implemented. Removed from DMS ownership; DMS can only display/select capability mappings exposed by this control plane. |
+| Account / Auth operator bridge | Admin user operations + common auth runtime | Account status/lock/session visibility, force logout, unlock, password reset trigger, MFA reset, SSO link status | Implemented: status, recent session summary, force logout, unlock, password-reset request, user deactivate/reactivate with session revocation and last-admin guard. Not implemented: MFA reset/enrollment and external SSO unlink actions. |
+| Organization settings | Admin `/organizations` and future policy settings | Company/organization hierarchy, active child/member safety, invitation and deactivation policy | Implemented: permanent organization CRUD, parent hierarchy/cycle guard, active child/member deactivation guard and reactivation. Not implemented: invitation policy and dedicated organization policy settings. |
+| Roles / permissions / app grants | Admin `/roles` and user access operations | Role baseline, permission catalog, app access grants, role-menu overrides, access inspect / exceptions visibility | Implemented: role permission grant-set editing, catalog, inspect, exception visibility, and user/auth/session/org/role-permission audit feed. `admin` must retain `system.override`. Role-menu override editing remains future scope. |
+| Microsoft authentication provider policy | Admin `/auth` | Entra tenant/client/redirect, encrypted secret, scopes, tenant/domain allowlists, login/signup-request activation safety | Implemented. Activation fails closed unless encrypted runtime configuration and a bounded tenant allowlist are complete. External tenant/app values are deployment inputs. Public self-signup remains unsupported and cannot be enabled. |
+| Password-reset email delivery | Admin `/auth` | outbox/SMTP worker readiness, pending/sent/failed counts, masked recipients, manual run and failed-message retry | Implemented. Production requires an enabled worker and valid SMTP environment values; Admin reports `blocked` instead of pretending readiness when transport verification fails. |
+| Microsoft 365 / Teams organization policy | Admin future integration settings | Teams organization integration policy and secret-reference metadata only | Not implemented. DMS may later consume DMS-specific ingest/drop mappings only after a common integration exists. SharePoint storage integration is out of scope. |
+| AI Control Plane | Admin `/ai-operations` + future settings | Provider readiness, index sources, queue/scheduler operations; later model routing, prompts/personas/agents, quotas and eval policy | Implemented operations bridge: secret-free provider readiness, source status, queue metrics, scheduler and bounded manual run. Provider/credential mutation stays deployment-secret managed; model/persona/agent policy is not implemented. |
 | SNS Profile and account entry | Shared user surface renderer + SNS profile APIs + common auth runtime entry points | Display name, avatar, headline, bio, skills, links, public/work profile, cross-app `ProfileSummary` projection, account/security entry cards backed by common auth | Not Admin-owned except operator moderation/audit if added later. No separate Account app is planned for launch. |
 | Domain app common settings entries | DMS/PMS/CRM/SNS domain apps | Semantic actions to Account/Auth, Profile, Admin/Organization, AI Control Plane where relevant | DMS common entry slot is the first baseline. Other apps should copy the boundary, not the DMS implementation blindly. |
 | Domain app entry/link bridge | Admin overview links, if needed | Route links to the owning domain app and platform-level status summaries only | DMS observation/control pages are removed from Admin in the current baseline. DMS-owned changes happen in DMS. |
 
 ## Implementation notes
 
-Current launch-safe implementation keeps DMS changes in IA/grouping and domain-owned settings surfaces. It does not introduce a new settings persistence schema, does not migrate `dm_config_m`, and does not implement the future Account/Auth, Admin, Profile, or AI Control Plane pages. Admin-side DMS observation pages are not part of the baseline; Admin owns platform/base configuration and common operator policy, while DMS owns DMS diagnostics, management workflows, and document-domain policy settings.
+The launch implementation keeps DMS diagnostics and document-domain controls in DMS while Admin provides platform account/session, organization, role-permission, audit, and AI-index operations. This does not move DMS runtime control into Admin. Admin AI operations never returns credential values and does not pretend that the future model/persona/agent policy console exists.
 
 The visual settings form is platform-common even when ownership is domain-specific. PMS/CRM/DMS/SNS/Admin settings pages should consume `@ssoo/web-shell` `SsooSettings*` primitives for the settings surface, inner section navigation, status banners, pending-change summary, and header action layout. Domain apps keep their own config schema, persistence API, access gates, custom slots, and validation rules.
 
@@ -177,13 +186,17 @@ The visual settings form is platform-common even when ownership is domain-specif
 - DMS settings consumes the shared `SsooSettings*` surface primitives while DMS-owned setting definitions, custom slots, runtime paths, and save logic remain in DMS.
 - Admin settings-like pages consume the same `SsooSettings*` page template primitives.
 - Admin navigation does not expose `/dms/*` DMS observation pages in the current baseline.
+- Admin exposes working account/session recovery, organization hierarchy, role grant, audit, and AI-index operations while labeling unimplemented MFA/SSO/provider-policy features accurately.
 - Existing DMS settings persistence and custom slots continue to work.
+- Authenticated DMS settings deep links under `/settings/{surface}/{sectionId}` survive reload and reuse the existing system/personal access checks.
 - `pnpm --filter web-dms build`, `pnpm --filter web-admin build`, `pnpm run codex:dms-guard`, and `pnpm run codex:preflight` pass before closeout.
 
 ## Changelog
 
 | 날짜 | 변경 내용 |
 | --- | --- |
+| 2026-08-14 | Entra 인증 provider와 password-reset SMTP 운영의 실제 구현 상태를 M365/Teams 미구현 범위와 분리하고, DMS 저장소 개인 선호 및 settings deep-link 운영 계약을 반영 |
+| 2026-08-12 | Admin account/session recovery, real organization hierarchy, role grant editing, audit feed, AI operations bridge의 구현 상태와 MFA/SSO/AI 정책 잔여 범위를 팩트 기준으로 갱신 |
 | 2026-07-06 | DMS 관측/제어는 DMS 소유로 고정하고 Admin `/dms/*` 관측 baseline 과 외부 설정 링크 섹션을 제거하는 기준으로 갱신 |
 | 2026-06-11 | 공통 설정 양식에 맞춰 DMS 화면 노출 scope/group label 을 `시스템 설정` / `내 설정` 으로 단순화 |
 | 2026-06-11 | 설정 화면 visual form 은 `@ssoo/web-shell` 공통 primitive로 소비하고, 도메인별 schema/persistence/access/custom slot 은 각 앱이 소유한다는 기준 추가 |

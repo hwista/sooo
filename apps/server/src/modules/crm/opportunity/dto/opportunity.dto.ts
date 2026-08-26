@@ -3,9 +3,12 @@ import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsIn, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
 import type {
   CrmOpportunityLineCategory,
+  CrmOpportunityDiscountType,
   CrmOpportunityServiceType,
   CrmOpportunityPriority,
   CrmOpportunityContractConversionRequest,
+  CrmOpportunityContractDocumentDraftRequest,
+  CrmOpportunityContractDocumentLifecycleExecutionRequest,
   CrmOpportunityStatus,
   CrmOpportunityUpsertLine,
   CrmOpportunityUpsertRequest,
@@ -23,6 +26,7 @@ const CRM_OPPORTUNITY_PRIORITIES = ['high', 'medium', 'low'] as const;
 const CRM_OPPORTUNITY_REGIONS = ['domestic', 'overseas'] as const;
 const CRM_OPPORTUNITY_LINE_CATEGORIES = ['product', 'service', 'internal-cost', 'external-cost'] as const;
 const CRM_OPPORTUNITY_SERVICE_TYPES = ['internal', 'external'] as const;
+const CRM_OPPORTUNITY_DISCOUNT_TYPES = ['amount', 'rate'] as const;
 const CRM_QUOTE_WORKFLOW_STATUSES = ['draft', 'review', 'approved', 'sent', 'accepted', 'rejected', 'void'] as const;
 const CRM_QUOTE_DMS_EXECUTION_STEP_KEYS = ['template-review', 'word-export', 'pdf-export'] as const;
 
@@ -166,6 +170,25 @@ export class CrmOpportunityUpsertDto implements CrmOpportunityUpsertRequest {
   @IsIn(CRM_OPPORTUNITY_PRIORITIES)
   priority!: CrmOpportunityPriority;
 
+  @ApiPropertyOptional({ description: '수금조건 코드', maxLength: 80 })
+  @IsString()
+  @MaxLength(80)
+  @IsOptional()
+  paymentTermCode?: string;
+
+  @ApiPropertyOptional({ description: '특별할인 유형', enum: CRM_OPPORTUNITY_DISCOUNT_TYPES, default: 'amount' })
+  @IsString()
+  @IsIn(CRM_OPPORTUNITY_DISCOUNT_TYPES)
+  @IsOptional()
+  specialDiscountType?: CrmOpportunityDiscountType;
+
+  @ApiPropertyOptional({ description: '특별할인 값' })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  specialDiscountValue?: number;
+
   @ApiPropertyOptional({ description: '예상 시작일(YYYY-MM-DD)' })
   @IsString()
   @IsOptional()
@@ -224,6 +247,28 @@ export class CrmOpportunityContractConversionDto implements CrmOpportunityContra
   nextAction?: string;
 }
 
+export class CrmOpportunityContractDocumentDraftDto implements CrmOpportunityContractDocumentDraftRequest {
+  @ApiPropertyOptional({ description: '선택한 DMS 영업기회 계약서 DOCX 템플릿 key', maxLength: 120 })
+  @IsString()
+  @MaxLength(120)
+  @IsOptional()
+  templateKey?: string;
+
+  @ApiPropertyOptional({ description: '원천 22개 변수 DMS 초안 저장 메모', maxLength: 1000 })
+  @IsString()
+  @MaxLength(1000)
+  @IsOptional()
+  memo?: string;
+}
+
+export class CrmOpportunityContractDocumentLifecycleExecutionDto implements CrmOpportunityContractDocumentLifecycleExecutionRequest {
+  @ApiPropertyOptional({ description: 'DMS 영업기회 계약서 DOCX 산출 실행 메모', maxLength: 1000 })
+  @IsString()
+  @MaxLength(1000)
+  @IsOptional()
+  memo?: string;
+}
+
 export class CrmOpportunityQuoteWorkflowDto implements CrmQuoteWorkflowUpdateRequest {
   @ApiProperty({ description: '견적 업무 상태', enum: CRM_QUOTE_WORKFLOW_STATUSES })
   @IsString()
@@ -254,6 +299,12 @@ export class CrmOpportunityQuoteWorkflowDto implements CrmQuoteWorkflowUpdateReq
 }
 
 export class CrmQuoteDmsDocumentDraftDto implements CrmQuoteDmsDocumentDraftRequest {
+  @ApiPropertyOptional({ description: '선택한 DMS 견적 DOCX 템플릿 key', maxLength: 120 })
+  @IsString()
+  @MaxLength(120)
+  @IsOptional()
+  templateKey?: string;
+
   @ApiPropertyOptional({ description: '견적 DMS markdown 초안 저장 메모', maxLength: 1000 })
   @IsString()
   @MaxLength(1000)

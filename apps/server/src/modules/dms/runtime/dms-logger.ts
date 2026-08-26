@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { redactSecretsInText, redactSecretsInValue } from '../../../common/security/secret-redaction.js';
 
 function stringifyContext(context: unknown): string {
   if (context === undefined) {
@@ -6,7 +7,7 @@ function stringifyContext(context: unknown): string {
   }
 
   try {
-    return ` ${JSON.stringify(context)}`;
+    return ` ${JSON.stringify(redactSecretsInValue(context))}`;
   } catch {
     return '';
   }
@@ -14,10 +15,10 @@ function stringifyContext(context: unknown): string {
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return error.message;
+    return redactSecretsInText(error.message);
   }
 
-  return String(error);
+  return redactSecretsInText(String(error));
 }
 
 export function createDmsLogger(context: string) {
@@ -25,17 +26,17 @@ export function createDmsLogger(context: string) {
 
   return {
     debug(message: string, meta?: unknown) {
-      logger.debug(`${message}${stringifyContext(meta)}`);
+      logger.debug(`${redactSecretsInText(message)}${stringifyContext(meta)}`);
     },
     info(message: string, meta?: unknown) {
-      logger.log(`${message}${stringifyContext(meta)}`);
+      logger.log(`${redactSecretsInText(message)}${stringifyContext(meta)}`);
     },
     warn(message: string, meta?: unknown) {
-      logger.warn(`${message}${stringifyContext(meta)}`);
+      logger.warn(`${redactSecretsInText(message)}${stringifyContext(meta)}`);
     },
     error(message: string, error?: unknown, meta?: unknown) {
       const errorSuffix = error === undefined ? '' : ` | Error: ${toErrorMessage(error)}`;
-      logger.error(`${message}${errorSuffix}${stringifyContext(meta)}`);
+      logger.error(`${redactSecretsInText(message)}${errorSuffix}${stringifyContext(meta)}`);
     },
   };
 }

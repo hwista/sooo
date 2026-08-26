@@ -10,6 +10,12 @@ const paths = [
   'docs/common/reference/api/index.html',
   'docs/pms/reference/api/openapi.json',
   'docs/pms/reference/api/index.html',
+  'docs/sns/reference/api/openapi.json',
+  'docs/sns/reference/api/index.html',
+  'docs/dms/reference/api/openapi.json',
+  'docs/dms/reference/api/index.html',
+  'docs/crm/reference/api/openapi.json',
+  'docs/crm/reference/api/index.html',
   // Database ERD
   'docs/common/reference/db/erd.svg',
   'docs/pms/reference/db/erd.svg',
@@ -26,6 +32,7 @@ console.log('✅ All docs outputs exist:', paths.length, 'items verified');
 const { spawnSync } = require('child_process');
 
 const additionalChecks = [
+  ['OpenAPI static contract', 'node', ['scripts/verify-openapi-contract.mjs']],
   ['DMS GitLab document sync operator guide', 'node', ['scripts/check-dms-gitlab-ops-docs.mjs']],
 ];
 

@@ -28,5 +28,6 @@ RUN --mount=type=secret,id=ssoo_tls_ca,required=false \
 COPY packages/database/ packages/database/
 COPY packages/types/ packages/types/
 COPY scripts/db-init-entrypoint.sh scripts/db-init-entrypoint.sh
+COPY scripts/verify-dms-backup-restore.mjs scripts/verify-dms-backup-restore.mjs
 
 ENTRYPOINT ["bash", "scripts/db-init-entrypoint.sh"]

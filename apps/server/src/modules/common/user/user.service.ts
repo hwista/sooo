@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import type { AuthUserRecord } from '../auth/interfaces/auth.interface.js';
 import { DatabaseService } from '../../../database/database.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { UpdateOwnProfileDto } from './dto/update-own-profile.dto.js';
 
 type PrimaryAffiliationType = 'internal' | 'external';
 
@@ -82,6 +83,7 @@ interface ProfileUserViewRecord {
   avatarUrl: string | null;
   departmentCode: string | null;
   positionCode: string | null;
+  roleCode: string;
   authAccount: {
     loginId: string;
     lastLoginAt: Date | null;
@@ -155,6 +157,7 @@ const profileUserViewSelect = {
   avatarUrl: true,
   departmentCode: true,
   positionCode: true,
+  roleCode: true,
   authAccount: {
     select: {
       loginId: true,
@@ -323,6 +326,7 @@ export class UserService {
       avatarUrl: user.avatarUrl,
       departmentCode: user.departmentCode,
       positionCode: user.positionCode,
+      roleCode: user.roleCode,
       lastLoginAt: user.authAccount?.lastLoginAt ?? null,
     };
   }
@@ -629,6 +633,40 @@ export class UserService {
     return user ? this.toProfileUserView(user) : null;
   }
 
+  async updateOwnProfile(userId: bigint, dto: UpdateOwnProfileDto) {
+    const updateData: Record<string, unknown> = {
+      updatedBy: userId,
+      lastSource: 'shared-account-center',
+      lastActivity: 'user.profile.update-own',
+    };
+
+    if (dto.userName !== undefined) {
+      const userName = dto.userName.trim();
+      if (!userName) throw new BadRequestException('이름은 필수입니다.');
+      updateData.userName = userName;
+    }
+    if (dto.displayName !== undefined) updateData.displayName = this.normalizeOptionalText(dto.displayName);
+    if (dto.email !== undefined) {
+      const email = dto.email.trim();
+      const duplicate = await this.db.user.findFirst({
+        where: { email, id: { not: userId } },
+        select: { id: true },
+      });
+      if (duplicate) throw new ConflictException('이미 사용 중인 이메일입니다.');
+      updateData.email = email;
+    }
+    if (dto.phone !== undefined) updateData.phone = this.normalizeOptionalText(dto.phone);
+    if (dto.departmentCode !== undefined) updateData.departmentCode = this.normalizeOptionalText(dto.departmentCode);
+    if (dto.positionCode !== undefined) updateData.positionCode = this.normalizeOptionalText(dto.positionCode);
+
+    await this.db.user.update({ where: { id: userId }, data: updateData });
+    await this.syncOrganizationFoundation(userId);
+
+    const updated = await this.findProfileById(userId);
+    if (!updated) throw new BadRequestException('사용자를 찾을 수 없습니다.');
+    return updated;
+  }
+
   /**
    * 이메일로 사용자 조회
    */
@@ -732,7 +770,7 @@ export class UserService {
   /**
    * 사용자 생성 (관리자)
    */
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, operatorUserId?: bigint) {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(dto.password, salt);
     const departmentCode = this.normalizeOptionalText(dto.departmentCode);
@@ -753,6 +791,10 @@ export class UserService {
           employeeNumber,
           companyName,
           customerId,
+          createdBy: operatorUserId,
+          updatedBy: operatorUserId,
+          lastSource: 'admin-user-operations',
+          lastActivity: 'user.admin.create',
         },
       });
 
@@ -762,6 +804,10 @@ export class UserService {
           loginId: dto.loginId,
           passwordHash,
           accountStatusCode: 'active',
+          createdBy: operatorUserId,
+          updatedBy: operatorUserId,
+          lastSource: 'admin-user-operations',
+          lastActivity: 'auth.admin.create-account',
         },
       });
 
@@ -783,7 +829,7 @@ export class UserService {
   /**
    * 사용자 수정 (관리자)
    */
-  async update(userId: bigint, dto: UpdateUserDto) {
+  async update(userId: bigint, dto: UpdateUserDto, operatorUserId?: bigint) {
     const updateData: Record<string, unknown> = {};
     let passwordHash: string | null = null;
 
@@ -810,6 +856,13 @@ export class UserService {
       updateData.customerId = this.toOptionalBigInt(dto.customerId);
     }
     if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
+    updateData.updatedBy = operatorUserId;
+    updateData.lastSource = 'admin-user-operations';
+    updateData.lastActivity = dto.isActive === true
+      ? 'user.admin.reactivate'
+      : dto.isActive === false
+        ? 'user.admin.deactivate'
+        : 'user.admin.update';
 
     if (dto.password) {
       const salt = await bcrypt.genSalt(10);
@@ -827,17 +880,49 @@ export class UserService {
       }
     }
 
+    await this.assertAdminContinuity(userId, dto);
+
     await this.db.client.$transaction(async (tx) => {
       await tx.user.update({
         where: { id: userId },
         data: updateData,
       });
 
+      const authUpdateData: Record<string, unknown> = {};
       if (passwordHash) {
-        await tx.userAuth.update({
+        authUpdateData.passwordHash = passwordHash;
+        authUpdateData.loginFailCount = 0;
+        authUpdateData.lockedUntil = null;
+      }
+      if (dto.isActive !== undefined) {
+        authUpdateData.accountStatusCode = dto.isActive ? 'active' : 'suspended';
+        if (dto.isActive) {
+          authUpdateData.loginFailCount = 0;
+          authUpdateData.lockedUntil = null;
+        }
+      }
+      if (Object.keys(authUpdateData).length > 0) {
+        authUpdateData.updatedBy = operatorUserId;
+        authUpdateData.lastSource = 'admin-user-operations';
+        authUpdateData.lastActivity = passwordHash
+          ? 'auth.admin.password-change'
+          : dto.isActive ? 'auth.admin.reactivate-account' : 'auth.admin.suspend-account';
+        await tx.userAuth.updateMany({
           where: { userId },
+          data: authUpdateData,
+        });
+      }
+      if (passwordHash || dto.isActive !== undefined) {
+        await tx.userSession.updateMany({
+          where: { userId, revokedAt: null },
           data: {
-            passwordHash,
+            revokedAt: new Date(),
+            revokeReason: passwordHash
+              ? 'operator-password-change'
+              : dto.isActive ? 'account-reactivated' : 'account-deactivated',
+            updatedBy: operatorUserId,
+            lastSource: 'admin-user-operations',
+            lastActivity: 'auth.admin.revoke-sessions',
           },
         });
       }
@@ -858,10 +943,37 @@ export class UserService {
   /**
    * 사용자 비활성화 (관리자)
    */
-  async deactivate(userId: bigint) {
-    await this.db.user.update({
-      where: { id: userId },
-      data: { isActive: false },
+  async deactivate(userId: bigint, operatorUserId?: bigint) {
+    await this.assertAdminContinuity(userId, { isActive: false });
+    await this.db.client.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          isActive: false,
+          updatedBy: operatorUserId,
+          lastSource: 'admin-user-operations',
+          lastActivity: 'user.admin.deactivate',
+        },
+      });
+      await tx.userAuth.updateMany({
+        where: { userId },
+        data: {
+          accountStatusCode: 'suspended',
+          updatedBy: operatorUserId,
+          lastSource: 'admin-user-operations',
+          lastActivity: 'auth.admin.suspend-account',
+        },
+      });
+      await tx.userSession.updateMany({
+        where: { userId, revokedAt: null },
+        data: {
+          revokedAt: new Date(),
+          revokeReason: 'account-deactivated',
+          updatedBy: operatorUserId,
+          lastSource: 'admin-user-operations',
+          lastActivity: 'auth.admin.revoke-sessions',
+        },
+      });
     });
     await this.syncOrganizationFoundation(userId);
 
@@ -871,6 +983,32 @@ export class UserService {
     }
 
     return this.toAdminUserView(deactivatedUser);
+  }
+
+  async reactivate(userId: bigint, operatorUserId?: bigint) {
+    return this.update(userId, { isActive: true }, operatorUserId);
+  }
+
+  private async assertAdminContinuity(userId: bigint, dto: Pick<UpdateUserDto, 'roleCode' | 'isActive'>) {
+    const current = await this.db.user.findUnique({
+      where: { id: userId },
+      select: { roleCode: true, isActive: true },
+    });
+    if (!current) {
+      return;
+    }
+    const removesActiveAdmin = current.isActive
+      && current.roleCode === 'admin'
+      && (dto.isActive === false || (dto.roleCode !== undefined && dto.roleCode !== 'admin'));
+    if (!removesActiveAdmin) {
+      return;
+    }
+    const activeAdminCount = await this.db.user.count({
+      where: { roleCode: 'admin', isActive: true },
+    });
+    if (activeAdminCount <= 1) {
+      throw new BadRequestException('마지막 활성 관리자 계정은 비활성화하거나 일반 역할로 변경할 수 없습니다.');
+    }
   }
 
   async getAdminStats() {

@@ -5,7 +5,8 @@ import { ChevronRight, Folder, FolderOpen, FileText, Search, X } from 'lucide-re
 import { cn } from '@/lib/utils';
 import { filterFileTree } from '@/lib/utils/fileTree';
 import type { FileNode } from '@/types/file-tree';
-import { Button, Input } from '@ssoo/web-ui';
+import { Button } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 
 export interface PickerTreeProps {
   files: FileNode[];
@@ -172,6 +173,7 @@ export function PickerTree({
   const containerRef = React.useRef<HTMLDivElement>(null);
   const folderMode = mode === 'folder';
   const [searchQuery, setSearchQuery] = React.useState('');
+  const searchInputUid = React.useId().replace(/:/g, '');
 
   // 외부 filterValue 우선, 없으면 내부 searchQuery 사용
   const activeQuery = filterValue ?? searchQuery;
@@ -262,8 +264,11 @@ export function PickerTree({
       {showSearch && (
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-          <Input
-            type="text"
+          <SsooSearchInput
+            id={`dms-picker-tree-search-${searchInputUid}`}
+            name={`dms-picker-tree-query-${searchInputUid}`}
+            ariaLabel={placeholder ?? '파일 또는 폴더 검색'}
+            intent="entity-lookup"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={placeholder}

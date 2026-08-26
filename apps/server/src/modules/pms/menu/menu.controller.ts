@@ -8,6 +8,7 @@ import { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
 import { success } from '../../../common/index.js';
 import { MenuResponseDto } from './dto/menu-tree.dto.js';
 import { ApiError } from '../../../common/swagger/api-response.dto.js';
+import { ApiOkEnvelopeResponse } from '../../../common/swagger/api-response.decorator.js';
 
 @ApiTags("menus")
 @ApiBearerAuth()
@@ -22,7 +23,7 @@ export class MenuController {
    */
   @Get("my")
   @ApiOperation({ summary: "내 메뉴 조회", description: "역할/권한 기반 메뉴 트리 + 즐겨찾기" })
-  @ApiOkResponse({ type: MenuResponseDto })
+  @ApiOkEnvelopeResponse(MenuResponseDto)
   @ApiUnauthorizedResponse({ type: ApiError })
   @ApiForbiddenResponse({ type: ApiError })
   @ApiInternalServerErrorResponse({ type: ApiError, description: "서버 오류" })

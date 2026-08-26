@@ -325,4 +325,100 @@ describe('CrmAccessService', () => {
       canCreateCustomerActivity: true,
     });
   });
+
+  it('separates CRM operations read, execute, and settings permissions', async () => {
+    const manager = createService({ actionPermissionCodes: ['crm.operations.read'] }).service;
+    const admin = createService({
+      actionPermissionCodes: [
+        'crm.operations.read',
+        'crm.operations.execute',
+        'crm.settings.manage',
+      ],
+    }).service;
+
+    await expect(manager.assertOperationsCapability(testUser, 'canReadOperations')).resolves.toBeDefined();
+    await expect(manager.assertOperationsCapability(testUser, 'canExecuteOperations')).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(manager.assertOperationsCapability(testUser, 'canManageSettings')).rejects.toBeInstanceOf(ForbiddenException);
+    expect((await admin.getOperationsAccess(testUser)).features).toEqual({
+      canReadOperations: true,
+      canExecuteOperations: true,
+      canManageSettings: true,
+    });
+  });
+
+  it('separates CRM domain read, write, confirm, and settings capabilities', async () => {
+    const viewer = createService({
+      actionPermissionCodes: [
+        'crm.contract.read',
+        'crm.business-plan.read',
+        'crm.cost-plan.read',
+        'crm.report.read',
+        'crm.quote-settings.read',
+      ],
+    }).service;
+    const manager = createService({
+      actionPermissionCodes: [
+        'crm.contract.write',
+        'crm.contract.confirm',
+        'crm.business-plan.write',
+        'crm.business-plan.confirm',
+        'crm.cost-plan.write',
+        'crm.cost-plan.confirm',
+        'crm.report.confirm',
+        'crm.quote-settings.read',
+      ],
+    }).service;
+
+    expect((await viewer.getDomainAccess(testUser)).features).toEqual({
+      canReadContract: true,
+      canWriteContract: false,
+      canConfirmContract: false,
+      canReadBusinessPlan: true,
+      canWriteBusinessPlan: false,
+      canConfirmBusinessPlan: false,
+      canDeleteBusinessPlan: false,
+      canReadCostPlan: true,
+      canWriteCostPlan: false,
+      canConfirmCostPlan: false,
+      canReadReport: true,
+      canConfirmReport: false,
+      canReadQuoteSettings: true,
+      canManageQuoteSettings: false,
+    });
+    expect((await manager.getDomainAccess(testUser)).features).toEqual({
+      canReadContract: true,
+      canWriteContract: true,
+      canConfirmContract: true,
+      canReadBusinessPlan: true,
+      canWriteBusinessPlan: true,
+      canConfirmBusinessPlan: true,
+      canDeleteBusinessPlan: false,
+      canReadCostPlan: true,
+      canWriteCostPlan: true,
+      canConfirmCostPlan: true,
+      canReadReport: true,
+      canConfirmReport: true,
+      canReadQuoteSettings: true,
+      canManageQuoteSettings: false,
+    });
+    await expect(viewer.assertDomainCapability(testUser, 'canWriteContract'))
+      .rejects.toBeInstanceOf(ForbiddenException);
+    await expect(manager.assertDomainCapability(testUser, 'canConfirmCostPlan'))
+      .resolves.toBeDefined();
+  });
+
+  it('allows every CRM domain capability with system override', async () => {
+    const { service } = createService({ systemOverride: true });
+    expect(Object.values((await service.getDomainAccess(testUser)).features).every(Boolean)).toBe(true);
+  });
+
+  it('allows every CRM operations capability with system override', async () => {
+    const { service } = createService({ systemOverride: true });
+
+    expect((await service.getOperationsAccess(testUser)).features).toEqual({
+      canReadOperations: true,
+      canExecuteOperations: true,
+      canManageSettings: true,
+    });
+  });
 });

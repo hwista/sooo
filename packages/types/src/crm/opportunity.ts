@@ -1,10 +1,11 @@
 import type { CrmContract } from './contract.js';
 
 export type CrmOpportunityStatus = 'draft' | 'qualified' | 'proposal' | 'won' | 'lost' | 'hold';
+export type CrmSourceOpportunityStatus = '진행중' | '검토중' | '계약완료' | '실패';
 export type CrmOpportunityPriority = 'high' | 'medium' | 'low';
 export type CrmIntegrationStatus = 'planned' | 'draft-created' | 'not-implemented';
 export type CrmAdminBoundary = 'shared-admin';
-export type CrmOpportunitySort = 'updated-desc' | 'revenue-desc' | 'margin-desc';
+export type CrmOpportunitySort = 'customer-asc' | 'updated-desc' | 'revenue-desc' | 'profit-desc' | 'margin-desc';
 export type CrmOpportunityLineCategory = 'product' | 'service' | 'internal-cost' | 'external-cost';
 export type CrmOpportunityServiceType = 'internal' | 'external';
 export type CrmOpportunityDiscountType = 'amount' | 'rate';
@@ -14,6 +15,7 @@ export type CrmQuoteWorkflowStatus = 'draft' | 'review' | 'approved' | 'sent' | 
 export interface CrmOpportunityListQuery {
   search?: string;
   status?: CrmOpportunityStatus | 'all';
+  sourceStatus?: CrmSourceOpportunityStatus | 'all';
   sort?: CrmOpportunitySort;
 }
 
@@ -140,6 +142,9 @@ export interface CrmOpportunity {
 export interface CrmOpportunityVersionSummary {
   id: string;
   groupId: string;
+  customerName: string;
+  opportunityName: string;
+  ownerName: string;
   version: number;
   isLatest: boolean;
   confirmed: boolean;
@@ -149,6 +154,8 @@ export interface CrmOpportunityVersionSummary {
   status: CrmOpportunityStatus;
   quoteStatus: CrmQuoteWorkflowStatus;
   paymentTermCode?: string;
+  expectedStartDate: string;
+  expectedEndDate: string;
   revenueSubtotal: number;
   specialDiscountAmount: number;
   revenueTotal: number;
@@ -204,12 +211,20 @@ export interface CrmOpportunitySummary {
   grossMarginRate: number;
   boundaryNotice: string;
   unimplementedIntegrations: string[];
-  activeFilters: Required<CrmOpportunityListQuery>;
+  activeFilters: Required<Pick<CrmOpportunityListQuery, 'search' | 'status' | 'sort'>>
+    & Pick<CrmOpportunityListQuery, 'sourceStatus'>;
 }
 
 export interface CrmOpportunityListResponse {
   summary: CrmOpportunitySummary;
   items: CrmOpportunity[];
+}
+
+export interface CrmOpportunityDeleteResult {
+  deletedOpportunityId: string;
+  groupId: string;
+  deletedVersion: number;
+  nextOpportunityId?: string;
 }
 
 export interface CrmOpportunityContractConversionRequest {

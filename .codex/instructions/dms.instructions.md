@@ -17,7 +17,7 @@ applyTo: "apps/web/dms/**"
 
 DMS는 workspace 앱으로 통합되었지만, 파일/Git/스토리지 런타임과 `src/app/api/* -> server/*` 구조는 독립 배포 가능성을 고려해 유지합니다.
 
-Docker/compose도 DMS 런타임 계약의 일부입니다. DMS 포트, runtime path, 설정 노출 문구, server proxy/env 계약을 바꾸면 `apps/web/dms/Dockerfile`, 루트 `compose.yaml`과 환경별 overlay(`compose.local.yaml`, `compose.production.yaml`), 루트 env example, Docker/E2E 스크립트, `docs/dms/guides/deployment.md`를 같은 변경 범위에서 확인하고 같이 갱신합니다.
+Docker/compose도 DMS 런타임 계약의 일부입니다. DMS 포트, runtime path, 설정 노출 문구, server proxy/env 계약을 바꾸면 `apps/web/dms/Dockerfile`, 루트 `compose.yaml`과 환경별 overlay(`compose.local.yaml`, `compose.local-test.yaml`, `compose.production.yaml`), 루트 env example, Docker/E2E 스크립트, `docs/dms/guides/deployment.md`를 같은 변경 범위에서 확인하고 같이 갱신합니다.
 
 ## 양방향 배포 표준
 
@@ -32,6 +32,30 @@ Docker/compose도 DMS 런타임 계약의 일부입니다. DMS 포트, runtime p
 - 인증은 환경 변수 또는 local git config 중 하나를 사용합니다.
   - 환경 변수: `GL_USER`, `GL_TOKEN`
   - local git config: `codex.gitlabUser`, `codex.gitlabToken`
+
+## 운영 런칭 증거 계약
+
+- 현행 DMS Go-live는 release artifact, production infrastructure, recovery proof, isolated operational control, deployed browser Ralph의 다섯 blocking 트랙입니다.
+- 각 실행은 release SHA/run ID 전용 bundle에 step 전후 atomic checkpoint, 로그, Playwright artifact, 최종 report와 SHA-256 manifest를 남깁니다.
+- 중단 실행의 `--resume`은 run ID, release SHA, HEAD, worktree fingerprint, gate plan hash가 모두 같은 경우에만 허용합니다. 불일치하거나 깨진 checkpoint는 새 실행으로 fail-closed합니다.
+- 격리 runtime은 run ID 소유 manifest를 사용하며 소유권이 불명확한 PID, PostgreSQL data dir, 프로세스를 삭제하거나 종료하지 않습니다.
+- AI/RAG 외부 provider 예외는 provider-backed retrieval/summary에만 적용하며 다른 다섯 트랙 실패를 면제하지 않습니다.
+- 현행 track, spec, 문서 정합성은 `pnpm run verify:dms-launch-contract`로 검증합니다.
+
+## DMS 런타임 프로필·기동 계약
+
+- 공통 `compose.yaml`은 `DMS_INSTANCE_ENV` 역할을 소유하지 않고 빈 값으로 fail-closed합니다. `compose.local.yaml=dev`, `compose.local-test.yaml=local-test`, `compose.production.yaml=prod`만 역할을 결정합니다.
+- local/local-test overlay의 역할과 `DMS_GIT_BOOTSTRAP_REMOTE_URL`은 literal로 고정해 root `.env`가 운영 역할이나 remote를 주입하지 못하게 합니다.
+- `local-test` Docker 런타임은 remote-empty와 PostgreSQL·문서·ingest·storage 전용 named volume을 사용하며 운영/개발 DB나 문서 working tree를 mount하지 않습니다.
+- `local-test`는 Playwright/Ralph, 실패주입, mutation 회귀 전용입니다. 기존 문서와 실제 로컬 사용 상태를 확인하는 사용자 인수 테스트나 로컬 Docker 인계 대상으로 사용하지 않습니다.
+- 사용자 인수 테스트와 로컬 Docker 인계의 정본은 `compose.yaml + compose.local.yaml`의 `dev`입니다. `local-test` 검증 후에는 `pnpm docker:up`으로 `dev`를 복구하고 active profile, readiness, 기존 dev 파일 트리를 확인한 뒤 인계합니다.
+- 기존 working tree의 `origin`이 선택한 역할과 다르면 remote를 제자리에서 바꾸지 않습니다. 기존 tree를 보존하고 역할에 맞는 별도 working tree를 준비해 `DMS_MARKDOWN_HOST_PATH`로 명시합니다.
+- Docker server가 HTTPS 문서 remote를 사용할 때 credential을 URL, Compose env, 저장소 `.git/config`에 넣지 않습니다. `pnpm run dms:git-http-auth:prepare`로 mode `0600` Docker secret을 만들고 `DMS_GIT_HTTP_AUTH_SCOPE`를 해당 origin으로 제한합니다.
+- readiness는 활성 storage provider의 실제 경로를 필수로 검사합니다. dev에서 사용하지 않는 NAS는 비활성화하고, NAS를 활성화할 때는 실제 host/NAS mount를 먼저 준비합니다.
+- Git 초기화 결과 실패·예외와 최초 document control-plane 동기화 실패는 startup-fatal입니다. 실패한 서버를 liveness만으로 정상 취급하지 않습니다.
+- `/api/health`는 liveness이고 `/api/health/readiness`는 DB와 DMS settings persistence, Git parity, control-plane, runtime path 전체가 ready일 때만 `200`입니다.
+- 기동 후 일시적인 문서 목록 오류에는 기존 error state와 visible retry 동선을 유지합니다. fail-fast/readiness는 사용자 복구 UI를 삭제하는 근거가 아닙니다.
+- 프로필 계약은 `pnpm run verify:dms-runtime-profile-contract:self-test`의 오염 실패주입과 `pnpm run codex:dms-guard`로 검증합니다.
 
 ## 기술 스택
 
@@ -192,6 +216,7 @@ export * from './components';
 
 | 날짜 | 변경 내용 |
 |------|-----------|
+| 2026-08-19 | 환경별 DMS Compose 역할 격리, Git/control-plane startup-fatal, DB+DMS readiness와 프로필 실패주입 검증 계약 추가 |
 | 2026-06-17 | `@ssoo/web-ui`를 DMS 공유 패키지 기준에 추가하고 access-requests/settings 선별 UI 기준선 검증 규칙 명시 |
 | 2026-06-15 | DMS 공유 패키지 기준을 `@ssoo/types`, `@ssoo/web-auth`, `@ssoo/web-shell`로 보정하고 SSOO 공용 frame 레이아웃 치수와 동기화 |
 | 2026-04-06 | GitLab 기본 흐름을 full-workspace `development` branch 기준으로 전환하고 `codex:workspace-*` 명령/호환 래퍼를 추가 |

@@ -5,7 +5,7 @@ import { Roles } from '../../common/auth/decorators/roles.decorator.js';
 import { CodeService } from './code.service.js';
 import { success } from '../../../common/index.js';
 import { serializeBigInt } from '../../../common/utils/bigint.util.js';
-import type { CreateCodeDto, UpdateCodeDto } from './dto/code.dto.js';
+import { CreateCodeDto, UpdateCodeDto } from './dto/code.dto.js';
 
 @ApiTags('codes')
 @ApiBearerAuth()
@@ -50,5 +50,13 @@ export class CodeController {
   async deactivate(@Param('id') id: string) {
     const result = await this.codeService.deactivate(BigInt(id));
     return success(serializeBigInt(result));
+  }
+
+  @Delete(':id/permanent')
+  @Roles('admin')
+  @ApiOperation({ summary: '비활성 코드 영구 삭제' })
+  async removePermanently(@Param('id') id: string) {
+    const result = await this.codeService.removePermanently(BigInt(id));
+    return success(result);
   }
 }

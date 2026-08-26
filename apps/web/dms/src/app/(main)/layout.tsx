@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AuthLoadingScreen, useProtectedAppBootstrap } from '@ssoo/web-auth';
 import type { CommonNotificationItem, CommonNotificationJsonValue, CommonNotificationStreamEvent } from '@ssoo/types/common';
 import {
@@ -101,6 +101,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const currentUserId = useAuthStore((state) => state.user?.userId ?? null);
   const authIsLoading = useAuthStore((state) => state.isLoading);
@@ -330,7 +331,9 @@ export default function MainLayout({
     shouldRender
     && isAuthenticated
     && currentUserId
-    && accessSnapshot?.features.canReadDocuments,
+    && accessSnapshot?.features.canReadDocuments
+    && pathname !== '/settings'
+    && !pathname.startsWith('/settings/')
   );
 
   // WebSocket 실시간 동기화

@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { success } from '../../../common/index.js';
+import { ApiOkObjectResponse } from '../../../common/swagger/api-response.decorator.js';
 import { CurrentUser } from '../../common/auth/decorators/current-user.decorator.js';
 import { Roles } from '../../common/auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../../common/auth/guards/roles.guard.js';
@@ -31,7 +32,7 @@ export class CustomerController {
   @Get()
   @RequireCrmCustomerFeature('canViewCustomer')
   @ApiOperation({ summary: 'CRM 고객 원장 목록' })
-  @ApiOkResponse({ description: 'CRM 고객 원장 목록과 요약' })
+  @ApiOkObjectResponse({ description: 'CRM 고객 원장 목록과 요약' })
   @ApiUnauthorizedResponse({ description: '인증 필요' })
   @ApiForbiddenResponse({ description: 'CRM 고객 조회 권한 없음' })
   async list(@Query() query: CrmCustomerListQueryDto) {

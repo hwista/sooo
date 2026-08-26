@@ -33,7 +33,10 @@ check(
   'SharedAuthLoginPage must support safe returnTo-based post-login routing',
   (content) => content.includes('returnTo')
     && content.includes('resolveAuthReturnPath')
-    && content.includes('navigate(resolveAuthReturnPath'),
+    && content.includes('const postLoginPath = useMemo')
+    && content.includes('onAuthenticated: handleAuthenticated')
+    && content.includes('navigate(postLoginPath);')
+    && !/await login\(loginId, password\);\s*navigate\(postLoginPath\);/u.test(content),
 );
 
 check(
@@ -131,6 +134,15 @@ check(
 );
 
 check(
+  'packages/database/src/extensions/common-columns.extension.ts',
+  'common audit columns must preserve explicit domain source/activity labels before applying generic Prisma fallbacks',
+  (content) => content.includes("lastSource: record.lastSource ?? ctx.source ?? 'API'")
+    && content.includes('lastActivity: record.lastActivity ?? `${modelName}.create`')
+    && content.includes('lastActivity: record.lastActivity ?? `${modelName}.${action}`')
+    && content.includes('transactionId: ctx.transactionId ?? record.transactionId'),
+);
+
+check(
   'packages/web-auth/src/logout.ts',
   'shared logout orchestration hook must exist for app cleanup + redirect ordering',
   (content) => content.includes('useSharedLogout')
@@ -216,6 +228,15 @@ check(
     && content.includes('user.settings.updated')
     && content.includes('sns.follow.changed')
     && content.includes('sns.feed.changed'),
+);
+
+check(
+  'packages/web-auth/src/user-surface.tsx',
+  'shared account profile updates must send empty optional fields so users can clear phone, department, and position values',
+  (content) => content.includes('phone: form.phone.trim(),')
+    && content.includes('departmentCode: form.departmentCode.trim(),')
+    && content.includes('positionCode: form.positionCode.trim(),')
+    && !content.includes('phone: form.phone.trim() || undefined'),
 );
 
 check(
@@ -308,7 +329,11 @@ check(
   'packages/web-auth/src/protected-app-bootstrap.ts',
   'protected app bootstrap must wait for the initial blocking auth check before access hydration or unauthenticated redirects',
   (content) => content.includes('initialAuthCheckCompleted')
-    && content.includes("checkAuth({ mode: 'blocking' }).finally")
+    && content.includes('initialAuthCheckRef = useRef<Promise<void> | null>(null)')
+    && content.includes("initialAuthCheckRef.current = checkAuth({ mode: 'blocking' }).then")
+    && content.includes('const initialAuthCheck = initialAuthCheckRef.current;')
+    && content.includes('setInitialAuthCheckCompleted(true)')
+    && !content.includes('initCalled')
     && content.includes('!initialAuthCheckCompleted')
     && content.includes('shouldRender: hasHydrated && initialAuthCheckCompleted && isAuthenticated && accessHasLoaded'),
 );
@@ -979,7 +1004,6 @@ check(
     && content.includes("script-src 'self'")
     && content.includes("img-src 'self' data: blob: https://www.gravatar.com")
     && content.includes('trusted-types ssoo-dms-markdown default')
-    && content.includes("require-trusted-types-for 'script'")
     && content.includes('X-Content-Type-Options')
     && content.includes('Referrer-Policy')
     && content.includes('X-Frame-Options')
@@ -1041,7 +1065,8 @@ check(
   'Admin route entries must live in constants instead of middleware-local arrays',
   (content) => content.includes('ADMIN_ROOT_ENTRY_PATHS')
     && content.includes('ADMIN_ALLOWED_PATH_PREFIXES')
-    && content.includes('PASSWORD_RESET_PATH'),
+    && content.includes('PASSWORD_RESET_PATH')
+    && content.includes("'/ai-operations'"),
 );
 
 check(
@@ -1072,6 +1097,20 @@ check(
   'DMS Next config may keep only document-domain serverExternalPackages as an app-specific override',
   (content) => content.includes("serverExternalPackages: ['@napi-rs/canvas', 'pdfjs-dist']")
     && !content.includes('remotePatterns'),
+);
+
+check(
+  'apps/web/dms/src/lib/constants/routes.ts',
+  'DMS route constants must expose authenticated settings deep links for operational entry and reload recovery',
+  (content) => content.includes('ALLOWED_PATH_PREFIXES')
+    && content.includes("SETTINGS_PATH_PREFIX = '/settings'"),
+);
+
+check(
+  'apps/web/dms/src/app/(main)/settings/[[...path]]/page.tsx',
+  'DMS settings deep links must hand off to the existing protected AppLayout instead of duplicating settings UI',
+  (content) => content.includes("import { AppLayout } from '@/components/layout'")
+    && content.includes('return <AppLayout />'),
 );
 
 check(

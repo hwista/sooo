@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-parity",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T06:31:49.327Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-parity",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-02"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-02",
+      "sourcePage": "list",
+      "status": "complete",
+      "ownerSurface": "CRM /?sourceSurface=list",
+      "targetUrl": "http://127.0.0.1:3105/?sourceSurface=list",
+      "capturedAt": "2026-08-20T06:31:49.326Z",
+      "structureDiff": {
+        "missingSections": [],
+        "missingFields": [],
+        "missingColumns": [],
+        "missingActions": [],
+        "missingLabels": [],
+        "renamedMeaning": [],
+        "reorderedWorkflow": [],
+        "defaultBehaviorDifferences": [],
+        "unclassified": [],
+        "defects": [],
+        "classifiedDifferences": [
+          {
+            "classification": "platform-required",
+            "area": "공용 애플리케이션 셸",
+            "rationale": "SSOO 공용 인증·MDI·내비게이션 셸을 유지하고 원천 업무 화면의 정보구조와 동작을 콘텐츠 영역에 이식했습니다."
+          }
+        ]
+      },
+      "states": [
+        {
+          "id": "seeded-list",
+          "sourceScreenshot": "ux-02-list.png",
+          "targetDesktopScreenshot": "ux-02-list--seeded-list--desktop.png",
+          "targetMobileScreenshot": "ux-02-list--seeded-list--mobile.png",
+          "differenceScreenshot": "ux-02-list--seeded-list--difference.png",
+          "evidenceSha256": {
+            "source": "dcf9996346430206e1cec713d5bd4d916b55b8ac06b485e6e54c5c9514ccc53f",
+            "targetDesktop": "c79c75764dca95ed5550c115a9ba2e9418f9d12cd3b2684acd6f0a933288ce5f",
+            "targetMobile": "288b93a6dee9cd5656601069578a3835e301e7dd5246696886ea782e8c686116",
+            "difference": "bb7acec5d80a69c6a68e32e4cf3c9d9a502eda2718bd8839c39d563934795762"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "filtered-empty",
+          "sourceScreenshot": "ux-02-list--filtered-empty.png",
+          "targetDesktopScreenshot": "ux-02-list--filtered-empty--desktop.png",
+          "targetMobileScreenshot": "ux-02-list--filtered-empty--mobile.png",
+          "differenceScreenshot": "ux-02-list--filtered-empty--difference.png",
+          "evidenceSha256": {
+            "source": "575db78b886e9c11a1e860edfee564e1d6a91d12d84c496da2f4b1645c7d6d3e",
+            "targetDesktop": "d28f3237528e17cec4c70362f963115e20181a3866ccbbf3256b77f87b2113c7",
+            "targetMobile": "e11d37cfe38bf8be36c22f06124ef600d16fa158d339378c5954f796b89baf5a",
+            "difference": "08940e29af741176a4c7667b4a59a558520026282f86653f0f015e6a74304240"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "previous-version-expanded",
+          "sourceScreenshot": "ux-02-list--previous-version-expanded.png",
+          "targetDesktopScreenshot": "ux-02-list--previous-version-expanded--desktop.png",
+          "targetMobileScreenshot": "ux-02-list--previous-version-expanded--mobile.png",
+          "differenceScreenshot": "ux-02-list--previous-version-expanded--difference.png",
+          "evidenceSha256": {
+            "source": "58be52b2f4078be00fc59b71dc521ab1303943d253d87fd49080881003de83b1",
+            "targetDesktop": "96eb35a394c9068d60cb46d551028dbabe62c11b972e43e217e2e2566d3068d3",
+            "targetMobile": "88d44653a58ca179d698ffdc93f34017364d834fe02875ccec8e6bc9a3e9bc40",
+            "difference": "fbf8d0738ebf9ce04a8399363489839b62af6dab482bf843bdea50085c58b2b1"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "row-drilldown",
+          "sourceScreenshot": "ux-02-list--row-drilldown.png",
+          "targetDesktopScreenshot": "ux-02-list--row-drilldown--desktop.png",
+          "targetMobileScreenshot": "ux-02-list--row-drilldown--mobile.png",
+          "differenceScreenshot": "ux-02-list--row-drilldown--difference.png",
+          "evidenceSha256": {
+            "source": "fdb0fb180c4342ab00aeaad30f8eda317413248b633fdb2f37726bdfa0d8f2a2",
+            "targetDesktop": "23d6e14cc0ed37d53da574c887f682515ec2acfebb0b19d3877e8631b2070cb8",
+            "targetMobile": "9f5ba0f009e2ea4fe5aa969d83d47e51272f5813c8eafe952318d233a9d49ccf",
+            "difference": "2733e7d03e4971b4a89f6bba81b4bc63558e3bb680106a6368ad48b61fda6b70"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        }
+      ]
+    }
+  ]
+}

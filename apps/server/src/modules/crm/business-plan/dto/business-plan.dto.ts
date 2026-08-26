@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import type {
@@ -6,9 +6,12 @@ import type {
   CrmBusinessPlanListQuery,
   CrmBusinessPlanMonthlyPlanInputRequest,
   CrmBusinessPlanPerformanceActualInputRequest,
+  CrmBusinessPlanPerformanceMode,
   CrmBusinessPlanPerformanceQuery,
   CrmBusinessPlanPreviewQuery,
   CrmBusinessPlanPreviewRegion,
+  CrmBusinessPlanRowUpsertRequest,
+  CrmBusinessPlanRowWbsUpdateRequest,
   CrmBusinessPlanSnapshotRequest,
   CrmBusinessPlanStatus,
 } from '@ssoo/types/crm';
@@ -16,6 +19,7 @@ import type {
 const CRM_BUSINESS_PLAN_PREVIEW_REGIONS = ['all', 'domestic', 'overseas'] as const;
 const CRM_BUSINESS_PLAN_INPUT_REGIONS = ['domestic', 'overseas'] as const;
 const CRM_BUSINESS_PLAN_STATUSES = ['all', 'draft', 'confirmed'] as const;
+const CRM_BUSINESS_PLAN_PERFORMANCE_MODES = ['extended-actual', 'source-compatible'] as const;
 
 export class CrmBusinessPlanPreviewQueryDto implements CrmBusinessPlanPreviewQuery {
   @ApiPropertyOptional({ description: '3개년 preview 시작 사업년도', default: new Date().getFullYear() })
@@ -57,6 +61,12 @@ export class CrmBusinessPlanPerformanceQueryDto implements CrmBusinessPlanPerfor
   @Min(2000)
   @IsOptional()
   year?: number;
+
+  @ApiPropertyOptional({ description: '실적 의미. source-compatible은 원천 데모처럼 확정 계약 청구계획을 실적으로 사용', enum: CRM_BUSINESS_PLAN_PERFORMANCE_MODES, default: 'extended-actual' })
+  @IsString()
+  @IsIn(CRM_BUSINESS_PLAN_PERFORMANCE_MODES)
+  @IsOptional()
+  mode?: CrmBusinessPlanPerformanceMode;
 
   @ApiPropertyOptional({ description: '사업구분', maxLength: 120 })
   @IsString()
@@ -133,14 +143,97 @@ export class CrmBusinessPlanMonthlyPlanInputDto implements CrmBusinessPlanMonthl
   @ArrayMinSize(12)
   @ArrayMaxSize(12)
   @IsNumber({}, { each: true })
-  @Min(0, { each: true })
   monthlyRevenueAmounts!: number[];
+
+  @ApiProperty({ description: '1월부터 12월까지의 직접 입력 계획 외부원가', type: [Number], minItems: 12, maxItems: 12 })
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  @IsNumber({}, { each: true })
+  monthlyExternalCostAmounts!: number[];
 
   @ApiPropertyOptional({ description: '월별 입력 메모', maxLength: 1000 })
   @IsString()
   @MaxLength(1000)
   @IsOptional()
   memo?: string;
+}
+
+export class CrmBusinessPlanRowUpsertDto implements CrmBusinessPlanRowUpsertRequest {
+  @ApiProperty({ description: '사업구분', maxLength: 120 })
+  @IsString()
+  @MaxLength(120)
+  businessType!: string;
+
+  @ApiProperty({ description: '계열/산업 구분', maxLength: 120 })
+  @IsString()
+  @MaxLength(120)
+  industryLine!: string;
+
+  @ApiProperty({ description: '담당자', maxLength: 100 })
+  @IsString()
+  @MaxLength(100)
+  ownerName!: string;
+
+  @ApiProperty({ description: '국내/해외', enum: CRM_BUSINESS_PLAN_INPUT_REGIONS })
+  @IsString()
+  @IsIn(CRM_BUSINESS_PLAN_INPUT_REGIONS)
+  region!: Exclude<CrmBusinessPlanPreviewRegion, 'all'>;
+
+  @ApiProperty({ description: '사업명', maxLength: 200 })
+  @IsString()
+  @MaxLength(200)
+  businessName!: string;
+
+  @ApiPropertyOptional({ description: 'WBS 코드', maxLength: 120 })
+  @IsString()
+  @MaxLength(120)
+  @IsOptional()
+  wbsCode?: string;
+
+  @ApiProperty({ description: '기준년도 1~12월 계획 매출', type: [Number], minItems: 12, maxItems: 12 })
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  @IsNumber({}, { each: true })
+  monthlyRevenueAmounts!: number[];
+
+  @ApiProperty({ description: '기준년도 1~12월 계획 외부원가', type: [Number], minItems: 12, maxItems: 12 })
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  @IsNumber({}, { each: true })
+  monthlyExternalCostAmounts!: number[];
+
+  @ApiProperty({ description: '차년도 연간 계획 매출' })
+  @IsNumber()
+  nextYearRevenueAmount!: number;
+
+  @ApiProperty({ description: '차년도 연간 계획 외부원가' })
+  @IsNumber()
+  nextYearExternalCostAmount!: number;
+
+  @ApiProperty({ description: '차차년도 연간 계획 매출' })
+  @IsNumber()
+  followingYearRevenueAmount!: number;
+
+  @ApiProperty({ description: '차차년도 연간 계획 외부원가' })
+  @IsNumber()
+  followingYearExternalCostAmount!: number;
+
+  @ApiPropertyOptional({ description: '행 메모', maxLength: 1000 })
+  @IsString()
+  @MaxLength(1000)
+  @IsOptional()
+  memo?: string;
+}
+
+export class CrmBusinessPlanRowWbsUpdateDto implements CrmBusinessPlanRowWbsUpdateRequest {
+  @ApiPropertyOptional({ description: '확정 여부와 무관하게 갱신 가능한 WBS 코드', maxLength: 120 })
+  @IsString()
+  @MaxLength(120)
+  @IsOptional()
+  wbsCode?: string;
 }
 
 export class CrmBusinessPlanPerformanceActualInputDto implements CrmBusinessPlanPerformanceActualInputRequest {

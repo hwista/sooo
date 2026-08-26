@@ -16,11 +16,17 @@ function normalizeQuery(query: Record<string, string | string[] | undefined> = {
   };
   const status = value('status') as CrmContractStatus | 'all';
   const sort = value('sort') as CrmContractSort;
+  const sourceSurface = value('sourceSurface');
   return {
     search: value('search').trim(),
     status: ['review', 'active', 'completed', 'terminated'].includes(status) ? status : 'all',
     sort: ['revenue-desc', 'margin-desc', 'start-asc'].includes(sort) ? sort : 'updated-desc',
     selected: value('selected'),
+    sourceSurface: ['list', 'form', 'billing-actual'].includes(sourceSurface)
+      ? sourceSurface as ContractWorkspaceQuery['sourceSurface']
+      : '',
+    billingView: value('view') === 'list' ? 'list' : 'detail',
+    create: value('create') === 'contract',
   };
 }
 

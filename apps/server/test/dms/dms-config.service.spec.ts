@@ -1,4 +1,7 @@
 import { jest } from '@jest/globals';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { configService } from '../../src/modules/dms/runtime/dms-config.service.js';
 
 describe('DmsConfigService (singleton)', () => {
@@ -12,6 +15,8 @@ describe('DmsConfigService (singleton)', () => {
     delete process.env.DMS_GIT_PROD_REMOTE_URL;
     delete process.env.DMS_GIT_DEV_REMOTE_URL;
     delete process.env.DMS_GIT_PUBLISH_IGNORED_PATH_PREFIXES;
+    delete process.env.DMS_STORAGE_LOCAL_BASE_PATH;
+    delete process.env.DMS_STORAGE_NAS_BASE_PATH;
     configService.invalidateCache();
   });
 
@@ -29,8 +34,11 @@ describe('DmsConfigService (singleton)', () => {
       expect(typeof cfg.git.repositoryPath).toBe('string');
       expect(cfg.git.repositoryPath.length).toBeGreaterThan(0);
       expect(cfg.storage).toBeDefined();
-      expect(cfg.storage.defaultProvider).toBeDefined();
-      expect(['local', 'sharepoint', 'nas']).toContain(cfg.storage.defaultProvider);
+      expect(cfg.storage.defaultProvider).toBe('local');
+      expect(cfg.storage.local.enabled).toBe(true);
+      expect(cfg.storage.nas.enabled).toBe(false);
+      expect(cfg.storage).not.toHaveProperty('sharepoint');
+      expect(cfg.m365).not.toHaveProperty('sharepoint');
     });
 
     it('caches the resolved config across calls', () => {
@@ -138,6 +146,71 @@ describe('DmsConfigService (singleton)', () => {
       expect(tmpl.startsWith(root)).toBe(true);
       expect(tmpl.endsWith('_templates')).toBe(true);
     });
+
+    it('validates that the local default storage root is readable and writable', () => {
+      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ssoo-dms-storage-'));
+      process.env.DMS_STORAGE_LOCAL_BASE_PATH = tempRoot;
+
+      try {
+        expect(configService.assertStorageRuntimeContract()).toEqual({
+          provider: 'local',
+          resolvedPath: tempRoot,
+          source: 'env',
+        });
+      } finally {
+        fs.rmSync(tempRoot, { recursive: true, force: true });
+      }
+    });
+
+    it('fails closed when the default storage root cannot be used as a directory', () => {
+      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ssoo-dms-storage-'));
+      const filePath = path.join(tempRoot, 'not-a-directory');
+      fs.writeFileSync(filePath, 'probe');
+      process.env.DMS_STORAGE_LOCAL_BASE_PATH = filePath;
+
+      try {
+        expect(() => configService.assertStorageRuntimeContract()).toThrow(/storage contract invalid/);
+      } finally {
+        fs.rmSync(tempRoot, { recursive: true, force: true });
+      }
+    });
+  });
+
+  describe('legacy storage normalization', () => {
+    it('removes SharePoint config and routes the retired default to local', async () => {
+      const defaults = configService.getConfig();
+      const legacyConfig = {
+        ...defaults,
+        storage: {
+          ...defaults.storage,
+          defaultProvider: 'sharepoint',
+          sharepoint: {
+            enabled: true,
+            basePath: '/sites/documents/shared-documents',
+          },
+        },
+        m365: {
+          ...defaults.m365,
+          sharepoint: {
+            tenantDomain: 'legacy.example',
+            sitePath: '/sites/documents',
+            defaultLibrary: 'shared-documents',
+          },
+        },
+      };
+      const dbClient = {
+        dmsConfig: {
+          findFirst: jest.fn(async () => ({ configData: legacyConfig })),
+        },
+      };
+
+      await configService.initFromDb(dbClient as never);
+
+      const normalized = configService.getConfig();
+      expect(normalized.storage.defaultProvider).toBe('local');
+      expect(normalized.storage).not.toHaveProperty('sharepoint');
+      expect(normalized.m365).not.toHaveProperty('sharepoint');
+    });
   });
 
   describe('user surface hidden document paths', () => {
@@ -156,6 +229,30 @@ describe('DmsConfigService (singleton)', () => {
 
       expect(configService.getUserSurfaceHiddenPathPrefixes()).toEqual([]);
       expect(configService.isUserSurfaceHiddenPath('launch-smoke/a.md')).toBe(false);
+    });
+  });
+
+  describe('DB-backed update durability', () => {
+    it('does not mutate the runtime config when the DB write fails', async () => {
+      const persisted = configService.getConfig();
+      const dbClient = {
+        dmsConfig: {
+          findFirst: jest.fn()
+            .mockResolvedValueOnce({ configData: persisted })
+            .mockResolvedValueOnce({ configId: 1n }),
+          update: jest.fn<() => Promise<unknown>>().mockRejectedValue(new Error('database unavailable')),
+          create: jest.fn(),
+        },
+      };
+      await configService.initFromDb(dbClient as never);
+      const before = configService.getConfig();
+
+      await expect(configService.updateConfig({
+        search: { maxResults: before.search.maxResults + 1 },
+      })).rejects.toThrow(/persistence failed/);
+
+      expect(configService.getConfig()).toBe(before);
+      expect(configService.getConfig().search.maxResults).toBe(before.search.maxResults);
     });
   });
 });

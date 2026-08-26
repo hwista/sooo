@@ -1,6 +1,16 @@
 import { isMarkdownFile } from './file-utils.js';
 import { normalizeGitPath } from './git-paths.util.js';
 
+export function filterDiscardableGitManagedPaths(files: Iterable<string>): string[] {
+  return Array.from(
+    new Set(
+      Array.from(files)
+        .map((item) => normalizeGitPath(item))
+        .filter((item) => isMarkdownFile(item)),
+    ),
+  );
+}
+
 export function filterStageableGitManagedFiles(
   files: Iterable<string>,
   trackedFiles: Iterable<string>,

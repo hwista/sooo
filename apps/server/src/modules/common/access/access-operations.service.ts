@@ -20,8 +20,37 @@ import type { TokenPayload } from '../auth/interfaces/auth.interface.js';
 import { AccessFoundationService } from './access-foundation.service.js';
 import type { InspectAccessQueryDto } from './dto/inspect-access.query.dto.js';
 import type { ListPermissionExceptionsQueryDto } from './dto/list-permission-exceptions.query.dto.js';
+import type { UpdateRolePermissionsDto } from './dto/update-role-permissions.dto.js';
 
 type AccessSubjectRow = Awaited<ReturnType<AccessOperationsService['findSubjectOrThrow']>>;
+
+const CRM_LAUNCH_ACTIVE_PERMISSION_CODES = new Set([
+  'crm.opportunity.read',
+  'crm.opportunity.write',
+  'crm.opportunity.confirm',
+  'crm.opportunity.version.manage',
+  'crm.customer.read',
+  'crm.customer.write',
+  'crm.customer.activity.read',
+  'crm.customer.activity.write',
+  'crm.contract.read',
+  'crm.contract.write',
+  'crm.contract.confirm',
+  'crm.business-plan.read',
+  'crm.business-plan.write',
+  'crm.business-plan.confirm',
+  'crm.business-plan.delete',
+  'crm.cost-plan.read',
+  'crm.cost-plan.write',
+  'crm.cost-plan.confirm',
+  'crm.report.read',
+  'crm.report.confirm',
+  'crm.quote-settings.read',
+  'crm.quote-settings.manage',
+  'crm.operations.read',
+  'crm.operations.execute',
+  'crm.settings.manage',
+]);
 
 @Injectable()
 export class AccessOperationsService {
@@ -192,6 +221,275 @@ export class AccessOperationsService {
     };
   }
 
+  async listRolesWithPermissions() {
+    const roles = await this.db.client.role.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { roleCode: 'asc' }],
+      select: {
+        roleId: true,
+        roleCode: true,
+        roleName: true,
+        roleScopeCode: true,
+        description: true,
+        isActive: true,
+        rolePermissions: {
+          where: { isActive: true, permission: { isActive: true } },
+          select: { permission: { select: { permissionCode: true } } },
+        },
+      },
+    });
+    return roles.map((role) => ({
+      roleId: role.roleId.toString(),
+      roleCode: role.roleCode,
+      roleName: role.roleName,
+      roleScopeCode: role.roleScopeCode,
+      description: role.description,
+      isActive: role.isActive,
+      permissionCodes: role.rolePermissions
+        .map((relation) => relation.permission.permissionCode)
+        .sort((left, right) => left.localeCompare(right)),
+    }));
+  }
+
+  async updateRolePermissions(
+    roleCode: string,
+    dto: UpdateRolePermissionsDto,
+    operatorUserId: bigint,
+  ) {
+    const role = await this.db.client.role.findUnique({
+      where: { roleCode },
+      select: { roleId: true, roleCode: true, isActive: true },
+    });
+    if (!role || !role.isActive) {
+      throw new NotFoundException('활성 역할을 찾을 수 없습니다.');
+    }
+
+    const permissionCodes = Array.from(new Set(dto.permissionCodes.map((code) => code.trim()).filter(Boolean)));
+    if (roleCode === 'admin' && !permissionCodes.includes('system.override')) {
+      throw new BadRequestException('admin 역할에서는 system.override 권한을 제거할 수 없습니다.');
+    }
+    const permissions = await this.db.client.permission.findMany({
+      where: { permissionCode: { in: permissionCodes }, isActive: true },
+      select: { permissionId: true, permissionCode: true },
+    });
+    const foundCodes = new Set(permissions.map((permission) => permission.permissionCode));
+    const missingCodes = permissionCodes.filter((code) => !foundCodes.has(code));
+    if (missingCodes.length > 0) {
+      throw new BadRequestException(`활성 permission을 찾을 수 없습니다: ${missingCodes.join(', ')}`);
+    }
+    const permissionIds = permissions.map((permission) => permission.permissionId);
+
+    await this.db.client.$transaction(async (tx) => {
+      await tx.rolePermission.updateMany({
+        where: {
+          roleId: role.roleId,
+          isActive: true,
+          ...(permissionIds.length > 0 ? { permissionId: { notIn: permissionIds } } : {}),
+        },
+        data: {
+          isActive: false,
+          updatedBy: operatorUserId,
+          lastSource: 'admin-access-operations',
+          lastActivity: 'access.admin.role-permissions.revoke',
+        },
+      });
+
+      for (const permission of permissions) {
+        const existing = await tx.rolePermission.findFirst({
+          where: { roleId: role.roleId, permissionId: permission.permissionId },
+          select: { rolePermissionId: true },
+        });
+        if (existing) {
+          await tx.rolePermission.update({
+            where: { rolePermissionId: existing.rolePermissionId },
+            data: {
+              isActive: true,
+              updatedBy: operatorUserId,
+              lastSource: 'admin-access-operations',
+              lastActivity: 'access.admin.role-permissions.grant',
+            },
+          });
+        } else {
+          await tx.rolePermission.create({
+            data: {
+              roleId: role.roleId,
+              permissionId: permission.permissionId,
+              createdBy: operatorUserId,
+              updatedBy: operatorUserId,
+              lastSource: 'admin-access-operations',
+              lastActivity: 'access.admin.role-permissions.grant',
+            },
+          });
+        }
+      }
+    });
+
+    const updated = (await this.listRolesWithPermissions()).find((item) => item.roleCode === roleCode);
+    if (!updated) {
+      throw new NotFoundException('갱신된 역할을 찾을 수 없습니다.');
+    }
+    return updated;
+  }
+
+  async listAuditEvents(limit = 100) {
+    const take = Math.min(Math.max(limit, 1), 500);
+    const [users, authAccounts, sessions, organizations, rolePermissions] = await Promise.all([
+      this.db.client.userHistory.findMany({
+        orderBy: { eventAt: 'desc' },
+        take,
+        select: {
+          userId: true,
+          historySeq: true,
+          eventType: true,
+          eventAt: true,
+          userName: true,
+          roleCode: true,
+          isActive: true,
+          updatedBy: true,
+          lastSource: true,
+          lastActivity: true,
+          transactionId: true,
+        },
+      }),
+      this.db.client.userAuthHistory.findMany({
+        orderBy: { eventAt: 'desc' },
+        take,
+        select: {
+          userId: true,
+          historySeq: true,
+          eventType: true,
+          eventAt: true,
+          loginId: true,
+          accountStatusCode: true,
+          loginFailCount: true,
+          lockedUntil: true,
+          updatedBy: true,
+          lastSource: true,
+          lastActivity: true,
+          transactionId: true,
+        },
+      }),
+      this.db.client.userSessionHistory.findMany({
+        orderBy: { eventAt: 'desc' },
+        take,
+        select: {
+          sessionId: true,
+          historySeq: true,
+          eventType: true,
+          eventAt: true,
+          userId: true,
+          issuedApp: true,
+          revokedAt: true,
+          revokeReason: true,
+          updatedBy: true,
+          lastSource: true,
+          lastActivity: true,
+          transactionId: true,
+        },
+      }),
+      this.db.client.organizationHistory.findMany({
+        orderBy: { eventAt: 'desc' },
+        take,
+        select: {
+          orgId: true,
+          historySeq: true,
+          eventType: true,
+          eventAt: true,
+          orgCode: true,
+          orgName: true,
+          isActive: true,
+          updatedBy: true,
+          lastSource: true,
+          lastActivity: true,
+          transactionId: true,
+        },
+      }),
+      this.db.client.rolePermissionHistory.findMany({
+        orderBy: { eventAt: 'desc' },
+        take,
+        select: {
+          rolePermissionId: true,
+          historySeq: true,
+          eventType: true,
+          eventAt: true,
+          roleId: true,
+          permissionId: true,
+          isActive: true,
+          updatedBy: true,
+          lastSource: true,
+          lastActivity: true,
+          transactionId: true,
+        },
+      }),
+    ]);
+
+    const events = [
+      ...users.map((item) => ({
+        id: `user:${item.userId}:${item.historySeq}`,
+        category: 'user',
+        eventType: item.eventType,
+        eventAt: item.eventAt,
+        subjectId: item.userId.toString(),
+        summary: `${item.userName} · role ${item.roleCode} · ${item.isActive ? 'active' : 'inactive'}`,
+        operatorUserId: item.updatedBy?.toString() ?? null,
+        source: item.lastSource,
+        activity: item.lastActivity,
+        transactionId: item.transactionId,
+      })),
+      ...authAccounts.map((item) => ({
+        id: `auth:${item.userId}:${item.historySeq}`,
+        category: 'auth-account',
+        eventType: item.eventType,
+        eventAt: item.eventAt,
+        subjectId: item.userId.toString(),
+        summary: `${item.loginId} · ${item.accountStatusCode} · failures ${item.loginFailCount}${item.lockedUntil ? ' · locked' : ''}`,
+        operatorUserId: item.updatedBy?.toString() ?? null,
+        source: item.lastSource,
+        activity: item.lastActivity,
+        transactionId: item.transactionId,
+      })),
+      ...sessions.map((item) => ({
+        id: `session:${item.sessionId}:${item.historySeq}`,
+        category: 'session',
+        eventType: item.eventType,
+        eventAt: item.eventAt,
+        subjectId: item.userId.toString(),
+        summary: `${item.issuedApp} · ${item.revokedAt ? `revoked (${item.revokeReason ?? '-'})` : 'active'}`,
+        operatorUserId: item.updatedBy?.toString() ?? null,
+        source: item.lastSource,
+        activity: item.lastActivity,
+        transactionId: item.transactionId,
+      })),
+      ...organizations.map((item) => ({
+        id: `organization:${item.orgId}:${item.historySeq}`,
+        category: 'organization',
+        eventType: item.eventType,
+        eventAt: item.eventAt,
+        subjectId: item.orgId.toString(),
+        summary: `${item.orgName} (${item.orgCode}) · ${item.isActive ? 'active' : 'inactive'}`,
+        operatorUserId: item.updatedBy?.toString() ?? null,
+        source: item.lastSource,
+        activity: item.lastActivity,
+        transactionId: item.transactionId,
+      })),
+      ...rolePermissions.map((item) => ({
+        id: `role-permission:${item.rolePermissionId}:${item.historySeq}`,
+        category: 'role-permission',
+        eventType: item.eventType,
+        eventAt: item.eventAt,
+        subjectId: item.rolePermissionId.toString(),
+        summary: `role ${item.roleId} · permission ${item.permissionId} · ${item.isActive ? 'granted' : 'revoked'}`,
+        operatorUserId: item.updatedBy?.toString() ?? null,
+        source: item.lastSource,
+        activity: item.lastActivity,
+        transactionId: item.transactionId,
+      })),
+    ];
+    return events
+      .sort((left, right) => right.eventAt.getTime() - left.eventAt.getTime())
+      .slice(0, take)
+      .map((event) => ({ ...event, eventAt: event.eventAt.toISOString() }));
+  }
+
 
   private resolvePermissionOwner(appCode: string): PermissionCatalogOwner {
     switch (appCode) {
@@ -217,7 +515,11 @@ export class AccessOperationsService {
     owner: PermissionCatalogOwner,
     permissionCode: string,
   ): PermissionCatalogStatus {
-    if (owner === 'admin-platform' || owner === 'dms') {
+    if (
+      owner === 'admin-platform'
+      || owner === 'dms'
+      || (owner === 'crm' && CRM_LAUNCH_ACTIVE_PERMISSION_CODES.has(permissionCode))
+    ) {
       return 'launch-active';
     }
     if (permissionCode.startsWith('pms.') || permissionCode.startsWith('sns.')) {
@@ -247,7 +549,16 @@ export class AccessOperationsService {
     if (owner === 'pms') return 'PMS > 프로젝트/코드/멤버 관리 (개발 진행 중)';
     if (owner === 'sns') return 'SNS > 피드/프로필/소셜 (개발 진행 중)';
     if (owner === 'cms') return 'CMS/SNS legacy 권한 vocabulary (정리 예정)';
-    if (owner === 'crm') return 'CRM > 영업/계약 운영 (개발 진행 중)';
+    if (owner === 'crm') {
+      if (permissionCode.includes('quote-settings') || permissionCode.includes('settings')) return 'CRM > 환경설정 / Admin > 역할 & 권한';
+      if (permissionCode.includes('operations')) return 'CRM > 운영센터 / Admin > 역할 & 권한';
+      if (permissionCode.includes('contract')) return 'CRM > 계약 / 계약대비실적';
+      if (permissionCode.includes('business-plan')) return 'CRM > 사업계획 / 사업계획대비실적';
+      if (permissionCode.includes('cost-plan')) return 'CRM > 내부원가 / AMS';
+      if (permissionCode.includes('report')) return 'CRM > 영업보고';
+      if (permissionCode.includes('customer')) return 'CRM > 고객 / 고객활동';
+      return 'CRM > 영업기회 / 대시보드';
+    }
     return '미분류';
   }
 
@@ -258,6 +569,9 @@ export class AccessOperationsService {
     if (owner === 'dms') {
       return 'DMS 문서 도메인 내부의 설정·제어·운영. Admin은 read-only 관측/링크만 제공.';
     }
+    if (owner === 'crm') {
+      return 'CRM 영업·계약·계획·원가·보고 도메인 action을 CRM API guard와 UI access snapshot으로 집행. Admin은 부여·감사 surface를 소유.';
+    }
     return '앱별 도메인 운영 surface에서 구현/노출해야 하는 foundation permission.';
   }
 
@@ -267,6 +581,9 @@ export class AccessOperationsService {
     }
     if (owner === 'dms') {
       return 'DMS 런칭 대상. 문서 ACL, 요청/승인, 저장소/Git/검색/템플릿 기능으로 실제 동작 검증 대상이다.';
+    }
+    if (owner === 'crm' && CRM_LAUNCH_ACTIVE_PERMISSION_CODES.has(permissionCode)) {
+      return 'CRM 런칭 active permission. roleCode 표시는 보존하지만 판정은 공용 permission resolution 결과를 사용한다.';
     }
     return `${permissionCode.split('.')[0].toUpperCase()} 앱 개발 진행에 맞춰 메뉴/기능 검증을 이어갈 항목이다.`;
   }
@@ -294,8 +611,8 @@ export class AccessOperationsService {
       {
         owner: 'crm',
         title: 'CRM / Customer-sales domain',
-        responsibility: '영업/계약/청구 도메인 권한. 현재 개발 진행 중',
-        launchFocus: false,
+        responsibility: '영업/계약/청구/계획/원가/보고와 CRM 설정·운영 action. CRM API guard와 access snapshot으로 집행',
+        launchFocus: true,
       },
       {
         owner: 'sns',

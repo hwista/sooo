@@ -136,6 +136,8 @@ export function AuthUserMenu({
       <DropdownMenuPrimitive.Trigger asChild>
         <Button variant="plain" size="plain"
           type="button"
+          aria-label="사용자 메뉴"
+          title={`${displayName} 사용자 메뉴`}
           className="flex h-control-h cursor-pointer items-center gap-1.5 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 px-2 text-sm text-primary-foreground transition-colors hover:bg-primary-foreground/20"
         >
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-foreground/20">

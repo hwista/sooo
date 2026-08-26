@@ -1,0 +1,94 @@
+{
+  "title": "회사 정보",
+  "sections": [
+    "회사 정보"
+  ],
+  "fields": [
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "회사명 *",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "대표이사",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "사업자번호",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "회사 주소",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "대표 전화",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "팩스",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "웹사이트",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": null,
+      "name": null,
+      "type": "input",
+      "label": "CI 이미지 경로",
+      "placeholder": null,
+      "disabled": false,
+      "readOnly": false
+    }
+  ],
+  "columns": [],
+  "actions": [
+    "저장"
+  ],
+  "labels": [
+    "회사명 *",
+    "대표이사",
+    "사업자번호",
+    "회사 주소",
+    "대표 전화",
+    "팩스",
+    "웹사이트",
+    "CI 이미지 경로"
+  ]
+}

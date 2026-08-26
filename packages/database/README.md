@@ -346,6 +346,7 @@ psql -U appuser -d appdb -f prisma/triggers/apply_all_triggers.sql
 2. `@@schema("common")` 또는 `@@schema("pms")` 지시어 확인
 3. Prisma 클라이언트 재생성: `pnpm db:generate`
 4. 폐기 가능한 로컬 DB의 임시 실험은 `pnpm db:push:unsafe-local`, 새 DB/launch-managed DB 배포는 `pnpm db:migrate:deploy`
+   - 보존 중인 pre-baseline dev volume에도 필요한 비파괴 변경이면 `prisma/compat/`에서 canonical launch migration을 `\ir`로 참조하는 compatibility bridge를 함께 둡니다.
 5. 필요시 트리거/시드 파일에 스키마 prefix 반영
 6. 필요시 `@ssoo/types`에 해당 타입 추가
 
@@ -357,6 +358,7 @@ psql -U appuser -d appdb -f prisma/triggers/apply_all_triggers.sql
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-20 | `dm_user_document_activity_m/_h`와 trigger를 추가해 DMS 사용자별 성공 문서 열람을 감사 가능한 홈 최근 문서 정본으로 저장 |
 | 2026-07-22 | 운영 strict baseline mode, 실제 DB release-ready verifier, DB 계약 테스트, local-only db push 경계 추가 |
 | 2026-07-20 | launch migration 정본, 일회용 baseline verifier, zero-drift baseline resolve 절차 추가 |
 | 2026-04-21 | `dm_document_comment_m` 및 대응 history table/trigger를 추가해 DMS `comments/discussion` metadata 의 canonical relation 분리를 시작 |

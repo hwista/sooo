@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import type { Prisma } from '@ssoo/database';
 import { DatabaseService } from '../../../database/database.service.js';
 import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.js';
@@ -12,6 +12,7 @@ import { personalSettingsService } from '../runtime/personal-settings.service.js
 import { normalizePath } from '../runtime/path-utils.js';
 import type {
   TemplateGeneration,
+  TemplateDocxBinary,
   TemplateItem,
   TemplateOriginType,
   TemplateReferenceDoc,
@@ -22,6 +23,7 @@ import type {
   TemplateVisibility,
 } from '@ssoo/types/dms';
 import type { TemplateMetadataRecord } from './template.types.js';
+import { assertValidDocxTemplate, createDocxTemplateFromText } from './docx-template-renderer.js';
 
 function getTemplateRoot(): string {
   return configService.getTemplateDir();
@@ -170,6 +172,32 @@ function normalizeGeneration(value: unknown): TemplateGeneration | undefined {
   };
 }
 
+function normalizeDocxTemplate(value: unknown): TemplateDocxBinary | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const fileName = normalizeOptionalString(value.fileName);
+  const sourcePath = normalizeOptionalString(value.sourcePath);
+  const checksum = normalizeOptionalString(value.checksum);
+  const uploadedAt = normalizeOptionalString(value.uploadedAt);
+  const uploadedBy = normalizeOptionalString(value.uploadedBy);
+  const size = typeof value.size === 'number' && Number.isFinite(value.size) && value.size >= 0
+    ? value.size
+    : null;
+  if (!fileName || !sourcePath || !checksum || !uploadedAt || !uploadedBy || size === null) {
+    return undefined;
+  }
+  return {
+    fileName,
+    sourcePath: normalizePath(sourcePath),
+    size,
+    checksum,
+    uploadedAt,
+    uploadedBy,
+    origin: value.origin === 'uploaded' ? 'uploaded' : 'generated',
+  };
+}
+
 function normalizeTemplateReviewStatus(value: unknown): TemplateReviewConfirmation['status'] {
   return value === 'confirmed' ? 'confirmed' : 'pending';
 }
@@ -222,8 +250,32 @@ function getTemplateRelativePath(scope: TemplateScope, id: string): string {
   return normalizePath(path.join(scope === 'global' ? 'system' : 'personal', `${id}.md`));
 }
 
+function getTemplateDocxRelativePath(scope: TemplateScope, id: string): string {
+  const safeId = id.trim().replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^\.+/, '') || 'template';
+  return normalizePath(path.join(scope === 'global' ? 'system' : 'personal', `${safeId}.docx`));
+}
+
 function getTemplateAbsolutePath(relativePath: string): string {
   return path.join(getTemplateRoot(), relativePath);
+}
+
+function toDocxTemplateMetadata(input: {
+  buffer: Buffer;
+  fileName: string;
+  sourcePath: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  origin: TemplateDocxBinary['origin'];
+}): TemplateDocxBinary {
+  return {
+    fileName: input.fileName,
+    sourcePath: normalizePath(input.sourcePath),
+    size: input.buffer.length,
+    checksum: crypto.createHash('sha256').update(input.buffer).digest('hex'),
+    uploadedAt: input.uploadedAt,
+    uploadedBy: input.uploadedBy,
+    origin: input.origin,
+  };
 }
 
 function normalizeMetadataRecord(
@@ -255,6 +307,7 @@ function normalizeMetadataRecord(
     referenceDocuments: normalizeReferenceDocuments(value.referenceDocuments),
     generation: normalizeGeneration(value.generation),
     reviewConfirmation: normalizeTemplateReviewConfirmation(value.reviewConfirmation),
+    docxTemplate: normalizeDocxTemplate(value.docxTemplate),
   };
 }
 
@@ -346,6 +399,56 @@ const DEFAULT_SYSTEM_TEMPLATES: Array<Omit<TemplateItem, 'updatedAt'>> = [
     originType: 'referenced',
     referenceDocuments: [],
     generation: { source: 'manual', taskKey: 'crm-contract-document' },
+  },
+  {
+    id: 'crm-opportunity-contract-v1',
+    name: 'CRM 영업기회 계약서 원천 호환 템플릿',
+    description: '확정 영업기회와 원천 데모의 한글 22개 변수로 DOCX 계약서를 생성하는 DMS 시스템 템플릿',
+    scope: 'global',
+    kind: 'document',
+    content: `# 소프트웨어 개발 용역 계약서
+
+작성일: {작성일}
+
+## 공급자 (갑)
+
+- 회사명: {공급자_회사명}
+- 대표자: {공급자_대표자}
+- 사업자등록번호: {공급자_사업자번호}
+- 주소: {공급자_주소}
+- 전화: {공급자_전화}
+
+## 발주처 (을)
+
+- 회사명: {고객사명}
+
+## 계약 내용
+
+- 건명: {건명}
+- 사업구분: {사업구분}
+- 계약 시작일: {계약시작일}
+- 계약 종료일: {계약종료일}
+- 계약기간: {계약기간}
+- 계약년도: {계약년도}
+- 계약금액: 금 {계약금액_한글} ({계약금액}원, 부가세 별도)
+- 외부원가: {외부원가}원
+- 순이익: {순이익}원
+- 수금조건: {수금조건}
+
+## 담당자
+
+- 성명: {담당자명}
+- 부서: {담당자부서}
+- 연락처: {담당자연락처}
+- 이메일: {담당자이메일}
+`,
+    ownerId: 'system',
+    visibility: 'shared',
+    status: 'active',
+    sourceType: 'markdown-file',
+    originType: 'referenced',
+    referenceDocuments: [],
+    generation: { source: 'manual', taskKey: 'crm-opportunity-contract-document' },
   },
   {
     id: 'crm-quote-v1',
@@ -727,8 +830,27 @@ export class TemplateService {
 
       const existing = await this.findTemplateRowByRelativePath(relativePath)
         ?? await this.findTemplateRow(template.id, 'global', 'system');
-      if (existing) {
-        continue;
+      const existingMetadata = normalizeMetadataRecord(existing?.metadataJson);
+      let docxTemplate = existingMetadata?.docxTemplate;
+      let docxMetadataNeedsUpdate = false;
+      if (template.kind === 'document') {
+        const docxRelativePath = docxTemplate?.sourcePath
+          ?? getTemplateDocxRelativePath('global', template.id);
+        const docxAbsolutePath = getTemplateAbsolutePath(docxRelativePath);
+        if (!docxTemplate || !fs.existsSync(docxAbsolutePath)) {
+          const buffer = createDocxTemplateFromText(fs.readFileSync(absolutePath, 'utf-8'));
+          ensureDir(path.dirname(docxAbsolutePath));
+          fs.writeFileSync(docxAbsolutePath, buffer);
+          docxTemplate = toDocxTemplateMetadata({
+            buffer,
+            fileName: path.basename(docxRelativePath),
+            sourcePath: docxRelativePath,
+            uploadedAt: new Date(0).toISOString(),
+            uploadedBy: 'system',
+            origin: 'generated',
+          });
+          docxMetadataNeedsUpdate = true;
+        }
       }
 
       const createdAt = new Date(0).toISOString();
@@ -741,13 +863,27 @@ export class TemplateService {
           createdAt,
           author: 'system',
           lastModifiedBy: 'system',
+          docxTemplate,
         },
-        null,
+        existingMetadata,
         'system',
-        createdAt,
-        createdAt,
+        existingMetadata?.createdAt ?? createdAt,
+        existingMetadata?.updatedAt ?? createdAt,
         'system',
       );
+      if (existing) {
+        if (docxTemplate && docxMetadataNeedsUpdate) {
+          await this.db.client.dmsTemplate.update({
+            where: { templateId: existing.templateId },
+            data: {
+              metadataJson: JSON.parse(JSON.stringify(metadata)) as Prisma.InputJsonValue,
+              lastSource: TEMPLATE_LAST_SOURCE,
+              lastActivity: 'dms.templates.ensure-default-docx',
+            },
+          });
+        }
+        continue;
+      }
       await this.db.client.dmsTemplate.create({
         data: {
           templateKey: template.id,
@@ -970,6 +1106,22 @@ export class TemplateService {
     const existingMetadata = normalizeMetadataRecord(existing?.metadataJson);
     const author = resolveAuthor(requestAuthor);
     const createdAt = template.createdAt ?? existingMetadata?.createdAt ?? now;
+    let docxTemplate = existingMetadata?.docxTemplate;
+    if (template.kind === 'document' && (!docxTemplate || docxTemplate.origin === 'generated')) {
+      const docxRelativePath = docxTemplate?.sourcePath ?? getTemplateDocxRelativePath(scope, nextId);
+      const docxAbsolutePath = getTemplateAbsolutePath(docxRelativePath);
+      const buffer = createDocxTemplateFromText(template.content);
+      ensureDir(path.dirname(docxAbsolutePath));
+      fs.writeFileSync(docxAbsolutePath, buffer);
+      docxTemplate = toDocxTemplateMetadata({
+        buffer,
+        fileName: path.basename(docxRelativePath),
+        sourcePath: docxRelativePath,
+        uploadedAt: now,
+        uploadedBy: author,
+        origin: 'generated',
+      });
+    }
     const metadata = this.buildMetadataRecord(
       {
         ...template,
@@ -978,6 +1130,7 @@ export class TemplateService {
         kind: template.kind,
         name: template.name,
         content: template.content,
+        docxTemplate,
       },
       existingMetadata,
       ownerRef,
@@ -1046,7 +1199,96 @@ export class TemplateService {
       referenceDocuments: metadata.referenceDocuments,
       generation: metadata.generation,
       reviewConfirmation: metadata.reviewConfirmation,
+      docxTemplate: metadata.docxTemplate,
     };
+  }
+
+  async saveDocxBinary(
+    id: string,
+    scope: TemplateScope,
+    userId: string,
+    input: { buffer: Buffer; originalName: string },
+    currentUser: TokenPayload,
+  ): Promise<TemplateItem> {
+    await this.ensureRoots();
+    if (!input.originalName.toLowerCase().endsWith('.docx')) {
+      throw new BadRequestException('.docx 파일만 템플릿 binary로 업로드할 수 있습니다.');
+    }
+    try {
+      assertValidDocxTemplate(input.buffer);
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : '유효하지 않은 DOCX 템플릿입니다.');
+    }
+
+    const ownerRef = resolveOwnerRef(scope, userId);
+    const row = await this.findTemplateRow(id, scope, ownerRef);
+    if (!row) {
+      throw new BadRequestException('DOCX binary를 연결할 DMS 템플릿을 찾을 수 없습니다.');
+    }
+    const template = this.toTemplateItem(row);
+    if (!template || template.kind !== 'document') {
+      throw new BadRequestException('문서 템플릿에만 DOCX binary를 연결할 수 있습니다.');
+    }
+
+    const relativePath = getTemplateDocxRelativePath(scope, id);
+    const absolutePath = getTemplateAbsolutePath(relativePath);
+    ensureDir(path.dirname(absolutePath));
+    fs.writeFileSync(absolutePath, input.buffer);
+    const now = new Date().toISOString();
+    const actor = currentUser.loginId?.trim() || currentUser.userId.trim() || ownerRef;
+    const docxTemplate = toDocxTemplateMetadata({
+      buffer: input.buffer,
+      fileName: input.originalName.trim() || path.basename(relativePath),
+      sourcePath: relativePath,
+      uploadedAt: now,
+      uploadedBy: actor,
+      origin: 'uploaded',
+    });
+    const existingMetadata = normalizeMetadataRecord(row.metadataJson);
+    const metadata: TemplateMetadataRecord = {
+      ...(existingMetadata ?? this.buildMetadataRecord(
+        { ...template, id: template.id },
+        null,
+        ownerRef,
+        template.createdAt ?? row.createdAt.toISOString(),
+        template.updatedAt,
+        actor,
+      )),
+      updatedAt: now,
+      lastModifiedBy: actor,
+      docxTemplate,
+    };
+    const updated = await this.db.client.dmsTemplate.update({
+      where: { templateId: row.templateId },
+      data: {
+        metadataJson: JSON.parse(JSON.stringify(metadata)) as Prisma.InputJsonValue,
+        lastSource: TEMPLATE_LAST_SOURCE,
+        lastActivity: 'dms.templates.docx-upload',
+      },
+      select: this.templateRowSelect(),
+    });
+    return this.toTemplateItem(updated, template.content) ?? { ...template, updatedAt: now, docxTemplate };
+  }
+
+  readDocxBinary(template: TemplateItem): Buffer {
+    const binary = template.docxTemplate;
+    if (!binary) {
+      throw new BadRequestException(`DMS 템플릿 ${template.id}에 실제 DOCX binary가 없습니다.`);
+    }
+    const absoluteRoot = path.resolve(getTemplateRoot());
+    const absolutePath = path.resolve(getTemplateAbsolutePath(binary.sourcePath));
+    if (absolutePath !== absoluteRoot && !absolutePath.startsWith(`${absoluteRoot}${path.sep}`)) {
+      throw new BadRequestException('DOCX 템플릿 경로가 DMS template root를 벗어납니다.');
+    }
+    if (!fs.existsSync(absolutePath)) {
+      throw new BadRequestException(`DOCX 템플릿 binary를 찾을 수 없습니다: ${binary.sourcePath}`);
+    }
+    const buffer = fs.readFileSync(absolutePath);
+    const checksum = crypto.createHash('sha256').update(buffer).digest('hex');
+    if (checksum !== binary.checksum) {
+      throw new BadRequestException(`DOCX 템플릿 checksum이 registry와 일치하지 않습니다: ${binary.sourcePath}`);
+    }
+    return buffer;
   }
 
   async remove(
@@ -1060,10 +1302,18 @@ export class TemplateService {
     const ownerRef = resolveOwnerRef(scope, userId);
     const row = await this.findTemplateRow(id, scope, ownerRef);
     const absolutePath = getTemplateAbsolutePath(getTemplateRelativePath(scope, id));
+    const metadata = normalizeMetadataRecord(row?.metadataJson);
+    const docxAbsolutePath = metadata?.docxTemplate
+      ? getTemplateAbsolutePath(metadata.docxTemplate.sourcePath)
+      : getTemplateAbsolutePath(getTemplateDocxRelativePath(scope, id));
 
     let removed = false;
     if (fs.existsSync(absolutePath)) {
       fs.unlinkSync(absolutePath);
+      removed = true;
+    }
+    if (fs.existsSync(docxAbsolutePath)) {
+      fs.unlinkSync(docxAbsolutePath);
       removed = true;
     }
 
@@ -1179,6 +1429,7 @@ export class TemplateService {
       referenceDocuments: metadata?.referenceDocuments ?? [],
       generation: metadata?.generation,
       reviewConfirmation: metadata?.reviewConfirmation,
+      docxTemplate: metadata?.docxTemplate,
     };
   }
 
@@ -1219,6 +1470,7 @@ export class TemplateService {
       reviewConfirmation: normalizeTemplateReviewConfirmation(
         template.reviewConfirmation ?? existing?.reviewConfirmation,
       ),
+      docxTemplate: normalizeDocxTemplate(template.docxTemplate ?? existing?.docxTemplate),
     };
   }
 }

@@ -4,6 +4,7 @@ import type {
   SettingsScope,
 } from '@/types/settings';
 import type { DmsCrmContractApprovalRoutePolicy, DmsCrmContractExportPolicy } from '@ssoo/types/dms';
+import type { LaunchReadinessSnapshot } from '@ssoo/types/common';
 import type { GitSyncStatusClient } from './collaborationApi';
 import { request, type ApiResponse } from './core';
 
@@ -15,15 +16,15 @@ export interface DmsSystemConfigClient {
     autoInit: boolean;
   };
   storage: {
-    defaultProvider: 'local' | 'sharepoint' | 'nas';
+    defaultProvider: 'local' | 'nas';
     local: { enabled: boolean; basePath: string; webBaseUrl?: string };
-    sharepoint: { enabled: boolean; basePath: string; webBaseUrl?: string };
     nas: { enabled: boolean; basePath: string; webBaseUrl?: string };
   };
   ingest: {
     queuePath: string;
     autoPublish: boolean;
     maxConcurrentJobs: number;
+    retentionDays: number;
   };
   templates: {
     rootPath: string;
@@ -64,7 +65,7 @@ export interface DmsPersonalSettingsClient {
   };
   workspace: {
     defaultSettingsScope: SettingsScope;
-    preferredStorageProvider: 'system-default' | 'local' | 'sharepoint' | 'nas';
+    preferredStorageProvider: 'system-default' | 'local' | 'nas';
   };
   viewer: {
     defaultZoom: number;
@@ -76,6 +77,9 @@ export interface DmsPersonalSettingsClient {
       fileTree: boolean;
       changes: boolean;
     };
+  };
+  home: {
+    lastSeenAt?: string;
   };
 }
 
@@ -161,6 +165,12 @@ export interface SettingsRuntimePathClient {
   effectiveInput: string;
   resolvedPath: string;
   exists: boolean;
+  isDirectory: boolean;
+  readable: boolean;
+  writable: boolean;
+  required: boolean;
+  status: 'ready' | 'blocked' | 'not-required';
+  reason?: string;
   relativeToAppRoot: boolean;
   source: 'config' | 'env';
   envVar?: string;
@@ -171,16 +181,30 @@ export interface SettingsRuntimePathsClient {
   ingestQueue: SettingsRuntimePathClient;
   storageRoots: {
     local: SettingsRuntimePathClient;
-    sharepoint: SettingsRuntimePathClient;
     nas: SettingsRuntimePathClient;
   };
   /** 템플릿 경로 — markdownRoot/_templates 에서 파생 (read-only) */
   templateDir: string;
+  template: SettingsRuntimePathClient;
+}
+
+export interface DmsRuntimeReadinessCheckClient {
+  key: 'database' | 'settings-persistence' | 'git-binding' | 'control-plane' | 'markdown-root' | 'ingest-queue' | 'storage-local' | 'storage-nas' | 'template-root';
+  label: string;
+  status: 'ready' | 'degraded' | 'blocked';
+  reason: string;
+}
+
+export interface DmsRuntimeReadinessClient extends LaunchReadinessSnapshot {
+  owner: 'dms';
+  source: 'dms.settings.live-probe';
+  checks: DmsRuntimeReadinessCheckClient[];
 }
 
 export interface SettingsRuntimeClient {
   git: SettingsRuntimeGitClient;
   paths: SettingsRuntimePathsClient;
+  readiness: DmsRuntimeReadinessClient;
 }
 
 export interface SettingsResponse {

@@ -4,4 +4,6 @@ services:
       # The local full-stack uses production builds on localhost. This bypass is
       # intentionally confined to the explicit local overlay.
       AUTH_ALLOW_INSECURE_PRODUCTION_DEFAULTS: "true"
-      DMS_INSTANCE_ENV: ${DMS_INSTANCE_ENV:-dev}
+      # Literal bindings prevent the root .env from changing the local role.
+      DMS_INSTANCE_ENV: "dev"
+      DMS_GIT_BOOTSTRAP_REMOTE_URL: ""

@@ -204,7 +204,7 @@ pnpm docker:up
 pnpm db:setup
 ```
 
-`pnpm docker:*`는 `compose.yaml + compose.local.yaml`을 명시적으로 사용합니다. 로컬 Next/Nest production build가 localhost 개발값으로 실행될 수 있도록 인증 hardening bypass를 로컬 오버레이에만 격리합니다. 공개 배포에는 이 명령을 사용하지 않습니다.
+`pnpm docker:*`는 `compose.yaml + compose.local.yaml`을 명시적으로 사용합니다. 공통 base는 DMS 역할을 소유하지 않고, 로컬 overlay가 root `.env`와 무관하게 `DMS_INSTANCE_ENV=dev`를 강제합니다. 이 `dev` 경로가 기존 개발 DB·문서로 실제 배포 후보를 확인하는 사용자 인수 테스트와 로컬 Docker 인계의 정본입니다. Playwright/Ralph, 실패주입, mutation 회귀만 remote-empty와 PostgreSQL·문서 runtime 전용 named volume을 사용하는 `pnpm run docker:local-test:up`을 사용하며, 검증이 끝나면 `pnpm docker:up`으로 `dev`를 복구한 뒤 인계합니다. 로컬 Next/Nest production build가 localhost 개발값으로 실행될 수 있도록 인증 hardening bypass를 로컬 오버레이에만 격리합니다. 공개 배포에는 이 명령을 사용하지 않습니다.
 
 조직 TLS 프록시가 dependency/Prisma 바이너리 다운로드를 중계하는 환경은 root `.env`에 보안팀이 승인한 PEM의 절대 경로만 설정합니다. Compose는 CA를 이미지 layer나 일반 환경변수에 복사하지 않고 7개 이미지의 BuildKit secret으로 전달하며, runtime secret은 outbound Node TLS가 필요한 server/db-init에만 mount합니다. 각 deps stage는 전체 workspace manifest를 먼저 복사한 뒤 대상만 filtered install하고, pnpm store와 lockfile-keyed verification metadata는 각각 `sharing=locked` BuildKit cache로 공유합니다. 이 구조는 pnpm 11의 pre-run dependency 상태 검사와 최초 supply-chain verification을 유지하면서 검증된 동일 lockfile의 반복 registry 조회와 tarball 다운로드만 줄입니다.
 
@@ -354,7 +354,9 @@ node ./node_modules/next/dist/bin/next dev --port 3002
 | `pnpm dev` | 전체 개발 서버 실행 |
 | `pnpm build` | 전체 빌드 |
 | `pnpm lint` | 전체 린트 검사 |
-| `pnpm docker:up` | 전체 Docker 스택 빌드 + 실행 |
+| `pnpm docker:up` | dev 사용자 인수 테스트/로컬 Docker 인계용 전체 스택 빌드 + 실행 |
+| `pnpm run dms:git-http-auth:prepare` | HTTPS 문서 remote용 mode `0600` Docker credential secret 생성 |
+| `pnpm run docker:local-test:up` | Playwright/Ralph·실패주입 전용 격리 스택 실행(사용자 인계 금지) |
 | `pnpm docker:build` | 전체 Docker 이미지 빌드 |
 | `pnpm docker:ps` | Docker 서비스 상태 확인 |
 | `pnpm docker:logs` | Docker 로그 확인 |

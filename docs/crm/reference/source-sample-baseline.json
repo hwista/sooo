@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "counts": {
+    "opportunityGroups": 6,
+    "opportunityVersions": 7,
+    "opportunityLines": 53,
+    "contracts": 5,
+    "contractLines": 44,
+    "billingPlans": 35,
+    "billingActuals": 5
+  },
+  "sha256": {
+    "opportunities": "e17fe2827756681f0acc01f2a907625873d9a3f3a2d8bc327076abcf9491d4ad",
+    "opportunityLines": "7a1c8d1c99a3f9a5a618bd28d3ec036ae97cbdd8847b0e08d7a809ac61cca8ac",
+    "contracts": "27c7f89dfbc2029ae513a66db8f56327e77fbe2538242aad2271d710a80a67f7",
+    "contractLines": "3a70dd3be9ee8b1af0f24cd6abc674c2678a54a70746bd89d0026a6cd7465482",
+    "billingPlans": "056dfa1ff8aafc3cb5d3d1215212e9040d40b2242a04abc7894f35695e980826",
+    "billingActuals": "b6c9171b151a4f04600191a4be832239fe88bfb43aa69a4722a815e1f300807c",
+    "combined": "f7a68541eca3ad5e7876eaf5b4a27628e802d5d1126498b872fd42a6df83f713"
+  }
+}

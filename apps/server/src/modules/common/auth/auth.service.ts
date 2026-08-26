@@ -8,7 +8,8 @@ import { AccessFoundationService } from '../access/access-foundation.service.js'
 import { UserService } from '../user/user.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { type AuthUserRecord, type AuthTokens, type TokenPayload } from './interfaces/auth.interface.js';
-import { getRequiredJwtExpiry, getRequiredJwtSecret } from './jwt-config.js';
+import { getRequiredJwtExpiry, getRequiredJwtSecret, isSessionIdle } from './jwt-config.js';
+import type { ChangePasswordDto } from './dto/change-password.dto.js';
 
 interface AuthSessionContext {
   issuedApp?: string;
@@ -61,6 +62,56 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
+  }
+
+  async changePassword(userId: bigint, sessionId: string | undefined, dto: ChangePasswordDto) {
+    const authUser = await this.userService.findAuthUserById(userId);
+    if (!authUser || !authUser.isActive || authUser.accountStatusCode !== 'active') {
+      throw new UnauthorizedException('활성 로그인 계정을 찾을 수 없습니다.');
+    }
+
+    const currentMatches = await bcrypt.compare(dto.currentPassword, authUser.passwordHash);
+    if (!currentMatches) {
+      throw new UnauthorizedException('현재 비밀번호가 올바르지 않습니다.');
+    }
+    if (await bcrypt.compare(dto.newPassword, authUser.passwordHash)) {
+      throw new UnauthorizedException('새 비밀번호는 현재 비밀번호와 달라야 합니다.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 12);
+    const now = new Date();
+    const result = await this.db.client.$transaction(async (tx) => {
+      await tx.userAuth.update({
+        where: { userId },
+        data: {
+          passwordHash,
+          loginFailCount: 0,
+          lockedUntil: null,
+          updatedBy: userId,
+          lastSource: 'shared-account-center',
+          lastActivity: 'auth.password.change-own',
+        },
+      });
+
+      const revoked = await tx.userSession.updateMany({
+        where: {
+          userId,
+          revokedAt: null,
+          ...(sessionId ? { sessionId: { not: sessionId } } : {}),
+        },
+        data: {
+          revokedAt: now,
+          revokeReason: 'password-changed-by-user',
+          updatedBy: userId,
+          lastSource: 'shared-account-center',
+          lastActivity: 'auth.password.revoke-other-sessions',
+        },
+      });
+
+      return revoked.count;
+    });
+
+    return { changed: true, revokedOtherSessionCount: result };
   }
 
   private async persistSession(
@@ -231,6 +282,18 @@ export class AuthService {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
 
+    if (isSessionIdle(this.configService, session.lastSeenAt, session.createdAt)) {
+      await this.db.client.userSession.updateMany({
+        where: { sessionId, revokedAt: null },
+        data: {
+          revokedAt: new Date(),
+          revokeReason: 'idle-timeout',
+          lastActivity: 'auth.session.idle-timeout',
+        },
+      });
+      throw new UnauthorizedException('30분 동안 활동이 없어 세션이 만료되었습니다. 다시 로그인하세요.');
+    }
+
     const isRefreshTokenValid = await bcrypt.compare(refreshToken, session.sessionTokenHash);
     if (!isRefreshTokenValid) {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
@@ -336,6 +399,7 @@ export class AuthService {
         || session.userId !== userId
         || session.revokedAt
         || session.expiresAt < new Date()
+        || isSessionIdle(this.configService, session.lastSeenAt, session.createdAt)
       ) {
         return null;
       }

@@ -1,28 +1,34 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, CheckCircle2, Copy, RefreshCw, RotateCcw, Save, Search } from 'lucide-react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertCircle, CheckCircle2, Copy, Plus, RefreshCw, RotateCcw, Save, Search, Trash2 } from 'lucide-react';
 import type {
   CrmBusinessPlan,
-  CrmBusinessPlanLine,
   CrmBusinessPlanListResponse,
-  CrmBusinessPlanMonthlyPlanInputResult,
-  CrmBusinessPlanPreviewQuery,
   CrmBusinessPlanPreviewRegion,
   CrmBusinessPlanPreviewResponse,
   CrmBusinessPlanPreviewRow,
   CrmBusinessPlanPreviewYear,
 } from '@ssoo/types/crm';
 import { Badge, Button, Input, NativeSelect, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import { useAuthStore } from '@/stores/auth.store';
+import { useCrmBusinessYearOptions } from '@/lib/crmCommonCodeOptions';
+import { useCrmDomainAccess } from '@/lib/useCrmDomainAccess';
+import {
+  normalizeBusinessPlanPreviewQuery,
+  toRequiredBusinessPlanPreviewQuery,
+  type BusinessPlanPreviewWorkspaceQuery,
+} from './businessPlanPreviewQuery';
+import {
+  applyBusinessPlanGridPaste,
+  createEmptyBusinessPlanGridDraft,
+  toBusinessPlanGridDraft,
+  toBusinessPlanRowRequest,
+  type BusinessPlanGridDraft,
+} from './businessPlanGrid';
 
-export interface BusinessPlanPreviewWorkspaceQuery {
-  baseYear: number;
-  businessType: string;
-  industryLine: string;
-  region: CrmBusinessPlanPreviewRegion;
-  search: string;
-}
+export { normalizeBusinessPlanPreviewQuery } from './businessPlanPreviewQuery';
 
 interface BackendSuccessResponse<T> {
   success: true;
@@ -99,6 +105,10 @@ export function BusinessPlanPreviewWorkspaceClient({
   query: BusinessPlanPreviewWorkspaceQuery;
 }) {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { access: domainAccess, error: domainAccessError } = useCrmDomainAccess(accessToken);
+  const canWriteBusinessPlan = domainAccess?.features.canWriteBusinessPlan === true;
+  const canConfirmBusinessPlan = domainAccess?.features.canConfirmBusinessPlan === true;
+  const canDeleteBusinessPlan = domainAccess?.features.canDeleteBusinessPlan === true;
   const [currentData, setCurrentData] = useState(data);
   const [planData, setPlanData] = useState<CrmBusinessPlanListResponse | null>(null);
   const [isReloading, setIsReloading] = useState(data.rows.length === 0);
@@ -106,12 +116,13 @@ export function BusinessPlanPreviewWorkspaceClient({
   const [isSnapshotSaving, setIsSnapshotSaving] = useState(false);
   const [isCarryForwardSaving, setIsCarryForwardSaving] = useState(false);
   const [busyPlanId, setBusyPlanId] = useState<string | null>(null);
-  const [busyMonthlyLineId, setBusyMonthlyLineId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [planError, setPlanError] = useState<string | null>(null);
+  const [planNotice, setPlanNotice] = useState<string | null>(null);
   const apiHref = useMemo(() => buildApiHref(query), [query]);
   const plansApiHref = useMemo(() => buildPlansApiHref(query), [query]);
-  const yearOptions = useMemo(() => getYearOptions(query.baseYear), [query.baseYear]);
+  const businessYears = useCrmBusinessYearOptions(query.baseYear, getYearOptions(query.baseYear));
+  const yearOptions = businessYears.years;
 
   useEffect(() => {
     setCurrentData(data);
@@ -190,6 +201,7 @@ export function BusinessPlanPreviewWorkspaceClient({
     }
     setIsSnapshotSaving(true);
     setPlanError(null);
+    setPlanNotice(null);
     try {
       const response = await fetch('/api/crm/business-plan/plans/snapshot', {
         method: 'POST',
@@ -209,6 +221,7 @@ export function BusinessPlanPreviewWorkspaceClient({
         throw new Error(getBackendErrorMessage(payload));
       }
       await loadPlans();
+      setPlanNotice('최초 사업계획 차수가 생성되었습니다.');
     } catch (error) {
       setPlanError(error instanceof Error ? error.message : '사업계획 차수 저장에 실패했습니다.');
     } finally {
@@ -222,6 +235,7 @@ export function BusinessPlanPreviewWorkspaceClient({
     }
     setIsCarryForwardSaving(true);
     setPlanError(null);
+    setPlanNotice(null);
     try {
       const response = await fetch('/api/crm/business-plan/plans/carry-forward', {
         method: 'POST',
@@ -242,6 +256,7 @@ export function BusinessPlanPreviewWorkspaceClient({
         throw new Error(getBackendErrorMessage(payload));
       }
       await loadPlans();
+      setPlanNotice('전년 이월실적 불러오기 확인');
     } catch (error) {
       setPlanError(error instanceof Error ? error.message : '전년 사업계획 이월에 실패했습니다.');
     } finally {
@@ -255,6 +270,7 @@ export function BusinessPlanPreviewWorkspaceClient({
     }
     setBusyPlanId(plan.id);
     setPlanError(null);
+    setPlanNotice(null);
     try {
       const response = await fetch(`/api/crm/business-plan/plans/${encodeURIComponent(plan.id)}/${action}`, {
         method: 'POST',
@@ -266,45 +282,11 @@ export function BusinessPlanPreviewWorkspaceClient({
         throw new Error(getBackendErrorMessage(payload));
       }
       await loadPlans();
+      setPlanNotice(action === 'confirm' ? '사업계획이 확정되었습니다.' : '사업계획 확정이 해제되었습니다.');
     } catch (error) {
       setPlanError(error instanceof Error ? error.message : '사업계획 차수 상태 변경에 실패했습니다.');
     } finally {
       setBusyPlanId(null);
-    }
-  }, [accessToken, loadPlans]);
-
-  const saveMonthlyPlan = useCallback(async (
-    plan: CrmBusinessPlan,
-    line: CrmBusinessPlanLine,
-    monthlyRevenueAmounts: number[],
-  ) => {
-    if (!accessToken) {
-      return;
-    }
-    setBusyMonthlyLineId(line.id);
-    setPlanError(null);
-    try {
-      const response = await fetch(`/api/crm/business-plan/plans/${encodeURIComponent(plan.id)}/lines/${encodeURIComponent(line.id)}/monthly-plan`, {
-        method: 'POST',
-        cache: 'no-store',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          monthlyRevenueAmounts,
-          memo: `${line.targetYear}년 월별 계획 매출 직접 입력`,
-        }),
-      });
-      const payload = await response.json().catch(() => null) as BackendSuccessResponse<CrmBusinessPlanMonthlyPlanInputResult> | BackendErrorResponse | null;
-      if (!response.ok || payload?.success !== true) {
-        throw new Error(getBackendErrorMessage(payload));
-      }
-      await loadPlans();
-    } catch (error) {
-      setPlanError(error instanceof Error ? error.message : '월별 계획 입력 저장에 실패했습니다.');
-    } finally {
-      setBusyMonthlyLineId(null);
     }
   }, [accessToken, loadPlans]);
 
@@ -314,6 +296,39 @@ export function BusinessPlanPreviewWorkspaceClient({
     void loadPlans(abortController.signal);
     return () => abortController.abort();
   }, [loadPlans, loadPreview]);
+
+  if (query.mode === 'source-compatible') {
+    return (
+      <main className="h-full min-h-0 overflow-auto bg-ssoo-content-bg px-5 py-6" data-source-surface="business-plan">
+        <div className="mx-auto max-w-[1180px]">
+          <h1 className="text-xl font-semibold text-foreground">사업계획 등록</h1>
+          <p className="mt-1 text-sm text-muted-foreground">년도별 사업계획을 입력합니다.</p>
+          <BusinessPlanLedgerPanel
+            canWrite={canWriteBusinessPlan}
+            canConfirm={canConfirmBusinessPlan}
+            canDelete={canDeleteBusinessPlan}
+            planData={planData}
+            isLoading={isPlanLoading}
+            isSnapshotSaving={isSnapshotSaving}
+            isCarryForwardSaving={isCarryForwardSaving}
+            busyPlanId={busyPlanId}
+            error={planError}
+            notice={planNotice}
+            accessToken={accessToken}
+            previewRowCount={currentData.rows.length}
+            onReload={() => loadPlans()}
+            onSaveSnapshot={() => void saveSnapshot()}
+            onCarryForward={() => void carryForwardSnapshot()}
+            onConfirm={(plan) => void runPlanWorkflow(plan, 'confirm')}
+            onReopen={(plan) => void runPlanWorkflow(plan, 'reopen')}
+            sourceCompatible
+            baseYear={query.baseYear}
+            yearOptions={yearOptions}
+          />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-ssoo-content-bg">
@@ -346,18 +361,21 @@ export function BusinessPlanPreviewWorkspaceClient({
         </section>
 
         <BusinessPlanLedgerPanel
+          canWrite={canWriteBusinessPlan}
+          canConfirm={canConfirmBusinessPlan}
+          canDelete={canDeleteBusinessPlan}
           planData={planData}
           isLoading={isPlanLoading}
           isSnapshotSaving={isSnapshotSaving}
           isCarryForwardSaving={isCarryForwardSaving}
           busyPlanId={busyPlanId}
-          busyMonthlyLineId={busyMonthlyLineId}
           error={planError}
+          notice={planNotice}
+          accessToken={accessToken}
           previewRowCount={currentData.rows.length}
-          onReload={() => void loadPlans()}
+          onReload={() => loadPlans()}
           onSaveSnapshot={() => void saveSnapshot()}
           onCarryForward={() => void carryForwardSnapshot()}
-          onSaveMonthlyPlan={(plan, line, monthlyRevenueAmounts) => void saveMonthlyPlan(plan, line, monthlyRevenueAmounts)}
           onConfirm={(plan) => void runPlanWorkflow(plan, 'confirm')}
           onReopen={(plan) => void runPlanWorkflow(plan, 'reopen')}
         />
@@ -392,7 +410,7 @@ export function BusinessPlanPreviewWorkspaceClient({
             </label>
             <label className="min-w-[220px] flex-1 text-sm font-medium text-muted-foreground">
               검색
-              <Input name="search" defaultValue={query.search} placeholder="고객, 건명, 담당자, WBS" className="mt-1" />
+              <SsooSearchInput id="crm-business-plan-search-input" name="search" ariaLabel="사업계획 검색" intent="data-filter" defaultValue={query.search} placeholder="고객, 건명, 담당자, WBS" className="mt-1" />
             </label>
             <Button type="submit">
               <Search className="mr-2 h-4 w-4" />
@@ -406,6 +424,12 @@ export function BusinessPlanPreviewWorkspaceClient({
               {loadError}
             </div>
           ) : null}
+          {domainAccess && !canWriteBusinessPlan ? (
+            <div className="border-b bg-ssoo-warning-bg px-4 py-3 text-sm text-ssoo-warning">사업계획 변경 권한이 없어 조회 전용으로 표시합니다.</div>
+          ) : null}
+          {domainAccessError ? (
+            <div className="border-b bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger">{domainAccessError}</div>
+          ) : null}
 
           <div className="border-b px-4 py-2 text-xs text-muted-foreground">
             단위: 억원 · Pipeline은 실주/보류 제외 영업기회, 계약 계획/실적은 확정 계약 청구 read model 기준
@@ -413,7 +437,7 @@ export function BusinessPlanPreviewWorkspaceClient({
           <YearSummary years={currentData.years} />
           <BusinessPlanTable rows={currentData.rows} years={currentData.years} isLoading={isReloading} />
           <div className="border-t px-4 py-3 text-xs text-muted-foreground">
-            {currentData.summary.rowCount}개 후보 · 현재 preview 저장과 전년도 확정 차수 이월을 지원하며 원가 배부 저장은 후속입니다.
+            {currentData.summary.rowCount}개 후보 · 저장 차수에서 3개년 매출·외부원가, 행 CRUD, 붙여넣기, 확정·해제를 관리합니다.
           </div>
         </section>
       </main>
@@ -433,64 +457,151 @@ function Metric({ label, value, sub }: { label: string; value: string; sub: stri
 }
 
 function BusinessPlanLedgerPanel({
+  canWrite,
+  canConfirm,
+  canDelete,
   planData,
   isLoading,
   isSnapshotSaving,
   isCarryForwardSaving,
   busyPlanId,
-  busyMonthlyLineId,
   error,
+  notice,
+  accessToken,
   previewRowCount,
   onReload,
   onSaveSnapshot,
   onCarryForward,
-  onSaveMonthlyPlan,
   onConfirm,
   onReopen,
+  sourceCompatible = false,
+  baseYear,
+  yearOptions = [],
 }: {
+  canWrite: boolean;
+  canConfirm: boolean;
+  canDelete: boolean;
   planData: CrmBusinessPlanListResponse | null;
   isLoading: boolean;
   isSnapshotSaving: boolean;
   isCarryForwardSaving: boolean;
   busyPlanId: string | null;
-  busyMonthlyLineId: string | null;
   error: string | null;
+  notice: string | null;
+  accessToken: string | null;
   previewRowCount: number;
-  onReload: () => void;
+  onReload: () => Promise<unknown>;
   onSaveSnapshot: () => void;
   onCarryForward: () => void;
-  onSaveMonthlyPlan: (plan: CrmBusinessPlan, line: CrmBusinessPlanLine, monthlyRevenueAmounts: number[]) => void;
   onConfirm: (plan: CrmBusinessPlan) => void;
   onReopen: (plan: CrmBusinessPlan) => void;
+  sourceCompatible?: boolean;
+  baseYear?: number;
+  yearOptions?: number[];
 }) {
-  const plans = planData?.items ?? [];
+  const plans = useMemo(() => planData?.items ?? [], [planData]);
   const latestPlan = plans[0];
-  const confirmedPlan = plans.find((plan) => plan.confirmed);
-  const editablePlan = plans.find((plan) => !plan.confirmed && plan.lines.length > 0) ?? null;
-  const [selectedLineId, setSelectedLineId] = useState<string>('');
-  const selectedLine = editablePlan?.lines.find((line) => line.id === selectedLineId) ?? editablePlan?.lines[0] ?? null;
-  const [monthlyDraft, setMonthlyDraft] = useState<string[]>(() => (
-    Array.from({ length: 12 }, (_, index) => String(selectedLine?.monthlyPlanRevenueAmounts[index] ?? 0))
-  ));
+  const confirmedPlan = plans.find((plan) => plan.confirmed) ?? null;
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [localNotice, setLocalNotice] = useState<string | null>(null);
+  const [versionBusy, setVersionBusy] = useState(false);
   useEffect(() => {
-    if (!editablePlan) {
-      setSelectedLineId('');
-      setMonthlyDraft(Array.from({ length: 12 }, () => '0'));
+    if (plans.length === 0) {
+      setSelectedPlanId('');
       return;
     }
-    if (!selectedLineId || !editablePlan.lines.some((line) => line.id === selectedLineId)) {
-      setSelectedLineId(editablePlan.lines[0]?.id ?? '');
+    if (!selectedPlanId || !plans.some((plan) => plan.id === selectedPlanId)) {
+      setSelectedPlanId(plans[0]?.id ?? '');
     }
-  }, [editablePlan, selectedLineId]);
-  useEffect(() => {
-    setMonthlyDraft(Array.from({ length: 12 }, (_, index) => String(selectedLine?.monthlyPlanRevenueAmounts[index] ?? 0)));
-  }, [selectedLine]);
-  const canSave = previewRowCount > 0 && !isSnapshotSaving;
-  const canCarryForward = !isCarryForwardSaving && !isSnapshotSaving;
-  const monthlyAmounts = monthlyDraft.map((value) => Number(value));
-  const monthlyInputInvalid = monthlyAmounts.length !== 12 || monthlyAmounts.some((value) => !Number.isFinite(value) || value < 0);
-  const monthlyTotal = monthlyInputInvalid ? 0 : monthlyAmounts.reduce((sum, value) => sum + Math.round(value), 0);
-  const monthlySaveDisabled = !editablePlan || !selectedLine || monthlyInputInvalid || busyMonthlyLineId === selectedLine.id;
+  }, [plans, selectedPlanId]);
+  const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? latestPlan ?? null;
+  const selectedIsLatest = Boolean(selectedPlan && latestPlan?.id === selectedPlan.id);
+  const selectedEditable = Boolean(canWrite && selectedPlan && selectedIsLatest && !selectedPlan.confirmed);
+  const canCreateInitial = canWrite && plans.length === 0 && previewRowCount > 0 && !isSnapshotSaving;
+  const canCarryForward = canWrite && plans.length === 0 && !isCarryForwardSaving && !isSnapshotSaving;
+
+  const runVersionMutation = async (method: 'POST' | 'DELETE', href: string) => {
+    if (!accessToken) return;
+    setVersionBusy(true);
+    setLocalError(null);
+    setLocalNotice(null);
+    try {
+      const response = await fetch(href, {
+        method,
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const payload = await response.json().catch(() => null) as BackendSuccessResponse<unknown> | BackendErrorResponse | null;
+      if (!response.ok || payload?.success !== true) {
+        throw new Error(getBackendErrorMessage(payload));
+      }
+      const mutationData = 'data' in payload ? payload.data : null;
+      const createdId = method === 'POST' && mutationData && typeof mutationData === 'object' && 'id' in mutationData
+        ? (mutationData as { id?: unknown }).id
+        : null;
+      await onReload();
+      if (typeof createdId === 'string') setSelectedPlanId(createdId);
+      setLocalNotice(method === 'POST' ? '차수 추가가 완료되었습니다.' : '차수 삭제가 완료되었습니다.');
+    } catch (mutationError) {
+      setLocalError(mutationError instanceof Error ? mutationError.message : '사업계획 차수 처리에 실패했습니다.');
+    } finally {
+      setVersionBusy(false);
+    }
+  };
+
+  if (sourceCompatible) {
+    return (
+      <section className="mt-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <form action="/business-plan" className="flex flex-wrap items-end gap-3">
+            <Input type="hidden" name="mode" value="source-compatible" />
+            <div className="w-[160px]">
+              <label className="mb-1 block text-sm text-muted-foreground">사업년도 *</label>
+              <NativeSelect id="bp-year" name="baseYear" defaultValue={String(baseYear)}>{yearOptions.map((year) => <option key={year} value={year}>{year}년</option>)}</NativeSelect>
+            </div>
+            <div className="w-[140px]">
+              <label className="mb-1 block text-sm text-muted-foreground">차수</label>
+              <NativeSelect id="bp-version" value={selectedPlan?.id ?? ''} onChange={(event) => setSelectedPlanId(event.target.value)}>
+                {plans.length === 0 ? <option value="">차수 없음</option> : plans.map((plan) => <option key={plan.id} value={plan.id}>{plan.version}차 {plan.confirmed ? '✓' : ''}</option>)}
+              </NativeSelect>
+            </div>
+            <Button type="submit" variant="outline">조회</Button>
+          </form>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" type="button" onClick={onCarryForward} disabled={!canCarryForward}>↩ 전년이월실적 불러오기</Button>
+            <Button variant="outline" type="button" disabled={!latestPlan?.confirmed || !canWrite || versionBusy} onClick={() => latestPlan ? void runVersionMutation('POST', `/api/crm/business-plan/plans/${encodeURIComponent(latestPlan.id)}/versions`) : undefined}>+ 차수 추가</Button>
+            {latestPlan && !latestPlan.confirmed ? (
+              <Button
+                variant="outline"
+                type="button"
+                disabled={!canDelete || versionBusy}
+                onClick={() => {
+                  if (window.confirm(`${latestPlan.baseYear}년 ${latestPlan.version}차의 모든 행을 삭제하시겠습니까?`)) {
+                    void runVersionMutation('DELETE', `/api/crm/business-plan/plans/${encodeURIComponent(latestPlan.id)}`);
+                  }
+                }}
+              >
+                최신 차수 삭제
+              </Button>
+            ) : null}
+            {selectedPlan?.confirmed ? <Button variant="outline" type="button" onClick={() => onReopen(selectedPlan)} disabled={!canConfirm || busyPlanId === selectedPlan.id}>확정해제</Button> : selectedPlan ? <Button type="button" onClick={() => onConfirm(selectedPlan)} disabled={!canConfirm || busyPlanId === selectedPlan.id || selectedPlan.rows.length === 0}>확정</Button> : <Button type="button" onClick={onSaveSnapshot} disabled={!canCreateInitial}>최초 차수 생성</Button>}
+          </div>
+        </div>
+
+        {selectedPlan ? (
+          <div className={`mt-4 rounded-md border px-4 py-3 text-sm ${selectedPlan.confirmed ? 'border-ssoo-info/30 bg-ssoo-info-bg text-ssoo-info' : 'border-ssoo-warning/30 bg-ssoo-warning-bg text-ssoo-warning'}`}>
+            {selectedPlan.confirmed ? `⚠ 확정 완료 — 담당자: 관리자 | 확정일시: ${selectedPlan.confirmedAt ? formatDateTime(selectedPlan.confirmedAt) : '-'}` : '작성 중인 사업계획 차수입니다.'}
+          </div>
+        ) : null}
+        {notice || localNotice ? <div className="fixed bottom-6 right-6 z-50 rounded-lg bg-foreground px-4 py-3 text-sm text-background shadow-lg" role="status">{notice ?? localNotice}</div> : null}
+        {error || localError ? <div className="mt-3 rounded-md bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger">{error ?? localError}</div> : null}
+        {isLoading ? <div className="mt-4 text-sm text-ssoo-info">사업계획 차수를 불러오는 중입니다.</div> : null}
+        {!isLoading && !selectedPlan ? <div className="mt-4 rounded-md border bg-card px-4 py-5 text-sm text-muted-foreground">저장된 차수가 없습니다. 최초 차수를 생성하거나 전년이월실적을 불러오세요.</div> : null}
+        {selectedPlan ? <div className="mt-5 overflow-hidden rounded-xl border bg-card"><BusinessPlanSourceGrid plan={selectedPlan} editable={selectedEditable} accessToken={accessToken} onReload={onReload} sourceCompatible /></div> : null}
+      </section>
+    );
+  }
 
   return (
     <section className="mt-4 rounded-md border bg-card">
@@ -510,17 +621,45 @@ function BusinessPlanLedgerPanel({
             <Copy className="mr-2 h-4 w-4" />
             전년 이월
           </Button>
-          <Button size="sm" type="button" onClick={onSaveSnapshot} disabled={!canSave}>
+          {latestPlan?.confirmed ? (
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              disabled={!canWrite || versionBusy}
+              onClick={() => void runVersionMutation('POST', `/api/crm/business-plan/plans/${encodeURIComponent(latestPlan.id)}/versions`)}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              다음 차수 추가
+            </Button>
+          ) : null}
+          {latestPlan && !latestPlan.confirmed ? (
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              disabled={!canDelete || versionBusy}
+              onClick={() => {
+                if (window.confirm(`${latestPlan.baseYear}년 ${latestPlan.version}차의 모든 행을 삭제하시겠습니까?`)) {
+                  void runVersionMutation('DELETE', `/api/crm/business-plan/plans/${encodeURIComponent(latestPlan.id)}`);
+                }
+              }}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              최신 차수 삭제
+            </Button>
+          ) : null}
+          <Button size="sm" type="button" onClick={onSaveSnapshot} disabled={!canCreateInitial}>
             <Save className="mr-2 h-4 w-4" />
-            Preview 저장
+            최초 차수 생성
           </Button>
         </div>
       </div>
 
-      {error ? (
+      {error || localError ? (
         <div className="flex items-center gap-2 border-b bg-ssoo-danger-bg px-4 py-3 text-sm text-ssoo-danger">
           <AlertCircle className="h-4 w-4" />
-          {error}
+          {error ?? localError}
         </div>
       ) : null}
 
@@ -537,30 +676,46 @@ function BusinessPlanLedgerPanel({
           <div className="text-sm text-muted-foreground">현재 기준년도에 저장된 사업계획 차수가 없습니다.</div>
         ) : (
           <div className="grid gap-2">
-            {plans.slice(0, 3).map((plan) => (
-              <div key={plan.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-ssoo-content-bg px-3 py-2">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
+            <label className="max-w-[360px] text-xs font-medium text-muted-foreground">
+              조회 차수
+              <NativeSelect value={selectedPlan?.id ?? ''} onChange={(event) => setSelectedPlanId(event.target.value)} className="mt-1">
+                {plans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>v{plan.version} · {plan.confirmed ? '확정' : 'draft'} · {plan.planName}</option>
+                ))}
+              </NativeSelect>
+            </label>
+            {plans.map((plan, index) => (
+              <div key={plan.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-md border px-3 py-2 text-left ${selectedPlan?.id === plan.id ? 'border-primary bg-primary/5' : 'bg-ssoo-content-bg'}`}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setSelectedPlanId(plan.id)}
+                  className="h-auto min-w-0 flex-1 justify-start p-0 text-left hover:bg-transparent"
+                  aria-pressed={selectedPlan?.id === plan.id}
+                >
+                  <span className="min-w-0">
+                  <span className="flex flex-wrap items-center gap-2">
                     <span className="font-medium text-foreground">{plan.planName}</span>
                     <Badge variant={plan.confirmed ? 'default' : 'outline'}>{plan.confirmed ? '확정' : 'draft'}</Badge>
                     <span className="text-xs text-muted-foreground">{plan.code}</span>
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    v{plan.version} · {plan.baseYear} 기준 · 계획 {formatEok(plan.planCandidateAmountTotal)} · 저장 {formatDateTime(plan.updatedAt)}
-                  </div>
-                </div>
+                  </span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    v{plan.version} · {plan.baseYear} 기준 · 매출 {formatEok(plan.planCandidateAmountTotal)} · 외부원가 {formatEok(plan.planExternalCostAmountTotal)} · {plan.rows.length}행
+                  </span>
+                  </span>
+                </Button>
                 <div className="flex gap-2">
-                  {plan.confirmed ? (
-                    <Button variant="outline" size="sm" type="button" onClick={() => onReopen(plan)} disabled={busyPlanId === plan.id}>
+                  {index === 0 && plan.confirmed ? (
+                    <Button variant="outline" size="sm" type="button" onClick={(event) => { event.stopPropagation(); onReopen(plan); }} disabled={!canConfirm || busyPlanId === plan.id}>
                       <RotateCcw className="mr-2 h-4 w-4" />
                       확정 해제
                     </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" type="button" onClick={() => onConfirm(plan)} disabled={busyPlanId === plan.id}>
+                  ) : index === 0 ? (
+                    <Button variant="outline" size="sm" type="button" onClick={(event) => { event.stopPropagation(); onConfirm(plan); }} disabled={!canConfirm || busyPlanId === plan.id || plan.rows.length === 0}>
                       <CheckCircle2 className="mr-2 h-4 w-4" />
                       확정
                     </Button>
-                  )}
+                  ) : <Badge variant="outline">읽기 전용</Badge>}
                 </div>
               </div>
             ))}
@@ -568,60 +723,367 @@ function BusinessPlanLedgerPanel({
         )}
       </div>
 
-      {editablePlan && selectedLine ? (
-        <div className="border-t px-4 py-3">
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="min-w-[280px] text-sm font-medium text-muted-foreground">
-              월별 입력 대상
-              <NativeSelect
-                value={selectedLine.id}
-                onChange={(event) => setSelectedLineId(event.target.value)}
-                className="mt-1"
-              >
-                {editablePlan.lines.map((line) => (
-                  <option key={line.id} value={line.id}>
-                    {line.targetYear} · {line.businessType} · {line.industryLine} · {line.ownerName}
-                  </option>
-                ))}
-              </NativeSelect>
-            </label>
-            <LedgerMetric
-              label="월별 계획 합계"
-              value={monthlyInputInvalid ? '-' : formatEok(monthlyTotal)}
-              sub={selectedLine.monthlyPlanInputMode === 'manual' ? 'manual' : 'distributed'}
-            />
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => onSaveMonthlyPlan(editablePlan, selectedLine, monthlyAmounts.map((value) => Math.round(value)))}
-              disabled={monthlySaveDisabled}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              월별 계획 저장
-            </Button>
-          </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-6 xl:grid-cols-12">
-            {monthlyDraft.map((value, index) => (
-              <label key={index} className="text-xs font-medium text-muted-foreground">
-                {index + 1}월
-                <Input
-                  type="number"
-                  min={0}
-                  step={1000000}
-                  value={value}
-                  onChange={(event) => {
-                    const next = [...monthlyDraft];
-                    next[index] = event.target.value;
-                    setMonthlyDraft(next);
-                  }}
-                  className="mt-1"
-                />
-              </label>
-            ))}
-          </div>
-        </div>
+      {selectedPlan ? (
+        <BusinessPlanSourceGrid
+          plan={selectedPlan}
+          editable={selectedEditable}
+          accessToken={accessToken}
+          onReload={onReload}
+        />
       ) : null}
     </section>
+  );
+}
+
+function BusinessPlanSourceGrid({
+  plan,
+  editable,
+  accessToken,
+  onReload,
+  sourceCompatible = false,
+}: {
+  plan: CrmBusinessPlan;
+  editable: boolean;
+  accessToken: string | null;
+  onReload: () => void;
+  sourceCompatible?: boolean;
+}) {
+  const [drafts, setDrafts] = useState<BusinessPlanGridDraft[]>(() => (
+    plan.rows.map((row) => toBusinessPlanGridDraft(row, plan.baseYear))
+  ));
+  const [busy, setBusy] = useState(false);
+  const [gridError, setGridError] = useState<string | null>(null);
+  const [gridNotice, setGridNotice] = useState<string | null>(null);
+  useEffect(() => {
+    setDrafts(plan.rows.map((row) => toBusinessPlanGridDraft(row, plan.baseYear)));
+    setGridError(null);
+    setGridNotice(null);
+  }, [plan]);
+
+  const updateDraft = <K extends keyof BusinessPlanGridDraft>(index: number, key: K, value: BusinessPlanGridDraft[K]) => {
+    setDrafts((current) => current.map((draft, draftIndex) => (
+      draftIndex === index ? { ...draft, [key]: value } : draft
+    )));
+  };
+
+  const saveRows = async () => {
+    if (!accessToken || !editable) return;
+    setBusy(true);
+    setGridError(null);
+    setGridNotice(null);
+    try {
+      for (const [index, draft] of drafts.entries()) {
+        let body;
+        try {
+          body = toBusinessPlanRowRequest(draft);
+        } catch (validationError) {
+          throw new Error(`${index + 1}행: ${validationError instanceof Error ? validationError.message : '입력값을 확인해 주세요.'}`);
+        }
+        const href = draft.rowCode
+          ? `/api/crm/business-plan/plans/${encodeURIComponent(plan.id)}/rows/${encodeURIComponent(draft.rowCode)}`
+          : `/api/crm/business-plan/plans/${encodeURIComponent(plan.id)}/rows`;
+        const response = await fetch(href, {
+          method: draft.rowCode ? 'PUT' : 'POST',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+        const payload = await response.json().catch(() => null) as BackendSuccessResponse<unknown> | BackendErrorResponse | null;
+        if (!response.ok || payload?.success !== true) {
+          throw new Error(`${index + 1}행: ${getBackendErrorMessage(payload)}`);
+        }
+      }
+      setGridNotice(`${drafts.length}개 사업계획 행을 저장했습니다.`);
+      onReload();
+    } catch (saveError) {
+      setGridError(saveError instanceof Error ? saveError.message : '사업계획 행 저장에 실패했습니다.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteRow = async (index: number) => {
+    const draft = drafts[index];
+    if (!draft || !editable || !accessToken) return;
+    if (!draft.rowCode) {
+      setDrafts((current) => current.filter((_, currentIndex) => currentIndex !== index));
+      return;
+    }
+    if (!window.confirm(`${index + 1}행 '${draft.businessName}'을 삭제하시겠습니까?`)) return;
+    setBusy(true);
+    setGridError(null);
+    try {
+      const response = await fetch(
+        `/api/crm/business-plan/plans/${encodeURIComponent(plan.id)}/rows/${encodeURIComponent(draft.rowCode)}`,
+        { method: 'DELETE', cache: 'no-store', headers: { Authorization: `Bearer ${accessToken}` } },
+      );
+      const payload = await response.json().catch(() => null) as BackendSuccessResponse<unknown> | BackendErrorResponse | null;
+      if (!response.ok || payload?.success !== true) throw new Error(getBackendErrorMessage(payload));
+      setGridNotice('사업계획 행을 삭제했습니다.');
+      onReload();
+    } catch (deleteError) {
+      setGridError(deleteError instanceof Error ? deleteError.message : '사업계획 행 삭제에 실패했습니다.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveConfirmedWbs = async (index: number) => {
+    const draft = drafts[index];
+    if (!draft?.rowCode || editable || !accessToken) return;
+    setBusy(true);
+    setGridError(null);
+    setGridNotice(null);
+    try {
+      const response = await fetch(
+        `/api/crm/business-plan/plans/${encodeURIComponent(plan.id)}/rows/${encodeURIComponent(draft.rowCode)}/wbs`,
+        {
+          method: 'PUT',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ wbsCode: draft.wbsCode }),
+        },
+      );
+      const payload = await response.json().catch(() => null) as BackendSuccessResponse<unknown> | BackendErrorResponse | null;
+      if (!response.ok || payload?.success !== true) throw new Error(getBackendErrorMessage(payload));
+      setGridNotice(`${index + 1}행 WBS 코드를 저장했습니다.`);
+      onReload();
+    } catch (wbsError) {
+      setGridError(wbsError instanceof Error ? wbsError.message : 'WBS 코드 저장에 실패했습니다.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const periodLabels = [
+    ...Array.from({ length: 12 }, (_, index) => `${index + 1}월`),
+    `${plan.baseYear + 1}년`,
+    `${plan.baseYear + 2}년`,
+  ];
+
+  if (sourceCompatible) {
+    const monthlyLabels = Array.from({ length: 12 }, (_, index) => `${index + 1}월`);
+    const amount = (value: string) => Number(value.replace(/,/g, '')) || 0;
+    return (
+      <div>
+        {gridError ? <div className="border-b bg-ssoo-danger-bg px-4 py-2 text-sm text-ssoo-danger">{gridError}</div> : null}
+        {gridNotice ? <div className="border-b bg-ssoo-success-bg px-4 py-2 text-sm text-ssoo-success">{gridNotice}</div> : null}
+        {editable ? (
+          <div className="flex justify-end gap-2 border-b px-4 py-3">
+            <Button type="button" variant="outline" disabled={busy} onClick={() => setDrafts((current) => [...current, createEmptyBusinessPlanGridDraft()])}>+ 행 추가</Button>
+            <Button type="button" disabled={busy || drafts.length === 0} onClick={() => void saveRows()}>{busy ? '저장 중' : '저장'}</Button>
+          </div>
+        ) : null}
+        <div className="overflow-x-auto">
+          <Table className="min-w-[4700px] text-xs">
+            <TableHeader className="bg-muted/60 text-muted-foreground">
+              <TableRow>
+                <TableHead rowSpan={3} className="w-[132px] px-2">사업구분</TableHead>
+                <TableHead rowSpan={3} className="w-[132px] px-2">계열구분</TableHead>
+                <TableHead rowSpan={3} className="w-[100px] px-2">국내/해외</TableHead>
+                <TableHead rowSpan={3} className="w-[180px] px-2">사업명</TableHead>
+                <TableHead rowSpan={3} className="w-[140px] px-2">WBS코드</TableHead>
+                <TableHead colSpan={36} className="text-center">{plan.baseYear}년 (월별)</TableHead>
+                <TableHead colSpan={3} className="text-center">{plan.baseYear}년 합계</TableHead>
+                <TableHead colSpan={3} className="text-center">{plan.baseYear + 1}년 (연간)</TableHead>
+                <TableHead colSpan={3} className="text-center">{plan.baseYear + 2}년 (연간)</TableHead>
+              </TableRow>
+              <TableRow>
+                {monthlyLabels.map((label) => <TableHead key={label} colSpan={3} className="text-center">{label}</TableHead>)}
+                <TableHead colSpan={3} className="text-center">{plan.baseYear}년 합계</TableHead>
+                <TableHead colSpan={3} className="text-center">{plan.baseYear + 1}년 합계</TableHead>
+                <TableHead colSpan={3} className="text-center">{plan.baseYear + 2}년 합계</TableHead>
+              </TableRow>
+              <TableRow>
+                {Array.from({ length: 15 }, (_, index) => <Fragment key={index}><TableHead className="w-[98px] text-right">매출</TableHead><TableHead className="w-[98px] text-right">외부원가</TableHead><TableHead className="w-[98px] text-right">손익</TableHead></Fragment>)}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {drafts.length === 0 ? <TableRow><TableCell colSpan={50} className="py-8 text-center text-muted-foreground">등록된 사업계획 행이 없습니다.</TableCell></TableRow> : drafts.map((draft, rowIndex) => {
+                const monthPairs = Array.from({ length: 12 }, (_, index) => [draft.amounts[index * 2] ?? '', draft.amounts[index * 2 + 1] ?? ''] as const);
+                const totalRevenue = monthPairs.reduce((sum, pair) => sum + amount(pair[0]), 0);
+                const totalCost = monthPairs.reduce((sum, pair) => sum + amount(pair[1]), 0);
+                const annualPairs = [
+                  [String(totalRevenue), String(totalCost)] as const,
+                  [draft.amounts[24] ?? '', draft.amounts[25] ?? ''] as const,
+                  [draft.amounts[26] ?? '', draft.amounts[27] ?? ''] as const,
+                ];
+                return (
+                  <TableRow key={draft.rowCode ?? `new-${rowIndex}`}>
+                    <TableCell className="px-1"><Input disabled={!editable} value={draft.businessType} onChange={(event) => updateDraft(rowIndex, 'businessType', event.target.value)} /></TableCell>
+                    <TableCell className="px-1"><Input disabled={!editable} value={draft.industryLine} onChange={(event) => updateDraft(rowIndex, 'industryLine', event.target.value)} /></TableCell>
+                    <TableCell className="px-1"><NativeSelect disabled={!editable} value={draft.region} onChange={(event) => updateDraft(rowIndex, 'region', event.target.value as 'domestic' | 'overseas')}><option value="domestic">국내</option><option value="overseas">해외</option></NativeSelect></TableCell>
+                    <TableCell className="px-1"><Input disabled={!editable} value={draft.businessName} onChange={(event) => updateDraft(rowIndex, 'businessName', event.target.value)} /></TableCell>
+                    <TableCell className="px-1"><Input disabled={busy || (!editable && !draft.rowCode)} value={draft.wbsCode} placeholder="WBS코드" onChange={(event) => updateDraft(rowIndex, 'wbsCode', event.target.value)} onBlur={() => void saveConfirmedWbs(rowIndex)} /></TableCell>
+                    {monthPairs.map((pair, periodIndex) => <SourceBusinessPlanAmountCells key={periodIndex} pair={pair} editable={editable} onChange={(offset, value) => { const amounts = [...draft.amounts]; amounts[periodIndex * 2 + offset] = value; updateDraft(rowIndex, 'amounts', amounts); }} onPaste={(offset, pasted) => {
+                      const result = applyBusinessPlanGridPaste(drafts, rowIndex, (periodIndex * 2) + offset, pasted);
+                      setDrafts(result.drafts);
+                      setGridError(result.invalidCells.length > 0 ? `숫자로 해석할 수 없는 셀: ${result.invalidCells.join(', ')}` : null);
+                      setGridNotice(result.invalidCells.length === 0 ? '붙여넣기 값을 그리드에 반영했습니다. 저장 전 검토해 주세요.' : null);
+                    }} />)}
+                    {annualPairs.map((pair, periodIndex) => <SourceBusinessPlanAmountCells key={`annual-${periodIndex}`} pair={pair} editable={editable && periodIndex > 0} onChange={(offset, value) => { if (periodIndex === 0) return; const amounts = [...draft.amounts]; const baseIndex = 24 + ((periodIndex - 1) * 2); amounts[baseIndex + offset] = value; updateDraft(rowIndex, 'amounts', amounts); }} onPaste={periodIndex === 0 ? undefined : (offset, pasted) => {
+                      const result = applyBusinessPlanGridPaste(drafts, rowIndex, 24 + ((periodIndex - 1) * 2) + offset, pasted);
+                      setDrafts(result.drafts);
+                      setGridError(result.invalidCells.length > 0 ? `숫자로 해석할 수 없는 셀: ${result.invalidCells.join(', ')}` : null);
+                      setGridNotice(result.invalidCells.length === 0 ? '붙여넣기 값을 그리드에 반영했습니다. 저장 전 검토해 주세요.' : null);
+                    }} />)}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div>
+          <div className="text-sm font-semibold text-foreground">원본 호환 3개년 입력 그리드</div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {plan.baseYear}년은 12개월 매출·외부원가, 이후 2개년은 연간 매출·외부원가입니다. 숫자 셀에서 탭/줄바꿈 표를 붙여넣을 수 있습니다.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {editable ? (
+            <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => setDrafts((current) => [...current, createEmptyBusinessPlanGridDraft()])}>
+              <Plus className="mr-2 h-4 w-4" />
+              행 추가
+            </Button>
+          ) : <Badge variant="outline">확정 또는 이전 차수 · WBS만 편집 가능</Badge>}
+          <Button type="button" size="sm" disabled={!editable || busy || drafts.length === 0} onClick={() => void saveRows()}>
+            <Save className="mr-2 h-4 w-4" />
+            전체 행 저장
+          </Button>
+        </div>
+      </div>
+      {gridError ? <div className="border-t bg-ssoo-danger-bg px-4 py-2 text-sm text-ssoo-danger">{gridError}</div> : null}
+      {gridNotice ? <div className="border-t bg-ssoo-success-bg px-4 py-2 text-sm text-ssoo-success">{gridNotice}</div> : null}
+      <div className="overflow-auto border-t">
+        <Table className="min-w-[4300px] text-xs">
+          <TableHeader>
+            <TableRow>
+              <TableHead rowSpan={2} className="w-[68px] px-2">작업</TableHead>
+              <TableHead rowSpan={2} className="w-[140px] px-2">사업구분 *</TableHead>
+              <TableHead rowSpan={2} className="w-[140px] px-2">계열/산업 *</TableHead>
+              <TableHead rowSpan={2} className="w-[120px] px-2">담당자 *</TableHead>
+              <TableHead rowSpan={2} className="w-[100px] px-2">국내/해외 *</TableHead>
+              <TableHead rowSpan={2} className="w-[190px] px-2">사업명 *</TableHead>
+              <TableHead rowSpan={2} className="w-[130px] px-2">WBS</TableHead>
+              {periodLabels.map((label) => <TableHead key={label} colSpan={2} className="text-center">{label}</TableHead>)}
+            </TableRow>
+            <TableRow>
+              {periodLabels.flatMap((label) => [
+                <TableHead key={`${label}-revenue`} className="w-[112px] text-right">매출</TableHead>,
+                <TableHead key={`${label}-cost`} className="w-[112px] text-right">외부원가</TableHead>,
+              ])}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {drafts.length === 0 ? (
+              <TableRow><TableCell colSpan={35} className="py-6 text-center text-muted-foreground">저장된 행이 없습니다. 최신 draft 차수에서 행을 추가해 주세요.</TableCell></TableRow>
+            ) : drafts.map((draft, rowIndex) => (
+              <TableRow key={draft.rowCode ?? `new-${rowIndex}`}>
+                <TableCell className="px-2">
+                  <Button type="button" variant="ghost" size="sm" disabled={!editable || busy} onClick={() => void deleteRow(rowIndex)} aria-label={`${rowIndex + 1}행 삭제`}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+                <TableCell className="px-1"><Input disabled={!editable} value={draft.businessType} onChange={(event) => updateDraft(rowIndex, 'businessType', event.target.value)} /></TableCell>
+                <TableCell className="px-1"><Input disabled={!editable} value={draft.industryLine} onChange={(event) => updateDraft(rowIndex, 'industryLine', event.target.value)} /></TableCell>
+                <TableCell className="px-1"><Input disabled={!editable} value={draft.ownerName} onChange={(event) => updateDraft(rowIndex, 'ownerName', event.target.value)} /></TableCell>
+                <TableCell className="px-1">
+                  <NativeSelect disabled={!editable} value={draft.region} onChange={(event) => updateDraft(rowIndex, 'region', event.target.value as 'domestic' | 'overseas')}>
+                    <option value="domestic">국내</option><option value="overseas">해외</option>
+                  </NativeSelect>
+                </TableCell>
+                <TableCell className="px-1"><Input disabled={!editable} value={draft.businessName} onChange={(event) => updateDraft(rowIndex, 'businessName', event.target.value)} /></TableCell>
+                <TableCell className="px-1">
+                  <Input
+                    disabled={busy || (!editable && !draft.rowCode)}
+                    value={draft.wbsCode}
+                    onChange={(event) => updateDraft(rowIndex, 'wbsCode', event.target.value)}
+                    onBlur={() => void saveConfirmedWbs(rowIndex)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !editable) event.currentTarget.blur();
+                    }}
+                    aria-label={`${rowIndex + 1}행 WBS`}
+                  />
+                </TableCell>
+                {draft.amounts.map((value, cellIndex) => (
+                  <TableCell key={cellIndex} className="px-1">
+                    <Input
+                      disabled={!editable}
+                      inputMode="decimal"
+                      value={value}
+                      className="min-w-[108px] text-right tabular-nums"
+                      onChange={(event) => {
+                        const amounts = [...draft.amounts];
+                        amounts[cellIndex] = event.target.value;
+                        updateDraft(rowIndex, 'amounts', amounts);
+                      }}
+                      onPaste={(event) => {
+                        if (!editable) return;
+                        const pasted = event.clipboardData.getData('text');
+                        if (!pasted.includes('\t') && !pasted.includes('\n') && !pasted.includes('\r')) return;
+                        event.preventDefault();
+                        const result = applyBusinessPlanGridPaste(drafts, rowIndex, cellIndex, pasted);
+                        setDrafts(result.drafts);
+                        setGridError(result.invalidCells.length > 0 ? `숫자로 해석할 수 없는 셀: ${result.invalidCells.join(', ')}` : null);
+                        if (result.invalidCells.length === 0) setGridNotice('붙여넣기 값을 그리드에 반영했습니다. 저장 전 검토해 주세요.');
+                      }}
+                      aria-label={`${rowIndex + 1}행 ${Math.floor(cellIndex / 2) + 1}${cellIndex % 2 === 0 ? ' 매출' : ' 외부원가'}`}
+                    />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function SourceBusinessPlanAmountCells({
+  pair,
+  editable,
+  onChange,
+  onPaste,
+}: {
+  pair: readonly [string, string];
+  editable: boolean;
+  onChange: (offset: number, value: string) => void;
+  onPaste?: (offset: number, text: string) => void;
+}) {
+  const revenue = Number(pair[0].replace(/,/g, '')) || 0;
+  const cost = Number(pair[1].replace(/,/g, '')) || 0;
+  return (
+    <>
+      <TableCell className="px-1"><Input disabled={!editable} value={pair[0]} placeholder="0.00" className="min-w-[94px] text-right" onChange={(event) => onChange(0, event.target.value)} onPaste={(event) => {
+        if (!editable || !onPaste) return;
+        const pasted = event.clipboardData.getData('text');
+        if (!pasted.includes('\t') && !pasted.includes('\n') && !pasted.includes('\r')) return;
+        event.preventDefault();
+        onPaste(0, pasted);
+      }} /></TableCell>
+      <TableCell className="px-1"><Input disabled={!editable} value={pair[1]} placeholder="0.00" className="min-w-[94px] text-right" onChange={(event) => onChange(1, event.target.value)} onPaste={(event) => {
+        if (!editable || !onPaste) return;
+        const pasted = event.clipboardData.getData('text');
+        if (!pasted.includes('\t') && !pasted.includes('\n') && !pasted.includes('\r')) return;
+        event.preventDefault();
+        onPaste(1, pasted);
+      }} /></TableCell>
+      <TableCell className="px-2 text-right font-medium text-ssoo-info">{(revenue - cost).toLocaleString('ko-KR')}</TableCell>
+    </>
   );
 }
 
@@ -777,46 +1239,4 @@ function AmountCells({ value, isTotal = false }: { value: CrmBusinessPlanPreview
       <TableCell className={`px-2 py-2 text-right ${gapTone} ${weight}`}>{formatTableAmount(value.actualGapAmount)}</TableCell>
     </>
   );
-}
-
-export function normalizeBusinessPlanPreviewQuery(path: string): BusinessPlanPreviewWorkspaceQuery {
-  const [, queryString = ''] = path.split('?');
-  const searchParams = new URLSearchParams(queryString);
-  const baseYear = Number(searchParams.get('baseYear') ?? new Date().getFullYear());
-  const region = searchParams.get('region') as CrmBusinessPlanPreviewRegion | null;
-  return {
-    baseYear: Number.isFinite(baseYear) && baseYear >= 2000 ? Math.trunc(baseYear) : new Date().getFullYear(),
-    businessType: (searchParams.get('businessType') ?? '').trim(),
-    industryLine: (searchParams.get('industryLine') ?? '').trim(),
-    region: region && ['all', 'domestic', 'overseas'].includes(region) ? region : 'all',
-    search: (searchParams.get('search') ?? '').trim(),
-  };
-}
-
-export function toRequiredBusinessPlanPreviewQuery(query: BusinessPlanPreviewWorkspaceQuery): Required<CrmBusinessPlanPreviewQuery> {
-  return {
-    baseYear: query.baseYear,
-    businessType: query.businessType,
-    industryLine: query.industryLine,
-    region: query.region,
-    search: query.search,
-  };
-}
-
-export function normalizeBusinessPlanPreviewQueryRecord(
-  query: Record<string, string | string[] | undefined> = {},
-): BusinessPlanPreviewWorkspaceQuery {
-  const value = (key: string) => {
-    const raw = query[key];
-    return Array.isArray(raw) ? raw[0] ?? '' : raw ?? '';
-  };
-  const baseYear = Number(value('baseYear') || new Date().getFullYear());
-  const region = value('region') as CrmBusinessPlanPreviewRegion;
-  return {
-    baseYear: Number.isFinite(baseYear) && baseYear >= 2000 ? Math.trunc(baseYear) : new Date().getFullYear(),
-    businessType: value('businessType').trim(),
-    industryLine: value('industryLine').trim(),
-    region: ['all', 'domestic', 'overseas'].includes(region) ? region : 'all',
-    search: value('search').trim(),
-  };
 }

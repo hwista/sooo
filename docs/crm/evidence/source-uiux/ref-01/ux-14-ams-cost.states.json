@@ -1,0 +1,141 @@
+{
+  "states": [
+    {
+      "name": "seeded-vendor-wbs-grid",
+      "captured": true,
+      "screenshot": "ux-14-ams-cost.png",
+      "screenshotSha256": "db6d9b5f1c55a2370b36f2e83f6d6761c0532ffa058fe3daff8e1d55436737d9",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    },
+    {
+      "name": "empty-vendors",
+      "captured": true,
+      "screenshot": "ux-14-ams-cost--empty-vendors.png",
+      "screenshotSha256": "3aa1776e9773fde407c48b3f52ed98d9b404bd2cc3b6fa979255186228723ddb",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    },
+    {
+      "name": "paste",
+      "captured": true,
+      "screenshot": "ux-14-ams-cost--paste.png",
+      "screenshotSha256": "78efd66c35cd63d92d283d56cd4764eeb1c4301851316ebea98485c8ad99dac0",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    },
+    {
+      "name": "save-success",
+      "captured": true,
+      "screenshot": "ux-14-ams-cost--save-success.png",
+      "screenshotSha256": "9b34d704d12e73ad98eeceb6bde98027e968ad34fff936042d0b7f900957b227",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    },
+    {
+      "name": "invalid-paste",
+      "captured": true,
+      "screenshot": "ux-14-ams-cost--invalid-paste.png",
+      "screenshotSha256": "28bcb76e233862e9de2dff7c55a7555a82469e1178e37f1d064d2049f5a34d3c",
+      "sourceOwnedSeedFiles": [
+        {
+          "path": "script/1.SQL script/sample_data.sql",
+          "sha256": "db7bee33a93f202efb30b3374bc6d83be3419586910f0eb4a02be6df2cee7d66"
+        },
+        {
+          "path": "script/sample_contracts.sql",
+          "sha256": "ad367f4dd2e1e975d3dee59251c57ce7c7ccf0c17762007eada1dbf60785f2bd"
+        }
+      ],
+      "fixtureSha256": "c06d3757417b62397bd165ad8976766f130f808df7477928c67120af6d3f3454",
+      "interactionVerified": true,
+      "notes": "source behavior state captured from app.ams_vendor.js"
+    }
+  ],
+  "requiredForTargetComparison": [
+    {
+      "id": "seeded-vendor-wbs-grid",
+      "behavior": "seeded vendor wbs grid",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    },
+    {
+      "id": "empty-vendors",
+      "behavior": "empty vendors",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    },
+    {
+      "id": "paste",
+      "behavior": "paste",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    },
+    {
+      "id": "save-success",
+      "behavior": "save success",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    },
+    {
+      "id": "invalid-paste",
+      "behavior": "invalid paste",
+      "sourceAnchors": [
+        "index.html",
+        "app.ams_vendor.js"
+      ]
+    }
+  ]
+}

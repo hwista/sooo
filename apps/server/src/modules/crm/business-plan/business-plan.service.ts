@@ -8,10 +8,15 @@ import type {
   CrmBusinessPlanListResponse,
   CrmBusinessPlanMonthlyPlanInputRequest,
   CrmBusinessPlanMonthlyPlanInputResult,
+  CrmBusinessPlanDeleteResult,
+  CrmBusinessPlanRow,
+  CrmBusinessPlanRowMutationResult,
+  CrmBusinessPlanRowUpsertRequest,
   CrmBusinessPlanPerformanceActualInput,
   CrmBusinessPlanPerformanceActualInputRequest,
   CrmBusinessPlanPerformanceActualInputResult,
   CrmBusinessPlanPerformanceMonth,
+  CrmBusinessPlanPerformanceMode,
   CrmBusinessPlanPerformanceQuery,
   CrmBusinessPlanPerformanceResponse,
   CrmBusinessPlanPerformanceRow,
@@ -37,26 +42,29 @@ const CRM_BUSINESS_PLAN_UNAVAILABLE_ACTIONS = [
   '내부원가/AMS 원가 저장',
 ];
 const CRM_BUSINESS_PLAN_PERFORMANCE_FALLBACK_PLAN_BASIS_LABEL = 'Pipeline 후보 + 확정 계약 청구계획';
-const CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_PLAN_BASIS_LABEL = '확정 사업계획 차수 매출 기준';
-const CRM_BUSINESS_PLAN_PERFORMANCE_CONTRACT_COST_BASIS_LABEL = '계약 청구실적 원가 기준';
-const CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_COST_BASIS_LABEL = '계약 청구실적 + 확정 내부원가/AMS 원가';
-const CRM_BUSINESS_PLAN_PERFORMANCE_ADJUSTED_COST_BASIS_LABEL = '계약 청구실적 + 확정 내부원가/AMS 원가(AMS WBS 계약 외부원가 제외)';
+const CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_PLAN_BASIS_LABEL = '확정 사업계획 차수 매출·외부원가 기준';
+const CRM_BUSINESS_PLAN_PERFORMANCE_SOURCE_MISSING_PLAN_BASIS_LABEL = '확정 사업계획 없음';
+const CRM_BUSINESS_PLAN_PERFORMANCE_SOURCE_ACTUAL_BASIS_LABEL = '확정 계약 청구계획 매출·외부원가';
+const CRM_BUSINESS_PLAN_PERFORMANCE_EXTENDED_ACTUAL_BASIS_LABEL = '계약 청구실적 + 직접실적 + 확정원가';
+const CRM_BUSINESS_PLAN_PERFORMANCE_CONTRACT_COST_BASIS_LABEL = '계획·실적 계약 청구 외부원가';
+const CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_PLAN_COST_BASIS_LABEL = '계획 사업계획 외부원가 · 실적 계약 청구 외부원가';
+const CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_COST_BASIS_LABEL = '사업계획/계약 외부원가 + 확정 내부원가/AMS 원가';
+const CRM_BUSINESS_PLAN_PERFORMANCE_ADJUSTED_COST_BASIS_LABEL = '사업계획 외부원가 + 계약 청구실적 + 확정 내부원가/AMS 원가(AMS WBS 계약 외부원가 제외)';
 const CRM_BUSINESS_PLAN_PERFORMANCE_FALLBACK_BOUNDARY_NOTICE = '사업계획대비실적 Preview는 확정 사업계획 차수가 없을 때 영업기회 pipeline 후보와 확정 계약 월별 계획/실적을 비교하는 읽기용 화면입니다. 확정 AMS 정산 WBS는 계약 외부원가와 중복되지 않도록 계약 성과 외부원가를 제외하고, 확정 내부원가/AMS 원가는 별도 확정원가 행으로 합산합니다.';
-const CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_BOUNDARY_NOTICE = '사업계획대비실적 Preview는 확정 사업계획 차수의 월별 직접 입력값을 매출 계획 기준으로 사용합니다. 확정 AMS 정산 WBS는 계약 외부원가와 중복되지 않도록 계약 성과 외부원가를 제외하고, 확정 내부원가/AMS 원가는 별도 확정원가 행으로 합산합니다. 실적 직접 편집과 회계/지급 반영은 후속 slice입니다.';
+const CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_BOUNDARY_NOTICE = '사업계획대비실적 Preview는 확정 사업계획 차수의 월별 매출·외부원가를 계획으로, 같은 WBS의 확정 계약 청구실적을 실적으로 비교합니다. 확정 AMS 정산 WBS는 계약 외부원가와 중복되지 않도록 계약 성과 외부원가를 제외하고, 확정 내부원가/AMS 원가는 별도 확정원가 행으로 합산합니다. manual-actual 입력은 계약 정본을 덮어쓰지 않으며 회계/지급 반영은 후속입니다.';
+const CRM_BUSINESS_PLAN_PERFORMANCE_SOURCE_BOUNDARY_NOTICE = '원천 호환 모드는 원천 app.bp_rpt.js와 동일하게 확정 사업계획 차수의 월별 매출·외부원가를 계획으로, 확정 계약의 월별 청구계획을 실적으로 비교합니다. 계약 청구실적·manual-actual·확정 내부원가/AMS 원가는 SSOO 확장 모드에서만 합산합니다.';
 const CRM_BUSINESS_PLAN_PERFORMANCE_FALLBACK_UNAVAILABLE_ACTIONS = [
   '확정 사업계획 차수 기준 비교',
-  '실적 직접 편집',
   '확정 원가 회계/지급 반영',
 ];
 const CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_UNAVAILABLE_ACTIONS = [
-  '실적 직접 편집',
   '확정 원가 회계/지급 반영',
 ];
-const CRM_BUSINESS_PLAN_LEDGER_BOUNDARY_NOTICE = 'CRM 사업계획 원장은 preview 후보 저장, 전년도 확정 차수 이월, draft line 월별 직접 입력, 기준년도별 확정 상태를 관리합니다. 내부원가/AMS 배부 저장은 별도 후속 slice입니다.';
+const CRM_BUSINESS_PLAN_LEDGER_BOUNDARY_NOTICE = 'CRM 사업계획 원장은 preview 후보 저장, 전년도 확정 차수 이월, 기준년도 월별 매출·외부원가, 이후 2개년도 연간 계획, 행 CRUD, 표 붙여넣기용 저장 API와 차수 확정·해제·삭제를 관리합니다.';
 const CRM_BUSINESS_PLAN_LEDGER_UNAVAILABLE_ACTIONS = [
   '내부원가/AMS 원가 저장',
 ];
-const CRM_BUSINESS_PLAN_MONTHLY_INPUT_BOUNDARY_NOTICE = 'CRM 사업계획 월별 직접 입력은 draft 차수 line의 계획 매출만 갱신합니다. 확정 차수와 계약 실적, 내부원가/AMS 원가 계획은 여기서 직접 편집하지 않습니다.';
+const CRM_BUSINESS_PLAN_MONTHLY_INPUT_BOUNDARY_NOTICE = 'CRM 사업계획 월별 직접 입력은 최신 draft 차수 line의 계획 매출과 외부원가를 함께 갱신합니다. 확정·이전 차수와 계약 실적은 여기서 직접 편집하지 않습니다.';
 const CRM_BUSINESS_PLAN_PERFORMANCE_ACTUAL_INPUT_BOUNDARY_NOTICE = 'CRM 사업계획대비실적 직접 입력은 계약/원가/회계 정본을 덮어쓰지 않고 별도 manual-actual row로 합산합니다. 회계/지급 반영은 후속 slice입니다.';
 
 interface NormalizedBusinessPlanPreviewQuery extends Required<CrmBusinessPlanPreviewQuery> {
@@ -74,6 +82,22 @@ interface NormalizedBusinessPlanPerformanceActualInput extends CrmBusinessPlanPe
   wbsCode: string;
   monthlyRevenueAmounts: number[];
   monthlyCostAmounts: number[];
+  memo?: string;
+}
+
+interface NormalizedBusinessPlanRowInput extends CrmBusinessPlanRowUpsertRequest {
+  businessType: string;
+  industryLine: string;
+  ownerName: string;
+  region: Exclude<CrmBusinessPlanPreviewRegion, 'all'>;
+  businessName: string;
+  wbsCode: string;
+  monthlyRevenueAmounts: number[];
+  monthlyExternalCostAmounts: number[];
+  nextYearRevenueAmount: number;
+  nextYearExternalCostAmount: number;
+  followingYearRevenueAmount: number;
+  followingYearExternalCostAmount: number;
   memo?: string;
 }
 
@@ -147,22 +171,28 @@ interface CrmBusinessPlanLedgerRow {
   rowCount: number;
   memo: string | null;
   updatedAt: Date;
+  isLatest?: boolean;
 }
 
 interface CrmBusinessPlanLineLedgerRow {
   businessPlanId: bigint;
   id: bigint;
   lineCode: string;
+  rowCode?: string;
   targetYear: number;
   businessType: string;
   industryLine: string;
   ownerName: string;
   regionCode: string;
+  businessName?: string;
+  wbsCode?: string;
   pipelineAmount: bigint;
   contractPlanAmount: bigint;
   contractActualAmount: bigint;
   planCandidateAmount: bigint;
+  planExternalCostAmount?: bigint;
   planMonthlyRevenueAmounts?: unknown;
+  planMonthlyExternalCostAmounts?: unknown;
   actualGapAmount: bigint;
   sortOrder: number;
 }
@@ -207,6 +237,7 @@ interface CrmBusinessPlanInsertedRow {
 
 interface CrmBusinessPlanVersionRow {
   versionNo: number | bigint | null;
+  latestConfirmed?: boolean | null;
 }
 
 interface CrmBusinessPlanLineCountRow {
@@ -254,16 +285,21 @@ export class BusinessPlanService {
         select business_plan_id as "businessPlanId",
                business_plan_line_id as "id",
                line_code as "lineCode",
+               row_code as "rowCode",
                target_year as "targetYear",
                business_type as "businessType",
                industry_line as "industryLine",
                owner_name as "ownerName",
                region_code as "regionCode",
+               business_name as "businessName",
+               wbs_code as "wbsCode",
                pipeline_amount as "pipelineAmount",
                contract_plan_amount as "contractPlanAmount",
                contract_actual_amount as "contractActualAmount",
                plan_candidate_amount as "planCandidateAmount",
+               plan_external_cost_amount as "planExternalCostAmount",
                plan_monthly_revenue_amounts as "planMonthlyRevenueAmounts",
+               plan_monthly_external_cost_amounts as "planMonthlyExternalCostAmounts",
                actual_gap_amount as "actualGapAmount",
                sort_order as "sortOrder"
           from crm.crm_business_plan_line_d
@@ -343,6 +379,83 @@ export class BusinessPlanService {
     return this.getPlan(inserted.code);
   }
 
+  async createPlanVersion(id: string, currentUserId?: bigint): Promise<CrmBusinessPlan> {
+    const db = this.requireDb();
+    const existing = await this.findPlanWriteRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM business plan not found');
+    }
+    this.assertLatestPlanVersion(existing);
+    if (!existing.confirmed) {
+      throw new BadRequestException('최신 확정 사업계획 차수만 다음 차수로 복사할 수 있습니다.');
+    }
+    const source = await this.getPlan(existing.code);
+    if (source.lines.length === 0) {
+      throw new BadRequestException('복사할 사업계획 상세가 없습니다.');
+    }
+    const transactionId = randomUUID();
+    const inserted = await db.client.$transaction(async (tx) => {
+      const writer = tx as unknown as RawBusinessPlanWriter;
+      const nextVersion = await this.resolveNextVersion(writer, existing.baseYear);
+      const planCode = this.createBusinessPlanCode(existing.baseYear, nextVersion);
+      const createdRows = await writer.$queryRaw<CrmBusinessPlanInsertedRow[]>`
+        insert into crm.crm_business_plan_m (
+          business_plan_code, plan_name, base_year, version_no, status_code, confirmed,
+          business_type_filter, industry_line_filter, region_filter, search_filter,
+          pipeline_amount_total, contract_plan_amount_total, contract_actual_amount_total,
+          plan_candidate_amount_total, actual_gap_amount_total, row_count,
+          memo, created_by, updated_by, last_source, last_activity, transaction_id
+        )
+        values (
+          ${planCode}, ${`${existing.baseYear} 사업계획 ${nextVersion}차`}, ${existing.baseYear}, ${nextVersion}, 'draft', false,
+          ${existing.businessTypeFilter}, ${existing.industryLineFilter}, ${existing.regionFilter}, ${existing.searchFilter},
+          ${existing.pipelineAmountTotal}, ${existing.contractPlanAmountTotal}, ${existing.contractActualAmountTotal},
+          ${existing.planCandidateAmountTotal}, ${existing.actualGapAmountTotal}, ${source.rows.length},
+          ${`${source.code}에서 복사한 ${nextVersion}차 사업계획`}, ${currentUserId ?? null}, ${currentUserId ?? null},
+          'crm.business-plan', 'version-copy', ${transactionId}::uuid
+        )
+        returning business_plan_id as "id", business_plan_code as "code"
+      `;
+      const created = createdRows[0];
+      if (!created) {
+        throw new BadRequestException('사업계획 다음 차수 생성에 실패했습니다.');
+      }
+      let sortOrder = 0;
+      for (const line of source.lines) {
+        sortOrder += 10;
+        const lineCode = this.createBusinessPlanLineCode(line.rowCode, line.targetYear);
+        const monthlyRevenueJson = line.monthlyPlanInputMode === 'manual'
+          ? JSON.stringify(line.monthlyPlanRevenueAmounts)
+          : null;
+        const monthlyExternalCostJson = line.monthlyPlanExternalCostInputMode === 'manual'
+          ? JSON.stringify(line.monthlyPlanExternalCostAmounts)
+          : null;
+        await writer.$executeRaw`
+          insert into crm.crm_business_plan_line_d (
+            business_plan_id, line_code, row_code, target_year,
+            business_type, industry_line, owner_name, region_code, business_name, wbs_code,
+            pipeline_amount, contract_plan_amount, contract_actual_amount,
+            plan_candidate_amount, plan_external_cost_amount,
+            plan_monthly_revenue_amounts, plan_monthly_external_cost_amounts,
+            actual_gap_amount, sort_order, created_by, updated_by,
+            last_source, last_activity, transaction_id
+          )
+          values (
+            ${created.id}, ${lineCode}, ${line.rowCode}, ${line.targetYear},
+            ${line.businessType}, ${line.industryLine}, ${line.ownerName}, ${line.region}, ${line.businessName}, ${line.wbsCode ?? ''},
+            ${BigInt(line.pipelineAmount)}, ${BigInt(line.contractPlanAmount)}, ${BigInt(line.contractActualAmount)},
+            ${BigInt(line.planCandidateAmount)}, ${BigInt(line.planExternalCostAmount)},
+            ${monthlyRevenueJson}::jsonb, ${monthlyExternalCostJson}::jsonb,
+            ${BigInt(line.actualGapAmount)}, ${sortOrder}, ${currentUserId ?? null}, ${currentUserId ?? null},
+            'crm.business-plan', 'version-copy', ${transactionId}::uuid
+          )
+        `;
+      }
+      return created;
+    });
+    return this.getPlan(inserted.code);
+  }
+
   async updateMonthlyPlanLine(
     id: string,
     lineId: string,
@@ -357,6 +470,7 @@ export class BusinessPlanService {
     if (existing.confirmed) {
       throw new BadRequestException('확정된 사업계획 차수의 월별 계획은 직접 수정할 수 없습니다.');
     }
+    this.assertLatestPlanVersion(existing);
 
     const line = await this.findPlanLineWriteRow(existing.id, lineId);
     if (!line) {
@@ -364,7 +478,11 @@ export class BusinessPlanService {
     }
 
     const monthlyRevenueAmounts = this.normalizeMonthlyRevenueAmounts(dto.monthlyRevenueAmounts);
+    const monthlyExternalCostAmounts = dto.monthlyExternalCostAmounts === undefined
+      ? this.resolveMonthlyPlanExternalCostAmounts(line).amounts
+      : this.normalizeMonthlyExternalCostAmounts(dto.monthlyExternalCostAmounts);
     const planCandidateAmount = monthlyRevenueAmounts.reduce((sum, amount) => sum + amount, 0);
+    const planExternalCostAmount = monthlyExternalCostAmounts.reduce((sum, amount) => sum + amount, 0);
     const transactionId = randomUUID();
     const memo = this.trimOptional(dto.memo, 1000);
 
@@ -373,7 +491,9 @@ export class BusinessPlanService {
       await writer.$executeRaw`
         update crm.crm_business_plan_line_d
            set plan_monthly_revenue_amounts = ${JSON.stringify(monthlyRevenueAmounts)}::jsonb,
+               plan_monthly_external_cost_amounts = ${JSON.stringify(monthlyExternalCostAmounts)}::jsonb,
                plan_candidate_amount = ${BigInt(planCandidateAmount)},
+               plan_external_cost_amount = ${BigInt(planExternalCostAmount)},
                actual_gap_amount = contract_actual_amount - ${BigInt(planCandidateAmount)},
                memo = coalesce(${memo}, memo),
                updated_by = ${currentUserId ?? null},
@@ -399,7 +519,7 @@ export class BusinessPlanService {
           from (
             select coalesce(sum(plan_candidate_amount), 0)::bigint as plan_candidate_amount_total,
                    coalesce(sum(actual_gap_amount), 0)::bigint as actual_gap_amount_total,
-                   count(*)::int as row_count
+                   count(distinct row_code)::int as row_count
               from crm.crm_business_plan_line_d
              where business_plan_id = ${existing.id}
                and is_active = true
@@ -420,6 +540,225 @@ export class BusinessPlanService {
       line: updatedLine,
       boundaryNotice: CRM_BUSINESS_PLAN_MONTHLY_INPUT_BOUNDARY_NOTICE,
     };
+  }
+
+  async createPlanRow(
+    id: string,
+    dto: CrmBusinessPlanRowUpsertRequest,
+    currentUserId?: bigint,
+  ): Promise<CrmBusinessPlanRowMutationResult> {
+    const rowCode = `ROW-${randomUUID().toUpperCase()}`.slice(0, 80);
+    return this.savePlanRow(id, rowCode, dto, currentUserId, false);
+  }
+
+  async updatePlanRow(
+    id: string,
+    rowCode: string,
+    dto: CrmBusinessPlanRowUpsertRequest,
+    currentUserId?: bigint,
+  ): Promise<CrmBusinessPlanRowMutationResult> {
+    return this.savePlanRow(id, rowCode, dto, currentUserId, true);
+  }
+
+  async updatePlanRowWbs(
+    id: string,
+    rowCode: string,
+    wbsCode: string | undefined,
+    currentUserId?: bigint,
+  ): Promise<CrmBusinessPlanRowMutationResult> {
+    const db = this.requireDb();
+    const existing = await this.findPlanWriteRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM business plan not found');
+    }
+    await this.assertPlanRowExists(existing.id, rowCode);
+    const normalizedWbsCode = this.trimOptional(wbsCode, 120) ?? '';
+    const transactionId = randomUUID();
+    await db.$executeRaw`
+      update crm.crm_business_plan_line_d
+         set wbs_code = ${normalizedWbsCode},
+             updated_by = ${currentUserId ?? null},
+             updated_at = now(),
+             last_source = 'crm.business-plan',
+             last_activity = 'wbs-update',
+             transaction_id = ${transactionId}::uuid
+       where business_plan_id = ${existing.id}
+         and row_code = ${rowCode}
+         and is_active = true
+    `;
+    return { plan: await this.getPlan(existing.code), rowCode };
+  }
+
+  async deletePlanRow(
+    id: string,
+    rowCode: string,
+    currentUserId?: bigint,
+  ): Promise<CrmBusinessPlanRowMutationResult> {
+    const db = this.requireDb();
+    const existing = await this.findPlanWriteRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM business plan not found');
+    }
+    if (existing.confirmed) {
+      throw new BadRequestException('확정된 사업계획 차수의 행은 삭제할 수 없습니다.');
+    }
+    this.assertLatestPlanVersion(existing);
+    await this.assertPlanRowExists(existing.id, rowCode);
+    const transactionId = randomUUID();
+    await db.client.$transaction(async (tx) => {
+      const writer = tx as unknown as RawBusinessPlanWriter;
+      await writer.$executeRaw`
+        delete from crm.crm_business_plan_line_d
+         where business_plan_id = ${existing.id}
+           and row_code = ${rowCode}
+           and is_active = true
+      `;
+      await this.recalculatePlanTotals(writer, existing.id, currentUserId, transactionId, 'row-delete');
+    });
+    return { plan: await this.getPlan(existing.code), rowCode };
+  }
+
+  async deletePlan(id: string, currentUserId?: bigint): Promise<CrmBusinessPlanDeleteResult> {
+    const db = this.requireDb();
+    const existing = await this.findPlanWriteRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM business plan not found');
+    }
+    if (existing.confirmed) {
+      throw new BadRequestException('확정된 사업계획 차수는 삭제할 수 없습니다. 먼저 확정을 해제해야 합니다.');
+    }
+    this.assertLatestPlanVersion(existing);
+    await db.client.$transaction(async (tx) => {
+      const writer = tx as unknown as RawBusinessPlanWriter;
+      await writer.$executeRaw`
+        update crm.crm_business_plan_m
+           set updated_by = ${currentUserId ?? null},
+               updated_at = now(),
+               last_source = 'crm.business-plan',
+               last_activity = 'version-delete'
+         where business_plan_id = ${existing.id}
+      `;
+      await writer.$executeRaw`
+        delete from crm.crm_business_plan_m
+         where business_plan_id = ${existing.id}
+      `;
+    });
+    const previous = (await this.listPlans({ baseYear: existing.baseYear })).items[0];
+    return {
+      deletedPlanId: existing.id.toString(),
+      deletedPlanCode: existing.code,
+      baseYear: existing.baseYear,
+      ...(previous ? { previousPlanId: previous.id, previousPlanCode: previous.code } : {}),
+    };
+  }
+
+  private async savePlanRow(
+    id: string,
+    rowCode: string,
+    dto: CrmBusinessPlanRowUpsertRequest,
+    currentUserId: bigint | undefined,
+    requireExisting: boolean,
+  ): Promise<CrmBusinessPlanRowMutationResult> {
+    const db = this.requireDb();
+    const existing = await this.findPlanWriteRow(id);
+    if (!existing) {
+      throw new NotFoundException('CRM business plan not found');
+    }
+    if (existing.confirmed) {
+      throw new BadRequestException('확정된 사업계획 차수의 행은 수정할 수 없습니다.');
+    }
+    this.assertLatestPlanVersion(existing);
+    if (requireExisting) {
+      await this.assertPlanRowExists(existing.id, rowCode);
+    }
+    const input = this.normalizePlanRowInput(dto);
+    const transactionId = randomUUID();
+    const annualInputs = [
+      {
+        targetYear: existing.baseYear,
+        revenueAmount: input.monthlyRevenueAmounts.reduce((sum, amount) => sum + amount, 0),
+        externalCostAmount: input.monthlyExternalCostAmounts.reduce((sum, amount) => sum + amount, 0),
+        monthlyRevenueAmounts: input.monthlyRevenueAmounts,
+        monthlyExternalCostAmounts: input.monthlyExternalCostAmounts,
+      },
+      {
+        targetYear: existing.baseYear + 1,
+        revenueAmount: input.nextYearRevenueAmount,
+        externalCostAmount: input.nextYearExternalCostAmount,
+        monthlyRevenueAmounts: null,
+        monthlyExternalCostAmounts: null,
+      },
+      {
+        targetYear: existing.baseYear + 2,
+        revenueAmount: input.followingYearRevenueAmount,
+        externalCostAmount: input.followingYearExternalCostAmount,
+        monthlyRevenueAmounts: null,
+        monthlyExternalCostAmounts: null,
+      },
+    ];
+
+    await db.client.$transaction(async (tx) => {
+      const writer = tx as unknown as RawBusinessPlanWriter;
+      for (const yearInput of annualInputs) {
+        const monthlyRevenueJson = yearInput.monthlyRevenueAmounts
+          ? JSON.stringify(yearInput.monthlyRevenueAmounts)
+          : null;
+        const monthlyExternalCostJson = yearInput.monthlyExternalCostAmounts
+          ? JSON.stringify(yearInput.monthlyExternalCostAmounts)
+          : null;
+        const updated = await writer.$executeRaw`
+          update crm.crm_business_plan_line_d
+             set business_type = ${input.businessType},
+                 industry_line = ${input.industryLine},
+                 owner_name = ${input.ownerName},
+                 region_code = ${input.region},
+                 business_name = ${input.businessName},
+                 wbs_code = ${input.wbsCode},
+                 plan_candidate_amount = ${BigInt(yearInput.revenueAmount)},
+                 plan_external_cost_amount = ${BigInt(yearInput.externalCostAmount)},
+                 plan_monthly_revenue_amounts = ${monthlyRevenueJson}::jsonb,
+                 plan_monthly_external_cost_amounts = ${monthlyExternalCostJson}::jsonb,
+                 actual_gap_amount = contract_actual_amount - ${BigInt(yearInput.revenueAmount)},
+                 memo = coalesce(${input.memo ?? null}, memo),
+                 updated_by = ${currentUserId ?? null},
+                 updated_at = now(),
+                 last_source = 'crm.business-plan',
+                 last_activity = 'row-upsert',
+                 transaction_id = ${transactionId}::uuid
+           where business_plan_id = ${existing.id}
+             and row_code = ${rowCode}
+             and target_year = ${yearInput.targetYear}
+             and is_active = true
+        `;
+        if (updated === 0) {
+          const lineCode = this.createBusinessPlanLineCode(rowCode, yearInput.targetYear);
+          await writer.$executeRaw`
+            insert into crm.crm_business_plan_line_d (
+              business_plan_id, line_code, row_code, target_year,
+              business_type, industry_line, owner_name, region_code, business_name, wbs_code,
+              pipeline_amount, contract_plan_amount, contract_actual_amount,
+              plan_candidate_amount, plan_external_cost_amount,
+              plan_monthly_revenue_amounts, plan_monthly_external_cost_amounts,
+              actual_gap_amount, sort_order, memo, created_by, updated_by,
+              last_source, last_activity, transaction_id
+            )
+            values (
+              ${existing.id}, ${lineCode}, ${rowCode}, ${yearInput.targetYear},
+              ${input.businessType}, ${input.industryLine}, ${input.ownerName}, ${input.region}, ${input.businessName}, ${input.wbsCode},
+              0, 0, 0,
+              ${BigInt(yearInput.revenueAmount)}, ${BigInt(yearInput.externalCostAmount)},
+              ${monthlyRevenueJson}::jsonb, ${monthlyExternalCostJson}::jsonb,
+              ${BigInt(-yearInput.revenueAmount)},
+              (select coalesce(max(sort_order), 0) + 10 from crm.crm_business_plan_line_d where business_plan_id = ${existing.id}),
+              ${input.memo ?? null}, ${currentUserId ?? null}, ${currentUserId ?? null},
+              'crm.business-plan', 'row-upsert', ${transactionId}::uuid
+            )
+          `;
+        }
+      }
+      await this.recalculatePlanTotals(writer, existing.id, currentUserId, transactionId, 'row-upsert');
+    });
+    return { plan: await this.getPlan(existing.code), rowCode };
   }
 
   async savePerformanceActualInput(
@@ -493,36 +832,20 @@ export class BusinessPlanService {
     if (existing.confirmed) {
       return this.getPlan(existing.code);
     }
+    this.assertLatestPlanVersion(existing);
     await this.assertPlanHasLines(existing.id);
-    await db.client.$transaction(async (tx) => {
-      const writer = tx as unknown as RawBusinessPlanWriter;
-      await writer.$executeRaw`
-        update crm.crm_business_plan_m
-           set confirmed = false,
-               status_code = 'draft',
-               confirmed_at = null,
-               updated_by = ${currentUserId ?? null},
-               updated_at = now(),
-               last_source = 'crm.business-plan',
-               last_activity = 'supersede'
-         where base_year = ${existing.baseYear}
-           and business_plan_id <> ${existing.id}
-           and confirmed = true
-           and is_active = true
-      `;
-      await writer.$executeRaw`
-        update crm.crm_business_plan_m
-           set confirmed = true,
-               status_code = 'confirmed',
-               confirmed_at = now(),
-               updated_by = ${currentUserId ?? null},
-               updated_at = now(),
-               last_source = 'crm.business-plan',
-               last_activity = 'confirm'
-         where business_plan_id = ${existing.id}
-           and is_active = true
-      `;
-    });
+    await db.$executeRaw`
+      update crm.crm_business_plan_m
+         set confirmed = true,
+             status_code = 'confirmed',
+             confirmed_at = now(),
+             updated_by = ${currentUserId ?? null},
+             updated_at = now(),
+             last_source = 'crm.business-plan',
+             last_activity = 'confirm'
+       where business_plan_id = ${existing.id}
+         and is_active = true
+    `;
 
     return this.getPlan(existing.code);
   }
@@ -536,6 +859,7 @@ export class BusinessPlanService {
     if (!existing.confirmed) {
       throw new BadRequestException('미확정 사업계획은 확정 해제할 수 없습니다.');
     }
+    this.assertLatestPlanVersion(existing);
 
     await db.$executeRaw`
       update crm.crm_business_plan_m
@@ -662,10 +986,16 @@ export class BusinessPlanService {
     const confirmedPlanLines = confirmedPlan
       ? this.filterConfirmedPlanPerformanceLines(confirmedPlan.lines, normalized)
       : [];
-    const [confirmedCostRows, directActualRows] = await Promise.all([
-      this.loadConfirmedCostPerformanceRows(normalized),
-      this.loadPerformanceActualRows(normalized),
-    ]);
+    const sourceCompatible = normalized.mode === 'source-compatible';
+    const [confirmedCostRows, directActualRows]: [
+      CrmBusinessPlanConfirmedCostLedgerRow[],
+      CrmBusinessPlanPerformanceActualLedgerRow[],
+    ] = sourceCompatible
+      ? [[], []]
+      : await Promise.all([
+        this.loadConfirmedCostPerformanceRows(normalized),
+        this.loadPerformanceActualRows(normalized),
+      ]);
     const confirmedCostStats = this.countConfirmedCostRows(confirmedCostRows);
     const directActualStats = this.countDirectActualRows(directActualRows);
     const confirmedAmsExternalWbsCodes = this.toConfirmedAmsExternalWbsCodes(confirmedCostRows);
@@ -689,19 +1019,25 @@ export class BusinessPlanService {
       confirmedPlanLines.forEach((line) => this.addConfirmedPlanPerformanceGroup(groups, confirmedPlan, line));
       performanceResponse.items.forEach((row) => this.addContractPerformanceGroup(groups, row, {
         includePlan: false,
+        actualBasis: normalized.mode,
         confirmedAmsExternalWbsCodes,
         costAdjustmentStats,
       }));
     } else {
       performanceResponse.items.forEach((row) => this.addContractPerformanceGroup(groups, row, {
-        includePlan: true,
+        includePlan: !sourceCompatible,
+        actualBasis: normalized.mode,
         confirmedAmsExternalWbsCodes,
         costAdjustmentStats,
       }));
-      opportunities.forEach((opportunity) => this.addPipelinePerformanceGroup(groups, opportunity, normalized.year));
+      if (!sourceCompatible) {
+        opportunities.forEach((opportunity) => this.addPipelinePerformanceGroup(groups, opportunity, normalized.year));
+      }
     }
-    confirmedCostRows.forEach((row) => this.addConfirmedCostPerformanceGroup(groups, row));
-    directActualRows.forEach((row) => this.addManualActualPerformanceGroup(groups, row));
+    if (!sourceCompatible) {
+      confirmedCostRows.forEach((row) => this.addConfirmedCostPerformanceGroup(groups, row));
+      directActualRows.forEach((row) => this.addManualActualPerformanceGroup(groups, row));
+    }
 
     const rows = [...groups.values()]
       .map((group) => this.toPerformanceRow(group))
@@ -819,6 +1155,8 @@ export class BusinessPlanService {
         line.businessType,
         line.industryLine,
         line.ownerName,
+        line.businessName,
+        line.wbsCode ?? '',
       ].some((value) => value.toLowerCase().includes(search));
     });
   }
@@ -901,6 +1239,7 @@ export class BusinessPlanService {
     row: CrmContractPerformanceRow,
     options: {
       includePlan: boolean;
+      actualBasis: CrmBusinessPlanPerformanceMode;
       confirmedAmsExternalWbsCodes: Set<string>;
       costAdjustmentStats: BusinessPlanPerformanceCostAdjustmentStats;
     },
@@ -908,7 +1247,7 @@ export class BusinessPlanService {
     const wbsKey = this.toWbsKey(row.wbsCode);
     const excludeExternalCost = wbsKey ? options.confirmedAmsExternalWbsCodes.has(wbsKey) : false;
     const group = this.getOrCreatePerformanceGroup(groups, {
-      key: `contract:${row.wbsCode?.trim() || row.contractId}`,
+      key: wbsKey ? `wbs:${wbsKey}` : `contract:${row.contractId}`,
       label: row.contractName,
       businessType: row.businessType,
       industryLine: row.industryLine,
@@ -930,14 +1269,20 @@ export class BusinessPlanService {
           target.planCostAmount += month.planExternalCostAmount;
         }
       }
-      target.actualRevenueAmount += month.actualRevenueAmount;
+      const actualRevenueAmount = options.actualBasis === 'source-compatible'
+        ? month.planRevenueAmount
+        : month.actualRevenueAmount;
+      const actualExternalCostAmount = options.actualBasis === 'source-compatible'
+        ? month.planExternalCostAmount
+        : month.actualExternalCostAmount;
+      target.actualRevenueAmount += actualRevenueAmount;
       if (excludeExternalCost) {
-        options.costAdjustmentStats.amsExternalCostAdjustedActualAmountTotal += month.actualExternalCostAmount;
-        if ((options.includePlan && month.planExternalCostAmount > 0) || month.actualExternalCostAmount > 0) {
+        options.costAdjustmentStats.amsExternalCostAdjustedActualAmountTotal += actualExternalCostAmount;
+        if ((options.includePlan && month.planExternalCostAmount > 0) || actualExternalCostAmount > 0) {
           options.costAdjustmentStats.amsExternalCostAdjustedWbsCodes.add(wbsKey);
         }
       } else {
-        target.actualCostAmount += month.actualExternalCostAmount;
+        target.actualCostAmount += actualExternalCostAmount;
       }
     });
   }
@@ -947,14 +1292,16 @@ export class BusinessPlanService {
     plan: CrmBusinessPlan,
     line: CrmBusinessPlanLine,
   ): void {
+    const wbsCode = line.wbsCode?.trim();
     const group = this.getOrCreatePerformanceGroup(groups, {
-      key: `confirmed-plan:${line.id}`,
-      label: `${plan.code} · ${line.businessType} · ${line.ownerName}`,
+      key: wbsCode ? `wbs:${this.toWbsKey(wbsCode)}` : `confirmed-plan:${line.businessName}`,
+      label: line.businessName || `${plan.code} · ${line.businessType} · ${line.ownerName}`,
       businessType: line.businessType,
       industryLine: line.industryLine,
       ownerName: line.ownerName,
       region: line.region,
       source: 'confirmed-plan',
+      wbsCode,
     });
     const monthlyRevenueAmounts = line.monthlyPlanRevenueAmounts.length === 12
       ? line.monthlyPlanRevenueAmounts
@@ -965,6 +1312,16 @@ export class BusinessPlanService {
         return;
       }
       target.planRevenueAmount += amount;
+    });
+    const monthlyExternalCostAmounts = line.monthlyPlanExternalCostAmounts.length === 12
+      ? line.monthlyPlanExternalCostAmounts
+      : this.distributeAnnualAmount(line.planExternalCostAmount);
+    monthlyExternalCostAmounts.forEach((amount, index) => {
+      const target = group.months.get(index + 1);
+      if (!target) {
+        return;
+      }
+      target.planCostAmount += amount;
     });
   }
 
@@ -1204,6 +1561,8 @@ export class BusinessPlanService {
     row: CrmBusinessPlanLedgerRow,
     lineRows: CrmBusinessPlanLineLedgerRow[],
   ): CrmBusinessPlan {
+    const lines = lineRows.map((line) => this.toBusinessPlanLine(line));
+    const planExternalCostAmountTotal = lines.reduce((sum, line) => sum + line.planExternalCostAmount, 0);
     return {
       id: row.id.toString(),
       code: row.code,
@@ -1224,9 +1583,12 @@ export class BusinessPlanService {
       contractPlanAmountTotal: this.toNumber(row.contractPlanAmountTotal),
       contractActualAmountTotal: this.toNumber(row.contractActualAmountTotal),
       planCandidateAmountTotal: this.toNumber(row.planCandidateAmountTotal),
+      planExternalCostAmountTotal,
+      planMarginAmountTotal: this.toNumber(row.planCandidateAmountTotal) - planExternalCostAmountTotal,
       actualGapAmountTotal: this.toNumber(row.actualGapAmountTotal),
       rowCount: row.rowCount,
-      lines: lineRows.map((line) => this.toBusinessPlanLine(line)),
+      lines,
+      rows: this.toBusinessPlanRows(lines),
       memo: row.memo ?? undefined,
       updatedAt: row.updatedAt.toISOString(),
     };
@@ -1234,22 +1596,71 @@ export class BusinessPlanService {
 
   private toBusinessPlanLine(row: CrmBusinessPlanLineLedgerRow): CrmBusinessPlanLine {
     const monthlyPlanRevenueAmounts = this.resolveMonthlyPlanRevenueAmounts(row);
+    const monthlyPlanExternalCostAmounts = this.resolveMonthlyPlanExternalCostAmounts(row);
+    const planCandidateAmount = this.toNumber(row.planCandidateAmount);
+    const planExternalCostAmount = this.toNumber(row.planExternalCostAmount);
     return {
       id: row.id.toString(),
       lineCode: row.lineCode,
+      rowCode: row.rowCode?.trim() || this.createBusinessPlanGroupKey({
+        businessType: row.businessType,
+        industryLine: row.industryLine,
+        ownerName: row.ownerName,
+        region: this.toLineRegion(row.regionCode),
+      }),
       targetYear: row.targetYear,
       businessType: row.businessType,
       industryLine: row.industryLine,
       ownerName: row.ownerName,
       region: this.toLineRegion(row.regionCode),
+      businessName: row.businessName?.trim() || row.industryLine,
+      ...(row.wbsCode?.trim() ? { wbsCode: row.wbsCode.trim() } : {}),
       pipelineAmount: this.toNumber(row.pipelineAmount),
       contractPlanAmount: this.toNumber(row.contractPlanAmount),
       contractActualAmount: this.toNumber(row.contractActualAmount),
-      planCandidateAmount: this.toNumber(row.planCandidateAmount),
+      planCandidateAmount,
+      planExternalCostAmount,
+      planMarginAmount: planCandidateAmount - planExternalCostAmount,
       monthlyPlanRevenueAmounts: monthlyPlanRevenueAmounts.amounts,
+      monthlyPlanExternalCostAmounts: monthlyPlanExternalCostAmounts.amounts,
       monthlyPlanInputMode: monthlyPlanRevenueAmounts.mode,
+      monthlyPlanExternalCostInputMode: monthlyPlanExternalCostAmounts.mode,
       actualGapAmount: this.toNumber(row.actualGapAmount),
     };
+  }
+
+  private toBusinessPlanRows(lines: CrmBusinessPlanLine[]): CrmBusinessPlanRow[] {
+    const grouped = new Map<string, CrmBusinessPlanLine[]>();
+    lines.forEach((line) => {
+      const current = grouped.get(line.rowCode) ?? [];
+      current.push(line);
+      grouped.set(line.rowCode, current);
+    });
+    return [...grouped.entries()].map(([rowCode, rowLines]) => {
+      const first = rowLines[0]!;
+      return {
+        rowCode,
+        businessType: first.businessType,
+        industryLine: first.industryLine,
+        ownerName: first.ownerName,
+        region: first.region,
+        businessName: first.businessName,
+        ...(first.wbsCode ? { wbsCode: first.wbsCode } : {}),
+        years: [...rowLines]
+          .sort((left, right) => left.targetYear - right.targetYear)
+          .map((line) => ({
+            lineId: line.id,
+            targetYear: line.targetYear,
+            revenueAmount: line.planCandidateAmount,
+            externalCostAmount: line.planExternalCostAmount,
+            marginAmount: line.planMarginAmount,
+            monthlyRevenueAmounts: line.monthlyPlanRevenueAmounts,
+            monthlyExternalCostAmounts: line.monthlyPlanExternalCostAmounts,
+            monthlyRevenueInputMode: line.monthlyPlanInputMode,
+            monthlyExternalCostInputMode: line.monthlyPlanExternalCostInputMode,
+          })),
+      };
+    });
   }
 
   private toPerformanceActualInput(row: CrmBusinessPlanPerformanceActualLedgerRow): CrmBusinessPlanPerformanceActualInput {
@@ -1294,10 +1705,17 @@ export class BusinessPlanService {
              actual_gap_amount_total as "actualGapAmountTotal",
              row_count as "rowCount",
              memo,
-             updated_at as "updatedAt"
-        from crm.crm_business_plan_m
-       where is_active = true
-         and (business_plan_code = ${id} or business_plan_id::text = ${id})
+             updated_at as "updatedAt",
+             not exists (
+               select 1
+                 from crm.crm_business_plan_m newer
+                where newer.base_year = current_plan.base_year
+                  and newer.version_no > current_plan.version_no
+                  and newer.is_active = true
+             ) as "isLatest"
+        from crm.crm_business_plan_m current_plan
+       where current_plan.is_active = true
+         and (current_plan.business_plan_code = ${id} or current_plan.business_plan_id::text = ${id})
        limit 1
     `;
     return rows[0] ?? null;
@@ -1309,6 +1727,12 @@ export class BusinessPlanService {
     }
     const response = await this.listPlans({ baseYear, status: 'confirmed' });
     return response.items.find((plan) => plan.baseYear === baseYear && plan.confirmed) ?? null;
+  }
+
+  private assertLatestPlanVersion(plan: CrmBusinessPlanLedgerRow): void {
+    if (plan.isLatest === false) {
+      throw new BadRequestException('이전 사업계획 차수는 읽기 전용입니다. 최신 차수에서만 수정할 수 있습니다.');
+    }
   }
 
   private async loadConfirmedCostPerformanceRows(
@@ -1485,16 +1909,21 @@ export class BusinessPlanService {
       select business_plan_id as "businessPlanId",
              business_plan_line_id as "id",
              line_code as "lineCode",
+             row_code as "rowCode",
              target_year as "targetYear",
              business_type as "businessType",
              industry_line as "industryLine",
              owner_name as "ownerName",
              region_code as "regionCode",
+             business_name as "businessName",
+             wbs_code as "wbsCode",
              pipeline_amount as "pipelineAmount",
              contract_plan_amount as "contractPlanAmount",
              contract_actual_amount as "contractActualAmount",
              plan_candidate_amount as "planCandidateAmount",
+             plan_external_cost_amount as "planExternalCostAmount",
              plan_monthly_revenue_amounts as "planMonthlyRevenueAmounts",
+             plan_monthly_external_cost_amounts as "planMonthlyExternalCostAmounts",
              actual_gap_amount as "actualGapAmount",
              sort_order as "sortOrder"
         from crm.crm_business_plan_line_d
@@ -1504,6 +1933,50 @@ export class BusinessPlanService {
        limit 1
     `;
     return rows[0] ?? null;
+  }
+
+  private async assertPlanRowExists(planId: bigint, rowCode: string): Promise<void> {
+    const db = this.requireDb();
+    const rows = await db.$queryRaw<CrmBusinessPlanLineCountRow[]>`
+      select count(*) as "lineCount"
+        from crm.crm_business_plan_line_d
+       where business_plan_id = ${planId}
+         and row_code = ${rowCode}
+         and is_active = true
+    `;
+    if (this.toNumber(rows[0]?.lineCount ?? 0) === 0) {
+      throw new NotFoundException('CRM business plan row not found');
+    }
+  }
+
+  private async recalculatePlanTotals(
+    writer: RawBusinessPlanWriter,
+    planId: bigint,
+    currentUserId: bigint | undefined,
+    transactionId: string,
+    activity: string,
+  ): Promise<void> {
+    await writer.$executeRaw`
+      update crm.crm_business_plan_m target
+         set plan_candidate_amount_total = totals.plan_candidate_amount_total,
+             actual_gap_amount_total = totals.actual_gap_amount_total,
+             row_count = totals.row_count,
+             updated_by = ${currentUserId ?? null},
+             updated_at = now(),
+             last_source = 'crm.business-plan',
+             last_activity = ${activity},
+             transaction_id = ${transactionId}::uuid
+        from (
+          select coalesce(sum(plan_candidate_amount), 0)::bigint as plan_candidate_amount_total,
+                 coalesce(sum(actual_gap_amount), 0)::bigint as actual_gap_amount_total,
+                 count(distinct row_code)::int as row_count
+            from crm.crm_business_plan_line_d
+           where business_plan_id = ${planId}
+             and is_active = true
+        ) totals
+       where target.business_plan_id = ${planId}
+         and target.is_active = true
+    `;
   }
 
   private async assertPlanHasLines(planId: bigint): Promise<void> {
@@ -1521,12 +1994,20 @@ export class BusinessPlanService {
 
   private async resolveNextVersion(writer: RawBusinessPlanWriter, baseYear: number): Promise<number> {
     const rows = await writer.$queryRaw<CrmBusinessPlanVersionRow[]>`
-      select coalesce(max(version_no), 0) + 1 as "versionNo"
+      select version_no + 1 as "versionNo",
+             confirmed as "latestConfirmed"
         from crm.crm_business_plan_m
        where base_year = ${baseYear}
          and is_active = true
+       order by version_no desc
+       limit 1
     `;
-    return this.toNumber(rows[0]?.versionNo ?? 1);
+    const latest = rows[0];
+    const versionNo = this.toNumber(latest?.versionNo ?? 1);
+    if (versionNo > 1 && latest?.latestConfirmed === false) {
+      throw new BadRequestException(`${baseYear}년 최신 사업계획 차수를 확정한 뒤 새 차수를 만들 수 있습니다. (next v${versionNo})`);
+    }
+    return versionNo;
   }
 
   private async insertBusinessPlanDraft(
@@ -1573,8 +2054,8 @@ export class BusinessPlanService {
           ${BigInt(Math.round(totals.contractActualAmount))},
           ${BigInt(Math.round(totals.planCandidateAmount))},
           ${BigInt(Math.round(totals.actualGapAmount))},
-          ${rows.reduce((sum, row) => sum + row.years.length, 0)},
-          ${memo}, ${currentUserId ?? null}, ${currentUserId ?? null}, 'crm.business-plan', ${activity}, ${transactionId}
+          ${rows.length},
+          ${memo}, ${currentUserId ?? null}, ${currentUserId ?? null}, 'crm.business-plan', ${activity}, ${transactionId}::uuid
         )
         returning business_plan_id as "id", business_plan_code as "code"
       `;
@@ -1608,6 +2089,9 @@ export class BusinessPlanService {
       yearItem.contractPlanAmount = line.contractPlanAmount;
       yearItem.contractActualAmount = line.contractActualAmount;
       yearItem.planCandidateAmount = line.planCandidateAmount;
+      yearItem.planExternalCostAmount = line.planExternalCostAmount;
+      yearItem.monthlyPlanRevenueAmounts = line.monthlyPlanRevenueAmounts;
+      yearItem.monthlyPlanExternalCostAmounts = line.monthlyPlanExternalCostAmounts;
       yearItem.actualGapAmount = line.actualGapAmount;
       carriedLineCount += 1;
     });
@@ -1668,7 +2152,7 @@ export class BusinessPlanService {
     line: CrmBusinessPlanLine,
     years: number[],
   ): CrmBusinessPlanPreviewRow {
-    const key = this.createBusinessPlanGroupKey(line);
+    const key = line.rowCode || this.createBusinessPlanGroupKey(line);
     const existing = rowsByKey.get(key);
     if (existing) {
       return existing;
@@ -1679,6 +2163,8 @@ export class BusinessPlanService {
       industryLine: line.industryLine.trim() || '미분류 계열',
       ownerName: line.ownerName.trim() || '담당 미지정',
       region: line.region,
+      businessName: line.businessName,
+      ...(line.wbsCode ? { wbsCode: line.wbsCode } : {}),
       pipelineAmount: 0,
       contractPlanAmount: 0,
       contractActualAmount: 0,
@@ -1727,23 +2213,39 @@ export class BusinessPlanService {
   ): Promise<void> {
     let sortOrder = 0;
     for (const row of rows) {
+      const rowCode = `ROW-${randomUUID().toUpperCase()}`.slice(0, 80);
       for (const year of row.years) {
         sortOrder += 10;
         const lineCode = this.createBusinessPlanLineCode(row.key, year.year);
+        const planExternalCostAmount = Math.round(year.planExternalCostAmount ?? 0);
+        const monthlyRevenueJson = year.monthlyPlanRevenueAmounts
+          ? JSON.stringify(year.monthlyPlanRevenueAmounts)
+          : null;
+        const monthlyExternalCostJson = year.monthlyPlanExternalCostAmounts
+          ? JSON.stringify(year.monthlyPlanExternalCostAmounts)
+          : null;
         await writer.$executeRaw`
           insert into crm.crm_business_plan_line_d (
-            business_plan_id, line_code, target_year, business_type, industry_line, owner_name, region_code,
-            pipeline_amount, contract_plan_amount, contract_actual_amount, plan_candidate_amount, actual_gap_amount,
+            business_plan_id, line_code, row_code, target_year,
+            business_type, industry_line, owner_name, region_code, business_name, wbs_code,
+            pipeline_amount, contract_plan_amount, contract_actual_amount,
+            plan_candidate_amount, plan_external_cost_amount,
+            plan_monthly_revenue_amounts, plan_monthly_external_cost_amounts, actual_gap_amount,
             sort_order, created_by, updated_by, last_source, last_activity, transaction_id
           )
           values (
-            ${planId}, ${lineCode}, ${year.year}, ${row.businessType}, ${row.industryLine}, ${row.ownerName}, ${row.region},
+            ${planId}, ${lineCode}, ${rowCode}, ${year.year},
+            ${row.businessType}, ${row.industryLine}, ${row.ownerName}, ${row.region},
+            ${row.businessName?.trim() || row.industryLine}, ${row.wbsCode?.trim() || ''},
             ${BigInt(Math.round(year.pipelineAmount))},
             ${BigInt(Math.round(year.contractPlanAmount))},
             ${BigInt(Math.round(year.contractActualAmount))},
             ${BigInt(Math.round(year.planCandidateAmount))},
+            ${BigInt(planExternalCostAmount)},
+            ${monthlyRevenueJson}::jsonb,
+            ${monthlyExternalCostJson}::jsonb,
             ${BigInt(Math.round(year.actualGapAmount))},
-            ${sortOrder}, ${currentUserId ?? null}, ${currentUserId ?? null}, 'crm.business-plan', ${activity}, ${transactionId}
+            ${sortOrder}, ${currentUserId ?? null}, ${currentUserId ?? null}, 'crm.business-plan', ${activity}, ${transactionId}::uuid
           )
         `;
       }
@@ -1778,6 +2280,7 @@ export class BusinessPlanService {
 
     return {
       year: query.year,
+      mode: query.mode,
       rowCount: rows.length,
       planRevenueTotal: total.planRevenueAmount,
       planCostTotal: total.planCostAmount,
@@ -1790,6 +2293,7 @@ export class BusinessPlanService {
       marginGapTotal: total.marginGapAmount,
       activeFilters: {
         year: query.year,
+        mode: query.mode,
         businessType: query.businessType,
         industryLine: query.industryLine,
         region: query.region,
@@ -1799,11 +2303,20 @@ export class BusinessPlanService {
       industryLineOptions,
       planBasisLabel: confirmedPlan
         ? CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_PLAN_BASIS_LABEL
+        : query.mode === 'source-compatible'
+        ? CRM_BUSINESS_PLAN_PERFORMANCE_SOURCE_MISSING_PLAN_BASIS_LABEL
         : CRM_BUSINESS_PLAN_PERFORMANCE_FALLBACK_PLAN_BASIS_LABEL,
-      costBasisLabel: costAdjustmentStats.amsExternalCostAdjustedWbsCodes.size > 0
+      actualBasisLabel: query.mode === 'source-compatible'
+        ? CRM_BUSINESS_PLAN_PERFORMANCE_SOURCE_ACTUAL_BASIS_LABEL
+        : CRM_BUSINESS_PLAN_PERFORMANCE_EXTENDED_ACTUAL_BASIS_LABEL,
+      costBasisLabel: query.mode === 'source-compatible'
+        ? '계획 사업계획 외부원가 · 실적 확정 계약 청구계획 외부원가'
+        : costAdjustmentStats.amsExternalCostAdjustedWbsCodes.size > 0
         ? CRM_BUSINESS_PLAN_PERFORMANCE_ADJUSTED_COST_BASIS_LABEL
         : confirmedCostStats.total > 0
         ? CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_COST_BASIS_LABEL
+        : confirmedPlan
+        ? CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_PLAN_COST_BASIS_LABEL
         : CRM_BUSINESS_PLAN_PERFORMANCE_CONTRACT_COST_BASIS_LABEL,
       confirmedCostInputCount: confirmedCostStats.total,
       confirmedInternalCostInputCount: confirmedCostStats.internal,
@@ -1818,7 +2331,9 @@ export class BusinessPlanService {
       confirmedPlanId: confirmedPlan?.id,
       confirmedPlanCode: confirmedPlan?.code,
       confirmedPlanName: confirmedPlan?.planName,
-      boundaryNotice: confirmedPlan
+      boundaryNotice: query.mode === 'source-compatible'
+        ? CRM_BUSINESS_PLAN_PERFORMANCE_SOURCE_BOUNDARY_NOTICE
+        : confirmedPlan
         ? CRM_BUSINESS_PLAN_PERFORMANCE_CONFIRMED_BOUNDARY_NOTICE
         : CRM_BUSINESS_PLAN_PERFORMANCE_FALLBACK_BOUNDARY_NOTICE,
       unavailableActions: confirmedPlan
@@ -1828,10 +2343,10 @@ export class BusinessPlanService {
   }
 
   private hasPerformanceAmount(month: CrmBusinessPlanPerformanceMonth): boolean {
-    return month.planRevenueAmount > 0
-      || month.planCostAmount > 0
-      || month.actualRevenueAmount > 0
-      || month.actualCostAmount > 0;
+    return month.planRevenueAmount !== 0
+      || month.planCostAmount !== 0
+      || month.actualRevenueAmount !== 0
+      || month.actualCostAmount !== 0;
   }
 
   private buildSummary(
@@ -1882,9 +2397,11 @@ export class BusinessPlanService {
   private normalizePerformanceQuery(query: CrmBusinessPlanPerformanceQuery): NormalizedBusinessPlanPerformanceQuery {
     const rawYear = Number(query.year ?? new Date().getFullYear());
     const year = Number.isFinite(rawYear) && rawYear >= 2000 ? Math.trunc(rawYear) : new Date().getFullYear();
+    const mode = query.mode === 'source-compatible' ? 'source-compatible' : 'extended-actual';
     const region = query.region && ['all', 'domestic', 'overseas'].includes(query.region) ? query.region : 'all';
     return {
       year,
+      mode,
       businessType: query.businessType?.trim() ?? '',
       industryLine: query.industryLine?.trim() ?? '',
       region,
@@ -1911,6 +2428,31 @@ export class BusinessPlanService {
       wbsCode,
       monthlyRevenueAmounts: this.normalizeMonthlyInputAmounts(dto.monthlyRevenueAmounts, '월별 실적 매출'),
       monthlyCostAmounts: this.normalizeMonthlyInputAmounts(dto.monthlyCostAmounts, '월별 실적 원가'),
+      memo: this.trimOptional(dto.memo, 1000) ?? undefined,
+    };
+  }
+
+  private normalizePlanRowInput(dto: CrmBusinessPlanRowUpsertRequest): NormalizedBusinessPlanRowInput {
+    const amount = (value: unknown, label: string) => {
+      const normalized = Number(value);
+      if (!Number.isFinite(normalized)) {
+        throw new BadRequestException(`${label}은 숫자로 입력해야 합니다.`);
+      }
+      return Math.round(normalized);
+    };
+    return {
+      businessType: this.normalizeRequiredText(dto.businessType, '사업구분', 120),
+      industryLine: this.normalizeRequiredText(dto.industryLine, '계열/산업', 120),
+      ownerName: this.normalizeRequiredText(dto.ownerName, '담당자', 100),
+      region: dto.region === 'overseas' ? 'overseas' : 'domestic',
+      businessName: this.normalizeRequiredText(dto.businessName, '사업명', 200),
+      wbsCode: this.trimOptional(dto.wbsCode, 120) ?? '',
+      monthlyRevenueAmounts: this.normalizeSignedMonthlyPlanAmounts(dto.monthlyRevenueAmounts, '월별 계획 매출'),
+      monthlyExternalCostAmounts: this.normalizeSignedMonthlyPlanAmounts(dto.monthlyExternalCostAmounts, '월별 계획 외부원가'),
+      nextYearRevenueAmount: amount(dto.nextYearRevenueAmount, '차년도 계획 매출'),
+      nextYearExternalCostAmount: amount(dto.nextYearExternalCostAmount, '차년도 계획 외부원가'),
+      followingYearRevenueAmount: amount(dto.followingYearRevenueAmount, '차차년도 계획 매출'),
+      followingYearExternalCostAmount: amount(dto.followingYearExternalCostAmount, '차차년도 계획 외부원가'),
       memo: this.trimOptional(dto.memo, 1000) ?? undefined,
     };
   }
@@ -2008,13 +2550,21 @@ export class BusinessPlanService {
   }
 
   private normalizeMonthlyRevenueAmounts(value: unknown): number[] {
+    return this.normalizeSignedMonthlyPlanAmounts(value, '월별 계획 매출');
+  }
+
+  private normalizeMonthlyExternalCostAmounts(value: unknown): number[] {
+    return this.normalizeSignedMonthlyPlanAmounts(value, '월별 계획 외부원가');
+  }
+
+  private normalizeSignedMonthlyPlanAmounts(value: unknown, label: string): number[] {
     if (!Array.isArray(value) || value.length !== 12) {
-      throw new BadRequestException('월별 계획 매출은 1월부터 12월까지 12개 숫자로 입력해야 합니다.');
+      throw new BadRequestException(`${label}은 1월부터 12월까지 12개 숫자로 입력해야 합니다.`);
     }
     return value.map((item) => {
       const amount = Number(item);
-      if (!Number.isFinite(amount) || amount < 0) {
-        throw new BadRequestException('월별 계획 매출은 0 이상의 숫자만 입력할 수 있습니다.');
+      if (!Number.isFinite(amount)) {
+        throw new BadRequestException(`${label}은 숫자만 입력할 수 있습니다.`);
       }
       return Math.round(amount);
     });
@@ -2055,6 +2605,20 @@ export class BusinessPlanService {
     };
   }
 
+  private resolveMonthlyPlanExternalCostAmounts(row: CrmBusinessPlanLineLedgerRow): {
+    amounts: number[];
+    mode: CrmBusinessPlanLine['monthlyPlanExternalCostInputMode'];
+  } {
+    const manual = this.tryParseMonthlyAmounts(row.planMonthlyExternalCostAmounts);
+    if (manual) {
+      return { amounts: manual, mode: 'manual' };
+    }
+    return {
+      amounts: this.distributeAnnualAmount(this.toNumber(row.planExternalCostAmount)),
+      mode: 'distributed',
+    };
+  }
+
   private tryParseMonthlyRevenueAmounts(value: unknown): number[] | null {
     return this.tryParseMonthlyAmounts(value);
   }
@@ -2064,7 +2628,7 @@ export class BusinessPlanService {
       return null;
     }
     const amounts = value.map((item) => Number(item));
-    if (amounts.some((amount) => !Number.isFinite(amount) || amount < 0)) {
+    if (amounts.some((amount) => !Number.isFinite(amount))) {
       return null;
     }
     return amounts.map((amount) => Math.round(amount));

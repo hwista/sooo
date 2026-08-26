@@ -17,7 +17,7 @@ import {
 } from '@/hooks/queries/useCrmHandoff';
 import { useCodesByGroup } from '@/hooks/queries/useCodes';
 import { Button } from '@/components/ui/button';
-import { Input } from '@ssoo/web-ui';
+import { SsooSearchInput } from '@ssoo/web-shell';
 import {
   Select,
   SelectContent,
@@ -340,7 +340,11 @@ function CrmHandoffCandidatePanel({
       </div>
 
       <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_160px_auto]">
-        <Input
+        <SsooSearchInput
+          id="pms-crm-contract-handoff-lookup-input"
+          name="pms-crm-contract-handoff-lookup-query"
+          ariaLabel="CRM 계약 인계 대상 검색"
+          intent="entity-lookup"
           value={searchText}
           placeholder="고객사, 계약명, 계약번호"
           onChange={(event) => setSearchText(event.target.value)}

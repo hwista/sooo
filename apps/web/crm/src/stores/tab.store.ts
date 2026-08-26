@@ -133,11 +133,19 @@ export const useTabStore = create<CrmTabStore>()(
       partialize: (state) => ({ tabs: state.tabs, activeTabId: state.activeTabId }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        state.tabs = state.tabs.map((tab) => ({
+        const normalizedTabs = state.tabs.map((tab) => ({
           ...tab,
+          ...(tab.id === CRM_HOME_TAB.id ? CRM_HOME_TAB : {}),
+          ...(tab.id === '/settings' ? { id: '/operations/settings' } : {}),
           openedAt: new Date(tab.openedAt),
           lastActiveAt: new Date(tab.lastActiveAt),
         }));
+        state.tabs = normalizedTabs.filter((tab, index) => (
+          normalizedTabs.findIndex((candidate) => candidate.id === tab.id) === index
+        ));
+        if (state.activeTabId === '/settings') {
+          state.activeTabId = '/operations/settings';
+        }
         if (!state.tabs.some((tab) => tab.id === CRM_HOME_TAB.id)) {
           state.tabs = [createHomeTab(), ...state.tabs];
         }

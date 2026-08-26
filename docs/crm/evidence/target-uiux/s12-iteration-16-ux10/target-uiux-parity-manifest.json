@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "kind": "subset-target-uiux-parity",
+  "sourceManifestSha256": "4dc2f437e46fec99179a150917c3bc13820dbf92c9a5ea747b76df708e61ced2",
+  "generatedAt": "2026-08-20T07:07:48.544Z",
+  "captureCommand": "pnpm run capture:crm-target-uiux-parity",
+  "runtime": {
+    "crmBaseUrl": "http://127.0.0.1:3105",
+    "adminBaseUrl": "http://127.0.0.1:3100",
+    "loginId": "admin",
+    "passwordPersisted": false,
+    "uxIds": [
+      "UX-10"
+    ]
+  },
+  "captures": [
+    {
+      "uxId": "UX-10",
+      "sourcePage": "bp-rpt",
+      "status": "complete",
+      "ownerSurface": "CRM /business-plan-performance?mode=source-compatible",
+      "targetUrl": "http://127.0.0.1:3105/business-plan-performance?mode=source-compatible",
+      "capturedAt": "2026-08-20T07:07:48.544Z",
+      "structureDiff": {
+        "missingSections": [],
+        "missingFields": [],
+        "missingColumns": [],
+        "missingActions": [],
+        "missingLabels": [],
+        "renamedMeaning": [],
+        "reorderedWorkflow": [],
+        "defaultBehaviorDifferences": [],
+        "unclassified": [],
+        "defects": [],
+        "classifiedDifferences": [
+          {
+            "classification": "platform-required",
+            "area": "공용 애플리케이션 셸",
+            "rationale": "SSOO 공용 인증·MDI·내비게이션 셸을 유지하고 원천 업무 화면의 정보구조와 동작을 콘텐츠 영역에 이식했습니다."
+          }
+        ]
+      },
+      "states": [
+        {
+          "id": "seeded-plan-contract-comparison",
+          "sourceScreenshot": "ux-10-bp-rpt.png",
+          "targetDesktopScreenshot": "ux-10-bp-rpt--seeded-plan-contract-comparison--desktop.png",
+          "targetMobileScreenshot": "ux-10-bp-rpt--seeded-plan-contract-comparison--mobile.png",
+          "differenceScreenshot": "ux-10-bp-rpt--seeded-plan-contract-comparison--difference.png",
+          "evidenceSha256": {
+            "source": "c1cc331a22555b6cc8e07e9a6fe6dfdd41535301c5410683fc03754044d8f617",
+            "targetDesktop": "716d79f58aaea84fec79056f96192aff3c99e5aa80255b0ffca4304fbdd621e3",
+            "targetMobile": "242d32058e877ed361082479cbe55e57e947b7f81733df471e132714b36fa669",
+            "difference": "a063a719b7a86cebcad6fa57ec655ae5f85b77396ad8ec9029d7638a54a2ee35"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "filtered-empty",
+          "sourceScreenshot": "ux-10-bp-rpt--filtered-empty.png",
+          "targetDesktopScreenshot": "ux-10-bp-rpt--filtered-empty--desktop.png",
+          "targetMobileScreenshot": "ux-10-bp-rpt--filtered-empty--mobile.png",
+          "differenceScreenshot": "ux-10-bp-rpt--filtered-empty--difference.png",
+          "evidenceSha256": {
+            "source": "b725ed9b77b0c15bc937e1bf74cfabbeadf23a435173b52bbac98528a644b33b",
+            "targetDesktop": "46bb2eb323b3afaa3fda9c994f303319aa6ec2659ec422ce1a8e59372038af5b",
+            "targetMobile": "c7b27bbcd2c28628a12941601f7e05013c8d8ab4e92147c0ce78dad018038021",
+            "difference": "2e4b3de345a8c4f07a66b0d03cf599707bfaef0ff9ea8e7c140df0ab14237962"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        },
+        {
+          "id": "filter-combination",
+          "sourceScreenshot": "ux-10-bp-rpt--filter-combination.png",
+          "targetDesktopScreenshot": "ux-10-bp-rpt--filter-combination--desktop.png",
+          "targetMobileScreenshot": "ux-10-bp-rpt--filter-combination--mobile.png",
+          "differenceScreenshot": "ux-10-bp-rpt--filter-combination--difference.png",
+          "evidenceSha256": {
+            "source": "b9f8a56f0ed5d4a7cb6965a8d302411d39120417cafc967062c06a9e1acd7a07",
+            "targetDesktop": "8915c4ebfe026cd89cff85bf292f7e748f28244edae521f15ee49d5367d56105",
+            "targetMobile": "cfa2784f7959196e6de0a57697d8b49ca34e3f526b52ae8cc68cb321266b6a55",
+            "difference": "6c8ce544a24309695e45b6e1fc6e7ab13e5d1861f612fe375f409a8275c52ace"
+          },
+          "interactionVerified": true,
+          "visualMethod": "perceptual-diff",
+          "unclassifiedDifferences": [],
+          "defects": [],
+          "classifiedDifferences": [],
+          "desktopBrowserGate": {
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          },
+          "mobileBrowserGate": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "pageErrors": [],
+            "consoleErrors": [],
+            "unexpectedHttpFailures": [],
+            "documentOverflowPx": 0
+          }
+        }
+      ]
+    }
+  ]
+}

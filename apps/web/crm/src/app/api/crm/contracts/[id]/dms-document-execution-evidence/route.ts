@@ -20,7 +20,13 @@ export async function POST(
   const body = await req.text();
   const response = await fetch(
     createServerApiUrl(`/crm/contracts/${encodeURIComponent(id)}/dms-document-execution-evidence`),
-    createServerApiProxyInit(req, { method: 'POST', body }),
+    createServerApiProxyInit(req, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body || undefined,
+    }),
   );
 
   return forwardResponse(response);

@@ -25,6 +25,7 @@ import { CustomerWorkspaceMdiPage } from '@/components/pages/customers/CustomerW
 import { OperationsPreviewWorkspaceMdiPage } from '@/components/pages/operations/OperationsPreviewWorkspaceMdiPage';
 import { QuoteSellerProfileWorkspaceMdiPage } from '@/components/pages/quote-settings/QuoteSellerProfileWorkspaceMdiPage';
 import { ReportsPreviewWorkspaceMdiPage } from '@/components/pages/reports/ReportsPreviewWorkspaceMdiPage';
+import { CrmSettingsWorkspaceMdiPage } from '@/components/pages/settings/CrmSettingsWorkspaceMdiPage';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 const CRM_LOCAL_PAGE_CONTENT_PAGE_ADAPTER_NAME = SSOO_CONTENT_PAGE_ADAPTER_NAMES.crmLocalPage;
@@ -36,7 +37,7 @@ function stripQuery(path: string): string {
   return path.split('?')[0] || '/';
 }
 
-function renderCrmPage(tab: CrmTabItem) {
+function renderCrmPage(tab: CrmTabItem, active = true) {
   const pathname = stripQuery(tab.path);
 
   if (pathname === SSOO_GLOBAL_SEARCH_APP_PATH) {
@@ -52,7 +53,7 @@ function renderCrmPage(tab: CrmTabItem) {
   }
 
   if (pathname === '/contracts') {
-    return <ContractWorkspaceMdiPage path={tab.path} />;
+    return <ContractWorkspaceMdiPage path={tab.path} active={active} />;
   }
 
   if (pathname === '/customers') {
@@ -85,6 +86,10 @@ function renderCrmPage(tab: CrmTabItem) {
 
   if (pathname === '/quote-settings') {
     return <QuoteSellerProfileWorkspaceMdiPage />;
+  }
+
+  if (pathname === '/operations/settings' || pathname === '/settings') {
+    return <CrmSettingsWorkspaceMdiPage />;
   }
 
   return <SsooContentAreaEmptyState>페이지 준비 중: {tab.path}</SsooContentAreaEmptyState>;
@@ -131,9 +136,9 @@ export function ContentArea() {
       template: 'domainAdapter',
       adapterName: CRM_LOCAL_PAGE_CONTENT_PAGE_ADAPTER_NAME,
       match: () => true,
-      render: ({ tab }) => createSsooContentPageAdapterElement({
+      render: ({ active, tab }) => createSsooContentPageAdapterElement({
         adapterName: CRM_LOCAL_PAGE_CONTENT_PAGE_ADAPTER_NAME,
-        children: renderCrmPage(tab),
+        children: renderCrmPage(tab, active),
       }),
     },
   ]);

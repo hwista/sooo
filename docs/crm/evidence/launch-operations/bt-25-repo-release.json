@@ -1,0 +1,146 @@
+{
+  "contract": "BT-25",
+  "status": "PASS",
+  "startedAt": "2026-08-21T08:19:35.548Z",
+  "completedAt": "2026-08-21T08:23:31.500Z",
+  "credentialsStored": false,
+  "checks": [
+    {
+      "id": "crm-local-tests-and-build",
+      "command": "pnpm run verify:crm-local",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:19:35.548Z",
+      "completedAt": "2026-08-21T08:20:59.636Z",
+      "outputTail": "m/opportunity/dto/opportunity.dto.spec.ts\nPASS src/modules/crm/reports/reports.service.spec.ts\nPASS src/modules/crm/customer/customer.service.spec.ts\nPASS src/modules/crm/contract/contract.service.spec.ts\nPASS src/modules/dms/crm-quote-lifecycle/crm-quote-lifecycle.service.spec.ts\nPASS src/modules/crm/reports/dto/reports.dto.spec.ts\nPASS src/modules/dms/crm-contract-lifecycle/crm-contract-lifecycle.service.spec.ts\nPASS src/modules/crm/search/crm-ai-index.adapter.spec.ts\nPASS src/modules/crm/operations/readiness.service.spec.ts\nPASS src/modules/crm/operations/data-quality.service.spec.ts\nPASS src/modules/crm/operations/launch-readiness.service.spec.ts\nPASS src/modules/crm/operations/operation-attempt.service.spec.ts\nPASS src/modules/crm/access/access.service.spec.ts\nPASS src/modules/pms/project/project-handoff-contract.service.spec.ts\nPASS src/modules/crm/quote-settings/quote-settings.service.spec.ts\nPASS src/modules/crm/operations/settings.service.spec.ts\nPASS src/modules/crm/cost-plan/accounting-payment-external-executor.service.spec.ts\n\nTest Suites: 23 passed, 23 total\nTests:       171 passed, 171 total\nSnapshots:   0 total\nTime:        8.355 s\nRan all test suites matching /src\\/modules\\/crm|src\\/modules\\/dms\\/crm-contract-lifecycle|src\\/modules\\/dms\\/crm-quote-lifecycle|src\\/modules\\/pms\\/project\\/project-handoff-contract.service.spec.ts/i.\nTest results written to: ../../../../../../tmp/ssoo-crm-local-prha7Z/crm-server-jest.json\n$ turbo build --filter=web-crm\n• turbo 2.7.4"
+    },
+    {
+      "id": "production-runtime-contract",
+      "command": "pnpm run verify:crm-production-runtime-contract",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:20:59.637Z",
+      "completedAt": "2026-08-21T08:21:00.080Z",
+      "outputTail": "[crm-production-runtime-contract] PASS — URL-first CRM routes, recovery links, proxies, CORS and DMS WebSocket configuration are aligned\n\n$ node scripts/verify-crm-production-runtime-contract.mjs"
+    },
+    {
+      "id": "server-production-build",
+      "command": "pnpm run build:server",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:21:00.080Z",
+      "completedAt": "2026-08-21T08:21:01.318Z",
+      "outputTail": "• Packages in scope: server\n• Running build in 1 packages\n• Remote caching disabled\n@ssoo/database:build: cache hit, replaying logs 539debc03e0606b2\n@ssoo/database:build: $ tsc\n@ssoo/types:build: cache hit, replaying logs c2f1eba2917da648\n@ssoo/types:build: $ tsc\nserver:build: cache hit, replaying logs 9996e489ab3cf4fd\nserver:build: $ nest build\n\n Tasks:    3 successful, 3 total\nCached:    3 cached, 3 total\n  Time:    208ms >>> FULL TURBO\n\n\n$ turbo build --filter=server\n• turbo 2.7.4"
+    },
+    {
+      "id": "crm-production-build",
+      "command": "pnpm run build:web-crm",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:21:01.318Z",
+      "completedAt": "2026-08-21T08:21:03.103Z",
+      "outputTail": "B\nweb-crm:build: ├ ○ /password-reset                                                         3.24 kB         487 kB\nweb-crm:build: ├ ○ /quote-settings                                                         3.57 kB         491 kB\nweb-crm:build: ├ ƒ /reports                                                                1.31 kB         495 kB\nweb-crm:build: ├ ○ /settings                                                                 135 B         103 kB\nweb-crm:build: ├ ƒ /ssoo/search                                                              135 B         103 kB\nweb-crm:build: └ ƒ /ssot-icon.svg                                                            323 B         421 kB\nweb-crm:build: + First Load JS shared by all                                                103 kB\nweb-crm:build:   ├ chunks/1532-a79e4088ae862519.js                                         46.4 kB\nweb-crm:build:   ├ chunks/b168c62a-a6ee1ea01c395ad4.js                                     54.2 kB\nweb-crm:build:   └ other shared chunks (total)                                             1.97 kB\nweb-crm:build: \nweb-crm:build: \nweb-crm:build: ƒ Middleware                                                                33.2 kB\nweb-crm:build: \nweb-crm:build: ○  (Static)   prerendered as static content\nweb-crm:build: ƒ  (Dynamic)  server-rendered on demand\nweb-crm:build: \n\n Tasks:    5 successful, 5 total\nCached:    5 cached, 5 total\n  Time:    649ms >>> FULL TURBO\n\n\n$ turbo build --filter=web-crm\n• turbo 2.7.4"
+    },
+    {
+      "id": "admin-production-build",
+      "command": "pnpm run build:web-admin",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:21:03.104Z",
+      "completedAt": "2026-08-21T08:21:05.006Z",
+      "outputTail": "      354 B         476 kB\nweb-admin:build: ├ ƒ /auth                                7.78 kB         502 kB\nweb-admin:build: ├ ƒ /business-years                      5.07 kB         500 kB\nweb-admin:build: ├ ƒ /codes                               5.99 kB         500 kB\nweb-admin:build: ├ ○ /login                               3.32 kB         487 kB\nweb-admin:build: ├ ƒ /organizations                       4.75 kB         499 kB\nweb-admin:build: ├ ○ /password-reset                      3.23 kB         487 kB\nweb-admin:build: ├ ƒ /roles                               9.64 kB         504 kB\nweb-admin:build: ├ ƒ /ssoo/search                           127 B         103 kB\nweb-admin:build: ├ ƒ /ssot-icon.svg                         318 B         421 kB\nweb-admin:build: └ ƒ /users                               10.4 kB         505 kB\nweb-admin:build: + First Load JS shared by all             103 kB\nweb-admin:build:   ├ chunks/532-fbab6d3cb79c3631.js       46.4 kB\nweb-admin:build:   ├ chunks/b168c62a-710477aec3eb2ad6.js  54.2 kB\nweb-admin:build:   └ other shared chunks (total)          2.17 kB\nweb-admin:build: \nweb-admin:build: \nweb-admin:build: ƒ Middleware                             33.2 kB\nweb-admin:build: \nweb-admin:build: ○  (Static)   prerendered as static content\nweb-admin:build: ƒ  (Dynamic)  server-rendered on demand\nweb-admin:build: \n\n Tasks:    5 successful, 5 total\nCached:    5 cached, 5 total\n  Time:    912ms >>> FULL TURBO\n\n\n$ turbo build --filter=web-admin\n• turbo 2.7.4"
+    },
+    {
+      "id": "dms-production-build",
+      "command": "pnpm run build:web-dms",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:21:05.006Z",
+      "completedAt": "2026-08-21T08:21:06.846Z",
+      "outputTail": "518 B         477 kB\nweb-dms:build: ├ ƒ /api/templates/[id]/review-confirmation                518 B         477 kB\nweb-dms:build: ├ ƒ /api/templates/convert                                 518 B         477 kB\nweb-dms:build: ├ ○ /login                                                3.4 kB         488 kB\nweb-dms:build: ├ ○ /password-reset                                      3.24 kB         488 kB\nweb-dms:build: ├ ƒ /settings/[[...path]]                                  157 B         625 kB\nweb-dms:build: ├ ○ /settings/operations/git                               156 B         625 kB\nweb-dms:build: ├ ƒ /ssoo/search                                           136 B         104 kB\nweb-dms:build: └ ƒ /ssot-icon.svg                                         323 B         422 kB\nweb-dms:build: + First Load JS shared by all                             104 kB\nweb-dms:build:   ├ chunks/1532-a79e4088ae862519.js                      46.4 kB\nweb-dms:build:   ├ chunks/b168c62a-a6ee1ea01c395ad4.js                  54.2 kB\nweb-dms:build:   └ other shared chunks (total)                          3.29 kB\nweb-dms:build: \nweb-dms:build: \nweb-dms:build: ƒ Middleware                                             33.2 kB\nweb-dms:build: \nweb-dms:build: ○  (Static)   prerendered as static content\nweb-dms:build: ƒ  (Dynamic)  server-rendered on demand\nweb-dms:build: \n\n Tasks:    5 successful, 5 total\nCached:    5 cached, 5 total\n  Time:    651ms >>> FULL TURBO\n\n\n$ turbo build --filter=web-dms\n• turbo 2.7.4"
+    },
+    {
+      "id": "docs-and-openapi",
+      "command": "pnpm run docs:verify",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:21:06.846Z",
+      "completedAt": "2026-08-21T08:21:08.340Z",
+      "outputTail": "✅ All docs outputs exist: 17 items verified\n[openapi-contract] passed: static-domains=5, operations=458, runtime=not-requested\n[dms-gitlab-ops-docs] PASS — GitLab document sync operator guide is present and guarded\n✅ Additional docs contract checks passed: 2 item(s) verified\n\n$ pnpm run docs:verify:observed\n$ bash scripts/run-observed-command.sh --command 'pnpm run docs:verify:raw' --verification-command-label 'pnpm run docs:verify:raw'\n[run-observed-command] local observer missing, running raw fallback: pnpm run docs:verify:raw\n$ node scripts/docs-verify.js"
+    },
+    {
+      "id": "codex-sync",
+      "command": "pnpm run codex:verify-sync",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:21:08.341Z",
+      "completedAt": "2026-08-21T08:21:08.960Z",
+      "outputTail": "[codex-sync] verify start\n✓ [protocol-keyword] synced markers found\n✓ [start-briefing] synced markers found\n✓ [verification-flow] synced markers found\n✓ [doc-hierarchy] synced markers found\n✓ [forbidden-rules] synced markers found\n✓ [project-boundary] synced markers found\n✓ [project-input-intent-inventory] synced markers found\n✓ [dms-independence] synced markers found\n✓ [dms-launch-evidence-contract] synced markers found\n✓ [testing-launch-browser-evidence-contract] synced markers found\n✓ [testing-input-intent-browser-evidence-contract] synced markers found\n✓ [claude-principles] synced markers found\n✓ [claude-forbidden] synced markers found\n✓ [claude-dms-independence] synced markers found\n✓ [claude-prisma-ext] synced markers found\n✓ [claude-server-arch] synced markers found\n✓ [claude-dms-editor] synced markers found\n✓ [claude-dms-tree] synced markers found\n[codex-sync] passed\n\n$ node .codex/scripts/verify-codex-sync.js"
+    },
+    {
+      "id": "dms-guard",
+      "command": "pnpm run codex:dms-guard",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:21:08.960Z",
+      "completedAt": "2026-08-21T08:23:16.603Z",
+      "outputTail": "                       3.4 kB         488 kB\n├ ○ /password-reset                                      3.24 kB         488 kB\n├ ƒ /settings/[[...path]]                                  157 B         625 kB\n├ ○ /settings/operations/git                               156 B         625 kB\n├ ƒ /ssoo/search                                           136 B         104 kB\n└ ƒ /ssot-icon.svg                                         323 B         422 kB\n+ First Load JS shared by all                             104 kB\n  ├ chunks/1532-a79e4088ae862519.js                      46.4 kB\n  ├ chunks/b168c62a-a6ee1ea01c395ad4.js                  54.2 kB\n  └ other shared chunks (total)                          3.29 kB\n\n\nƒ Middleware                                             33.2 kB\n\n○  (Static)   prerendered as static content\nƒ  (Dynamic)  server-rendered on demand\n\n[dms-guard] completed.\n\n$ bash .codex/hooks/dms-guard.sh\n$ node scripts/verify-dms-runtime-profile-contract.mjs\n$ node scripts/verify-dms-launch-contract.mjs\n$ tsc -p automation/tsconfig.json --noEmit\n$ node scripts/validate-shell-body-contract.mjs\n$ node scripts/validate-golden-example.mjs\n$ node scripts/validate-document-hydration-contract.mjs\n$ tsc\n$ tsc\n$ tsc\n$ tsc\n$ NEXT_PRIVATE_BUILD_WORKER=0 NODE_OPTIONS=--max-old-space-size=8192 next build\nBrowserslist: browsers data (caniuse-lite) is 8 months old. Please run:\n  npx update-browserslist-db@latest\n  Why you should do it regularly: https://github.com/browserslist/update-db#readme"
+    },
+    {
+      "id": "production-security-audit-high",
+      "command": "pnpm run security:audit:raw",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:23:16.603Z",
+      "completedAt": "2026-08-21T08:23:18.028Z",
+      "outputTail": "6 vulnerabilities found\nSeverity: 1 low | 5 moderate\n\n$ pnpm audit --prod --audit-level high"
+    },
+    {
+      "id": "codex-preflight",
+      "command": "pnpm run codex:preflight",
+      "status": "passed",
+      "exitCode": 0,
+      "startedAt": "2026-08-21T08:23:18.028Z",
+      "completedAt": "2026-08-21T08:23:31.489Z",
+      "outputTail": "act verified: 5 tracks, 20 unique steps\n[preflight] running: pnpm run verify:dms-launch-types\n[preflight] completed.\n\n$ pnpm run codex:preflight:observed\n$ bash scripts/run-observed-command.sh --command 'pnpm run codex:preflight:raw' --verification-command-label 'pnpm run codex:preflight:raw'\n[run-observed-command] local observer missing, running raw fallback: pnpm run codex:preflight:raw\n$ bash .codex/hooks/preflight.sh\n$ node scripts/verify-dms-runtime-profile-contract.mjs\n$ node --no-warnings --experimental-strip-types scripts/verify-input-intent.mjs\n$ pnpm run verify:ssoo-frame:observed -- --skip-runtime\n$ bash scripts/run-observed-command.sh --command 'pnpm run verify:ssoo-frame:raw' --verification-command-label 'pnpm run verify:ssoo-frame:raw' -- --skip-runtime\n[run-observed-command] local observer missing, running raw fallback: pnpm run verify:ssoo-frame:raw\n$ node scripts/verify-ssoo-frame.mjs --skip-runtime\n$ node scripts/verify-ai-rag-platform.mjs\n$ node scripts/verify-ai-rag-central-foundation.mjs\n$ node scripts/record-ai-rag-provider-ready-evidence.mjs --self-test\n$ node scripts/complete-ai-rag-central-foundation.mjs --self-test\n$ node scripts/verify-production-compose-env.mjs --self-test\n$ COREPACK_HOME=${COREPACK_HOME:-/tmp/corepack} corepack pnpm --filter @ssoo/database db:contract:test\n$ node scripts/launch-database-contract.test.mjs\n$ node scripts/verify-sharp-runtime.mjs\n$ node scripts/verify-dms-launch-contract.mjs\n$ tsc -p automation/tsconfig.json --noEmit"
+    }
+  ],
+  "crmLocalEvidence": {
+    "path": "docs/crm/evidence/launch-operations/bt-25-crm-local.json",
+    "sha256": "86c731d450ebb424dcab18d2da146164cf25249f00cbb2c8387a573c9dceb471"
+  },
+  "openApi": {
+    "documents": [
+      {
+        "path": "docs/common/reference/api/openapi.json",
+        "sha256": "c2e9bd6d141323d50fed6bdbb41f97cb344f469dac286606c13352b38118801f",
+        "operationCount": 65
+      },
+      {
+        "path": "docs/crm/reference/api/openapi.json",
+        "sha256": "2666e4f2e8ad4e87f4db23c39aa772721d8f6302f1522064e252f1925e479d5e",
+        "operationCount": 105
+      },
+      {
+        "path": "docs/dms/reference/api/openapi.json",
+        "sha256": "f5b686ff637d6071c711ec45ebc0d0233e288ce8e6f9ff7f0a1083671200e804",
+        "operationCount": 85
+      },
+      {
+        "path": "docs/pms/reference/api/openapi.json",
+        "sha256": "54a13a4166315a7df72b15179fc59125d093a8bf0752a9cf8ea11596a7423423",
+        "operationCount": 165
+      },
+      {
+        "path": "docs/sns/reference/api/openapi.json",
+        "sha256": "0c6e68d5168949ce164ff9274f51b540604ab067e5c58e6814c82edf1efa63fb",
+        "operationCount": 38
+      }
+    ],
+    "operationCount": 458
+  },
+  "security": {
+    "command": "pnpm audit --prod --audit-level high",
+    "highCriticalVulnerabilities": 0
+  }
+}

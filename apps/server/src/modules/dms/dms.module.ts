@@ -17,6 +17,7 @@ import { FileModule } from './file/file.module.js';
 import { FilesModule } from './files/files.module.js';
 import { GitModule } from './git/git.module.js';
 import { IngestModule } from './ingest/ingest.module.js';
+import { HomeModule } from './home/home.module.js';
 import { SearchModule } from './search/search.module.js';
 import { SettingsModule } from './settings/settings.module.js';
 import { StorageModule } from './storage/storage.module.js';
@@ -28,6 +29,10 @@ import { gitService } from './runtime/git.service.js';
 import { TemplateService } from './templates/template.service.js';
 import { ControlPlaneSyncService } from './access/control-plane-sync.service.js';
 import { CollaborationService } from './collaboration/collaboration.service.js';
+import {
+  requireDmsControlPlaneSync,
+  requireDmsGitInitialization,
+} from './runtime/dms-startup-contract.js';
 
 const logger = new Logger('DmsModule');
 
@@ -54,6 +59,7 @@ const logger = new Logger('DmsModule');
     FileModule,
     StorageModule,
     IngestModule,
+    HomeModule,
   ],
   providers: [DocumentHydrationService],
   exports: [
@@ -76,6 +82,7 @@ const logger = new Logger('DmsModule');
     FileModule,
     StorageModule,
     IngestModule,
+    HomeModule,
   ],
 })
 export class DmsModule implements OnModuleInit {
@@ -99,6 +106,15 @@ export class DmsModule implements OnModuleInit {
     }
 
     try {
+      const storage = configService.assertStorageRuntimeContract();
+      logger.log(`DMS storage contract 확인 완료 (provider: ${storage.provider}, root: ${storage.resolvedPath})`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error(`DMS storage contract 검증 실패: ${message}`);
+      throw err;
+    }
+
+    try {
       const binding = configService.assertGitBootstrapContract();
       logger.log(`DMS Git role contract 확인 완료 (instanceEnv: ${binding.instanceEnv})`);
     } catch (err) {
@@ -107,16 +123,15 @@ export class DmsModule implements OnModuleInit {
       throw err;
     }
 
+    let gitInitialization;
     try {
-      const gitResult = await gitService.initialize();
-      if (gitResult.success) {
-        logger.log(`Git 초기화 완료 (mode: ${gitResult.data?.mode})`);
-      } else {
-        logger.warn(`Git 초기화 실패: ${gitResult.error}`);
-      }
+      gitInitialization = await requireDmsGitInitialization(() => gitService.initialize());
     } catch (err) {
-      logger.warn('Git 초기화 중 예외', err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error(`DMS Git 초기화 실패: ${message}`);
+      throw err;
     }
+    logger.log(`Git 초기화 완료 (mode: ${gitInitialization.mode})`);
 
     try {
       await this.hydration.hydrateFromDisk();
@@ -125,10 +140,14 @@ export class DmsModule implements OnModuleInit {
     }
 
     try {
-      await this.controlPlaneSyncService.ensureRepoControlPlaneSynced(true);
+      await requireDmsControlPlaneSync(
+        () => this.controlPlaneSyncService.ensureRepoControlPlaneSynced(true),
+      );
       logger.log('DMS 문서 control-plane 초기 동기화 완료');
     } catch (err) {
-      logger.warn('DMS 문서 control-plane 초기 동기화 중 예외', err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error(`DMS 문서 control-plane 초기 동기화 실패: ${message}`);
+      throw err;
     }
 
     try {

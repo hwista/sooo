@@ -131,6 +131,18 @@
 \echo 'Applying 54_crm_business_plan.sql...'
 \i 54_crm_business_plan.sql
 
+-- 56: CRM source demo contracts
+\echo 'Applying 56_crm_source_contracts.sql...'
+\i 56_crm_source_contracts.sql
+
+-- 57: CRM launch operations settings and code foundation
+\echo 'Applying 57_crm_launch_operations.sql...'
+\i 57_crm_launch_operations.sql
+
+-- 58: CRM source UI/UX deterministic reference fixture
+\echo 'Applying 58_crm_source_uiux_reference.sql...'
+\i 58_crm_source_uiux_reference.sql
+
 -- 17: PMS demo project access context (owner/org baseline)
 \echo 'Applying 17_demo_project_access_context.sql...'
 \i 17_demo_project_access_context.sql

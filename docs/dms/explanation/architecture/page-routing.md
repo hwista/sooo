@@ -1,6 +1,6 @@
 # 페이지 라우팅 (Page Routing)
 
-> 최종 업데이트: 2026-07-06
+> 최종 업데이트: 2026-08-14
 
 DMS의 탭 기반 라우팅과 설정 모드 구조를 정의합니다.
 
@@ -8,11 +8,11 @@ DMS의 탭 기반 라우팅과 설정 모드 구조를 정의합니다.
 
 ## 라우팅 개요
 
-DMS는 Next.js App Router를 사용하지만, 브라우저 공개 진입점은 **`/`, `/login`, `/password-reset`** 만 사용하고 실제 업무 화면 전환은 **workspace 탭 frame** 안에서 처리합니다.
+DMS는 Next.js App Router를 사용합니다. 문서·AI 같은 업무 화면 전환은 **workspace 탭 frame** 안에서 처리하고, 인증·검색과 운영자가 다시 열어야 하는 설정 화면은 브라우저 진입점으로 제공합니다.
 
-- 브라우저 공개 URL: `/`, `/login`, `/password-reset`
+- 브라우저 공개 URL: `/`, `/login`, `/password-reset`, `/ssoo/search`, `/settings/{surface}/{sectionId}`
 - 내부 탭 경로: `/home`, `/doc/...`, `/doc/new*`, `/ai/chat`, `/ssoo/search`, `/settings/{surface}/{sectionId}`
-- 정책: 내부 탭 경로는 주소창에 직접 노출하거나 딥링크로 사용하는 대상이 아니다.
+- 정책: 문서·AI 내부 탭 경로는 주소창 deep link 대상이 아니며, settings 경로만 인증된 reload/bookmark/Admin handoff 대상으로 허용한다.
 - `/settings` 는 현재 기준의 workspace 탭 경로가 아니라, stale session/tab migration 을 위한 legacy handoff 경로다.
 
 ``` 
@@ -22,7 +22,7 @@ URL 경로 → Next.js Route → (main)/layout → (main)/page → AppLayout
                                                                   └─ settings mode → settings tab paths + SettingsPage
 ```
 
-브라우저에서 `/doc/...` 같은 경로로 직접 들어오면 [`src/middleware.ts`](/home/a0122024330/src/ssoo/apps/web/dms/src/middleware.ts) 가 이를 내부 virtual path 로 간주하고 `/` 루트 셸로 복구한다.
+브라우저에서 `/doc/...` 같은 경로로 직접 들어오면 [`src/middleware.ts`](/home/a0122024330/src/ssoo/apps/web/dms/src/middleware.ts) 가 이를 내부 virtual path 로 간주하고 `/` 루트 셸로 복구한다. `/settings/...`는 [`settings/[[...path]]/page.tsx`](/home/a0122024330/src/ssoo/apps/web/dms/src/app/(main)/settings/[[...path]]/page.tsx)가 기존 `AppLayout`으로 진입시켜 URL의 surface/section을 settings tab에 handoff한다.
 
 ---
 
@@ -33,9 +33,11 @@ URL 경로 → Next.js Route → (main)/layout → (main)/page → AppLayout
 | `/login` | public 로그인 진입점 | `app/(auth)/login/page.tsx` |
 | `/password-reset` | public 비밀번호 찾기 진입점 | `app/(auth)/password-reset/page.tsx` |
 | `/` | 인증된 DMS 루트 shell | `app/(main)/layout.tsx`, `app/(main)/page.tsx` |
+| `/ssoo/search` | 인증된 공용 검색 진입점 | `middleware.ts`, `AppLayout` |
+| `/settings/{surface}/{sectionId}` | 인증된 설정 reload/bookmark/Admin handoff | `app/(main)/settings/[[...path]]/page.tsx`, `AppLayout` |
 | 그 외 브라우저 경로 | 내부 virtual path 로 간주하고 `/` 로 복구 | `middleware.ts`, `app/not-found.tsx` |
 
-라우트 상수는 `src/lib/constants/routes.ts` 에서 `APP_HOME_PATH`, `LOGIN_PATH`, `ROOT_ENTRY_PATHS` 로 관리한다.
+라우트 상수는 `src/lib/constants/routes.ts`에서 `APP_HOME_PATH`, `LOGIN_PATH`, `ROOT_ENTRY_PATHS`, `ALLOWED_PATH_PREFIXES`로 관리한다.
 
 ---
 
@@ -53,7 +55,9 @@ src/app/
 │   └── password-reset/page.tsx # public 비밀번호 찾기 진입점
 ├── (main)/
 │   ├── layout.tsx         # protected shell gate + 파일 트리 preload
-│   └── page.tsx           # 루트 페이지(/) → AppLayout
+│   ├── page.tsx           # 루트 페이지(/) → AppLayout
+│   └── settings/
+│       └── [[...path]]/page.tsx # 설정 deep link → 기존 AppLayout/settings tab handoff
 └── api/
     ├── file/
     │   └── route.ts       # 파일 CRUD API
@@ -91,6 +95,7 @@ interface TabItem {
 | 새 문서 (AI 요약) | 상황별 생성 | `/doc/new-ai-summary` | ✅ 가능 |
 | 통합 검색 | `global-search` | `/ssoo/search` | ✅ 가능 |
 | 설정 legacy handoff | `settings` | `/settings` | ✅ 가능 |
+| Admin 운영 상태 진입 | `settings-operations-git` | `/settings/operations/git` | ✅ 가능 |
 
 ### 탭 → 페이지 매핑
 
@@ -125,6 +130,8 @@ DMS 검색 진입점은 `/ssoo/search` 하나다. DMS에서 검색을 열어도 
 - 사용자 메뉴, 알림, assistant help action은 workspace `settings` 탭을 열지 않고 `useSettingsPageNavigationStore.enterSettings()` 또는 `openSection()` 으로 settings mode를 켠 뒤, `/settings/{surface}/{sectionId}` 설정 탭을 엽니다.
 - 현재 settings surface 는 `operations`, `system-settings`, `management`, `personal-settings` 입니다. 이 surface 는 정보구조/탭 경로용 구분이며, 저장 API snapshot 의 `system`/`personal` scope 와 별개입니다.
 - `/settings/{scope}/{sectionId}` 형식의 legacy tab path 는 세션 복원 호환을 위해 파싱만 유지합니다.
+- `/settings/{surface}/{sectionId}` 전체가 공식 브라우저 deep link입니다. 해당 Next route는 별도 설정 구현을 만들지 않고 기존 `AppLayout`과 settings tab으로 handoff하며, 알 수 없는 surface/section은 canonical settings registry 기준으로 보정합니다. 시스템 설정 권한 검사는 `SettingsPage`와 서버 API의 기존 접근 계약을 그대로 적용합니다.
+- `/settings/operations/git`은 그중 Admin launch-readiness가 DMS Git/runtime 상태로 연결할 때 사용하는 대표 진입점입니다.
 - `useSettingsPageNavigationStore.isActive` 가 true이면 `AppLayout`은 같은 `SsooAppFrame`의 sidebar/header/tabbar/content slot을 유지하면서 settings variant 데이터를 주입합니다.
 - settings mode가 켜진 동안 active content tab은 `/settings/{surface}/{sectionId}` 경로여야 합니다. `AppLayout`은 설정 모드와 활성 탭을 첫 페인트 전에 맞추고, `ContentArea`는 설정 모드에서 문서 탭을 active pane으로 렌더링하지 않습니다.
 - section 탐색은 settings sidebar 메뉴 트리 클릭으로 시작하고, 클릭 결과는 같은 `TabBar`의 settings tab으로 열립니다.
@@ -242,21 +249,22 @@ const pageComponents = {
 
 | 항목 | PMS | DMS |
 |------|-----|-----|
-| 라우팅 방식 | 루트 고정 shell app | 루트 고정 workspace shell + settings mode |
+| 라우팅 방식 | 루트 고정 shell app | 루트 고정 workspace shell + settings authenticated deep link |
 | 인증 | `/login` + protected shell bootstrap | `/login` + protected shell bootstrap |
-| URL 동기화 | 불필요 (internal path 중심) | 불필요 (internal path 중심) |
+| URL 동기화 | 불필요 (internal path 중심) | 업무 탭은 internal path, settings는 direct URL과 tab 동기화 |
 | 페이지 타입 | 업무 탭 중심 | Home, Markdown, AI + settings mode handoff |
 
 ---
 
 ## 미들웨어 정책
 
-- 목적: 공개 URL을 `/` 와 `/login` 으로 제한
-- 허용: `ROOT_ENTRY_PATHS = ['/', '/login']`
+- 목적: 내부 virtual path를 루트 셸로 복구하면서 인증·검색·설정의 명시적 진입점은 유지
+- exact 허용: `ROOT_ENTRY_PATHS`의 `/`, `/login`, `/password-reset`, `/ssoo/search`, `/settings/operations/git`
+- prefix 허용: `ALLOWED_PATH_PREFIXES = ['/settings']`
 - 제외: `/api`, `/_next`, 정적 파일
-- 직접 접근 차단 대상: `/doc/...`, `/doc/new*`, `/ai/...`, `/settings`
+- 직접 접근 복구 대상: `/doc/...`, `/doc/new*`, `/ai/...` 등 settings가 아닌 내부 virtual path
 
-이 정책은 인증/권한 미들웨어가 아니라 “주소창 루트 고정” 정책이다. 향후 실제 공개 URL 기반 딥링크를 허용할 시점에는 이 정책을 제거하거나 허용 경로 기반으로 재설계해야 한다.
+이 정책은 인증/권한 미들웨어가 아니라 주소창 진입 정책이다. settings deep link가 허용돼도 protected shell과 `SettingsPage`의 역할 검사, 서버 API authorization은 그대로 적용된다.
 
 ---
 
@@ -277,6 +285,7 @@ const pageComponents = {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-14 | 모든 settings surface/section의 인증된 direct URL, reload, bookmark, Admin handoff 계약과 middleware prefix 허용 정책을 현행화 |
 | 2026-07-06 | settings tab path 를 `/settings/{surface}/{sectionId}` 기준으로 현행화하고 operations/system-settings/management/personal-settings surface 구분을 문서화 |
 | 2026-06-15 | settings mode 활성 중 active content tab이 문서 탭으로 남아 문서 panel이 설정 화면에 표시되는 혼합 상태를 차단하는 라우팅 invariant를 문서화 |
 | 2026-06-15 | settings sidebar 메뉴 클릭이 `/settings/{scope}/{sectionId}` 탭을 열고, 같은 `TabBar`/`ContentArea` 슬롯에서 `SettingsPage`를 렌더링하는 기준으로 보정 |

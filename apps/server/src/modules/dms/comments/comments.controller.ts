@@ -14,7 +14,7 @@ import type { TokenPayload } from '../../common/auth/interfaces/auth.interface.j
 import { DmsFeatureGuard } from '../access/dms-feature.guard.js';
 import { RequireDmsFeature } from '../access/require-dms-feature.decorator.js';
 import { CommentsService } from './comments.service.js';
-import { CreateCommentDto, MutateCommentDto } from './dto/comment.dto.js';
+import { DmsCreateCommentDto, DmsMutateCommentDto } from './dto/comment.dto.js';
 
 @ApiTags('dms')
 @ApiBearerAuth()
@@ -45,7 +45,7 @@ export class CommentsController {
   @ApiInternalServerErrorResponse({ type: ApiError, description: '서버 오류' })
   async create(
     @CurrentUser() currentUser: TokenPayload,
-    @Body() body: CreateCommentDto,
+    @Body() body: DmsCreateCommentDto,
   ) {
     return success(await this.commentsService.create(body, currentUser));
   }
@@ -73,7 +73,7 @@ export class CommentsController {
   async restore(
     @CurrentUser() currentUser: TokenPayload,
     @Param('commentId') commentId: string,
-    @Body() body: MutateCommentDto,
+    @Body() body: DmsMutateCommentDto,
   ) {
     return success(await this.commentsService.restore(body.path, commentId, currentUser));
   }

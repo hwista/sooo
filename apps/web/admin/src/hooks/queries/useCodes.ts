@@ -58,3 +58,13 @@ export function useDeactivateCode() {
     },
   });
 }
+
+export function useRemoveCodePermanently() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => codesApi.removePermanently(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: codeKeys.all });
+    },
+  });
+}

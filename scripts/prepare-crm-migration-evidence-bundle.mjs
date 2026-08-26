@@ -4,6 +4,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
+  assertRepositoryWorktreeIdentity,
+  createRepositoryWorktreeIdentity,
+} from './repository-worktree-identity.mjs';
+import {
   createTemplateReport as createAccountingPaymentProviderTemplateReport,
   validateReport as validateAccountingPaymentProviderReport,
 } from './verify-crm-accounting-payment-provider-report.mjs';
@@ -21,10 +25,12 @@ import {
 } from './inspect-crm-migration-inputs.mjs';
 
 const LOCAL_VERIFICATION_REPORT_FILE_NAME = 'crm-local-verification-report.json';
+let currentWorktreeIdentityCache;
 const REQUIRED_LOCAL_CHECKS = [
   'crm-launch-static-readiness',
   'crm-server-unit-and-boundary-tests',
   'crm-web-production-build',
+  'worktree-identity-unchanged',
 ];
 
 const REPORT_TEMPLATES = [
@@ -195,8 +201,8 @@ function copyLocalVerificationReport(sourcePath, outDir) {
 }
 
 function validateLocalVerificationReport(report) {
-  if (report?.schemaVersion !== 1) {
-    throw new Error('CRM local verification report must use schemaVersion 1.');
+  if (report?.schemaVersion !== 2) {
+    throw new Error('CRM local verification report must use schemaVersion 2.');
   }
   if (report?.status !== 'passed') {
     throw new Error(`CRM local verification report must be passed, got ${String(report?.status)}.`);
@@ -213,6 +219,11 @@ function validateLocalVerificationReport(report) {
       throw new Error(`CRM local verification report check ${id} must be passed, got ${String(check.status)}.`);
     }
   }
+  assertRepositoryWorktreeIdentity(
+    report.worktreeIdentity,
+    getCurrentWorktreeIdentity(),
+    'CRM local verification report worktreeIdentity',
+  );
 }
 
 function formatEnvTemplate(templateFiles, inputRootDir) {
@@ -269,7 +280,7 @@ function formatReadme(templateFiles, envPath, inputInspectionFiles, requiredInpu
     '',
     '1. Run the local build/test verification gate and keep the generated report as local evidence:',
     '',
-    '   pnpm run verify:crm-local -- --report-path=crm-local-verification-report.json',
+    '   pnpm run verify:crm-local -- --report-path=output/crm-local-evidence/crm-local-verification-report.json',
     '',
     '   If you already generated a passed local report elsewhere, rerun this preparer with `--local-verification-report-path=<report.json>` to copy it into the bundle.',
     '',
@@ -318,7 +329,7 @@ function formatManifest(templateFiles, envPath, readmePath, inputInspectionFiles
     },
     localVerification: {
       script: 'verify:crm-local',
-      command: 'pnpm run verify:crm-local -- --report-path=crm-local-verification-report.json',
+      command: 'pnpm run verify:crm-local -- --report-path=output/crm-local-evidence/crm-local-verification-report.json',
       reportPath: localVerificationFile.path,
       included: localVerificationFile.included,
       sourceReportPath: localVerificationFile.sourcePath || undefined,
@@ -518,9 +529,11 @@ function assertSelfTest() {
 }
 
 function createSelfTestLocalVerificationReport() {
+  const worktreeIdentity = getCurrentWorktreeIdentity();
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     status: 'passed',
+    worktreeIdentity,
     startedAt: '2026-07-10T00:00:00.000Z',
     finishedAt: '2026-07-10T00:01:00.000Z',
     durationMs: 60000,
@@ -549,8 +562,20 @@ function createSelfTestLocalVerificationReport() {
         status: 'passed',
         durationMs: 5000,
       },
+      {
+        id: 'worktree-identity-unchanged',
+        requirement: 'Repository file contents remain unchanged throughout CRM local verification.',
+        status: 'passed',
+        durationMs: 0,
+        evidence: { started: worktreeIdentity, completed: worktreeIdentity },
+      },
     ],
   };
+}
+
+function getCurrentWorktreeIdentity() {
+  currentWorktreeIdentityCache ??= createRepositoryWorktreeIdentity({ repoRoot: process.cwd() });
+  return currentWorktreeIdentityCache;
 }
 
 function assertFileExists(filePath) {

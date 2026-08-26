@@ -1,0 +1,54 @@
+{
+  "title": "계약현황",
+  "sections": [
+    "계약현황"
+  ],
+  "fields": [
+    {
+      "id": "ct-list-search",
+      "name": null,
+      "type": "text",
+      "label": null,
+      "placeholder": "고객사, 계약명, 담당자 검색",
+      "disabled": false,
+      "readOnly": false
+    },
+    {
+      "id": "ct-list-status",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": "ct-list-sort",
+      "name": null,
+      "type": "select",
+      "label": null,
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "columns": [
+    "고객사",
+    "계약명",
+    "담당자",
+    "매출액",
+    "원가",
+    "이익",
+    "이익률",
+    "계약기간",
+    "상태"
+  ],
+  "actions": [
+    "+ 계약등록",
+    "삼성전자 ERP 시스템 구축 계약 김민 김민준 1.6억 1.1억 4,770만 29% 26.01.01~26.12.31 계약중 →"
+  ],
+  "labels": [
+    "전체 건수",
+    "매출액",
+    "이익",
+    "평균 이익률"
+  ]
+}

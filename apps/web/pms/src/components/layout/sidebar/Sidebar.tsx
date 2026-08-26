@@ -78,6 +78,9 @@ export function Sidebar({
       collapsedWidth={collapsedWidth}
       brandTitle={PMS_APP_IDENTITY.brandTitle}
       search={{
+        inputId: `ssoo-pms-${variant}-navigation-search-input`,
+        inputName: `ssoo-pms-${variant}-navigation-search-query`,
+        ariaLabel: 'PMS 메뉴 검색',
         value: searchQuery,
         onChange: setSearchQuery,
         onClear: clearSearch,

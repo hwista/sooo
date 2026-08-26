@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SERVER_DIR="$ROOT_DIR/apps/server"
 LOCAL_ENV_FILE="${DMS_LOCAL_TEST_ENV_FILE:-$ROOT_DIR/.env.local-test}"
-EXPECTED_INGEST_PATH="$ROOT_DIR/.runtime/document-ingest"
-EXPECTED_STORAGE_PATH="$ROOT_DIR/.runtime/document-storage/local"
+EXPECTED_INGEST_PATH="${DMS_LOCAL_TEST_EXPECTED_INGEST_PATH:-$ROOT_DIR/.runtime/document-ingest}"
+EXPECTED_STORAGE_PATH="${DMS_LOCAL_TEST_EXPECTED_STORAGE_PATH:-$ROOT_DIR/.runtime/document-storage/local}"
 
 fail() {
   echo "[dms-local-test] $*" >&2
@@ -26,7 +26,9 @@ load_env_file() {
 
 cd "$ROOT_DIR"
 
-load_env_file "$ROOT_DIR/.env"
+if [ "${DMS_LOCAL_TEST_SKIP_ROOT_ENV:-0}" != "1" ]; then
+  load_env_file "$ROOT_DIR/.env"
+fi
 
 if [ ! -f "$LOCAL_ENV_FILE" ]; then
   fail "missing $LOCAL_ENV_FILE. Create it with the local-test DMS path overrides first."
