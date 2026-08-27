@@ -10,6 +10,14 @@ export interface SummaryFileStatusLike {
   extractionState?: SummaryFileExtractionState;
 }
 
+const SUMMARY_FILE_ISSUE_MESSAGES = [
+  '문서보안이 적용된 PDF라 본문을 추출할 수 없어 요약할 수 없습니다. 보안 해제본 또는 텍스트 추출 가능한 파일을 첨부해주세요.',
+  '파일의 텍스트를 추출하지 못했습니다. 파일을 확인한 뒤 다시 첨부해주세요.',
+  '파일에서 요약할 수 있는 본문을 찾지 못했습니다.',
+  '지원하지 않는 파일 형식이라 요약할 수 없습니다.',
+  '문서보안 흔적이 감지되었습니다. 추출 가능한 본문 기준으로 요약합니다.',
+] as const;
+
 function hasExtractedContent(file: SummaryFileStatusLike): boolean {
   return (file.textContent?.trim().length ?? 0) > 0 || (file.images?.length ?? 0) > 0;
 }
@@ -106,4 +114,18 @@ export function collectSummaryFileIssues(files: SummaryFileStatusLike[]): string
     const message = formatSummaryFileIssue(file);
     return message ? [message] : [];
   });
+}
+
+export function isSummaryFileIssueWarning(warning: string): boolean {
+  return SUMMARY_FILE_ISSUE_MESSAGES.some((message) => (
+    warning === message || warning.endsWith(`: ${message}`)
+  ));
+}
+
+export function syncSummaryFileIssueWarnings(
+  warnings: string[],
+  files: SummaryFileStatusLike[],
+): string[] {
+  const preservedWarnings = warnings.filter((warning) => !isSummaryFileIssueWarning(warning));
+  return [...preservedWarnings, ...collectSummaryFileIssues(files)];
 }

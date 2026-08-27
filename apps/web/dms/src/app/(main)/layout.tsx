@@ -335,7 +335,6 @@ export default function MainLayout({
     && pathname !== '/settings'
     && !pathname.startsWith('/settings/')
   );
-
   // WebSocket 실시간 동기화
   useDmsSocket({
     enabled: shouldRender,

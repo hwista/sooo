@@ -1,6 +1,6 @@
 # 앱 초기화 흐름 (App Initialization Flow)
 
-> 최종 업데이트: 2026-06-16
+> 최종 업데이트: 2026-08-27
 
 DMS 앱의 현재 초기화 흐름을 **로그인 진입**, **protected shell bootstrap**, **파일 트리 preload** 기준으로 정리합니다.
 
@@ -35,7 +35,7 @@ Providers
         ├─ DMS access snapshot hydrate
         └─ 미인증 시 /login 복구
         ↓
-        canReadDocuments 이면 refreshFileTree()
+        canReadDocuments 이면 refreshFileTree({ forceSync: true })
         ↓
         app/(main)/page.tsx
         ↓
@@ -95,7 +95,11 @@ apps/web/dms/src/
 
 bootstrap 이후에도 DMS는 app-specific 후속 단계가 하나 더 있다.
 
-- `accessSnapshot.features.canReadDocuments === true` 일 때만 `refreshFileTree()` 실행
+- `accessSnapshot.features.canReadDocuments === true` 일 때만 `refreshFileTree({ forceSync: true })` 실행
+- 자동 bootstrap과 사용자의 `다시 불러오기` 클릭은 각각 `/api/files?force=1` 요청을 한 번만 보낸다.
+- 현재 사용자 scope의 요청이 성공하고 store가 initialized 되면 결과가 `[]`이어도 준비 완료다. 메인 shell을 렌더하고 사이드바가 `표시할 문서가 없습니다.` empty state를 표시한다.
+- 네트워크/API 오류는 기존 shell/sidebar 안에 오류와 `문서 목록 다시 불러오기` action을 표시한다. 성공한 빈 결과를 오류로 바꾸거나 숨은 자동 재시도를 수행하지 않는다.
+- 사용자 scope가 바뀌면 이전 사용자의 지연된 성공/오류 응답은 현재 tree 상태를 덮어쓰지 않는다.
 - 따라서 공용 bootstrap 은 auth/access 까지만 담당하고,
   DMS-specific 파일 시스템 준비는 layout 의 후속 effect 로 유지한다.
 - `200 + []` 응답은 신규 사용자/권한 내 문서 없음으로 해석하며 오류 화면이 아니라 파일 트리 empty state 로 종료한다.
@@ -148,6 +152,8 @@ bootstrap 이후에도 DMS는 app-specific 후속 단계가 하나 더 있다.
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-27 | 파일 트리 오류도 정상 로그인 shell을 유지하고 sidebar의 visible error/retry로 복구하도록 Behavior Impact Gate와 현행 UI 계약을 명시 |
+| 2026-07-14 | 현재 사용자 scope의 파일 트리 요청이 성공하면 빈 배열도 정상 ready 상태로 처리하고 shell/empty state를 렌더하도록 정렬; force-sync 자동 빈 결과 재시도 제거 및 요청 1회 경계 명시 |
 | 2026-06-16 | DMS `(auth)/layout.tsx`가 app-specific auth shell/theme를 소유하지 않고 `SharedAuthLoginPage`가 `AuthPageShell` + login card를 직접 소유하는 현재 구현으로 정렬 |
 | 2026-06-15 | settings mode가 별도 settings tabbar/content 주입이 아니라 기존 4개 frame slot 유지 + settings tab path 데이터 전환임을 명시 |
 | 2026-06-12 | 설정 화면을 workspace `/settings` tab page가 아니라 공유 frame 위 settings mode로 현행화 |

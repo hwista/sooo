@@ -440,6 +440,7 @@ Response:
   - query: `documentPath|storageUri|provider|path|name|download`
   - `documentPath` 는 항상 필요합니다.
   - same-origin 프록시는 shared session cookie로 access token을 복원할 수 있으며, server는 `canReadDocuments` 와 linked-document read ACL 을 다시 검사합니다.
+  - `name` 은 다운로드/표시용 파일명으로만 사용되며, `Content-Type` / active-content 판단은 실제 저장소 파일 형식을 기준으로 계산합니다.
 
 - `POST /api/storage/resync`
   - body: `{ documentPath, storageUri?|provider?|path? }`
@@ -451,7 +452,7 @@ Response:
 - 즉, `documentPath` 가 필요하고, 해당 문서 DB projection/source-file registry 안에 요청한 `path` 또는 `storageUri` 와 일치하는 항목이 있어야 합니다.
 - `resync` 는 `canManageStorage` 권한에서만 허용되며, 같은 linked source-file match 계약을 다시 사용합니다.
 - `GET /api/storage/open?download=1` 은 provider별 external `webUrl` 이 있어도 redirect 하지 않고 same-origin binary 응답으로 내려갑니다. 이 경로는 `Content-Disposition` 에 ASCII fallback `filename` 과 UTF-8 `filename*` 를 함께 싣습니다.
-- `download=1` 이 아닌 열기 요청은 provider별 external `webUrl` 이 있으면 redirect 하고, 없으면 same-origin binary 응답으로 fallback 합니다.
+- `download=1` 이 아닌 열기 요청은 provider별 external `webUrl` 이 **허용된 `http(s)` URL** 인 경우에만 redirect 하고, `file://` 같은 비브라우저 scheme 이거나 유효하지 않은 provider URL 이면 same-origin binary 응답으로 fallback 합니다.
 
 ---
 

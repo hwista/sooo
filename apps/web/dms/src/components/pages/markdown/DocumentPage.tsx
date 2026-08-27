@@ -665,13 +665,14 @@ export function DocumentPage() {
 
   useEffect(() => {
     if (!tabId) return;
+    const lockedPreviewTitle = lockedPreview?.title?.trim();
     const docTitle = documentMetadata?.title?.trim();
     const fileName = filePath?.split('/').pop() || '';
-    const displayTitle = docTitle || fileName;
+    const displayTitle = lockedPreviewTitle || docTitle || fileName;
     if (displayTitle) {
       updateTab(tabId, { title: displayTitle });
     }
-  }, [tabId, documentMetadata?.title, filePath, updateTab]);
+  }, [tabId, lockedPreview?.title, documentMetadata?.title, filePath, updateTab]);
 
   const htmlContent = useMemo(() => {
     if (!content) return '';

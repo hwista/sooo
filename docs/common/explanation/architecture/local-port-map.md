@@ -1,14 +1,14 @@
 # SSOO Local Port Map
 
 > Status: local development/runtime baseline
-> Last updated: 2026-06-10
+> Last updated: 2026-08-27
 > Scope: SSOO monorepo host ports, future control/settings split reservation, and nearby-project collision policy on this WSL/Docker workstation.
 
 ## Decision summary
 
 SSOO reserves the local `3000-3009` web-app band plus `4000` for the API and `5432` for the app-owned local PostgreSQL container. Other local projects, including bud:D, must not bind into the SSOO `3000-3009` band while SSOO is being used as a full monorepo runtime.
 
-The first five web ports are assigned in product-navigation order:
+The first five web ports are assigned to match the current operational deployment:
 
 1. `3000` Admin
 2. `3001` CRM
@@ -52,7 +52,7 @@ Until then, keep these under Admin on `3000`:
 
 | Project | Current observed conflict | Recommended host port | Reason |
 | --- | --- | ---: | --- |
-| bud:D web | Previously observed on host `3003`, now conflicts with canonical DMS | 3103 | Keeps bud:D close to its previous URL while leaving SSOO `3000-3009` reserved. |
+| bud:D web | Previously observed inside the SSOO reserved web band | 3103 | Keeps bud:D near its previous URL while leaving SSOO `3000-3009` reserved. |
 | Temporary verification containers | Any `3000-3009` binding | 3300+ only for temporary verification | Do not use as canonical SSOO app ports. Remove after verification if not needed. |
 | LINEUP | Uses `13000`, `18000`, `15432`, `16379` | keep as-is | Already outside the SSOO band. |
 | AGP | Uses `56000`, `57000`, `57432`, `58379` | keep as-is | Already outside the SSOO band. |
@@ -84,6 +84,7 @@ If any `3000-3009` port is already bound by another project, move that project f
 ## Compose/env rules
 
 - `compose.yaml` should keep SSOO ports aligned with the package `dev` scripts and Dockerfile `PORT`/`EXPOSE` values.
+- Compose web ports are parameterized as `ADMIN_PORT`, `CRM_PORT`, `PMS_PORT`, `DMS_PORT`, and `SNS_PORT`. Keep the defaults aligned with this local map, and pin environment-specific overrides in that environment's `.env`.
 - Server `CORS_ORIGIN` defaults must include `3000,3001,3002,3003,3004`; add `3005` only when the split app actually exists.
 - If a one-off verification needs an alternate host port, use a temporary `3300+` host port override, but do not document it as canonical.
 - Unrelated projects should use their own band or explicit alternate host ports; do not occupy SSOO `3000-3009`.
@@ -92,5 +93,7 @@ If any `3000-3009` port is already bound by another project, move that project f
 
 | Date | Change |
 | --- | --- |
+| 2026-08-27 | Preserved Compose/CI port parameterization while restoring the platform baseline: Admin/CRM/PMS/DMS/SNS as `3000-3004`. |
+| 2026-07-03 | Aligned canonical web ports with the operational deployment: PMS/DMS/SNS/Admin/CRM as `3000-3004`. |
 | 2026-06-10 | Reordered canonical web ports to Admin/CRM/PMS/DMS/SNS as `3000-3004` and reserved `3005` for a possible Settings/Control split. |
 | 2026-06-09 | Established canonical SSOO local port map and selected `3103` as the bud:D web alternate to free the SSOO band. |

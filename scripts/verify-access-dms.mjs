@@ -964,6 +964,9 @@ async function verifyReadSurfaces(baseUrl, accessToken, canReadDocuments, probe)
       if (!disposition.toLowerCase().includes('attachment')) {
         throw new Error('/dms/file/serve-attachment 응답이 attachment disposition 이 아닙니다.');
       }
+      if (!disposition.includes("filename*=")) {
+        throw new Error('/dms/file/serve-attachment 응답에 UTF-8 filename* 이 없습니다.');
+      }
       if (body.length === 0) {
         throw new Error('/dms/file/serve-attachment 응답 body 가 비어 있습니다.');
       }
@@ -1943,6 +1946,38 @@ async function verifyStorageBoundary(baseUrl, accessToken, features, probe, labe
         }
         if (body.length === 0) {
           throw new Error(`/dms/storage/open GET (${label}) 응답 body 가 비어 있습니다.`);
+        }
+      }
+      : undefined,
+  );
+
+  const downloadParams = new URLSearchParams({
+    provider: 'local',
+    path: probe.storagePath,
+    documentPath: probe.documentPath,
+    download: '1',
+    name: '검증-스토리지-참조.html',
+  });
+  await assertBinaryEndpoint(
+    `${baseUrl}/dms/storage/open?${downloadParams.toString()}`,
+    authHeaders(accessToken),
+    canReadDocuments ? 200 : 403,
+    `/dms/storage/open GET download (${label})`,
+    canReadDocuments
+      ? (response, body) => {
+        const disposition = response.headers.get('content-disposition') || '';
+        const contentType = response.headers.get('content-type') || '';
+        if (!disposition.toLowerCase().includes('attachment')) {
+          throw new Error(`/dms/storage/open GET download (${label}) 응답이 attachment disposition 이 아닙니다.`);
+        }
+        if (!disposition.includes("filename*=")) {
+          throw new Error(`/dms/storage/open GET download (${label}) 응답에 UTF-8 filename* 이 없습니다.`);
+        }
+        if (contentType !== 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+          throw new Error(`/dms/storage/open GET download (${label}) content-type 이 실제 저장소 파일 형식과 다릅니다: ${contentType}`);
+        }
+        if (body.length === 0) {
+          throw new Error(`/dms/storage/open GET download (${label}) 응답 body 가 비어 있습니다.`);
         }
       }
       : undefined,

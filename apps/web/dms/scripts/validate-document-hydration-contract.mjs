@@ -20,10 +20,15 @@ const checks = [
   {
     file: 'src/stores/file.store.ts',
     patterns: [
-      'FORCE_SYNC_EMPTY_RETRY_COUNT',
+      'const result = await filesApi.getFileTree(options);',
       'const nextFiles = toFileNodes(result.data);',
       'isInitialized: true',
       'filesOwnerUserId: requestScope.userId',
+    ],
+    absentPatterns: [
+      'FORCE_SYNC_EMPTY_RETRY_COUNT',
+      'waitForFileTreeRetry',
+      'requestFileTree(options)',
     ],
     description: 'file tree refresh treats successful empty arrays as initialized user-scoped state',
   },
@@ -87,6 +92,11 @@ for (const check of checks) {
   for (const pattern of check.patterns) {
     if (!text.includes(pattern)) {
       failures.push(`- ${check.description} (${check.file}) missing pattern: ${pattern}`);
+    }
+  }
+  for (const pattern of check.absentPatterns ?? []) {
+    if (text.includes(pattern)) {
+      failures.push(`- ${check.description} (${check.file}) contains forbidden pattern: ${pattern}`);
     }
   }
 }

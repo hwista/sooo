@@ -139,7 +139,7 @@ check(
   (content) => content.includes("lastSource: record.lastSource ?? ctx.source ?? 'API'")
     && content.includes('lastActivity: record.lastActivity ?? `${modelName}.create`')
     && content.includes('lastActivity: record.lastActivity ?? `${modelName}.${action}`')
-    && content.includes('transactionId: ctx.transactionId ?? record.transactionId'),
+    && content.includes('transactionId: record.transactionId ?? ctx.transactionId'),
 );
 
 check(
@@ -853,7 +853,7 @@ check(
 
 check(
   'packages/web-auth/src/server-api-proxy.ts',
-  'server API proxy helpers must preserve Origin and Referer and own session-backed binary/SSE restore helpers',
+  'server API proxy helpers must preserve Origin and Referer and own hardened session-backed binary/SSE restore helpers',
   (content) => content.includes("'origin'")
     && content.includes("'referer'")
     && content.includes("'authorization'")
@@ -861,7 +861,11 @@ check(
     && content.includes('restoreServerAccessToken')
     && content.includes('proxySessionBackedBinaryResponse')
     && content.includes('proxySessionBackedStreamResponse')
-    && content.includes("createServerApiUrl('/auth/session')"),
+    && content.includes("createServerApiUrl('/auth/session')")
+    && content.includes("redirect: 'manual'")
+    && content.includes('resolveSafeRedirectLocation')
+    && content.includes("'content-disposition'")
+    && content.includes("'location'"),
 );
 
 check(
@@ -1162,10 +1166,11 @@ check(
 
 check(
   'apps/server/src/modules/dms/file/file.controller.ts',
-  'DMS file controller must prevent active content inline serving and validate image signatures',
+  'DMS file controller must normalize filenames, prevent active content inline serving, and validate image signatures',
   (content) => content.includes('isActiveContentAttachment')
     && content.includes('formatContentDisposition')
     && content.includes('X-Content-Type-Options')
+    && content.includes('normalizeDmsFileName')
     && content.includes('assertValidImageUpload')
     && content.includes('matchesImageSignature')
     && content.includes('SVG/HTML 파일은 raw preview로 제공하지 않습니다.'),

@@ -1,6 +1,7 @@
 # DMS GitLab 문서 자동 싱크 운영 가이드
 
 > 최종 업데이트: 2026-08-19
+> 최종 업데이트: 2026-08-27
 > 범위: DMS 서버가 runtime markdown root를 어떤 문서 GitLab 저장소에 연결하는지 운영/개발/테스트 역할별로 고정하는 절차.
 
 이 문서는 코드 구현이 아니라 운영 handoff 문서입니다. 현재 DMS 서버는 시작 시 이미 `gitService.initialize()` 를 호출하며, 운영자는 `.env` 와 배포 runtime 역할만 올바르게 고정하면 됩니다.
@@ -22,6 +23,7 @@
 - `apps/server/src/modules/dms/runtime/git.service.ts`
   - empty dir clone, 기존 repo fast-forward, wrong-remote blocking 을 수행
   - 기존 repo의 `origin` 을 자동으로 덮어쓰지 않고 mismatch 를 진단 상태로 남김
+  - bind-mounted 문서 root의 host/container 소유자가 달라도, DMS가 해석한 정확한 문서 root만 command-local `safe.directory`로 허용
 
 따라서 역할별 overlay / `.env.production` / SSH 운영 기준과 readiness가 모두 맞아야 서버가 healthy로 승격됩니다.
 
@@ -96,6 +98,7 @@ DMS_GIT_BOOTSTRAP_REMOTE_URL=
 - `DMS_INSTANCE_ENV=prod|dev` 이 기대하는 canonical remote 와 `DMS_GIT_BOOTSTRAP_REMOTE_URL` / persisted config 가 다르면 startup-fatal 입니다.
 - 이미 존재하는 working tree 의 실제 `origin` 이 기대 remote 와 다르면 서버는 자동으로 `origin` 을 바꾸지 않고 기동을 실패시킵니다.
 - 기동 후 runtime path/Git parity/control-plane이 준비되지 않으면 `/api/health/readiness`가 `503`을 반환하고 Compose는 server를 healthy로 승격하지 않습니다.
+- bind mount 소유권 차이는 전역 Git 설정으로 우회하지 않습니다. DMS Git client가 각 명령에 현재 configured root만 전달하며 `safe.directory=*`는 사용하지 않습니다.
 
 ---
 
@@ -148,7 +151,7 @@ grep -E 'DMS_INSTANCE_ENV|DMS_GIT_(PROD_REMOTE_URL|DEV_REMOTE_URL|BOOTSTRAP_BRAN
 pnpm run docker:local-test:up
 
 # 서버 로그에서 역할 확인
-docker compose -f compose.yaml -f compose.local.yaml -f compose.local-test.yaml logs --tail 200 server | grep -E 'DMS Git role contract|Git 초기화 완료|Git 초기화 실패|control-plane'
+docker compose -f compose.yaml -f compose.local.yaml -f compose.local-test.yaml logs --tail 200 server | grep -E 'DMS Git role contract|Git 초기화 완료|Git 초기화 실패|control-plane|dubious ownership'
 
 # DB + DMS runtime readiness
 curl --fail http://localhost:4000/api/health/readiness
@@ -163,6 +166,7 @@ pnpm run verify:access-dms:raw
 - `prod` 는 `LSWIKI_DOC.git`, `dev` 는 `LSWIKI_DOC_DEV.git`, `local-test` 는 remote-empty 를 가리킴
 - wrong-remote existing repo 인 경우 자동 rewrite 가 아니라 blocking reason 이 노출됨
 - local-test 는 운영/개발 remote 를 건드리지 않음
+- bind-mounted 문서 root에서 `dubious ownership`이 발생하지 않고 authenticated `/api/files`가 정상 응답함
 
 ---
 
@@ -183,6 +187,7 @@ pnpm run verify:access-dms:raw
 |---|---|
 | 2026-08-19 | local-test 이후 dev 인계 게이트, 역할별 별도 working tree 보존, mode `0600` HTTPS Docker secret과 origin-scoped credential helper 계약을 추가 |
 | 2026-08-19 | 공통 Compose fail-closed, dev/local-test/prod overlay 역할 격리, Git/control-plane startup-fatal, 통합 readiness와 오염 실패주입 검증 반영 |
+| 2026-08-06 | bind-mounted 문서 root 소유권이 container user와 달라도 configured root만 command-local `safe.directory`로 허용하는 운영 계약과 검증 기준을 추가 |
 | 2026-06-04 | 역할 매핑 검증 문장을 명시해 docs verify 의 prod/dev canonical remote 점검 기준을 보강 |
 | 2026-06-01 | `DMS_INSTANCE_ENV` 기준 prod/dev/local-test 문서 repo 분리 계약, wrong-remote blocking, local-test 격리 규칙을 반영 |
 | 2026-05-08 | 사이드바 변경사항 표시를 실패/차단 publish 복구 전용 UI로 조정 |

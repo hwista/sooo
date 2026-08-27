@@ -21,6 +21,7 @@
     "verify:prisma-deepmerge-security": "node scripts/verify-prisma-deepmerge-security.mjs",
     "test:e2e:dms": "playwright test --config automation/playwright.config.ts",
     "test:e2e:input-intent": "SSOO_INPUT_INTENT_E2E=1 PLAYWRIGHT_SKIP_WEB_SERVER=1 playwright test --config automation/playwright.config.ts input-intent-integrity.spec.ts",
+    "verify:gitlab-pipeline": "bash automation/tests/ci/gitlab-pipeline-contract.sh",
     "playwright:install": "playwright install chromium",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",

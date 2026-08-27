@@ -1,11 +1,11 @@
 # DMS / SSOO Docker 배포 가이드
 
-> 최종 업데이트: 2026-08-19
+> 최종 업데이트: 2026-08-27
 
 DMS를 **모노레포 통합 런타임 기준**으로 Docker 컨테이너에 배포하는 가이드입니다.  
 지원 경로는 repo root `compose.yaml`을 역할 없는 공용 base로 두고, 로컬은 `compose.local.yaml`, 격리 브라우저 테스트는 `compose.local.yaml + compose.local-test.yaml`, 공개 배포는 `compose.production.yaml`을 반드시 함께 사용하는 방식입니다. 기본 배포 단위는 `postgres + server + admin + crm + pms + dms + sns` 전체 스택입니다.
 
-> `compose.yaml` 의 Compose project name 은 `ssoo` 로 고정됩니다. 체크아웃 폴더명이 달라도 Docker Desktop 앱/리소스 이름이 `ssoo-*` 컨테이너 기준으로 일관되게 유지되도록 하기 위한 설정입니다.
+> `compose.yaml` 의 Compose project name 기본값은 `ssoo`입니다. 체크아웃 폴더명이 달라도 로컬 Docker 리소스 이름이 일관되며, CI는 `COMPOSE_PROJECT_NAME`과 `POSTGRES_DATA_VOLUME`을 함께 지정해 기존 운영 volume을 보존합니다.
 
 ---
 
@@ -350,6 +350,20 @@ server:
 - Docker DMS는 workspace 빌드(`pnpm`, `@ssoo/types`, `@ssoo/web-auth`)를 전제로 합니다.
 - 기본 compose는 DMS 단독이 아니라 **모노레포 full-stack**을 띄웁니다.
 
+### GitLab pipeline 배포 계약
+
+- `development` push는 `verify -> ai_review -> build`를 자동 실행하고, `deploy_dev`는 `when: manual` + `allow_failure: false`로 유지합니다. 자동 단계가 끝난 pipeline은 배포 전까지 blocked/manual 상태이며, deploy가 성공해야 success, deploy가 실패하면 failed가 됩니다. 이 상태 계약은 배포를 자동 실행하지 않으면서도 실패한 수동 배포를 green pipeline으로 숨기지 않습니다.
+- shell runner의 persistent checkout은 각 job 시작 시 remote ref를 fetch한 뒤 exact `CI_COMMIT_SHA`로 reset하며, HEAD 불일치나 non-ignored 잔여 파일이 있으면 build/deploy 전에 실패합니다. 운영자가 checkout 옆에 보존하는 `.env.*`/`compose.yaml.bak*` 백업은 Git과 Docker build context에서 제외되며, 이 명시 패턴 밖의 임의 파일은 허용하지 않습니다.
+- `verify`는 shell runner host의 전역 Node/pnpm에 의존하지 않습니다. exact commit source, `pnpm install --frozen-lockfile` 의존성, generated Prisma client를 담은 저장소 정본 Node 22/pnpm 11.13.1 CI image에서 GitLab pipeline contract, Codex preflight, root lint, server test를 실제로 실행하고 Git metadata만 read-only mount합니다.
+- build image는 `app-<service>:<CI_COMMIT_SHA>` 태그로 보존합니다. 수동 deploy는 선택한 pipeline SHA의 image를 `latest`로 복원한 뒤 기존 Compose stack을 `--no-build`로 올립니다.
+- deploy 직전에는 먼저 7개 commit image와 모든 기존 container의 rollback source를 전수 분류합니다. 실행 container의 image object가 남아 있으면 그 exact ID를 backup tag로 보존하고, container는 있지만 image object가 사라졌으면 먼저 `docker commit` application-container snapshot을 시도합니다. Docker content store 손상으로 commit도 실패하면 실행 container의 merged filesystem을 `docker export`하고 기존 CMD/ENTRYPOINT/WORKDIR/USER/ENV/EXPOSE/STOPSIGNAL을 `docker import --change`로 재적용한 평탄화 image를 만든 뒤 핵심 실행 metadata와 image ID를 검증합니다. 첫 배포처럼 기존 container가 없을 때만 현재 `latest`를 fallback으로 보존합니다. snapshot/export image는 application image 복구용이며 PostgreSQL, volume, bind-mounted DMS 문서/첨부 데이터의 백업을 대신하지 않습니다.
+- 모든 서비스 backup이 성공한 뒤에만 completed manifest와 last-backup marker를 기록합니다. 일부 tag만 만들어진 실패 시도는 유효한 rollback set으로 취급하지 않으며, commit image나 rollback source가 하나라도 준비되지 않으면 image 선택과 Compose 변경 전에 실패합니다.
+- build/deploy trace에는 commit image ID와 배포된 `ssoo-<service>` container image ID가 남고, 하나라도 다르면 deploy job이 실패합니다.
+- 기본 60초 후 PostgreSQL과 전체 web/server container가 모두 `healthy`가 아니면 deploy job이 실패합니다. commit image 선택 이후 Compose recreation, health, image parity 중 하나라도 실패하면 completed manifest의 backup image를 `latest`로 복원하고 이전 application image set을 같은 Compose topology에서 `--no-build`로 다시 올린 뒤 rollback health와 container/backup-image parity를 검증합니다. Compose topology 또는 DB migration을 바꾸는 배포는 이 image rollback만으로 안전하다고 간주하지 않으며 별도 migration/config rollback 계획이 필요합니다.
+- verify/build 직전에는 실행 중 container, volume을 삭제하지 않고 unused BuildKit cache와 dangling image만 정리합니다. 실패한 이전 build가 `latest`를 바꿨지만 해당 image가 운영 container에 배포되지 않은 경우에는 그 7개 application `latest` tag만 정확히 식별해 제거하며, 실행 container image와 commit tag는 보존합니다. 먼저 지정된 cache 보존량을 유지하며 정리하고 Docker root의 여유 공간이 기본 8 GiB 미만이면 unused BuildKit cache를 전량 정리한 뒤 재측정하며, 그래도 부족하면 실제 build 전에 실패합니다. Compose의 다중 타깃 build는 병렬도 1에서도 BuildKit 내부 타깃을 동시에 처리하며 단일 서비스 요청도 `depends_on` image를 함께 예약할 수 있으므로 직접 실행하지 않습니다. Compose가 계산한 context, Dockerfile, build args, tag를 Bake 정의로 출력한 뒤 큰 `server`, `db-init`을 먼저 만들고 `pms`, `dms`, `sns`, `admin`, `crm` target을 Buildx로 하나씩 완전히 순차 빌드합니다. target 사이에는 unused BuildKit cache를 전량 정리하고 기본 3 GiB 여유 공간을 재검사합니다. 초기/target 임계값과 1차 cache 보존량은 각각 `CI_BUILD_MIN_FREE_KB`, `CI_BUILD_TARGET_MIN_FREE_KB`, `CI_BUILD_CACHE_KEEP_STORAGE`로 조정할 수 있습니다.
+- 자동 rollback이 성공해도 원래 deploy job은 failed로 유지해 배포 실패 사실을 보존합니다. rollback도 실패하면 trace에 manifest 경로와 manual recovery 필요 상태를 남기고 failed로 종료하며, 운영자가 확인하기 전 추가 배포를 실행하지 않습니다.
+- persistent worktree와 shared Docker tag를 사용하는 job은 shell runner host의 `/tmp/ssoo-app-runtime.lock` `flock`으로 직렬화됩니다. 더 최신 pipeline이 `latest`를 갱신한 뒤 과거 pipeline의 manual deploy를 실행해도 선택한 commit tag가 배포 기준입니다.
+
 ---
 
 ## 트러블슈팅
@@ -409,10 +423,14 @@ docker desktop status
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-08-27 | Compose project/port 가변화와 exact-SHA CI·rollback·disk recovery를 현행 SSOO 포트·Node 22/pnpm 11.13.1 정본에 맞춰 통합 |
 | 2026-08-19 | `local-test`를 자동 회귀 전용, `dev`를 실제 로컬 사용자 인수 테스트 정본으로 확정하고 dev 별도 working tree, mode `0600` HTTPS Git secret, 활성 storage readiness, Docker Desktop WSL integration/stale VHD 조건부 복구 절차를 추가 |
 | 2026-08-12 | liveness/DB readiness 분리, DMS aggregate readiness, ingest smoke, Admin 운영 제어, AI readiness, 백업 복원 증거를 공개 전환 필수 gate로 추가 |
 | 2026-07-16 | 로컬/프로덕션 Compose overlay를 분리하고 production env secret/HTTPS/cookie/DB/DMS path/Git remote fail-closed gate, loopback port binding, 전체 교차 앱 URL build contract를 추가 |
 | 2026-07-16 | DMS 브라우저 WebSocket origin을 explicit URL → public API origin → browser host `:4000` 순서로 해석하고 Docker build argument를 추가 |
+| 2026-08-06 | verify/build 전 unused build cache·dangling image와 undeployed application `latest`를 정리하고 초기 8 GiB/target 간 3 GiB free-space gate를 적용하며, Compose-resolved Bake target 7개를 Buildx로 하나씩 빌드해 runner ENOSPC를 사전 복구/차단 |
+| 2026-08-06 | missing running-image를 application-container snapshot으로 보존하고 content-store 손상 시 metadata-preserving filesystem export/import로 재구성하는 rollback preflight/completed manifest, post-mutation automatic rollback, manual+non-optional deploy 상태 계약을 추가 |
+| 2026-07-15 | 현재 GitLab 버전과 호환되는 host `flock`, exact `CI_COMMIT_SHA` source alignment, 실제 자동 verify, commit-tagged image와 deployed container ID parity 계약을 추가 |
 | 2026-06-19 | local compose 에서 `apps/web/dms/.env.local` 의 DMS/Azure 값을 `web-dms`와 `server`가 함께 읽도록 정리해 로컬 요약 경로가 UI 설정과 어긋나지 않게 수정 |
 | 2026-06-19 | `compose.yaml` 의 Compose project name 을 `ssoo` 로 고정하고, Docker Desktop 에 남아 있는 이전 project 충돌을 위한 1회 정리 절차를 추가 |
 | 2026-04-22 | 데이터 경로 트러블슈팅을 server-owned external runtime mount(`DMS_MARKDOWN_ROOT`, `DMS_TEMPLATE_ROOT`, `DMS_INGEST_QUEUE_PATH`, `DMS_STORAGE_LOCAL_BASE_PATH`) 기준으로 정리 |

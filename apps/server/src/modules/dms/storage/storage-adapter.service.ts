@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { configService, type StorageProvider } from '../runtime/dms-config.service.js';
+import { normalizeDmsFileName } from '../runtime/file-utils.js';
 import { normalizeRelativePath, resolveContainedPath as resolvePathWithinRoot } from '../runtime/path-utils.js';
 
 export type StorageOrigin = 'manual' | 'ingest' | 'teams' | 'network_drive';
@@ -96,12 +97,41 @@ class StorageAdapterService {
     return `${provider}://${encodeURIComponent(targetPath.replace(/\\/g, '/'))}`;
   }
 
-  private buildOpenUrl(provider: StorageProvider, targetPath: string, webBaseUrl?: string): string {
-    const encodedPath = encodeURIComponent(targetPath.replace(/\\/g, '/'));
-    if (webBaseUrl) {
-      return `${webBaseUrl.replace(/\/$/, '')}/${targetPath.replace(/^\/+/, '')}`;
+  private buildExternalWebUrl(targetPath: string, webBaseUrl?: string): string | null {
+    const trimmedBaseUrl = webBaseUrl?.trim();
+    if (!trimmedBaseUrl) {
+      return null;
     }
 
+    let baseUrl: URL;
+    try {
+      baseUrl = new URL(trimmedBaseUrl);
+    } catch {
+      return null;
+    }
+
+    if (baseUrl.protocol !== 'http:' && baseUrl.protocol !== 'https:') {
+      return null;
+    }
+
+    const normalizedPath = targetPath.replace(/\\/g, '/').replace(/^\/+/, '');
+    const encodedPath = normalizedPath
+      .split('/')
+      .filter((segment) => segment.length > 0)
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
+    const basePathname = baseUrl.pathname.endsWith('/') ? baseUrl.pathname : `${baseUrl.pathname}/`;
+    baseUrl.pathname = encodedPath ? `${basePathname}${encodedPath}` : basePathname;
+    return baseUrl.toString();
+  }
+
+  private buildOpenUrl(provider: StorageProvider, targetPath: string, webBaseUrl?: string): string {
+    const externalUrl = this.buildExternalWebUrl(targetPath, webBaseUrl);
+    if (externalUrl) {
+      return externalUrl;
+    }
+
+    const encodedPath = encodeURIComponent(targetPath.replace(/\\/g, '/'));
     return `/api/storage/open?provider=${provider}&path=${encodedPath}`;
   }
 
@@ -122,7 +152,7 @@ class StorageAdapterService {
 
   private resolveDestination(provider: StorageProvider, relativePath: string, fileName: string): { fullPath: string; relativePath: string } {
     const normalizedRelative = normalizeRelativePath(relativePath);
-    const safeName = fileName.replace(/[<>:"/\\|?*]/g, '_');
+    const safeName = normalizeDmsFileName(fileName);
     const relativeTarget = normalizedRelative ? `${normalizedRelative}/${safeName}` : safeName;
     return this.resolveContainedPath(provider, relativeTarget);
   }
@@ -134,7 +164,8 @@ class StorageAdapterService {
       throw new Error(`${provider} 저장소가 비활성화되어 있습니다.`);
     }
 
-    const destination = this.resolveDestination(provider, request.relativePath ?? '', request.fileName);
+    const normalizedFileName = normalizeDmsFileName(request.fileName);
+    const destination = this.resolveDestination(provider, request.relativePath ?? '', normalizedFileName);
     ensureDirectory(path.dirname(destination.fullPath));
     fs.writeFileSync(destination.fullPath, request.content);
 
@@ -147,16 +178,14 @@ class StorageAdapterService {
       storageUri: this.toStorageUri(provider, destination.relativePath),
       provider,
       path: destination.relativePath,
-      name: request.fileName,
+      name: normalizedFileName,
       size: stats.size,
       versionId,
       etag,
       checksum,
       origin: request.origin ?? 'manual',
       status: request.status ?? 'published',
-      webUrl: providerConfig.webBaseUrl
-        ? `${providerConfig.webBaseUrl.replace(/\/$/, '')}/${destination.relativePath}`
-        : undefined,
+      webUrl: this.buildExternalWebUrl(destination.relativePath, providerConfig.webBaseUrl) ?? undefined,
     };
   }
 
@@ -182,9 +211,7 @@ class StorageAdapterService {
       path: contained.relativePath,
       storageUri: this.toStorageUri(provider, contained.relativePath),
       openUrl: this.buildOpenUrl(provider, contained.relativePath, providerConfig.webBaseUrl),
-      webUrl: providerConfig.webBaseUrl
-        ? `${providerConfig.webBaseUrl.replace(/\/$/, '')}/${contained.relativePath}`
-        : undefined,
+      webUrl: this.buildExternalWebUrl(contained.relativePath, providerConfig.webBaseUrl) ?? undefined,
     };
   }
 
@@ -211,7 +238,7 @@ class StorageAdapterService {
     const checksum = hashValue(fileBuffer);
     const versionId = String(stats.mtimeMs);
     const etag = hashValue(`${contained.relativePath}:${stats.size}:${versionId}`).slice(0, 16);
-    const fileName = request.fileName?.trim() || path.basename(contained.fullPath);
+    const fileName = normalizeDmsFileName(request.fileName?.trim() || path.basename(contained.fullPath));
 
     return {
       storageUri: this.toStorageUri(provider, contained.relativePath),
@@ -224,9 +251,7 @@ class StorageAdapterService {
       checksum,
       origin: request.origin ?? 'manual',
       status: request.status ?? 'published',
-      webUrl: providerConfig.webBaseUrl
-        ? `${providerConfig.webBaseUrl.replace(/\/$/, '')}/${contained.relativePath}`
-        : undefined,
+      webUrl: this.buildExternalWebUrl(contained.relativePath, providerConfig.webBaseUrl) ?? undefined,
     };
   }
 }

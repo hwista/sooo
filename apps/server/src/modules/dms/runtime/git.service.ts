@@ -30,6 +30,7 @@ import {
   filterDiscardableGitManagedPaths,
   filterStageableGitManagedFiles,
 } from './git-stage.util.js';
+import { createDmsGitClient } from './git-client.util.js';
 import { buildParityStatus } from './git-sync.util.js';
 import {
   getRepositoryBindingStatus,
@@ -192,7 +193,7 @@ class GitService {
   constructor() {
     this.docDir = configService.getDocDir();
     fs.mkdirSync(this.docDir, { recursive: true });
-    this.git = simpleGit(this.docDir);
+    this.git = createDmsGitClient(this.docDir);
   }
 
   /**
@@ -201,7 +202,7 @@ class GitService {
   reconfigure(newPath: string): void {
     this.docDir = newPath;
     fs.mkdirSync(this.docDir, { recursive: true });
-    this.git = simpleGit(newPath);
+    this.git = createDmsGitClient(newPath);
     this.initialized = false;
     logger.info('Git 저장소 경로 재설정', { path: newPath });
   }
@@ -232,7 +233,7 @@ class GitService {
 
     try {
       this.ensureDocDirExists();
-      this.git = simpleGit(this.docDir);
+      this.git = createDmsGitClient(this.docDir);
       const isRepo = await this.git.checkIsRepo();
       const bootstrapRemoteUrl = configService.getGitBootstrapRemoteUrl();
       const bootstrapBranch = configService.getGitBootstrapBranch();
@@ -370,7 +371,7 @@ class GitService {
       : [];
 
     await simpleGit().clone(remoteUrl, this.docDir, cloneArgs);
-    this.git = simpleGit(this.docDir);
+    this.git = createDmsGitClient(this.docDir);
   }
 
   private async ensureConfiguredRemote(remoteUrl?: string): Promise<void> {

@@ -4,6 +4,8 @@ import { fetchWithSharedAuth } from '@/lib/api/sharedAuth';
 import { hasUsableSummaryContent } from '@/lib/summaryFileStatus';
 import type { InlineSummaryFileItem } from './Picker';
 
+const SUMMARY_FILE_EXTRACTION_TIMEOUT_MS = 30_000;
+
 function buildInlineSummaryFileId(file: Pick<File, 'name' | 'lastModified' | 'size'>): string {
   return `${file.name}-${file.lastModified}-${file.size}`;
 }
@@ -30,15 +32,44 @@ export async function extractSummaryFile(
   let warningReason: string | undefined;
   let unsupportedReason: string | undefined;
   let protectedMarkerDetected: boolean | undefined;
+  let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined;
+  let removeAbortListener: (() => void) | undefined;
 
   try {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetchWithSharedAuth('/api/file/extract-text', {
-      method: 'POST',
-      body: formData,
-      signal: options?.signal,
+    const controller = new AbortController();
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = globalThis.setTimeout(() => {
+        controller.abort();
+        reject(new DOMException('Timed out', 'AbortError'));
+      }, SUMMARY_FILE_EXTRACTION_TIMEOUT_MS);
     });
+    const abortPromise = options?.signal
+      ? new Promise<never>((_, reject) => {
+        if (options.signal?.aborted) {
+          controller.abort();
+          reject(new DOMException('Aborted', 'AbortError'));
+          return;
+        }
+
+        const onAbort = () => {
+          controller.abort();
+          reject(new DOMException('Aborted', 'AbortError'));
+        };
+        options.signal?.addEventListener('abort', onAbort, { once: true });
+        removeAbortListener = () => options.signal?.removeEventListener('abort', onAbort);
+      })
+      : null;
+    const res = await Promise.race([
+      fetchWithSharedAuth('/api/file/extract-text', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      }),
+      timeoutPromise,
+      ...(abortPromise ? [abortPromise] : []),
+    ]);
     const data = await res.json().catch(() => null);
 
     if (res.ok) {
@@ -57,6 +88,11 @@ export async function extractSummaryFile(
       throw error;
     }
     unsupportedReason = 'extraction-error';
+  } finally {
+    if (timeoutId !== undefined) {
+      globalThis.clearTimeout(timeoutId);
+    }
+    removeAbortListener?.();
   }
 
   const candidate: InlineSummaryFileItem = {

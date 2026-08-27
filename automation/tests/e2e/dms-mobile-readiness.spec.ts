@@ -30,7 +30,7 @@ test('DMS and Admin operational navigation remain usable at 390x844', async ({ b
       password,
       retryAfterRateLimit: true,
       waitUntilReady: async (page) => {
-        await expect(page.getByRole('heading', { name: '문서 관리 시스템' }))
+        await expect(page.getByRole('button', { name: '모바일 메뉴 열기' }))
           .toBeVisible({ timeout: 30_000 });
       },
     });

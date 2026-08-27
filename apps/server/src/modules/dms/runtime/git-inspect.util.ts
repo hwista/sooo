@@ -7,6 +7,7 @@ import type {
   GitSyncStatus,
 } from './git.service.js';
 import { configService } from './dms-config.service.js';
+import { createDmsGitClient } from './git-client.util.js';
 import { gitRemoteIdentitiesMatch } from './git-remote-identity.util.js';
 import { buildParityStatus, computeSyncState } from './git-sync.util.js';
 
@@ -225,7 +226,7 @@ export async function getRepositoryBindingStatus(
     };
   }
 
-  const git = simpleGit(configuredRoot);
+  const git = createDmsGitClient(configuredRoot);
   let isRepository = false;
   try {
     isRepository = configuredRootExists ? await git.checkIsRepo() : false;

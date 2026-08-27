@@ -185,7 +185,7 @@ cp .env.example .env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ssoo_dev?schema=public"
 PORT=4000
 NODE_ENV=development
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004
 ```
 
 선택적으로 DMS runtime env도 준비합니다:
@@ -249,7 +249,7 @@ pnpm dev:web-sns    # SNS:   http://localhost:3004
 curl http://localhost:4000/api/health
 
 # 웹 브라우저에서 확인
-open http://localhost:3002
+open http://localhost:3000
 ```
 
 ---
@@ -331,7 +331,11 @@ node ./node_modules/next/dist/bin/next dev --port 3002
 ✅ Server: http://localhost:4000/api/health
    → {"success":true,"data":{"status":"ok","service":"ssoo-server","version":"0.0.1"}}
 
+✅ Web Admin: http://localhost:3000
+✅ Web CRM: http://localhost:3001
 ✅ Web PMS: http://localhost:3002
+✅ Web DMS: http://localhost:3003
+✅ Web SNS: http://localhost:3004
    → SSOO 메인 페이지 + Server Status 연동 확인
 ```
 

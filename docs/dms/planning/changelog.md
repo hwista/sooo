@@ -221,6 +221,28 @@
 - DMS 설정 편집은 DB JSONB 설정값을 structured form으로만 주고받도록 고정하고, JSON/Diff 보기 전환 UI와 `defaultSettingsView`, `showDiffByDefault` 개인 설정 키를 제거했습니다.
 - 기존 DB에 남아 있을 수 있는 legacy 설정 view-mode 키는 `20260706103000_remove_dms_settings_view_mode` migration으로 정리합니다.
 
+## 2026-08-06
+
+### 운영 문서 저장소 bind-mount 소유권 호환
+
+- 운영 컨테이너와 bind-mounted 문서 저장소의 소유자가 다를 때 Git이 `dubious ownership`으로 저장소 명령을 차단해 전체 사용자의 문서 목록 API가 500으로 실패하던 경로를 수정했습니다.
+- DMS가 해석한 정확한 문서 root만 각 Git 명령의 command-local `safe.directory`로 허용하고, container global config와 wildcard 신뢰 설정은 사용하지 않습니다.
+- Git의 different-owner 테스트 모드에서 기존 client 실패와 새 scoped client 성공을 함께 검증하는 서버 회귀 테스트를 추가했습니다.
+
+### CI Docker 저장공간 고갈 사전 복구
+
+- image build가 containerd `no space left on device`로 중단되는 runner 누적 결함을 막기 위해 verify/build 직전에 unused BuildKit cache와 dangling image만 정리하고 Docker root 여유 공간을 fail-closed로 검사합니다. 1차 cache 보존 정리 후에도 임계값보다 부족하면 unused BuildKit cache를 전량 정리하고 재측정합니다.
+- 실행 중 container, commit-tagged image, volume은 정리 대상에서 제외합니다. 실패한 build가 남긴 application `latest` 중 운영 container image와 다른 tag만 verify/build 양쪽에서 제거해 다음 파이프라인의 초기 공간을 복구합니다. Compose가 계산한 Bake 정의에서 각 target만 Buildx로 직접 선택해 7개 image를 순차 빌드하고 target 사이마다 cache 정리와 용량 검사를 반복합니다.
+- deterministic pipeline contract에 cache/image prune 실행, 충분한 용량에서만 7개 서비스가 고정 순서로 빌드되는 계약, 중간 서비스 실패 시 즉시 중단, 부족한 용량에서 zero-build 차단을 추가했습니다.
+
+## 2026-07-14
+
+### DMS 신규 계정 빈 문서 트리 bootstrap 정상화
+
+- 로그인 사용자의 `/api/files?force=1` 요청이 성공하면 결과가 빈 배열이어도 파일 트리 bootstrap을 정상 완료하고 메인 shell과 `표시할 문서가 없습니다.` 상태를 렌더하도록 정렬했습니다.
+- 성공한 빈 결과를 오류 화면으로 바꾸던 main layout 조건과 force-sync empty 자동 재시도 루프를 제거했습니다. 자동 bootstrap과 사용자의 명시적 재시도 클릭은 각각 요청을 한 번만 실행합니다.
+- 실제 ACL empty 계정의 첫 문서 생성, 오류 후 수동 복구, 실제 로그아웃/다른 계정 로그인, 사용자 scope 전환 중 이전 지연 응답 폐기를 WS-022 Playwright 회귀 시나리오로 고정했습니다.
+
 ## 2026-07-03
 
 ### DMS 파일 트리 missing row 재활성화

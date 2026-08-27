@@ -1,4 +1,4 @@
-name: ssoo
+name: ${COMPOSE_PROJECT_NAME:-ssoo}
 
 services:
   postgres:
@@ -143,10 +143,10 @@ services:
     container_name: ssoo-pms
     restart: unless-stopped
     ports:
-      - "3002:3002"
+      - "${PMS_PORT:-3002}:${PMS_PORT:-3002}"
     environment:
       NODE_ENV: production
-      PORT: 3002
+      PORT: ${PMS_PORT:-3002}
       NEXT_PUBLIC_API_URL: ${PMS_NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
       NEXT_PUBLIC_ADMIN_APP_URL: ${NEXT_PUBLIC_ADMIN_APP_URL:-http://localhost:3000}
       NEXT_PUBLIC_CRM_APP_URL: ${NEXT_PUBLIC_CRM_APP_URL:-http://localhost:3001}
@@ -163,7 +163,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3002').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:${PMS_PORT:-3002}').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -187,10 +187,10 @@ services:
     container_name: ssoo-sns
     restart: unless-stopped
     ports:
-      - "3004:3004"
+      - "${SNS_PORT:-3004}:${SNS_PORT:-3004}"
     environment:
       NODE_ENV: production
-      PORT: 3004
+      PORT: ${SNS_PORT:-3004}
       NEXT_PUBLIC_API_URL: ${SNS_NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
       NEXT_PUBLIC_ADMIN_APP_URL: ${NEXT_PUBLIC_ADMIN_APP_URL:-http://localhost:3000}
       NEXT_PUBLIC_CRM_APP_URL: ${NEXT_PUBLIC_CRM_APP_URL:-http://localhost:3001}
@@ -207,7 +207,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3004').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:${SNS_PORT:-3004}').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -232,13 +232,13 @@ services:
     container_name: ssoo-dms
     restart: unless-stopped
     ports:
-      - "3003:3003"
+      - "${DMS_PORT:-3003}:${DMS_PORT:-3003}"
     env_file:
       - path: ./apps/web/dms/.env.local
         required: false
     environment:
       NODE_ENV: production
-      PORT: 3003
+      PORT: ${DMS_PORT:-3003}
       DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://ssoo:ssoo_dev_pw@postgres:5432/ssoo_dev?schema=public}
       DMS_DATABASE_URL: ${DOCKER_DMS_DATABASE_URL:-postgresql://ssoo:ssoo_dev_pw@postgres:5432/ssoo_dev?schema=public}
       DMS_SERVER_API_URL: ${DMS_SERVER_API_URL:-http://server:4000/api}
@@ -258,7 +258,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3003').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:${DMS_PORT:-3003}').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -283,10 +283,10 @@ services:
     container_name: ssoo-admin
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${ADMIN_PORT:-3000}:${ADMIN_PORT:-3000}"
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: ${ADMIN_PORT:-3000}
       NEXT_PUBLIC_API_URL: ${ADMIN_NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
       ADMIN_SERVER_API_URL: ${ADMIN_SERVER_API_URL:-http://server:4000/api}
       NEXT_PUBLIC_ADMIN_APP_URL: ${NEXT_PUBLIC_ADMIN_APP_URL:-http://localhost:3000}
@@ -303,7 +303,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3000').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:${ADMIN_PORT:-3000}').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -328,10 +328,10 @@ services:
     container_name: ssoo-crm
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "${CRM_PORT:-3001}:${CRM_PORT:-3001}"
     environment:
       NODE_ENV: production
-      PORT: 3001
+      PORT: ${CRM_PORT:-3001}
       NEXT_PUBLIC_API_URL: ${CRM_NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
       CRM_SERVER_API_URL: ${CRM_SERVER_API_URL:-http://server:4000/api}
       NEXT_PUBLIC_ADMIN_APP_URL: ${NEXT_PUBLIC_ADMIN_APP_URL:-http://localhost:3000}
@@ -348,7 +348,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3001').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:${CRM_PORT:-3001}').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
@@ -356,6 +356,7 @@ services:
 
 volumes:
   ssoo-postgres-data:
+    name: ${POSTGRES_DATA_VOLUME:-ssoo_ssoo-postgres-data}
 
 secrets:
   ssoo_tls_ca:
